@@ -1,39 +1,27 @@
 import { env } from 'cloudflare:workers';
+import {
+  createDeliveryApiClient,
+  getMediaUrl as getMediaUrlFromBase,
+  getPlainText as getPlainTextFromBlocks,
+  mapMedia,
+  richTextToHtml,
+  type FetchOptions,
+  type RichTextNode,
+  type UmbracoBlock,
+  type UmbracoItem,
+  type UmbracoMedia,
+} from '@portals/umbraco-client';
 
 const UMBRACO_URL = env.UMBRACO_URL || 'http://localhost:5000';
 const UMBRACO_PUBLIC_URL = env.UMBRACO_PUBLIC_URL || UMBRACO_URL;
 const API_KEY = env.UMBRACO_API_KEY;
 
-// Preview mode options
-export interface FetchOptions {
-  preview?: boolean;
-  locale?: string;
-}
+const client = createDeliveryApiClient({
+  baseUrl: UMBRACO_URL,
+  apiKey: API_KEY,
+});
 
-// Umbraco Content Delivery API response format
-interface UmbracoResponse<T> {
-  total: number;
-  items: UmbracoItem[];
-}
-
-interface UmbracoItem {
-  id: string;
-  name: string;
-  contentType: string;
-  createDate: string;
-  updateDate: string;
-  route: { path: string; startItem: { id: string; path: string } };
-  properties: Record<string, unknown>;
-  cultures: Record<string, { path: string; startItem: { id: string; path: string } }>;
-}
-
-interface UmbracoSingleItem extends UmbracoItem {}
-
-// Block List item from Umbraco Delivery API
-export interface UmbracoBlock {
-  contentType: string;
-  content: Record<string, unknown>;
-}
+export type { FetchOptions, UmbracoBlock, UmbracoMedia };
 
 // Artikkel block types
 export interface ArtikkelTekstBlock {
@@ -416,15 +404,6 @@ export interface Merkelapp {
   locale: string;
 }
 
-export interface UmbracoMedia {
-  id: string;
-  url: string;
-  alternativeText?: string;
-  width?: number;
-  height?: number;
-  focalPoint?: { left: number; top: number };
-}
-
 interface CompatResponse<T> {
   data: T[];
   meta: {
@@ -437,75 +416,7 @@ interface CompatResponse<T> {
   };
 }
 
-// ── Umbraco RichText JSON → HTML converter ──────────────────────
-
-interface RichTextNode {
-  tag: string;
-  text?: string;
-  attributes?: Record<string, string>;
-  elements?: RichTextNode[];
-}
-
-function richTextToHtml(node: RichTextNode): string {
-  // Text node
-  if (node.tag === '#text') {
-    return escapeHtml(node.text || '');
-  }
-
-  // Root node — just render children
-  if (node.tag === '#root') {
-    return (node.elements || []).map(richTextToHtml).join('');
-  }
-
-  // Comment node
-  if (node.tag === '#comment') return '';
-
-  // Self-closing tags
-  const selfClosing = ['br', 'hr', 'img', 'input'];
-  const children = (node.elements || []).map(richTextToHtml).join('');
-
-  // Heading tags — inject id for TOC anchor links
-  if (/^h[1-6]$/.test(node.tag)) {
-    const text = nodeToPlainText(node);
-    const id = text.toLowerCase().replace(/[^a-zæøå0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const attrs = renderAttributes(node.attributes);
-    return `<${node.tag}${attrs} id="${id}">${children}</${node.tag}>`;
-  }
-
-  const attrs = renderAttributes(node.attributes);
-
-  if (selfClosing.includes(node.tag)) {
-    return `<${node.tag}${attrs} />`;
-  }
-
-  return `<${node.tag}${attrs}>${children}</${node.tag}>`;
-}
-
-/** Extract plain text from a RichText AST node (used for heading id generation) */
-function nodeToPlainText(node: RichTextNode): string {
-  if (node.tag === '#text') return node.text || '';
-  if (node.tag === '#comment') return '';
-  return (node.elements || []).map(nodeToPlainText).join('');
-}
-
-function renderAttributes(attrs?: Record<string, string>): string {
-  if (!attrs || Object.keys(attrs).length === 0) return '';
-  return Object.entries(attrs)
-    .map(([key, value]) => ` ${key}="${escapeHtml(value)}"`)
-    .join('');
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 // ── Generic fetch for Umbraco Content Delivery API v2 ───────────
-
-const API_BASE = `${UMBRACO_URL}/umbraco/delivery/api/v2/content`;
 
 async function fetchCollection<T>(
   contentType: string,
@@ -516,47 +427,18 @@ async function fetchCollection<T>(
     take?: number;
   } = {}
 ): Promise<CompatResponse<T>> {
-  const headers: HeadersInit = {
-    'Accept': 'application/json',
-  };
-
-  // Only send Accept-Language if content has culture variants
-  if (options.locale) {
-    headers['Accept-Language'] = options.locale;
-  }
-
-  if (options.preview && API_KEY) {
-    headers['Api-Key'] = API_KEY;
-  }
-
-  const params = new URLSearchParams();
-  params.set('filter', `contentType:${contentType}`);
-  if (options.filter) {
-    params.append('filter', options.filter);
-  }
-  if (options.sort) {
-    params.set('sort', options.sort);
-  }
-  if (options.take) {
-    params.set('take', String(options.take));
-  }
-  if (options.skip) {
-    params.set('skip', String(options.skip));
-  }
-  if (options.preview) {
-    params.set('preview', 'true');
-  }
-
-  const url = `${API_BASE}?${params.toString()}`;
+  const filters: string[] = [`contentType:${contentType}`];
+  if (options.filter) filters.push(options.filter);
 
   try {
-    const res = await fetch(url, { headers });
-
-    if (!res.ok) {
-      throw new Error(`Umbraco API error: ${res.status} ${res.statusText}`);
-    }
-
-    const data: UmbracoResponse<T> = await res.json();
+    const data = await client.fetchCollection({
+      filter: filters,
+      sort: options.sort,
+      skip: options.skip,
+      take: options.take,
+      preview: options.preview,
+      culture: options.locale,
+    });
 
     return {
       data: data.items.map((item) => mapItem<T>(item, contentType)),
@@ -1057,32 +939,6 @@ function mapVerktoyKort(value: unknown): VerktoyKort[] {
   });
 }
 
-function mapMedia(value: unknown): UmbracoMedia | undefined {
-  if (!value) return undefined;
-  if (Array.isArray(value) && value.length > 0) {
-    const media = value[0];
-    return {
-      id: media.id || '',
-      url: media.url || media.mediaUrl || '',
-      alternativeText: media.altText || media.name || '',
-      width: media.width,
-      height: media.height,
-      focalPoint: media.focalPoint,
-    };
-  }
-  if (typeof value === 'object' && value !== null) {
-    const media = value as any;
-    return {
-      id: media.id || '',
-      url: media.url || media.mediaUrl || '',
-      alternativeText: media.altText || media.name || '',
-      width: media.width,
-      height: media.height,
-    };
-  }
-  return undefined;
-}
-
 function mapMerkelapper(value: unknown): Merkelapp[] {
   if (!value || !Array.isArray(value)) return [];
   return value.map((item: any) => ({
@@ -1119,29 +975,13 @@ function parseJsonArray(value: string | undefined): string[] {
   }
 }
 
-// Helper to get full media URL
+// Bind to module-level UMBRACO_PUBLIC_URL so call sites stay compact.
 export function getMediaUrl(media?: UmbracoMedia): string | undefined {
-  if (!media?.url) return undefined;
-  if (media.url.startsWith('http')) return media.url;
-  return `${UMBRACO_PUBLIC_URL}${media.url}`;
+  return getMediaUrlFromBase(media, UMBRACO_PUBLIC_URL);
 }
 
-/**
- * Extract plain text from UmbracoBlock[] (useful for excerpts and SEO).
- * Strips HTML tags from the tekst block's innhold.
- */
 export function getPlainText(blocks?: UmbracoBlock[], maxLength?: number): string {
-  if (!blocks || blocks.length === 0) return '';
-  const html = blocks
-    .filter(b => b.contentType === 'tekst')
-    .map(b => b.content.innhold as string || '')
-    .join(' ');
-  // Strip HTML tags
-  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-  if (maxLength && text.length > maxLength) {
-    return text.slice(0, maxLength).replace(/\s+\S*$/, '') + '…';
-  }
-  return text;
+  return getPlainTextFromBlocks(blocks, maxLength);
 }
 
 
@@ -1321,31 +1161,16 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
     return { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } };
   }
 
-  const headers: HeadersInit = { 'Accept': 'application/json' };
-  if (options.preview && API_KEY) {
-    headers['Api-Key'] = API_KEY;
-  }
-
-  const params = new URLSearchParams();
-  params.set('search', query);
-  params.set('take', '50');
-  if (options.preview) {
-    params.set('preview', 'true');
-  }
-
-  const url = `${API_BASE}?${params.toString()}`;
-
   try {
-    const res = await fetch(url, { headers });
-    if (!res.ok) {
-      throw new Error(`Umbraco search error: ${res.status} ${res.statusText}`);
-    }
-
-    const data: UmbracoResponse<SearchResult> = await res.json();
+    const data = await client.fetchCollection({
+      search: query,
+      take: 50,
+      preview: options.preview,
+    });
 
     const results: SearchResult[] = data.items
       .filter(item => ['artikkel', 'eksempel', 'veiledningGuide', 'veiledningSteg', 'side', 'faq'].includes(item.contentType))
-      .map(item => {
+      .map((item: UmbracoItem) => {
         const props = item.properties;
         const tittel = (props.tittel as string) || (props.sporsmal as string) || item.name;
         const slug = (props.slug as string) || '';

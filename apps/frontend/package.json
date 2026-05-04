@@ -23,7 +23,8 @@
     "clsx": "^2.1.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "@portals/umbraco-client": "workspace:*"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
