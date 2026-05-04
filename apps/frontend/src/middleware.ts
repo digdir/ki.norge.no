@@ -8,8 +8,8 @@ import { env } from 'cloudflare:workers';
  * at the edge. After the first visit, subsequent requests are served from
  * cache (~20ms) without invoking the Worker or hitting Umbraco.
  *
- * Preview requests (cookie or query param) bypass the cache entirely so
- * editors always see fresh draft content.
+ * Preview requests (HMAC-signed query param, or cookie) bypass the cache
+ * entirely so editors always see fresh draft content.
  *
  * Cache invalidation: Umbraco publishes trigger a Cloudflare cache purge
  * via webhook, so the next visitor gets a fresh render.
@@ -17,8 +17,48 @@ import { env } from 'cloudflare:workers';
 
 const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache
 const STALE_WHILE_REVALIDATE = 60 * 60 * 24; // serve stale for up to 24h while revalidating
+const PREVIEW_COOKIE_MAX_AGE = 60 * 10; // 10 minutes
 
 const LAUNCH_MODE = env.LAUNCH_MODE || '';
+
+function base64UrlEncode(bytes: Uint8Array): string {
+  let str = '';
+  for (let i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return result === 0;
+}
+
+async function verifyPreviewSignature(
+  secret: string,
+  path: string,
+  expSeconds: number,
+  sig: string,
+): Promise<boolean> {
+  if (!secret || !sig || !Number.isFinite(expSeconds)) return false;
+  if (Date.now() / 1000 > expSeconds) return false;
+
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    enc.encode(`${path}|${expSeconds}`),
+  );
+  const expected = base64UrlEncode(new Uint8Array(signature));
+  return constantTimeEqual(expected, sig);
+}
 
 const COMING_SOON_HTML = `<!doctype html>
 <html lang="nb">
@@ -90,10 +130,37 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  const isPreview =
-    url.searchParams.has('preview') || cookies.has('preview');
+  const previewSecret = env.PREVIEW_SECRET || '';
+  const previewParam = url.searchParams.get('preview');
+  const expParam = url.searchParams.get('exp');
+  const sigParam = url.searchParams.get('sig');
+  const hasPreviewQuery = previewParam !== null;
+
+  let hasValidPreviewQuery = false;
+  if (hasPreviewQuery && expParam !== null && sigParam !== null) {
+    const expNum = Number.parseInt(expParam, 10);
+    hasValidPreviewQuery = await verifyPreviewSignature(
+      previewSecret,
+      url.pathname,
+      expNum,
+      sigParam,
+    );
+  }
+  const hasFailedPreviewQuery = hasPreviewQuery && !hasValidPreviewQuery;
+  const hasPreviewCookie = cookies.has('preview');
+  const isPreview = hasValidPreviewQuery || hasPreviewCookie;
   const isApiRoute = url.pathname.startsWith('/api/');
   const isAdminRoute = url.pathname === '/status' || url.pathname === '/admin-tilgang';
+
+  if (hasValidPreviewQuery) {
+    cookies.set('preview', '1', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: url.protocol === 'https:',
+      maxAge: PREVIEW_COOKIE_MAX_AGE,
+    });
+  }
 
   const response = await next();
 
@@ -138,8 +205,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     );
   }
 
-  // Don't cache preview, API, or admin routes
-  if (isPreview || isApiRoute || isAdminRoute) {
+  // Don't cache preview (or failed preview attempts), API, or admin routes
+  if (isPreview || hasFailedPreviewQuery || isApiRoute || isAdminRoute) {
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   }

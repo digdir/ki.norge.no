@@ -17,6 +17,8 @@ public class HeadlessPreviewComposer : IComposer
 
 public class KiNorgePreviewService : IDocumentPreviewService
 {
+    private const int PreviewLinkLifetimeMinutes = 5;
+
     private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
 
     public KiNorgePreviewService(Microsoft.Extensions.Configuration.IConfiguration config)
@@ -26,8 +28,8 @@ public class KiNorgePreviewService : IDocumentPreviewService
 
     public Task<DocumentPreviewUrlInfo> PreviewUrlInfoAsync(IContent content, string? culture, string? segment)
     {
-        var frontendUrl = _config["HeadlessPreview:FrontendUrl"] ?? "http://localhost:4321";
-        var previewSecret = _config["HeadlessPreview:PreviewSecret"] ?? "";
+        var frontendUrl = (_config["HeadlessPreview:FrontendUrl"] ?? "http://localhost:4321").TrimEnd('/');
+        var previewSecret = _config["HeadlessPreview:PreviewSecret"] ?? string.Empty;
         var contentType = content.ContentType.Alias;
         var slug = content.GetValue<string>("slug") ?? "";
         var guideSlug = content.GetValue<string>("guideSlug") ?? "";
@@ -54,8 +56,26 @@ public class KiNorgePreviewService : IDocumentPreviewService
             return Task.FromResult(new DocumentPreviewUrlInfo { Info = $"Forhåndsvisning er ikke tilgjengelig for innholdstypen '{contentType}'." });
         }
 
-        var previewUrl = $"{frontendUrl}{path}?preview=true&secret={previewSecret}";
+        if (string.IsNullOrEmpty(previewSecret))
+        {
+            return Task.FromResult(new DocumentPreviewUrlInfo
+            {
+                Info = "Forhåndsvisning er ikke konfigurert (HeadlessPreview:PreviewSecret mangler)."
+            });
+        }
+
+        var exp = DateTimeOffset.UtcNow.AddMinutes(PreviewLinkLifetimeMinutes).ToUnixTimeSeconds();
+        var sig = SignPath(previewSecret, path, exp);
+        var previewUrl = $"{frontendUrl}{path}?preview=1&exp={exp}&sig={sig}";
 
         return Task.FromResult(new DocumentPreviewUrlInfo { PreviewUrl = previewUrl });
+    }
+
+    private static string SignPath(string secret, string path, long exp)
+    {
+        var payload = System.Text.Encoding.UTF8.GetBytes($"{path}|{exp}");
+        using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(payload);
+        return Convert.ToBase64String(hash).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 }
