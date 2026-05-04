@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { env } from 'cloudflare:workers';
 
 /**
  * Edge caching middleware.
@@ -17,7 +18,7 @@ import { defineMiddleware } from 'astro:middleware';
 const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache
 const STALE_WHILE_REVALIDATE = 60 * 60 * 24; // serve stale for up to 24h while revalidating
 
-const LAUNCH_MODE = process.env.LAUNCH_MODE || import.meta.env.LAUNCH_MODE || '';
+const LAUNCH_MODE = env.LAUNCH_MODE || '';
 
 const COMING_SOON_HTML = `<!doctype html>
 <html lang="nb">
@@ -49,7 +50,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // Admin access (status page, coming-soon bypass).
   // Visit /admin-tilgang?key=<ADMIN_SECRET> to set the ki_admin cookie.
-  const adminSecret = process.env.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || '';
+  const adminSecret = env.ADMIN_SECRET || '';
   if (url.pathname === '/admin-tilgang') {
     const key = url.searchParams.get('key');
     if (key && adminSecret && key === adminSecret) {

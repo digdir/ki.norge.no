@@ -1,7 +1,0 @@
-node_modules
-.astro
-dist
-test-results
-tests
-*.spec.ts
-playwright.config.cjs

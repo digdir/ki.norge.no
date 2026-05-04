@@ -1,6 +1,8 @@
-const UMBRACO_URL = process.env.UMBRACO_URL || import.meta.env.UMBRACO_URL || 'http://localhost:5000';
-const UMBRACO_PUBLIC_URL = process.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_PUBLIC_URL || UMBRACO_URL;
-const API_KEY = process.env.UMBRACO_API_KEY || import.meta.env.UMBRACO_API_KEY;
+import { env } from 'cloudflare:workers';
+
+const UMBRACO_URL = env.UMBRACO_URL || 'http://localhost:5000';
+const UMBRACO_PUBLIC_URL = env.UMBRACO_PUBLIC_URL || UMBRACO_URL;
+const API_KEY = env.UMBRACO_API_KEY;
 
 // Preview mode options
 export interface FetchOptions {

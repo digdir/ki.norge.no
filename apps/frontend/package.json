@@ -1,23 +1,38 @@
 {
-  "name": "ki-norge-frontend",
+  "name": "astro-kinorge",
   "type": "module",
   "version": "0.0.1",
+  "scripts": {
+    "wrangler": "wrangler",
+    "preview": "npm run build && wrangler dev -c ./dist/server/wrangler.json",
+    "clean": "node -e \"require('fs').rmSync('./dist', {recursive: true, force: true})\"",
+    "build": "npm run clean && astro build",
+    "dev": "astro dev",
+    "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
+    "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
+    "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots"
+  },
   "dependencies": {
-    "@astrojs/node": "^9.1.3",
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/cloudflare": "^13.2.1",
+    "@astrojs/react": "^5.0.4",
     "@astrojs/sitemap": "^3.7.0",
-    "@digdir/designsystemet-css": "^1.11.0",
-    "@digdir/designsystemet-react": "^1.11.0",
-    "@navikt/aksel-icons": "^8.0.1",
-    "astro": "^5.16.12",
+    "@digdir/designsystemet-css": "^1.13.3",
+    "@digdir/designsystemet-react": "^1.13.3",
+    "@navikt/aksel-icons": "^8.10.2",
+    "astro": "^6.1.9",
     "clsx": "^2.1.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
+    "@biomejs/biome": "^2.4.13",
     "@playwright/test": "1.44.0",
-    "@types/node": "^22.10.7"
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.85.0"
   }
 }

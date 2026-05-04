@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 /**
  * Cache purge endpoint for Umbraco publish webhooks.
@@ -16,9 +17,9 @@ import type { APIRoute } from 'astro';
  */
 
 export const POST: APIRoute = async ({ url }) => {
-  const PURGE_SECRET = process.env.PURGE_SECRET || import.meta.env.PURGE_SECRET || '';
-  const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || import.meta.env.CLOUDFLARE_ZONE_ID || '';
-  const CLOUDFLARE_PURGE_TOKEN = process.env.CLOUDFLARE_PURGE_TOKEN || import.meta.env.CLOUDFLARE_PURGE_TOKEN || '';
+  const PURGE_SECRET = env.PURGE_SECRET || '';
+  const CLOUDFLARE_ZONE_ID = env.CLOUDFLARE_ZONE_ID || '';
+  const CLOUDFLARE_PURGE_TOKEN = env.CLOUDFLARE_PURGE_TOKEN || '';
 
   const secret = url.searchParams.get('secret');
   if (!PURGE_SECRET || secret !== PURGE_SECRET) {

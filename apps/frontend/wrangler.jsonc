@@ -1,0 +1,45 @@
+{
+  "name": "astro-kinorge",
+  "compatibility_date": "2026-02-24",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "preview_urls": true,
+  "env": {
+    "test": {
+      "name": "astro-kinorge-test",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "test-ki.norge.no",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "UMBRACO_URL": "https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io",
+        "UMBRACO_PUBLIC_URL": "https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io",
+        "LAUNCH_MODE": ""
+      }
+    },
+    "prod": {
+      "name": "astro-kinorge-prod",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "ki.norge.no",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "UMBRACO_URL": "https://cms.ki.norge.no",
+        "UMBRACO_PUBLIC_URL": "https://cms.ki.norge.no",
+        "LAUNCH_MODE": "coming-soon"
+      }
+    }
+  }
+}
