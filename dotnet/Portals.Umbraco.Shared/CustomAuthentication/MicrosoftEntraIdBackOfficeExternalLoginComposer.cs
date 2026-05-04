@@ -1,11 +1,12 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Umbraco.Cms.Api.Management.Security;
 using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Extensions;
 
-namespace KiNorge.Cms.CustomAuthentication;
+namespace Portals.Shared.CustomAuthentication;
 
-/// <summary>
-/// Composer for registering Microsoft Entra ID authentication in Umbraco backoffice.
-/// </summary>
 public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)

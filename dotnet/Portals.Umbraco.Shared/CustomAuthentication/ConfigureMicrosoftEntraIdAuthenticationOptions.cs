@@ -1,12 +1,11 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Umbraco.Cms.Api.Management.Security;
 
-namespace KiNorge.Cms.CustomAuthentication;
+namespace Portals.Shared.CustomAuthentication;
 
-/// <summary>
-/// Configures OpenID Connect options for Microsoft Entra ID authentication.
-/// </summary>
 public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOptions<OpenIdConnectOptions>
 {
     private readonly IConfiguration _configuration;
@@ -57,7 +56,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
     public void Configure(string? name, OpenIdConnectOptions options)
     {
-        if (name == Umbraco.Cms.Api.Management.Security.BackOfficeAuthenticationBuilder.SchemeForBackOffice(
+        if (name == BackOfficeAuthenticationBuilder.SchemeForBackOffice(
                 MicrosoftEntraIdBackOfficeExternalLoginProviderOptions.SchemeName))
         {
             Configure(options);

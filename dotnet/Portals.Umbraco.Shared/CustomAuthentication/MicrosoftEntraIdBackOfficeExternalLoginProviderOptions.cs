@@ -1,16 +1,21 @@
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Api.Management.Security;
 using Umbraco.Cms.Core;
 
-namespace KiNorge.Cms.CustomAuthentication;
+namespace Portals.Shared.CustomAuthentication;
 
-/// <summary>
-/// Configuration options for Microsoft Entra ID (Azure AD) backoffice external login provider.
-/// </summary>
 public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigureNamedOptions<BackOfficeExternalLoginProviderOptions>
 {
     public const string SchemeName = "MicrosoftEntraId";
+
+    private readonly IConfiguration _configuration;
+
+    public MicrosoftEntraIdBackOfficeExternalLoginProviderOptions(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
 
     public void Configure(string? name, BackOfficeExternalLoginProviderOptions options)
     {
@@ -24,6 +29,12 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
     public void Configure(BackOfficeExternalLoginProviderOptions options)
     {
+        var roleMappings = _configuration
+            .GetSection("MicrosoftEntraId:RoleMappings")
+            .Get<List<EntraRoleMapping>>() ?? new List<EntraRoleMapping>();
+
+        var defaultGroup = _configuration["MicrosoftEntraId:DefaultUmbracoGroup"];
+
         options.AutoLinkOptions = new ExternalSignInAutoLinkOptions(
             autoLinkExternalAccount: true,
             defaultUserGroups: Array.Empty<string>(),
@@ -51,20 +62,19 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 var roles = loginInfo.Principal
                     .FindAll(ClaimTypes.Role)
                     .Select(r => r.Value)
+                    .ToHashSet();
+
+                var mappedGroups = roleMappings
+                    .Where(m => !string.IsNullOrWhiteSpace(m.EntraRole)
+                        && !string.IsNullOrWhiteSpace(m.UmbracoGroup)
+                        && roles.Contains(m.EntraRole!))
+                    .Select(m => m.UmbracoGroup!)
+                    .Distinct()
                     .ToList();
 
-                var mappedGroups = new List<string>();
-
-                // Mapping: Entra App Role -> Umbraco user group.
-                // Extend as ki-specific roles are defined in the Entra app registration.
-                if (roles.Contains("umbraco-admin"))
+                if (mappedGroups.Count == 0 && !string.IsNullOrWhiteSpace(defaultGroup))
                 {
-                    mappedGroups.Add("admin");
-                }
-
-                if (!mappedGroups.Any())
-                {
-                    mappedGroups.Add("writer");
+                    mappedGroups.Add(defaultGroup);
                 }
 
                 user.Roles.Clear();
@@ -78,5 +88,11 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
         };
 
         options.DenyLocalLogin = false;
+    }
+
+    public sealed class EntraRoleMapping
+    {
+        public string? EntraRole { get; set; }
+        public string? UmbracoGroup { get; set; }
     }
 }
