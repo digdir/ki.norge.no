@@ -6,8 +6,8 @@
  */
 import type { APIRoute } from 'astro';
 
-const FRONTEND_URL = 'https://ki-norge-frontend.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
-const CMS_URL = 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+const FRONTEND_URL = 'https://ki.norge.no';
+const CMS_URL = 'https://cms.ki.norge.no';
 
 interface CheckResult {
   name: string;
@@ -53,7 +53,6 @@ export const GET: APIRoute = async () => {
     check('Frontend', FRONTEND_URL),
     check('CMS Backoffice', `${CMS_URL}/umbraco`),
     check('CMS Delivery API', `${CMS_URL}/umbraco/delivery/api/v2/content?take=1`),
-    check('ki.norge.no (custom domain)', 'https://ki.norge.no', 5000),
   ]);
 
   return new Response(JSON.stringify({

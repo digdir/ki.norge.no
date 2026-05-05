@@ -65,8 +65,8 @@ body {
  * Triggered by: <a> with href starting with http/https AND not pointing to
  * our own domain. Editor doesn't need to do anything — pure CSS.
  */
-main a[href^="http://"]:not([href*="ki.norge.no"]):not([href*="greentree-c9e56a64"])::after,
-main a[href^="https://"]:not([href*="ki.norge.no"]):not([href*="greentree-c9e56a64"])::after {
+main a[href^="http://"]:not([href*="ki.norge.no"])::after,
+main a[href^="https://"]:not([href*="ki.norge.no"])::after {
   content: "↗";
   display: inline-block;
   margin-left: 0.2em;

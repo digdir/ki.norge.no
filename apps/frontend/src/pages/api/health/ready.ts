@@ -2,11 +2,10 @@ import type { APIRoute } from 'astro';
 
 /**
  * Readiness probe — process is alive AND can talk to CMS.
- * Used by Container Apps to decide whether to send traffic.
  * Returns 503 if CMS Delivery API isn't reachable.
  */
 
-const CMS_URL = import.meta.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_URL || 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+const CMS_URL = import.meta.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_URL;
 
 export const GET: APIRoute = async () => {
   const ts = new Date().toISOString();

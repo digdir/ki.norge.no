@@ -181,7 +181,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
   }
   if (!response.headers.has('Strict-Transport-Security')) {
-    // 1 year, include subdomains, preload-eligible. Container Apps already terminates TLS.
+    // 1 year, include subdomains, preload-eligible. AKS ingress terminates TLS upstream.
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   if (!response.headers.has('Content-Security-Policy')) {
@@ -194,11 +194,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
         "script-src 'self' 'unsafe-inline'",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com data:",
-        "img-src 'self' data: https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no",
-        "connect-src 'self' https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no",
+        "img-src 'self' data: https://cms.ki.norge.no https://cms.test-ki.norge.no",
+        "connect-src 'self' https://cms.ki.norge.no https://cms.test-ki.norge.no",
         // Allow CMS to embed the frontend in the preview iframe. Both the prod CMS
         // origin and the localhost CMS dev origin are listed so preview works in dev too.
-        "frame-ancestors 'self' https://cms.ki.norge.no https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io http://localhost:5000 https://localhost:44391",
+        "frame-ancestors 'self' https://cms.ki.norge.no https://cms.test-ki.norge.no http://localhost:5000 https://localhost:44391",
         "base-uri 'self'",
         "form-action 'self'",
       ].join('; '),

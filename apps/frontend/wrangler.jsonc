@@ -21,8 +21,8 @@
         }
       ],
       "vars": {
-        "UMBRACO_URL": "https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io",
-        "UMBRACO_PUBLIC_URL": "https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io",
+        "UMBRACO_URL": "https://cms.test-ki.norge.no",
+        "UMBRACO_PUBLIC_URL": "https://cms.test-ki.norge.no",
         "LAUNCH_MODE": ""
       }
     },
