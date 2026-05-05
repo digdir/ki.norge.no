@@ -5,6 +5,8 @@ node_modules/
 # Build outputs
 dist/
 .astro/
+bin/
+obj/
 
 # Environment files
 .env
@@ -34,6 +36,19 @@ apps/cms/.strapi-updater.json
 
 # Deno (root-level lockfile is a stray artifact)
 /deno.lock
+
+# Cloudflare workers local state
+.wrangler/
+
+# Terraform (state cache; .terraform.lock.hcl IS committed)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Port-back plan (local-only, not docs)
+PORT_BACK_PLAN.md
 
 # Logs
 *.log
