@@ -1,0 +1,10 @@
+apiVersion: vault.dis.altinn.cloud/v1alpha1
+kind: Vault
+metadata:
+  name: umbraco-kinorge
+spec:
+  serviceAccountRef:
+    name: umbraco-kinorge
+  groupObjectId: 42688626-6503-4d1d-8aa4-e1e5fef2b4be
+  tags:
+    app: kinorge

@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: product-kinorge
+resources:
+  - ../base/umbraco-kinorge
+
+images:
+  - name: umbraco-kinorge
+    newName: altinncr.azurecr.io/ghcr.io/altinn/umbraco-kinorge
+    newTag: will-be-replaced
+
+patches:
+  - target:
+      kind: Vault
+      name: umbraco-kinorge
+    patch: |-
+      - op: add
+        path: /spec/tags/env
+        value: prod
+  - target:
+      kind: Deployment
+      name: umbraco-kinorge
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Umbraco__Storage__AzureBlob__Media__ConnectionString
+          value: https://kinorgemediaprodXXXX.blob.core.windows.net
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Umbraco__Storage__AzureBlob__Media__ContainerName
+          value: umbraco
+  - target:
+      kind: HTTPRoute
+      name: umbraco-kinorge
+    patch: |-
+      - op: add
+        path: /spec/hostnames
+        value:
+          - cms.ki.norge.no
