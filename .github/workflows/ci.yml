@@ -8,22 +8,24 @@ on:
 
 jobs:
   frontend-build:
-    name: Frontend (Astro/Deno) build
+    name: Frontend (Astro/Node) build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - uses: denoland/setup-deno@v2
+      - uses: actions/setup-node@v5
         with:
-          deno-version: v2.x
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: apps/frontend/package-lock.json
 
       - name: Install
         working-directory: apps/frontend
-        run: deno task install
+        run: npm ci
 
       - name: Build
         working-directory: apps/frontend
-        run: deno task build
+        run: npm run build
 
   cms-build:
     name: CMS (Umbraco/.NET) build
