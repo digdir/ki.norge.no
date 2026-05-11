@@ -28,11 +28,5 @@
     "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "1.59.1",
     "@types/node": "^22.10.7"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "sharp",
-      "esbuild"
-    ]
   }
 }
