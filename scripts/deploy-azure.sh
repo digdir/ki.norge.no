@@ -183,7 +183,7 @@ az acr build \
   --registry "${ACR_NAME}" \
   --image "ki-norge/frontend:${IMAGE_TAG}" \
   --file "${REPO_ROOT}/apps/frontend/Dockerfile" \
-  "${REPO_ROOT}/apps/frontend" 2>&1 | tail -5
+  "${REPO_ROOT}" 2>&1 | tail -5
 echo "OK"
 
 # --- Container Apps Environment ---

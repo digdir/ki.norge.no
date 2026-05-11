@@ -1,0 +1,17 @@
+# Shared
+.git
+**/node_modules
+**/.astro
+**/dist
+**/test-results
+
+# CMS (not needed for frontend build)
+apps/cms-umbraco
+
+# Docs, design, tests
+docs
+design
+dokumentasjon
+tests
+scripts
+syncroot

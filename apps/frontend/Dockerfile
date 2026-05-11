@@ -8,10 +8,12 @@ WORKDIR /app
 # Enable corepack so pnpm is available (Node 22+ ships with corepack).
 RUN corepack enable
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/frontend/package.json apps/frontend/
+RUN pnpm install --frozen-lockfile --filter ki-norge-frontend
 
-COPY . .
+COPY apps/frontend apps/frontend
+WORKDIR /app/apps/frontend
 RUN pnpm run build
 
 # ─── Runtime stage ──────────────────────────────────────────────────────────
@@ -21,10 +23,12 @@ WORKDIR /app
 RUN corepack enable
 
 # Production deps only at runtime; @astrojs/node bundles what it needs
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --prod && pnpm store prune
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/frontend/package.json apps/frontend/
+RUN pnpm install --frozen-lockfile --prod --filter ki-norge-frontend && pnpm store prune
 
-COPY --from=builder /app/dist ./dist
+WORKDIR /app/apps/frontend
+COPY --from=builder /app/apps/frontend/dist ./dist
 
 ENV HOST=0.0.0.0
 ENV PORT=4321
