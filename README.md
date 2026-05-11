@@ -83,10 +83,11 @@ On first CMS run, the SQLite database is created, `ContentTypeComposer` creates
 all content types, and `ContentSeeder` populates demo content. Admin user is
 created via unattended install env vars.
 
-**Terminal 2 — Frontend (Astro/Deno):**
+**Terminal 2 — Frontend (Astro/Node + pnpm):**
 ```bash
 cd apps/frontend
-deno task dev
+pnpm install
+pnpm run dev
 ```
 - Frontend: http://localhost:4321
 
@@ -99,7 +100,7 @@ The frontend uses **hybrid rendering**:
 
 In development, the Astro dev server re-fetches from Umbraco on each page load, so CMS changes appear on refresh.
 
-In production, run `deno task build` to rebuild with latest content. Consider webhook-triggered rebuilds when CMS content changes.
+In production, run `pnpm run build` to rebuild with latest content. Consider webhook-triggered rebuilds when CMS content changes.
 
 ## Content Types
 
@@ -175,13 +176,13 @@ The preview flow: Umbraco → Razor template redirect → `/api/preview?secret=.
 cd apps/frontend
 
 # Run all tests (starts dev server automatically)
-deno task test:e2e
+pnpm run test:e2e
 
 # Update visual regression snapshots
-deno task test:e2e:update
+pnpm run test:e2e:update
 
 # Run tests with UI
-deno task test:e2e:ui
+pnpm run test:e2e:ui
 ```
 
 81 tests across 6 browser configurations (Chrome, Firefox, Safari, Chrome Dark, Mobile Chrome, Mobile Safari).

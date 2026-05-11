@@ -1,25 +1,28 @@
-# Multi-stage build: install + build on Node, run the standalone server on Node.
+# Multi-stage build: install + build with pnpm, run the standalone server on Node.
 # The Astro Node adapter outputs dist/server/entry.mjs which is a self-contained
 # HTTP server — no Astro CLI needed at runtime.
 
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Copy lockfile + manifest first for layer caching
-COPY package.json package-lock.json ./
-RUN npm ci
+# Enable corepack so pnpm is available (Node 22+ ships with corepack).
+RUN corepack enable
 
-# Build the Astro site
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 # ─── Runtime stage ──────────────────────────────────────────────────────────
 FROM node:22-alpine
 WORKDIR /app
 
+RUN corepack enable
+
 # Production deps only at runtime; @astrojs/node bundles what it needs
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod && pnpm store prune
 
 COPY --from=builder /app/dist ./dist
 

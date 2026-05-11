@@ -1,6 +1,7 @@
 version: 2
 updates:
-  # Frontend (Astro/React/Deno-runtime npm deps)
+  # Frontend (Astro/React on Node, managed with pnpm — Dependabot's npm
+  # ecosystem reads pnpm-lock.yaml too).
   - package-ecosystem: "npm"
     directory: "/apps/frontend"
     schedule:
