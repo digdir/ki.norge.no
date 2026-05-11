@@ -11,8 +11,8 @@
     "@navikt/aksel-icons": "^8.0.1",
     "astro": "^5.16.12",
     "clsx": "^2.1.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
