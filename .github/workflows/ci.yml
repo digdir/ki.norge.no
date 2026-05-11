@@ -11,7 +11,7 @@ jobs:
     name: Frontend (Astro/Node) build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - uses: pnpm/action-setup@v4
 
@@ -33,7 +33,7 @@ jobs:
     name: CMS (Umbraco/.NET) build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - name: Run smoke tests
         run: bash scripts/smoke-test.sh --prod
@@ -61,7 +61,7 @@ jobs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - name: Run Trivy on repo (high/critical only, fail on found)
         uses: aquasecurity/trivy-action@master
