@@ -26,8 +26,10 @@ Tall er ikke påkrevd, men anbefalt.
 
 CMS-en gir admin-tilgang til alt innhold. Et svakt passord gjør det enkelt å gjette eller knekke, og kan brukes til å publisere falskt innhold eller sabotere siden.
 
-## Hvis du får "Unknown failure" når du endrer passord
+## Hvis passord-endring feiler
 
-Det er Umbraco som er tunghørt — feilen betyr som regel at passordet ikke møter reglene over. Prøv et lengre passord med både store/små bokstaver og minst ett spesialtegn.
+Du skal nå få en konkret melding som forteller hvilken regel som mangler (f.eks. "Passordet må være minst 10 tegn"). Følg meldingen, prøv på nytt.
 
-(Reglene er definert i `apps/cms-umbraco/appsettings.json` under `Umbraco.CMS.Security.UserPasswordConfiguration` om du vil justere dem.)
+Hvis du fortsatt bare får "Unknown failure" uten detaljer, varsle utvikler — da har noe brutt.
+
+(Reglene er definert i `apps/cms-umbraco/appsettings.json` under `Umbraco.CMS.Security.UserPasswordConfiguration`. Norske feilmeldinger leveres av `NorwegianIdentityErrorDescriber.cs`.)
