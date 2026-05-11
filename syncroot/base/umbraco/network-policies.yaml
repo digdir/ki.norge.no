@@ -1,0 +1,49 @@
+apiVersion: policy.linkerd.io/v1beta3
+kind: Server
+metadata:
+  name: umbraco-http-server
+  labels:
+    app.kubernetes.io/name: umbraco
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: umbraco
+  port: http
+  proxyProtocol: HTTP/2
+---
+apiVersion: policy.linkerd.io/v1beta2
+kind: HTTPRoute
+metadata:
+  name: umbraco-http-route
+spec:
+  parentRefs:
+    - name: umbraco-http-server
+      kind: Server
+      group: policy.linkerd.io
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: umbraco-http-auth
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: HTTPRoute
+    name: umbraco-http-route
+  requiredAuthenticationRefs:
+    - name: traefik
+      kind: MeshTLSAuthentication
+      group: policy.linkerd.io
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: traefik
+spec:
+  identities:
+    - "altinn-traefik.traefik.serviceaccount.identity.linkerd.cluster.local"

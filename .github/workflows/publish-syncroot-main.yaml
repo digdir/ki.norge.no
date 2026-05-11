@@ -1,0 +1,64 @@
+name: Publish Syncroot artifacts
+run-name: Deploy ${{ inputs.image-tag }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select environment"
+        type: choice
+        options:
+          - tt02
+          - prod
+      image-tag:
+        description: "Umbraco image tag to deploy"
+        required: true
+      database:
+        type: choice
+        description: "Select database"
+        options:
+          - Sqlite
+          - AzureSQL
+        required: true
+
+env:
+  SYNCROOT_ARTIFACT_NAME: kinorgeportal/syncroot
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-flux-artifacts-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish-syncroot:
+    name: Publish syncroot artifact
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+
+      - name: Update image tag
+        run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/${{ inputs.environment }}/kustomization.yaml
+
+      - name: Update db connection string
+        if: inputs.database == 'AzureSQL'
+        run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN")).value = "Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\""' ./syncroot/base/umbraco/deployment.yaml
+
+      - name: Update db provider
+        if: inputs.database == 'AzureSQL'
+        run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN_ProviderName")).value = "Microsoft.Data.SqlClient"' ./syncroot/base/umbraco/deployment.yaml
+
+      - name: Build and push syncroot artifact
+        uses: Altinn/altinn-platform/actions/flux/build-push-image@8d4e42eae11efbc3a159aa62fe15ed49954d9df9 # main
+        with:
+          image_name: ${{ env.SYNCROOT_ARTIFACT_NAME }}
+          tag: ${{ inputs.environment }}
+          workdir: ./syncroot
+          azure_subscription_id: ${{ secrets.DIS_SYNCROOT_AZURE_SUBSCRIPTION_ID }}
+          azure_app_id: ${{ secrets.DIS_SYNCROOT_AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.DIS_SYNCROOT_AZURE_TENANT_ID }}
+

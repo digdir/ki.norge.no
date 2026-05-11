@@ -1,0 +1,10 @@
+apiVersion: vault.dis.altinn.cloud/v1alpha1
+kind: Vault
+metadata:
+  name: umbraco
+spec:
+  serviceAccountRef:
+    name: umbraco
+  groupObjectId: b5949ea9-f3dc-4fd8-9dca-37e997b60c63 # DIS AKS Admin Dev KIN
+  tags:
+    app: kinorgeportal
