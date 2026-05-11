@@ -155,7 +155,7 @@ Frontenden (Astro) deployes til Cloudflare Pages. Statiske sider serveres fra CD
 1. Logg inn på [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages → Create a project
 2. Koble til GitHub-repoet `ki.norge.no`
 3. Konfigurer bygget:
-   - **Build command:** `cd apps/frontend && deno task build`
+   - **Build command:** `cd apps/frontend && pnpm install && pnpm run build`
    - **Build output directory:** `apps/frontend/dist`
    - **Root directory:** `/`
 4. Legg til environment variables:
@@ -173,7 +173,8 @@ Frontenden (Astro) deployes til Cloudflare Pages. Statiske sider serveres fra CD
 
 ```bash
 cd apps/frontend
-deno task build
+pnpm install
+pnpm run build
 npx wrangler pages deploy dist --project-name ki-norge
 ```
 

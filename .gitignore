@@ -32,8 +32,6 @@ apps/cms/data/
 apps/cms/.strapi/
 apps/cms/.strapi-updater.json
 
-# Deno (root-level lockfile is a stray artifact)
-/deno.lock
 
 # Logs
 *.log

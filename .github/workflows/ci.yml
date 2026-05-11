@@ -8,28 +8,32 @@ on:
 
 jobs:
   frontend-build:
-    name: Frontend (Astro/Deno) build
+    name: Frontend (Astro/Node) build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
-      - uses: denoland/setup-deno@v2
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
         with:
-          deno-version: v2.x
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: ./pnpm-lock.yaml
 
       - name: Install
         working-directory: apps/frontend
-        run: deno task install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         working-directory: apps/frontend
-        run: deno task build
+        run: pnpm run build
 
   cms-build:
     name: CMS (Umbraco/.NET) build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -48,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - name: Run smoke tests
         run: bash scripts/smoke-test.sh --prod
@@ -57,7 +61,7 @@ jobs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - name: Run Trivy on repo (high/critical only, fail on found)
         uses: aquasecurity/trivy-action@master

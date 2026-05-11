@@ -52,7 +52,7 @@ module.exports = defineConfig({
   webServer: process.env.CI
     ? undefined
     : {
-        command: 'deno task dev',
+        command: 'pnpm run dev',
         url: 'http://localhost:4321',
         reuseExistingServer: true,
         timeout: 120_000,
