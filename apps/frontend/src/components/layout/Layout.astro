@@ -78,8 +78,8 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
   </head>
-  <body data-header-theme={headerTheme}>
-    <a href="#main-content" class="skip-to-main">Hopp til hovedinnhold</a>
+  <body data-header-theme={headerTheme} data-color-scheme="light">
+    <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>
     <Header />
     <main id="main-content">
       <slot />
@@ -102,11 +102,11 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
 <style>
   main {
     flex: 1;
-    /* Padding equals the absolutely-positioned site header height so content
-       starts below it. Variable defined in global.css; full-bleed hero
-       sections (.article-hero--bg-lyseblaa) negate this with negative
-       margin to extend their background up behind the header. */
-    padding-top: var(--header-height, 72px);
+    margin-top: calc(var(--header-height, 72px) * -1);
+  }
+
+  main > :global(:first-child) {
+    padding-top: calc(var(--header-height, 72px) + var(--ds-size-8));
   }
 
   body {
@@ -114,25 +114,4 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     flex-direction: column;
     min-height: 100vh;
   }
-
-  .skip-to-main {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: var(--ds-size-3, 12px) var(--ds-size-4, 16px);
-    background: var(--ds-color-accent-base-default, #1a2a6d);
-    color: #fff;
-    text-decoration: none;
-    font-weight: 600;
-    z-index: 1000;
-    transform: translateY(-100%);
-    transition: transform 0.15s ease;
-  }
-
-  .skip-to-main:focus {
-    transform: translateY(0);
-    outline: 2px solid #fff;
-    outline-offset: -4px;
-  }
-
 </style>
