@@ -14,11 +14,11 @@ const { substeps, guideSlug, stepNumber, stepTitle } = Astro.props;
 ---
 <div class="substep-nav">
   <h2 class="substep-heading">{stepNumber}. {stepTitle}</h2>
-  <div class="substep-pills">
+  <nav class="substep-pills">
     {substeps.map((sub, i) => (
       <>
         {sub.active ? (
-          <span class="substep-pill substep-pill--active">{sub.title}</span>
+          <a class="substep-pill substep-pill--active" href={`/veiledning/${guideSlug}/${substeps[i].slug}`} aria-current="page">{sub.title}</a>
         ) : (
           <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="substep-pill">{sub.title}</a>
         )}
@@ -27,7 +27,7 @@ const { substeps, guideSlug, stepNumber, stepTitle } = Astro.props;
         )}
       </>
     ))}
-  </div>
+  </nav>
 </div>
 <style>
   .substep-nav {
