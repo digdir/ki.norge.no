@@ -1,47 +1,7 @@
 version: 2
 updates:
-  # Frontend (Astro/React on Node, managed with pnpm — Dependabot's npm
-  # ecosystem reads pnpm-lock.yaml too).
-  - package-ecosystem: "npm"
-    directory: "/apps/frontend"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "frontend"
-    groups:
-      astro:
-        patterns:
-          - "astro"
-          - "@astrojs/*"
-      react:
-        patterns:
-          - "react"
-          - "react-dom"
-          - "@types/react*"
-      digdir:
-        patterns:
-          - "@digdir/*"
-          - "@navikt/*"
-
-  # CMS (.NET 10 / Umbraco)
-  - package-ecosystem: "nuget"
-    directory: "/apps/cms-umbraco"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "cms"
-    groups:
-      umbraco:
-        patterns:
-          - "Umbraco.*"
-
-  # GitHub Actions
+  # GitHub Actions only. npm + nuget are handled by Renovate (renovate.json)
+  # to avoid double-bumps from two bots on the same dependency.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
