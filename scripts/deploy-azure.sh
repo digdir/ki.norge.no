@@ -17,6 +17,20 @@ STORAGE_ACCOUNT="kinorgestorage"
 BLOB_CONTAINER="umbraco-db"
 IMAGE_TAG="$(date +%Y%m%d%H%M%S)"
 
+# Guard: refuse to run after the K8s cutover. cms.ki.norge.no currently CNAMEs
+# to ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io. When the
+# K8s deploy via .github/workflows/publish-syncroot-main.yaml takes over, the
+# CNAME will change and this script should not target the orphan Container App.
+# (No-op if dig fails or the host can't resolve DNS — only blocks on a
+# definitive non-Container-Apps answer.)
+_CUTOVER_CNAME="$(dig +short CNAME cms.ki.norge.no 2>/dev/null || true)"
+if [ -n "$_CUTOVER_CNAME" ] && ! echo "$_CUTOVER_CNAME" | grep -q "azurecontainerapps"; then
+  echo "ERROR: K8s cutover detected (cms.ki.norge.no CNAME = ${_CUTOVER_CNAME})."
+  echo "This script targets the legacy Container Apps deploy and is deprecated."
+  echo "Use the K8s flow via .github/workflows/publish-syncroot-main.yaml instead."
+  exit 1
+fi
+
 # Ensure Azure auth + PIM activation before deploying
 # Handles: expired MFA, wrong tenant, missing subscription, PIM activation
 TENANT_ID="cd0026d8-283b-4a55-9bfa-d0ef4a8ba21c"
