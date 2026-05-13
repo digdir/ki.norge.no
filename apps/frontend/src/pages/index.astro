@@ -2,6 +2,7 @@
 import Layout from '../components/layout/Layout.astro';
 import Hero from '../components/landing/Hero.astro';
 import AkselIcon from '../components/shared/AkselIcon.astro';
+import NewsCard from '../components/shared/NewsCard.astro';
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getPlainText } from '../lib/umbraco';
 
@@ -79,11 +80,11 @@ const sectionOrder = {
       <h2 class="section-heading">{a.overskrift}</h2>
       <div class="aktuelt-grid">
         {latestArticles.map(article => (
-          <a href={`/artikler/${article.slug}`} class="aktuelt-card">
-            <h3 class="aktuelt-card-title">{article.tittel}</h3>
-            <span class="aktuelt-tag">Nyhet</span>
-            <div class="aktuelt-card-image"></div>
-          </a>
+          <NewsCard
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            tag="Nyhet"
+          />
         ))}
       </div>
       <a href={a.lenkeUrl} class="aktuelt-link">
@@ -231,44 +232,6 @@ const sectionOrder = {
     .aktuelt-grid {
       grid-template-columns: repeat(3, 1fr);
     }
-  }
-  .aktuelt-card {
-    display: flex;
-    flex-direction: column;
-    background-color: #e2f0fc;
-    border-radius: 8px;
-    padding: 24px;
-    height: 384px;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.2s ease;
-  }
-  .aktuelt-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  }
-  .aktuelt-card-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 12px;
-    color: #000;
-    line-height: 1.3;
-  }
-  .aktuelt-tag {
-    display: inline-block;
-    padding: 4px 12px;
-    background-color: #ffffff;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(0,0,0,0.7);
-    margin-bottom: 16px;
-    width: fit-content;
-  }
-  .aktuelt-card-image {
-    height: 185px;
-    background-color: #d9d9d9;
-    border-radius: 8px;
-    margin-top: auto;
   }
   .aktuelt-link {
     display: inline-flex;
