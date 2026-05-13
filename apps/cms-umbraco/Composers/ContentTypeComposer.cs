@@ -2096,6 +2096,7 @@ public class ContentTypeComponent : IAsyncComponent
             "ordbokOppslag",   // child of ordbokSamling
             "veiledningGuide", // child of veiledninger
             "veiledningSteg",  // child of veiledningGuide
+            "enkelVeiledning", // child of veiledninger
             "faq",             // child of faqSamling
             "forside",         // always at root
             // Containers themselves (sider can't contain other containers)
