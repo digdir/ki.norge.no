@@ -161,6 +161,7 @@ public class ContentTypeComponent : IAsyncComponent
                 MigrateCaseType();
             if (_contentTypeService.Get("side") == null)
                 CreateSide();
+            MigrateSide();
 
             IContentType? eksempel;
             if (_contentTypeService.Get("eksempel") == null)
@@ -170,8 +171,10 @@ public class ContentTypeComponent : IAsyncComponent
 
             if (_contentTypeService.Get("veiledningGuide") == null)
                 CreateVeiledningGuide();
+            MigrateVeiledningGuideEditorLayout();
             if (_contentTypeService.Get("veiledningSteg") == null)
                 CreateVeiledningSteg();
+            MigrateVeiledningSteg();
             if (_contentTypeService.Get("faq") == null)
                 CreateFAQ();
             if (_contentTypeService.Get("forside") == null)
@@ -1130,12 +1133,13 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         AddArtikkelhodeFields(ct);
-        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 10), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -1156,12 +1160,13 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         AddArtikkelhodeFields(ct);
-        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListCaseDt, description: "Hovedinnhold", sortOrder: 10), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListCaseDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -1195,6 +1200,65 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
+        // Editor-rekkefølge: flytt slug + bakgrunn til Innstillinger, set sortOrder etter render-rekkefølge.
+        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        if (SetPropertySortOrders(ct,
+            ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
+            ("slug", 1), ("bakgrunn", 2))) changed = true;
+        if (SetStandardGroupSortOrders(ct)) changed = true;
+
+        if (changed)
+            _contentTypeService.Save(ct);
+    }
+
+    private void MigrateSide()
+    {
+        var ct = _contentTypeService.Get("side");
+        if (ct == null) return;
+
+        bool changed = false;
+
+        if (EnsureInnstillingerGroup(ct, "slug", "template")) changed = true;
+        if (SetPropertySortOrders(ct,
+            ("tittel", 1), ("innhold", 2),
+            ("slug", 1), ("template", 2))) changed = true;
+        if (SetStandardGroupSortOrders(ct)) changed = true;
+
+        if (changed)
+            _contentTypeService.Save(ct);
+    }
+
+    private void MigrateVeiledningGuideEditorLayout()
+    {
+        var ct = _contentTypeService.Get("veiledningGuide");
+        if (ct == null) return;
+
+        bool changed = false;
+
+        if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
+        if (SetPropertySortOrders(ct,
+            ("tittel", 1), ("introTekst", 2),
+            ("slug", 1))) changed = true;
+        if (SetStandardGroupSortOrders(ct)) changed = true;
+
+        if (changed)
+            _contentTypeService.Save(ct);
+    }
+
+    private void MigrateVeiledningSteg()
+    {
+        var ct = _contentTypeService.Get("veiledningSteg");
+        if (ct == null) return;
+
+        bool changed = false;
+
+        if (EnsureInnstillingerGroup(ct, "slug", "guideSlug", "steg", "understeg")) changed = true;
+        if (SetPropertySortOrders(ct,
+            ("tittel", 1), ("innhold", 2), ("infoKortTittel", 3), ("infoKortInnhold", 4),
+            ("accordionSeksjoner", 5), ("eksempelTittel", 6), ("eksempelTekst", 7),
+            ("slug", 1), ("guideSlug", 2), ("steg", 3), ("understeg", 4))) changed = true;
+        if (SetStandardGroupSortOrders(ct)) changed = true;
+
         if (changed)
             _contentTypeService.Save(ct);
     }
@@ -1205,16 +1269,83 @@ public class ContentTypeComponent : IAsyncComponent
     /// </summary>
     private void AddArtikkelhodeFields(IContentType ct)
     {
-        // Explicit sortOrder so the editor sees fields in the order content
-        // appears on the page: tittel → slug → ingress → bilde → bildeAlt
-        // → bakgrunn. Without sortOrder, Umbraco doesn't guarantee insertion
-        // order and editors have reported ingress drifting down the form.
+        // Innhold-tab: editor-feltene følger samme rekkefølge som rendret side
+        // (tittel → ingress → hovedbilde → alt). Blokklisten innhold legges på
+        // av Create-metoden med sortOrder 5 så modulene følger rett etter.
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 2), "innhold");
-        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 3), "innhold");
-        ct.AddPropertyType(Prop("artikkelBilde", "Hovedbilde", _mediaPickerDt, description: "Hovedbilde som vises ved siden av tittelen (eller under på mobil).", sortOrder: 4), "innhold");
-        ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt.", sortOrder: 5), "innhold");
-        ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit.", sortOrder: 6), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("artikkelBilde", "Hovedbilde", _mediaPickerDt, description: "Hovedbilde som vises ved siden av tittelen (eller under på mobil).", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt.", sortOrder: 4), "innhold");
+
+        // Innstillinger-tab: URL og presentasjonsvalg som ikke hører hjemme i Innhold.
+        ct.AddPropertyGroup("innstillinger", "Innstillinger");
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
+        ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit.", sortOrder: 2), "innstillinger");
+    }
+
+    // Felles tab-rekkefølge: Innhold (1) → Innstillinger (50) → SEO (100).
+    private static readonly Dictionary<string, int> StandardGroupSortOrders = new()
+    {
+        { "innhold", 1 },
+        { "innstillinger", 50 },
+        { "seo", 100 },
+    };
+
+    private bool SetStandardGroupSortOrders(IContentType ct)
+    {
+        bool changed = false;
+        foreach (var grp in ct.PropertyGroups)
+        {
+            if (StandardGroupSortOrders.TryGetValue(grp.Alias, out var so) && grp.SortOrder != so)
+            {
+                grp.SortOrder = so;
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    // Idempotent: oppretter Innstillinger-gruppen hvis mangler, og flytter
+    // navngitte properties dit hvis de fortsatt ligger i en annen gruppe.
+    private bool EnsureInnstillingerGroup(IContentType ct, params string[] fieldAliasesToMove)
+    {
+        bool changed = false;
+
+        if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
+        {
+            ct.AddPropertyGroup("innstillinger", "Innstillinger");
+            changed = true;
+        }
+
+        foreach (var alias in fieldAliasesToMove)
+        {
+            var prop = ct.PropertyTypes.FirstOrDefault(p => p.Alias == alias);
+            if (prop == null) continue;
+
+            var currentGroup = ct.PropertyGroups.FirstOrDefault(g =>
+                g.PropertyTypes != null && g.PropertyTypes.Any(p => p.Alias == alias));
+            if (currentGroup?.Alias == "innstillinger") continue;
+
+            if (ct.MovePropertyType(alias, "innstillinger"))
+                changed = true;
+        }
+
+        return changed;
+    }
+
+    private bool SetPropertySortOrders(IContentType ct, params (string alias, int order)[] orders)
+    {
+        bool changed = false;
+        foreach (var (alias, order) in orders)
+        {
+            var prop = ct.PropertyTypes.FirstOrDefault(p => p.Alias == alias);
+            if (prop != null && prop.SortOrder != order)
+            {
+                prop.SortOrder = order;
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     private void MigrateArtikkelType()
@@ -1253,6 +1384,14 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
+        // Editor-rekkefølge: flytt slug + bakgrunn til ny Innstillinger-tab,
+        // sett feltene i Innhold etter render-rekkefølge, og pin gruppe-rekkefølgen.
+        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        if (SetPropertySortOrders(ct,
+            ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
+            ("slug", 1), ("bakgrunn", 2))) changed = true;
+        if (SetStandardGroupSortOrders(ct)) changed = true;
+
         if (changed)
             _contentTypeService.Save(ct);
     }
@@ -1268,15 +1407,18 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = false,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, sortOrder: 2), "innhold");
+
+        ct.AddPropertyGroup("innstillinger", "Innstillinger");
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
+        ct.AddPropertyType(Prop("template", "Mal", _textStringDt, description: "standard, bred, landingsside", sortOrder: 2), "innstillinger");
 
         ct.AddPropertyGroup("seo", "SEO");
-        ct.AddPropertyType(Prop("template", "Mal", _textStringDt, description: "standard, bred, landingsside"), "seo");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -1322,14 +1464,17 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = false,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt, sortOrder: 2), "innhold");
+
+        ct.AddPropertyGroup("innstillinger", "Innstillinger");
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt), "seo");
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -1345,17 +1490,20 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = false,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, mandatory: true, description: "Slug til overordnet guide"), "innhold");
-        ct.AddPropertyType(Prop("steg", "Steg", _numericDt, mandatory: true, description: "Stegnummer (1, 2, 3...)"), "innhold");
-        ct.AddPropertyType(Prop("understeg", "Understeg", _numericDt, mandatory: true, description: "Understeg-nummer (1, 2, 3...)"), "innhold");
-        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, description: "Hovedinnhold"), "innhold");
-        ct.AddPropertyType(Prop("infoKortTittel", "Infokort-tittel", _textStringDt, description: "Tittel på informasjonskort (valgfritt)"), "innhold");
-        ct.AddPropertyType(Prop("infoKortInnhold", "Infokort-innhold", _richTextDt, description: "Innhold i informasjonskort (valgfritt)"), "innhold");
-        ct.AddPropertyType(Prop("accordionSeksjoner", "Accordion-seksjoner", _blockListAccordionDt, description: "Trekkspill-seksjoner (valgfritt)"), "innhold");
-        ct.AddPropertyType(Prop("eksempelTittel", "Eksempel-tittel", _textStringDt, description: "Tittel på eksempelkort (valgfritt)"), "innhold");
-        ct.AddPropertyType(Prop("eksempelTekst", "Eksempel-tekst", _richTextDt, description: "Tekst i eksempelkort (valgfritt)"), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, description: "Hovedinnhold", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("infoKortTittel", "Infokort-tittel", _textStringDt, description: "Tittel på informasjonskort (valgfritt)", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("infoKortInnhold", "Infokort-innhold", _richTextDt, description: "Innhold i informasjonskort (valgfritt)", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("accordionSeksjoner", "Accordion-seksjoner", _blockListAccordionDt, description: "Trekkspill-seksjoner (valgfritt)", sortOrder: 5), "innhold");
+        ct.AddPropertyType(Prop("eksempelTittel", "Eksempel-tittel", _textStringDt, description: "Tittel på eksempelkort (valgfritt)", sortOrder: 6), "innhold");
+        ct.AddPropertyType(Prop("eksempelTekst", "Eksempel-tekst", _richTextDt, description: "Tekst i eksempelkort (valgfritt)", sortOrder: 7), "innhold");
+
+        ct.AddPropertyGroup("innstillinger", "Innstillinger");
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
+        ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, mandatory: true, description: "Slug til overordnet guide", sortOrder: 2), "innstillinger");
+        ct.AddPropertyType(Prop("steg", "Steg", _numericDt, mandatory: true, description: "Stegnummer (1, 2, 3...)", sortOrder: 3), "innstillinger");
+        ct.AddPropertyType(Prop("understeg", "Understeg", _numericDt, mandatory: true, description: "Understeg-nummer (1, 2, 3...)", sortOrder: 4), "innstillinger");
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
