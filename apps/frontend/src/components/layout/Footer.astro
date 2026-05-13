@@ -24,7 +24,7 @@ const navCol2 = [
 ];
 ---
 
-<footer class="footer">
+<footer class="footer" data-color="neutral">
   <div class="footer-inner">
     <div class="footer-left">
       <p class="footer-brand">{brand}</p>
@@ -45,15 +45,15 @@ const navCol2 = [
       <div class="footer-nav-col">
         {navCol1.map(link => (
           link.url
-            ? <a href={link.url} class="footer-nav-link">{link.text}</a>
-            : <button type="button" class="footer-nav-link footer-nav-button">{link.text}</button>
+            ? <a href={link.url} class="ds-link">{link.text}</a>
+            : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
         ))}
       </div>
       <div class="footer-nav-col">
         {navCol2.map(link => (
           link.url
-            ? <a href={link.url} class="footer-nav-link">{link.text}</a>
-            : <button type="button" class="footer-nav-link footer-nav-button">{link.text}</button>
+            ? <a href={link.url} class="ds-link">{link.text}</a>
+            : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
         ))}
       </div>
     </div>
@@ -62,14 +62,7 @@ const navCol2 = [
 
 <style>
   .footer {
-    background: linear-gradient(
-      135deg,
-      #cedbfb 0%,
-      #d8cef5 30%,
-      #e8d5f0 50%,
-      #d4c8eb 70%,
-      #cedbfb 100%
-    );
+    background: var(--ds-color-neutral-background-default);
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     margin-top: auto;
   }
@@ -119,19 +112,13 @@ const navCol2 = [
     margin-top: 8px;
   }
 
-  .footer-social-icon {
-    text-decoration: none;
-  }
-
   .social-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.15);
-    transition: background-color 0.2s ease;
+    width: var(--ds-size-10);
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: var(--ds-border-radius-md);
   }
 
   .social-circle:hover {
@@ -163,18 +150,6 @@ const navCol2 = [
     display: flex;
     flex-direction: column;
     gap: 12px;
-  }
-
-  .footer-nav-link {
-    font-size: 16px;
-    font-weight: 500;
-    color: #000;
-    text-decoration: none;
-    transition: opacity 0.2s ease;
-  }
-
-  .footer-nav-link:hover {
-    opacity: 0.7;
   }
 
   .footer-nav-button {
