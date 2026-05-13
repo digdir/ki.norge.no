@@ -46,16 +46,6 @@ Mange sider henter innhold fra Strapi CMS. Hvis CMS ikke er tilgjengelig eller i
 - Forventet (uten CMS):
   - H1: "Siden er ikke tilgjengelig"
 
-### /sandkasse/prosjekter
-- Forventet (med CMS):
-  - H1: Tittel fra CMS
-- Forventet (uten CMS):
-  - H1: "Prosjekter kommer snart"
-
-### /sandkasse/prosjekter/[slug]
-- Type: Dynamisk generert fra Strapi CMS
-- Krever publisert innhold i CMS for å fungere
-
 ### /eksempler
 - Forventet:
   - H1: "Gode eksempler"
