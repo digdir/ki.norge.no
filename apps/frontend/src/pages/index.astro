@@ -78,7 +78,7 @@ const sectionOrder = {
   <section class="aktuelt" style={`order: ${sectionOrder.aktuelt}`}>
     <div class="aktuelt-container">
       <h2 class="section-heading">{a.overskrift}</h2>
-      <div class="aktuelt-grid">
+      <div class="aktuelt-grid grid-subrows" data-color="neutral">
         {latestArticles.map(article => (
           <NewsCard
             href={`/artikler/${article.slug}`}

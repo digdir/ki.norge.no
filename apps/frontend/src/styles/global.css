@@ -75,6 +75,18 @@ body {
   border: 0;
 }
 
+/* Subgrid utility: direct children align their internal rows across the grid.
+   Each child spans 2 implicit rows and uses subgrid for equal-height alignment.
+   row-gap gives a minimum spacing between the two internal sections. */
+.grid-subrows {
+  row-gap: var(--ds-size-4);
+}
+.grid-subrows > * {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+}
+
 /* TODO: sok.astro still uses Material Symbols — migrate to Aksel icons when /sok is prioritized */
 
 /* ── External links: visual indicator (issue #145) ──────────────────

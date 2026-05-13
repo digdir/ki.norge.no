@@ -30,14 +30,14 @@ const navCol2 = [
       <p class="footer-brand">{brand}</p>
       <p class="footer-description">{desc}</p>
       <div class="footer-social">
-        <a href={igUrl} class="footer-social-icon" aria-label="Instagram">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/Instagram.svg" alt="Instagram" /></div>
+        <a href={igUrl} class="footer-social-icon ds-focus" aria-label="Instagram">
+          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/Instagram.svg" aria-hidden="true" /></div>
         </a>
-        <a href={liUrl} class="footer-social-icon" aria-label="LinkedIn">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/LinkenIn.svg" alt="LinkedIn" /></div>
+        <a href={liUrl} class="footer-social-icon ds-focus" aria-label="LinkedIn">
+          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/LinkenIn.svg" aria-hidden="true" /></div>
         </a>
-        <a href={xUrl} class="footer-social-icon" aria-label="X">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/X.svg" alt="X" /></div>
+        <a href={xUrl} class="footer-social-icon ds-focus" aria-label="X">
+          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/X.svg" aria-hidden="true" /></div>
         </a>
       </div>
     </div>
@@ -67,9 +67,10 @@ const navCol2 = [
   }
 
   .footer-inner {
-    max-width: 1280px;
+    max-width: 1390px;
     margin: 0 auto;
     padding-block: var(--ds-size-22);
+    padding-inline: var(--ds-size-4);
     display: flex;
     flex-direction: column;
     gap: 48px;
