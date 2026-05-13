@@ -31,6 +31,20 @@ if [ -n "$_CUTOVER_CNAME" ] && ! echo "$_CUTOVER_CNAME" | grep -q "azurecontaine
   exit 1
 fi
 
+# Guard: refuse to run if the CMS image no longer bundles Litestream.
+# This script relies on Litestream restoring the SQLite DB from Azure Blob
+# Storage on container startup, because /app/umbraco/Data is in the writable
+# container layer and has no persistent volume mount. If entrypoint.sh is
+# gone, the image build will skip the Litestream binary and the next deploy
+# will spin up with an empty database = total content loss.
+if [ ! -f "${REPO_ROOT}/apps/cms-umbraco/entrypoint.sh" ]; then
+  echo "ERROR: apps/cms-umbraco/entrypoint.sh is missing — the new image will"
+  echo "not bundle Litestream. Deploying via this script would create an empty"
+  echo "SQLite DB on an ephemeral path on the next container restart = data loss."
+  echo "Use the K8s flow via .github/workflows/publish-syncroot-main.yaml instead."
+  exit 1
+fi
+
 # Ensure Azure auth + PIM activation before deploying
 # Handles: expired MFA, wrong tenant, missing subscription, PIM activation
 TENANT_ID="cd0026d8-283b-4a55-9bfa-d0ef4a8ba21c"
