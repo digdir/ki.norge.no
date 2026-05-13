@@ -151,6 +151,14 @@ export interface Artikkel {
   publishedAt: string;
 }
 
+/**
+ * Enkel veiledningsmal — artikkel-lignende veiledning uten understeg.
+ * Lever på /veiledning/<slug> ved siden av flersteg-guider (VeiledningGuide).
+ * Samme shape som Artikkel; egen type så frontend kan skille content types
+ * uten property-sniffing.
+ */
+export interface EnkelVeiledning extends Artikkel {}
+
 export interface Side {
   id: string;
   documentId: string;
@@ -644,7 +652,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
 
     case 'artikkel':
     case 'case':
-      // Case has identical shape to Artikkel (mirror content type)
+    case 'enkelVeiledning':
+      // Case og EnkelVeiledning har samme shape som Artikkel (mirror content type).
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -1280,6 +1289,10 @@ export async function getVeiledningSteg(guideSlug: string, options: FetchOptions
 export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: string, options: FetchOptions = {}) {
   const steps = await getVeiledningSteg(guideSlug, options);
   return steps.find(s => s.slug === stepSlug) || null;
+}
+
+export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {
+  return fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
 }
 
 // ── FAQ API functions ───────────────────────────────────────────

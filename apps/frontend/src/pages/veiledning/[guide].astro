@@ -1,58 +1,164 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import BlocksRenderer from '../../components/shared/BlocksRenderer.astro';
+import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import StepNavigator from '../../components/guide/StepNavigator.astro';
 import InfoBanner from '../../components/guide/InfoBanner.astro';
-import { getVeiledningGuide, getVeiledningSteg, getPlainText } from '../../lib/umbraco';
+import {
+  getVeiledningGuide,
+  getVeiledningSteg,
+  getEnkelVeiledning,
+  getPlainText,
+  getMediaUrl,
+} from '../../lib/umbraco';
+import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 
-const { guide: guideSlug } = Astro.params;
-const guideData = await getVeiledningGuide(guideSlug!);
-if (!guideData) return Astro.redirect('/veiledning');
+const { guide: slug } = Astro.params;
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
-const allSteps = await getVeiledningSteg(guideSlug!);
+// Try enkelVeiledning first (artikkel-stil, én side). Hvis ikke funnet,
+// fall tilbake til flersteg-guide. Slugs er unike per parent i CMS,
+// så maks ett av to oppslag returnerer et treff.
+const enkel = await getEnkelVeiledning(slug!, { preview: isPreview });
+const guideData = enkel ? null : await getVeiledningGuide(slug!, { preview: isPreview });
+if (!enkel && !guideData) return Astro.redirect('/veiledning');
 
-// Group steps by steg number
-const stepMap = new Map<number, { title: string; substeps: { title: string; slug: string }[] }>();
-for (const step of allSteps) {
-  if (!stepMap.has(step.steg)) {
-    // Use first sub-step's parent step title (the step group title comes from overview design)
-    stepMap.set(step.steg, { title: '', substeps: [] });
-  }
-  stepMap.get(step.steg)!.substeps.push({ title: step.tittel, slug: step.slug });
+// ── Enkel veiledningsmal: render som artikkel ────────────────────
+let enkelCtx: {
+  seoTitle: string;
+  seoDesc: string;
+  seoImage?: string;
+  heroImage?: ReturnType<typeof getMediaUrl> | undefined;
+  isLightBlueBg: boolean;
+  articleJsonLd: unknown;
+  breadcrumbJsonLd: unknown;
+} | null = null;
+
+if (enkel) {
+  const seoTitle = enkel.seoTittel || enkel.tittel;
+  const seoDesc = enkel.seoBeskrivelse || enkel.ingress || getPlainText(enkel.innhold, 200);
+  const heroImage = enkel.artikkelBilde || enkel.seoBilde;
+  const seoImage = enkel.seoBilde?.url || enkel.artikkelBilde?.url;
+  enkelCtx = {
+    seoTitle,
+    seoDesc,
+    seoImage,
+    heroImage: heroImage?.url ? getMediaUrl(heroImage) : undefined,
+    isLightBlueBg: (enkel.bakgrunn || 'hvit') === 'lyseblaa',
+    articleJsonLd: articleSchema({
+      headline: seoTitle,
+      description: seoDesc,
+      slug: slug!,
+      datePublished: enkel.publishedAt,
+      dateModified: enkel.updatedAt || enkel.publishedAt,
+    }),
+    breadcrumbJsonLd: breadcrumbSchema([
+      { name: 'Forside', url: '/' },
+      { name: 'Veiledning', url: '/veiledning' },
+      { name: enkel.tittel, url: `/veiledning/${slug}` },
+    ]),
+  };
 }
 
-// The step group titles from the overview design
-const stepGroupTitles: Record<number, string> = {
-  1: 'Finn ut hvilke data du trenger',
-  2: 'Samle inn data',
-  3: 'Forberede data til bruk',
-  4: 'Gjøre data tilgjengelig for KI-systemet',
-  5: 'Slette data',
-};
+// ── Flersteg-guide: behold eksisterende oppførsel ────────────────
+let guideCtx: {
+  seoTitle: string;
+  seoDesc: string;
+  steps: { number: number; title: string; substeps: { title: string; slug: string }[] }[];
+} | null = null;
 
-const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
-  number: num,
-  title: stepGroupTitles[num] || `Steg ${num}`,
-  substeps: data.substeps,
-}));
+if (guideData) {
+  const allSteps = await getVeiledningSteg(slug!);
 
-const seoTitle = guideData.seoTittel || guideData.tittel;
-const seoDesc = guideData.seoBeskrivelse || getPlainText(guideData.introTekst, 200);
+  const stepMap = new Map<number, { title: string; substeps: { title: string; slug: string }[] }>();
+  for (const step of allSteps) {
+    if (!stepMap.has(step.steg)) {
+      stepMap.set(step.steg, { title: '', substeps: [] });
+    }
+    stepMap.get(step.steg)!.substeps.push({ title: step.tittel, slug: step.slug });
+  }
+
+  const stepGroupTitles: Record<number, string> = {
+    1: 'Finn ut hvilke data du trenger',
+    2: 'Samle inn data',
+    3: 'Forberede data til bruk',
+    4: 'Gjøre data tilgjengelig for KI-systemet',
+    5: 'Slette data',
+  };
+
+  guideCtx = {
+    seoTitle: guideData.seoTittel || guideData.tittel,
+    seoDesc: guideData.seoBeskrivelse || getPlainText(guideData.introTekst, 200),
+    steps: Array.from(stepMap.entries()).map(([num, data]) => ({
+      number: num,
+      title: stepGroupTitles[num] || `Steg ${num}`,
+      substeps: data.substeps,
+    })),
+  };
+}
 ---
-<Layout title={seoTitle} description={seoDesc}>
-  <div class="guide-overview">
-    <h1 class="guide-title">{guideData.tittel}</h1>
+{ enkel && enkelCtx ? (
+  <Layout
+    title={enkelCtx.seoTitle}
+    description={enkelCtx.seoDesc}
+    ogType="article"
+    publishedAt={enkel.publishedAt}
+    ogImage={enkelCtx.seoImage}
+  >
+    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.articleJsonLd).replace(/</g, '\\u003c')} />
+    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+    <div class="article-page grid">
+      <section class={`article-hero ${enkelCtx.isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
+        {enkelCtx.isLightBlueBg ? (
+          <div class="grid article-hero-bg-grid">
+            <div class="article-hero-inner col-center-10">
+              <div class="article-hero-text">
+                <h1 class="article-title">{enkel.tittel}</h1>
+                {enkel.ingress && <p class="article-ingress">{enkel.ingress}</p>}
+              </div>
+              {enkelCtx.heroImage && (
+                <div class="article-hero-image">
+                  <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div class="article-hero-inner">
+            <div class="article-hero-text">
+              <h1 class="article-title">{enkel.tittel}</h1>
+              {enkel.ingress && <p class="article-ingress">{enkel.ingress}</p>}
+            </div>
+            {enkelCtx.heroImage && (
+              <div class="article-hero-image">
+                <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+              </div>
+            )}
+          </div>
+        )}
+      </section>
 
-    {guideData.introTekst && (
-      <InfoBanner>
-        <BlocksRenderer blocks={guideData.introTekst} />
-      </InfoBanner>
-    )}
+      <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} />
+    </div>
+  </Layout>
+) : guideData && guideCtx ? (
+  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc}>
+    <div class="guide-overview">
+      <h1 class="guide-title">{guideData.tittel}</h1>
 
-    <StepNavigator steps={steps} guideSlug={guideSlug!} />
-  </div>
-</Layout>
+      {guideData.introTekst && (
+        <InfoBanner>
+          <BlocksRenderer blocks={guideData.introTekst} />
+        </InfoBanner>
+      )}
+
+      <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
+    </div>
+  </Layout>
+) : null }
+
 <style>
+  /* Flersteg-guide */
   .guide-overview {
     max-width: 800px;
     margin: 0 auto;
@@ -63,5 +169,81 @@ const seoDesc = guideData.seoBeskrivelse || getPlainText(guideData.introTekst, 2
     font-weight: 700;
     margin: 0 0 32px;
     color: #000;
+  }
+
+  /* Enkel veiledningsmal — duplisert fra apps/frontend/src/pages/artikler/[slug].astro.
+     TODO: konsoliderer i shared ArticleHero-komponent (task #72). */
+  .article-page {
+    padding-top: 0;
+    row-gap: 48px;
+  }
+
+  .article-hero {
+    padding: 100px 0;
+  }
+
+  .article-hero--bg-lyseblaa {
+    background: #e5f2f7;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-top: calc(-1 * var(--header-height, 72px));
+    padding-top: calc(140px + var(--header-height, 72px));
+    padding-bottom: 80px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .article-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  @media (min-width: 1024px) {
+    .article-hero-inner {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  .article-hero-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .article-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0;
+    color: var(--ds-color-text-default, #000);
+  }
+
+  .article-ingress {
+    font-size: 1.25rem;
+    line-height: 1.5;
+    margin: 0;
+    color: var(--ds-color-text-default, #000);
+  }
+
+  .article-hero-image {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .article-hero-image {
+      max-width: 50%;
+    }
+  }
+
+  .article-hero-img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
   }
 </style>

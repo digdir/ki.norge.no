@@ -175,6 +175,8 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("veiledningSteg") == null)
                 CreateVeiledningSteg();
             MigrateVeiledningSteg();
+            if (_contentTypeService.Get("enkelVeiledning") == null)
+                CreateEnkelVeiledning();
             if (_contentTypeService.Get("faq") == null)
                 CreateFAQ();
             if (_contentTypeService.Get("forside") == null)
@@ -1498,6 +1500,33 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
+    // Enkel veiledningsmal: artikkel-lignende veiledning uten understeg eller
+    // flerstegsstruktur. Brukes når veiledningen er én sammenhengende side.
+    // Lever under veiledninger-containeren ved siden av veiledningGuide.
+    // URL: /veiledning/<slug>.
+    private IContentType CreateEnkelVeiledning()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "enkelVeiledning",
+            Name = "Enkel veiledningsmal",
+            Description = "Veiledning som artikkel — uten understeg eller flersides struktur. Bruk denne når veiledningen er én side med løpende innhold.",
+            Icon = "icon-readonly",
+            AllowedAsRoot = false,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        AddArtikkelhodeFields(ct);
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold — samme moduler som artikler.", sortOrder: 5), "innhold");
+
+        ct.AddPropertyGroup("seo", "SEO");
+        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+        SetStandardGroupSortOrders(ct);
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
     private IContentType CreateFAQ()
     {
         var ct = new ContentType(_shortStringHelper, -1)
@@ -2111,16 +2140,21 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Update allowed children: oversikt + guide (steg goes under guide, not in container)
+        // Allowed children: oversikt + guide + enkelVeiledning (steg lever under guide).
         var oversiktType = _contentTypeService.Get("veiledningOversikt");
         var guideType = _contentTypeService.Get("veiledningGuide");
+        var enkelType = _contentTypeService.Get("enkelVeiledning");
         if (oversiktType != null && guideType != null)
         {
-            var desired = new[]
+            var list = new List<ContentTypeSort>
             {
-                new ContentTypeSort(oversiktType.Key, 0, oversiktType.Alias),
-                new ContentTypeSort(guideType.Key, 1, guideType.Alias)
+                new(oversiktType.Key, 0, oversiktType.Alias),
+                new(guideType.Key, 1, guideType.Alias),
             };
+            if (enkelType != null)
+                list.Add(new(enkelType.Key, 2, enkelType.Alias));
+
+            var desired = list.ToArray();
             var current = ct.AllowedContentTypes?.OrderBy(a => a.Alias).Select(a => a.Alias).ToArray() ?? Array.Empty<string>();
             var want = desired.OrderBy(a => a.Alias).Select(a => a.Alias).ToArray();
             if (!current.SequenceEqual(want))
