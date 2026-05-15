@@ -151,12 +151,6 @@ export interface Artikkel {
   publishedAt: string;
 }
 
-/**
- * Enkel veiledningsmal — artikkel-lignende veiledning uten understeg.
- * Lever på /veiledning/<slug> ved siden av flersteg-guider (VeiledningGuide).
- * Samme shape som Artikkel; egen type så frontend kan skille content types
- * uten property-sniffing.
- */
 export interface EnkelVeiledning extends Artikkel {}
 
 export interface Side {
@@ -653,7 +647,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'artikkel':
     case 'case':
     case 'enkelVeiledning':
-      // Case og EnkelVeiledning har samme shape som Artikkel (mirror content type).
       return {
         ...base,
         tittel: props.tittel as string || item.name,

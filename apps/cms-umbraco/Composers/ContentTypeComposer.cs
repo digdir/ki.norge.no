@@ -1500,10 +1500,6 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
-    // Enkel veiledningsmal: artikkel-lignende veiledning uten understeg eller
-    // flerstegsstruktur. Brukes når veiledningen er én sammenhengende side.
-    // Lever under veiledninger-containeren ved siden av veiledningGuide.
-    // URL: /veiledning/<slug>.
     private IContentType CreateEnkelVeiledning()
     {
         var ct = new ContentType(_shortStringHelper, -1)
@@ -2141,7 +2137,6 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Allowed children: oversikt + guide + enkelVeiledning (steg lever under guide).
         var oversiktType = _contentTypeService.Get("veiledningOversikt");
         var guideType = _contentTypeService.Get("veiledningGuide");
         var enkelType = _contentTypeService.Get("enkelVeiledning");

@@ -16,14 +16,10 @@ import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 const { guide: slug } = Astro.params;
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
-// Try enkelVeiledning first (artikkel-stil, én side). Hvis ikke funnet,
-// fall tilbake til flersteg-guide. Slugs er unike per parent i CMS,
-// så maks ett av to oppslag returnerer et treff.
 const enkel = await getEnkelVeiledning(slug!, { preview: isPreview });
 const guideData = enkel ? null : await getVeiledningGuide(slug!, { preview: isPreview });
 if (!enkel && !guideData) return Astro.redirect('/veiledning');
 
-// ── Enkel veiledningsmal: render som artikkel ────────────────────
 let enkelCtx: {
   seoTitle: string;
   seoDesc: string;
@@ -60,7 +56,6 @@ if (enkel) {
   };
 }
 
-// ── Flersteg-guide: behold eksisterende oppførsel ────────────────
 let guideCtx: {
   seoTitle: string;
   seoDesc: string;
@@ -158,7 +153,6 @@ if (guideData) {
 ) : null }
 
 <style>
-  /* Flersteg-guide */
   .guide-overview {
     max-width: 800px;
     margin: 0 auto;
@@ -171,8 +165,6 @@ if (guideData) {
     color: #000;
   }
 
-  /* Enkel veiledningsmal — duplisert fra apps/frontend/src/pages/artikler/[slug].astro.
-     TODO: konsoliderer i shared ArticleHero-komponent (task #72). */
   .article-page {
     padding-top: 0;
     row-gap: 48px;
