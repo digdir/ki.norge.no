@@ -4,6 +4,7 @@ import Hero from '../components/landing/Hero.astro';
 import AkselIcon from '../components/shared/AkselIcon.astro';
 import NewsCard from '../components/shared/NewsCard.astro';
 import ArrowLink from '../components/shared/ArrowLink.astro';
+import TextWithImage from '../components/shared/TextWithImage.astro';
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getPlainText } from '../lib/umbraco';
 
@@ -89,27 +90,15 @@ const sectionOrder = {
   </section>
 
   <!-- Tre råd -->
-  <section class="tre-raad col-all" style={`order: ${sectionOrder.treraad}`}>
-    <div class="tre-raad-inner">
-      <h2 class="tre-raad-heading">Tre råd før du går i gang med KI</h2>
-      <div class="tre-raad-grid">
-        <div class="tre-raad-card">
-          <div class="tre-raad-illustration"></div>
-          <h3 class="tre-raad-card-title">Start med problemet</h3>
-          <p class="tre-raad-card-desc">Definer klart hva du ønsker å oppnå før du velger teknologi. Gode KI-prosjekter starter med et tydelig behov.</p>
-        </div>
-        <div class="tre-raad-card">
-          <div class="tre-raad-illustration"></div>
-          <h3 class="tre-raad-card-title">Forstå dataene dine</h3>
-          <p class="tre-raad-card-desc">Kartlegg hvilke data du har tilgang til, kvaliteten på dem, og om de er egnet for formålet.</p>
-        </div>
-        <div class="tre-raad-card">
-          <div class="tre-raad-illustration"></div>
-          <h3 class="tre-raad-card-title">Sjekk rammer og ansvar</h3>
-          <p class="tre-raad-card-desc">Forstå regelverket som gjelder for ditt bruksområde. Sørg for at løsningen ivaretar personvern og etikk.</p>
-        </div>
-      </div>
-    </div>
+  <section class="col-center-10" style={`order: ${sectionOrder.treraad}`}>
+    <TextWithImage title="Kom i gang med KI" href="/veiledning" image="/placeholder.png" imageAlt="Illustrasjon av tre råd">
+      <ol class="ds-list">
+        <li>Bruk KI til å dekke ekte behov</li>
+        <li>Sørg for god datakvalitet</li>
+        <li>Pass på at du følger regelverk</li>
+      </ol>
+    </TextWithImage>
+    <ArrowLink href="/veiledning" text="Se all veiledning" />
   </section>
 
   <!-- Sandkasse -->
@@ -211,62 +200,6 @@ const sectionOrder = {
     }
   }
 
-  /* Tre råd */
-  .tre-raad {
-    background-color: #eef7ff;
-    padding: 64px var(--grid-min-margin);
-  }
-  .tre-raad-inner {
-    max-width: calc(var(--grid-max-width) - 2 * var(--grid-min-margin));
-    margin: 0 auto;
-    text-align: center;
-  }
-  .tre-raad-heading {
-    font-family: 'Inter', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    color: #1a2a6d;
-    margin: 0 0 48px;
-  }
-  .tre-raad-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-  @media (min-width: 1024px) {
-    .tre-raad-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  .tre-raad-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 24px;
-  }
-  .tre-raad-illustration {
-    width: 206px;
-    height: 218px;
-    background-color: #d9d9d9;
-    border-radius: 12px;
-    margin-bottom: 24px;
-  }
-  .tre-raad-card-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 12px;
-    color: #000;
-  }
-  .tre-raad-card-desc {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0,0,0,0.55);
-    margin: 0;
-    line-height: 1.5;
-    max-width: 340px;
-  }
-
   /* Sandkasse */
   .sandkasse-card {
     display: flex;
@@ -314,13 +247,6 @@ const sectionOrder = {
     }
     .veiledning-card-title {
       font-size: 20px;
-    }
-    .tre-raad-heading {
-      font-size: 24px;
-    }
-    .tre-raad-illustration {
-      width: 160px;
-      height: 170px;
     }
     .sandkasse-title {
       font-size: 24px;
