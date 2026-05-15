@@ -91,7 +91,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <SearchDialog client:load />
     {isPreview && <PreviewBanner currentPath={currentPath} />}
     <script is:inline>
-      document.querySelectorAll('a[href]').forEach(function(a) {
+      document.querySelectorAll('a[href^="http"]').forEach(function(a) {
         if (!a.rel || !a.rel.includes('noopener')) {
           a.rel = a.rel ? a.rel + ' noopener' : 'noopener';
         }

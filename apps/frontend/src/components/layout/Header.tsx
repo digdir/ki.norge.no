@@ -16,8 +16,8 @@ interface HeaderProps {
 const defaultNavItems: NavItem[] = [
   { href: '/veiledning', label: 'Veiledning' },
   { href: '/caser', label: 'Caser' },
-  { href: '/caser', label: 'Caser' },
-  { href: '/caser', label: 'Caser' },
+  { href: '/artikler', label: 'Aktuelt' },
+  { href: '/sandkasse', label: 'Sandkasse' },
 ];
 
 /**
