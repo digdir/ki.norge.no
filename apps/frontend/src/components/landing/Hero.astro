@@ -22,6 +22,16 @@
     gap: var(--ds-size-30);
     grid-template-columns: 1fr 1fr;
 
+    @media (max-width: 1023px) {
+      grid-template-columns: 1fr;
+      padding: var(--ds-size-2);
+      gap: var(--ds-size-8);
+
+      & h1 {
+        font-size: var(--ds-heading-lg-font-size);
+      }
+    }
+
     & img {
       max-width: 100%;
       height: auto;
@@ -30,29 +40,6 @@
 
     & h1 {
       margin-block: auto;
-    }
-  }
-
-
-  @media (max-width: 1023px) {
-    .hero-title {
-      font-size: 48px;
-      line-height: 52px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .hero {
-      min-height: 560px;
-      padding: 80px 0 40px;
-    }
-
-    .hero-title {
-      font-size: 32px;
-      line-height: 38px;
-    }
-    .hero-container {
-      gap: 32px;
     }
   }
 </style>
