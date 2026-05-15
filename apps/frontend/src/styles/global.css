@@ -6,7 +6,8 @@
   navigation: auto;
 }
 
-/* Disable default crossfade on all elements */
+/* Disable all view transition animations (instant page swap) */
+::view-transition-group(root),
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

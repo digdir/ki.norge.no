@@ -2,19 +2,34 @@
   background: transparent;
   position: relative;
   z-index: 1000;
+  height: var(--header-height);
+  min-height: var(--header-height);
   view-transition-name: header;
 }
 
-/* Keep header static during page transitions */
-::view-transition-old(header),
+/* Isolate header from root transition to prevent scroll-induced jump */
+::view-transition-group(header) {
+  animation: none;
+}
+
+::view-transition-image-pair(header) {
+  isolation: auto;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(header) {
+  display: none;
+}
+
 ::view-transition-new(header) {
   animation: none;
 }
 
 .header-container {
   max-width: 1280px;
+  height: 100%;
   margin: 0 auto;
-  padding: var(--ds-size-4);
+  padding-inline: var(--ds-size-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -106,19 +121,16 @@
   border-radius: var(--ds-border-radius-md);
   color: var(--ds-color-neutral-text-default);
 
-  /* Show on small screens before JS detects wrap */
+  /* Desktop: hidden by default, shown only when JS detects wrap */
+  @media (min-width: 769px) {
+    &:not(.hamburger-toggle--js-hidden) {
+      display: flex;
+    }
+  }
+
+  /* Mobile: always visible regardless of JS state (overrides --js-hidden) */
   @media (max-width: 768px) {
     display: flex;
-  }
-
-  /* JS-driven: when wrap is detected, always show */
-  &:not(.hamburger-toggle--js-hidden) {
-    display: flex;
-  }
-
-  /* JS says no hamburger needed */
-  &.hamburger-toggle--js-hidden {
-    display: none;
   }
 
   &:hover {
