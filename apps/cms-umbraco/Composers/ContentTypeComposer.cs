@@ -1200,7 +1200,6 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Editor-rekkefølge: flytt slug + bakgrunn til Innstillinger, set sortOrder etter render-rekkefølge.
         if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
@@ -1269,21 +1268,16 @@ public class ContentTypeComponent : IAsyncComponent
     /// </summary>
     private void AddArtikkelhodeFields(IContentType ct)
     {
-        // Innhold-tab: editor-feltene følger samme rekkefølge som rendret side
-        // (tittel → ingress → hovedbilde → alt). Blokklisten innhold legges på
-        // av Create-metoden med sortOrder 5 så modulene følger rett etter.
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
         ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("artikkelBilde", "Hovedbilde", _mediaPickerDt, description: "Hovedbilde som vises ved siden av tittelen (eller under på mobil).", sortOrder: 3), "innhold");
         ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt.", sortOrder: 4), "innhold");
 
-        // Innstillinger-tab: URL og presentasjonsvalg som ikke hører hjemme i Innhold.
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
         ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit.", sortOrder: 2), "innstillinger");
     }
 
-    // Felles tab-rekkefølge: Innhold (1) → Innstillinger (50) → SEO (100).
     private static readonly Dictionary<string, int> StandardGroupSortOrders = new()
     {
         { "innhold", 1 },
@@ -1305,8 +1299,6 @@ public class ContentTypeComponent : IAsyncComponent
         return changed;
     }
 
-    // Idempotent: oppretter Innstillinger-gruppen hvis mangler, og flytter
-    // navngitte properties dit hvis de fortsatt ligger i en annen gruppe.
     private bool EnsureInnstillingerGroup(IContentType ct, params string[] fieldAliasesToMove)
     {
         bool changed = false;
@@ -1384,8 +1376,6 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Editor-rekkefølge: flytt slug + bakgrunn til ny Innstillinger-tab,
-        // sett feltene i Innhold etter render-rekkefølge, og pin gruppe-rekkefølgen.
         if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
