@@ -48,10 +48,9 @@ const sectionOrder = {
   <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
   <Hero />
 
-  <div class="sections-container">
+  <div class="sections-container grid">
   <!-- Veiledning -->
-  <section class="veiledning" style={`order: ${sectionOrder.veiledning}`}>
-    <div class="veiledning-container">
+  <section class="veiledning col-center-10" style={`order: ${sectionOrder.veiledning}`}>
       <h2 class="section-heading">{v.overskrift}</h2>
       <div class="veiledning-grid">
         <a href={v.kort1Url} class="veiledning-card">
@@ -71,12 +70,10 @@ const sectionOrder = {
           <span class="veiledning-card-desc">{v.kort2Beskrivelse}</span>
         </a>
       </div>
-    </div>
   </section>
 
   <!-- Aktuelt -->
-  <section class="aktuelt" style={`order: ${sectionOrder.aktuelt}`}>
-    <div class="aktuelt-container">
+  <section class="aktuelt col-center-10" style={`order: ${sectionOrder.aktuelt}`}>
       <h2 class="section-heading">{a.overskrift}</h2>
       <div class="aktuelt-grid grid-subrows" data-color="neutral">
         {latestArticles.map(article => (
@@ -91,12 +88,11 @@ const sectionOrder = {
         <span class="aktuelt-link-circle">→</span>
         {a.lenkeTekst}
       </a>
-    </div>
   </section>
 
   <!-- Tre råd -->
-  <section class="tre-raad" style={`order: ${sectionOrder.treraad}`}>
-    <div class="tre-raad-container">
+  <section class="tre-raad col-all" style={`order: ${sectionOrder.treraad}`}>
+    <div class="tre-raad-inner">
       <h2 class="tre-raad-heading">Tre råd før du går i gang med KI</h2>
       <div class="tre-raad-grid">
         <div class="tre-raad-card">
@@ -119,8 +115,7 @@ const sectionOrder = {
   </section>
 
   <!-- Sandkasse -->
-  <section class="sandkasse" style={`order: ${sectionOrder.sandkasse}`}>
-    <div class="sandkasse-container">
+  <section class="sandkasse col-center-10" style={`order: ${sectionOrder.sandkasse}`}>
       <a href="/sandkasse" class="sandkasse-card">
         <h2 class="sandkasse-title">Regulatorisk sandkasse for kunstig intelligens</h2>
         <div class="sandkasse-bottom">
@@ -128,7 +123,6 @@ const sectionOrder = {
           <span class="sandkasse-arrow">→</span>
         </div>
       </a>
-    </div>
   </section>
 
   </div>
@@ -137,8 +131,8 @@ const sectionOrder = {
 <style>
   /* Sections container for CMS-driven reordering */
   .sections-container {
-    display: flex;
-    flex-direction: column;
+    row-gap: 64px;
+    padding-block: 64px;
   }
 
   /* Shared */
@@ -155,12 +149,6 @@ const sectionOrder = {
   .veiledning {
     position: relative;
     z-index: 1;
-    padding: 0 24px 64px;
-  }
-  .veiledning-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 96px;
   }
   .veiledning-grid {
     display: grid;
@@ -213,14 +201,6 @@ const sectionOrder = {
   }
 
   /* Aktuelt */
-  .aktuelt {
-    padding: 64px 24px;
-  }
-  .aktuelt-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 96px;
-  }
   .aktuelt-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -262,12 +242,11 @@ const sectionOrder = {
   /* Tre råd */
   .tre-raad {
     background-color: #eef7ff;
-    padding: 64px 24px;
+    padding: 64px var(--grid-min-margin);
   }
-  .tre-raad-container {
-    max-width: 1280px;
+  .tre-raad-inner {
+    max-width: calc(var(--grid-max-width) - 2 * var(--grid-min-margin));
     margin: 0 auto;
-    padding: 0 176px;
     text-align: center;
   }
   .tre-raad-heading {
@@ -317,14 +296,6 @@ const sectionOrder = {
   }
 
   /* Sandkasse */
-  .sandkasse {
-    padding: 64px 24px;
-  }
-  .sandkasse-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 96px;
-  }
   .sandkasse-card {
     display: flex;
     flex-direction: column;
@@ -365,28 +336,11 @@ const sectionOrder = {
   }
 
   /* Responsive */
-  @media (max-width: 1023px) {
-    .veiledning-container,
-    .aktuelt-container,
-    .sandkasse-container {
-      padding: 0;
-    }
-    .tre-raad-container {
-      padding: 0;
-    }
-  }
   @media (max-width: 640px) {
     .section-heading {
       font-size: 24px;
     }
     .veiledning-card-title {
-      font-size: 20px;
-    }
-    .aktuelt-card {
-      height: auto;
-      min-height: 280px;
-    }
-    .aktuelt-card-title {
       font-size: 20px;
     }
     .tre-raad-heading {
