@@ -72,6 +72,8 @@ body {
   min-height: 100vh;
   background-color: var(--ds-color-neutral-background-default);
   color: var(--ds-color-neutral-text-default);
+  font-family: var(--ds-font-family), sans-serif;
+  font-feature-settings: "cv05" 1;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 

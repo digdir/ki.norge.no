@@ -26,6 +26,10 @@ const { href, text } = Astro.props;
     color: var(--ds-color-neutral-text-default);
     text-decoration: none;
 
+    &:hover {
+      text-decoration: underline;
+    }
+
     & .arrow-link-circle {
       display: flex;
       align-items: center;
