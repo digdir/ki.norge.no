@@ -39,12 +39,22 @@ const detectWrap = (items: HTMLCollection) => {
   return false;
 };
 
-export default function Header({ currentPath, navItems = defaultNavItems }: HeaderProps) {
+export default function Header({ currentPath: initialPath, navItems = defaultNavItems }: HeaderProps) {
+  const [activePath, setActivePath] = useState(initialPath);
   const [isHamburger, setIsHamburger] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(0);
   const menuRef = useRef<HTMLUListElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Update active path on Astro client-side navigation
+  useEffect(() => {
+    const handleNavigation = () => {
+      setActivePath(window.location.pathname);
+    };
+    document.addEventListener('astro:after-swap', handleNavigation);
+    return () => document.removeEventListener('astro:after-swap', handleNavigation);
+  }, []);
 
   // Close mobile menu on blur (tab focus leaves)
   const handleBlur = (e: React.FocusEvent) => {
@@ -94,8 +104,8 @@ export default function Header({ currentPath, navItems = defaultNavItems }: Head
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={cl('nav-link', currentPath.startsWith(item.href) && 'active')}
-                  aria-current={currentPath.startsWith(item.href) ? 'page' : undefined}
+                  className={cl('nav-link', activePath.startsWith(item.href) && 'active')}
+                  aria-current={activePath.startsWith(item.href) ? 'page' : undefined}
                 >
                   {item.label}
                 </Link>
@@ -103,32 +113,29 @@ export default function Header({ currentPath, navItems = defaultNavItems }: Head
             ))}
           </ul>
 
-          {/* Hamburger toggle */}
-          {isHamburger && (
-            <button
-              className="hamburger-toggle ds-focus"
-              aria-label="Åpne meny"
-              popoverTarget="header-mobile-menu"
-              popoverTargetAction="show"
-            >
-              <MenuHamburgerIcon aria-hidden fontSize="1.5rem" />
-            </button>
-          )}
+          {/* Hamburger toggle — always in DOM, CSS hides on desktop */}
+          <button
+            className={cl('hamburger-toggle', 'ds-focus', !isHamburger && 'hamburger-toggle--js-hidden')}
+            aria-label="Åpne meny"
+            popoverTarget="header-mobile-menu"
+            popoverTargetAction="show"
+          >
+            <MenuHamburgerIcon aria-hidden fontSize="1.5rem" />
+          </button>
         </nav>
       </div>
 
-      {/* Mobile menu — uses popover API */}
-      {isHamburger && (
-        <div
-          className="mobile-menu"
-          id="header-mobile-menu"
-          ref={mobileMenuRef}
-          popover="auto"
-          onBlur={handleBlur}
-        >
+      {/* Mobile menu — always in DOM for popover API, hidden by default */}
+      <div
+        className="mobile-menu"
+        id="header-mobile-menu"
+        ref={mobileMenuRef}
+        popover="auto"
+        onBlur={handleBlur}
+      >
           <div className="mobile-menu-header">
             <Link href="/" className="logo-link" aria-label="KI Norge - Hjem">
-              <img loading="lazy" decoding="async" className="logo-icon" src="/logo.svg" alt="ki.norge.no" width="28" height="30" />
+              <img  decoding="async" className="logo-icon" src="/logo.svg" alt="ki.norge.no" width="28" height="30" />
               <span className="logo-text">ki.norge.no</span>
             </Link>
             <button
@@ -145,16 +152,15 @@ export default function Header({ currentPath, navItems = defaultNavItems }: Head
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={cl('nav-link', currentPath.startsWith(item.href) && 'active')}
-                  aria-current={currentPath.startsWith(item.href) ? 'page' : undefined}
+                  className={cl('nav-link', activePath.startsWith(item.href) && 'active')}
+                  aria-current={activePath.startsWith(item.href) ? 'page' : undefined}
                 >
                   {item.label}
                 </Link>
               </li>
             ))}
           </ul>
-        </div>
-      )}
+      </div>
     </header>
   );
 }

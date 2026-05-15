@@ -1,6 +1,17 @@
 @import '@digdir/designsystemet-css';
 @import '@digdir/designsystemet-css/theme.css';
 
+/* MPA View Transitions — cross-document, no SPA needed */
+@view-transition {
+  navigation: auto;
+}
+
+/* Disable default crossfade on all elements */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
 :root {
   /* Stitch primary color override - blue #136dec */
   --ds-color-accent-1: #e6f0fd;

@@ -2,6 +2,13 @@
   background: transparent;
   position: relative;
   z-index: 1000;
+  view-transition-name: header;
+}
+
+/* Keep header static during page transitions */
+::view-transition-old(header),
+::view-transition-new(header) {
+  animation: none;
 }
 
 .header-container {
@@ -51,6 +58,13 @@
   padding: 0;
   justify-content: flex-end;
 
+  /* Hide nav on small screens before JS detects wrap */
+  @media (max-width: 768px) {
+    visibility: hidden;
+    position: absolute;
+    pointer-events: none;
+  }
+
   &.nav-list--hidden {
     visibility: hidden;
     position: absolute;
@@ -82,7 +96,7 @@
 }
 
 .hamburger-toggle {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   background: none;
@@ -91,6 +105,21 @@
   padding: var(--ds-size-2);
   border-radius: var(--ds-border-radius-md);
   color: var(--ds-color-neutral-text-default);
+
+  /* Show on small screens before JS detects wrap */
+  @media (max-width: 768px) {
+    display: flex;
+  }
+
+  /* JS-driven: when wrap is detected, always show */
+  &:not(.hamburger-toggle--js-hidden) {
+    display: flex;
+  }
+
+  /* JS says no hamburger needed */
+  &.hamburger-toggle--js-hidden {
+    display: none;
+  }
 
   &:hover {
     background-color: var(--ds-color-neutral-surface-hover);
