@@ -1,7 +1,0 @@
-dbs:
-  - path: /app/umbraco/Data/Umbraco.sqlite.db
-    replicas:
-      - type: abs
-        account-name: kinorgestorage
-        bucket: umbraco-db
-        path: Umbraco.sqlite.db
