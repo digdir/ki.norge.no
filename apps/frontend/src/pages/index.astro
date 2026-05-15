@@ -3,6 +3,7 @@ import Layout from '../components/layout/Layout.astro';
 import Hero from '../components/landing/Hero.astro';
 import AkselIcon from '../components/shared/AkselIcon.astro';
 import NewsCard from '../components/shared/NewsCard.astro';
+import ArrowLink from '../components/shared/ArrowLink.astro';
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getPlainText } from '../lib/umbraco';
 
@@ -84,10 +85,7 @@ const sectionOrder = {
           />
         ))}
       </div>
-      <a href={a.lenkeUrl} class="aktuelt-link">
-        <span class="aktuelt-link-circle">→</span>
-        {a.lenkeTekst}
-      </a>
+      <ArrowLink href={a.lenkeUrl} text={a.lenkeTekst} />
   </section>
 
   <!-- Tre råd -->
@@ -211,32 +209,6 @@ const sectionOrder = {
     .aktuelt-grid {
       grid-template-columns: repeat(3, 1fr);
     }
-  }
-  .aktuelt-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0,0,0,0.7);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-  .aktuelt-link:hover {
-    color: #000;
-  }
-  .aktuelt-link-circle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 37px;
-    height: 37px;
-    border-radius: 50%;
-    background-color: #B8CFE3;
-    font-size: 18px;
-    font-weight: 500;
-    color: #474747;
-    flex-shrink: 0;
   }
 
   /* Tre råd */
