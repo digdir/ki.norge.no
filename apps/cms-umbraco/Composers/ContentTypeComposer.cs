@@ -170,6 +170,7 @@ public class ContentTypeComponent : IAsyncComponent
 
             if (_contentTypeService.Get("veiledningGuide") == null)
                 CreateVeiledningGuide();
+            MigrateVeiledningGuideStegtitler();
             if (_contentTypeService.Get("veiledningSteg") == null)
                 CreateVeiledningSteg();
             if (_contentTypeService.Get("faq") == null)
@@ -1325,6 +1326,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true), "innhold");
         ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt), "innhold");
+        ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje. Tom linje = bruk standard 'Steg N'. Rekkefølgen følger steg-nummeret (linje 1 = steg 1, osv.)."), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt), "seo");
@@ -1332,6 +1334,17 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt), "seo");
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    private void MigrateVeiledningGuideStegtitler()
+    {
+        var ct = _contentTypeService.Get("veiledningGuide");
+        if (ct == null) return;
+        if (ct.PropertyTypeExists("stegGruppeTittler")) return;
+
+        ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje. Tom linje = bruk standard 'Steg N'. Rekkefølgen følger steg-nummeret (linje 1 = steg 1, osv.)."), "innhold");
+        _contentTypeService.Save(ct);
+        Console.WriteLine("ContentTypeComposer: Added stegGruppeTittler to veiledningGuide");
     }
 
     private IContentType CreateVeiledningSteg()

@@ -195,6 +195,7 @@ export interface VeiledningGuide {
   tittel: string;
   slug: string;
   introTekst?: UmbracoBlock[];
+  stegGruppeTittler?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -695,6 +696,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
         introTekst: mapRichText(props.introTekst),
+        stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
