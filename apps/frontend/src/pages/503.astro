@@ -1,18 +1,22 @@
 ---
 import Layout from '../components/layout/Layout.astro';
-// Note: Astro routes errors via 404.astro by default. This 503 is a fallback
-// page that can be served by the upstream proxy (Cloudflare/Container Apps)
-// during planned maintenance via static page redirect.
+import { getGlobaleInnstillinger } from '../lib/umbraco';
+
 Astro.response.status = 503;
 Astro.response.headers.set('Retry-After', '300');
+
+const gi = await getGlobaleInnstillinger().catch(() => null);
+const tittel = gi?.tittel503 || 'Vi er straks tilbake';
+const beskrivelse = gi?.beskrivelse503 || 'ki.norge.no er midlertidig nede for vedlikehold. Vi jobber med å få siden opp igjen så fort som mulig.';
+const epost = gi?.vedlikeholdEpost || 'kontakt@digdir.no';
 ---
 
-<Layout title="Vedlikehold pågår" description="ki.norge.no er midlertidig nede for vedlikehold.">
+<Layout title={tittel} description={beskrivelse}>
   <div class="error-page grid">
     <article class="col-center-6">
-      <h1>Vi er straks tilbake</h1>
-      <p>ki.norge.no er midlertidig nede for vedlikehold. Vi jobber med å få siden opp igjen så fort som mulig.</p>
-      <p class="hint">Prøv igjen om noen minutter. Trenger du hjelp i mellomtiden, ta kontakt på <a href="mailto:kontakt@digdir.no">kontakt@digdir.no</a>.</p>
+      <h1>{tittel}</h1>
+      <p>{beskrivelse}</p>
+      <p class="hint">Prøv igjen om noen minutter. Trenger du hjelp i mellomtiden, ta kontakt på <a href={`mailto:${epost}`}>{epost}</a>.</p>
     </article>
   </div>
 </Layout>

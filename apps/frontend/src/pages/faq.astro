@@ -2,7 +2,7 @@
 import Layout from '../components/layout/Layout.astro';
 import BlocksRenderer from '../components/shared/BlocksRenderer.astro';
 import ContactCard from '../components/shared/ContactCard.astro';
-import { getFAQs, getPlainText, type FAQ } from '../lib/umbraco';
+import { getFAQs, getFaqSamling, getPlainText, type FAQ } from '../lib/umbraco';
 import { faqPageSchema } from '../lib/seo';
 
 let faqs: FAQ[] = [];
@@ -12,6 +12,9 @@ try {
 } catch (e) {
   console.error('Failed to fetch FAQs:', e);
 }
+
+const faqSamling = await getFaqSamling().catch(() => null);
+const leadHtml = faqSamling?.lead || '<p>Her finner du svar på de mest stilte spørsmålene om KI Norge og våre tjenester.</p>';
 
 // Hardcoded fallback FAQs — shown when the CMS has none. Used by editors
 // who haven't populated the FAQ collection yet, and as a safety net if the
@@ -62,7 +65,7 @@ const faqJsonLd = faqPageSchema(
   <div class="faq-page">
     <div class="faq-title-bar">
       <h1 class="faq-title">Ofte stilte spørsmål</h1>
-      <p class="faq-lead">Her finner du svar på de mest stilte spørsmålene om KI Norge og våre tjenester.</p>
+      <div class="faq-lead" set:html={leadHtml}></div>
     </div>
 
     <div class="faq-content">

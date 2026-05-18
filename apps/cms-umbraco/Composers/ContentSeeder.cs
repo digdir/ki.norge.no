@@ -153,7 +153,79 @@ public class ContentSeeder : IAsyncComponent
         FlattenOmOssSeksjonerToBlocks();
         MigrateEksempelToCase();
         FixBakgrunnDropdownValues();
+        EnsureGlobaleInnstillingerExist();
+        BackfillFaqOrdbokLeads();
         EnsureSandkasseExistsForDev();
+    }
+
+    /// <summary>
+    /// Ensures a single globaleInnstillinger node exists at root and backfills
+    /// any empty fields with the previously hardcoded defaults. Idempotent —
+    /// per-field check skips anything an editor has already set.
+    /// </summary>
+    private void EnsureGlobaleInnstillingerExist()
+    {
+        var ct = _contentTypeService.Get("globaleInnstillinger");
+        if (ct == null) return;
+
+        var node = _contentService.GetRootContent().FirstOrDefault(c => c.ContentType.Alias == "globaleInnstillinger");
+        if (node == null)
+        {
+            node = _contentService.Create("Globale innstillinger", -1, "globaleInnstillinger");
+        }
+
+        bool changed = false;
+        changed |= SetIfEmpty(node, "kontaktTittel", "Vil du vite mer?");
+        changed |= SetIfEmpty(node, "kontaktIngress", "Har du spørsmål, eller ønsker du å komme i kontakt?");
+        changed |= SetIfEmpty(node, "kontaktTelefon", "75006000");
+        changed |= SetIfEmpty(node, "kontaktTelefonLabel", "Ring 75 00 60 00");
+        changed |= SetIfEmpty(node, "kontaktEpost", "kontakt@ki.norge.no");
+        changed |= SetIfEmpty(node, "kontaktEpostLabel", "Send mail");
+        changed |= SetIfEmpty(node, "cookieTekst", "<p>Vi bruker kun nødvendige informasjonskapsler for at nettsiden skal fungere. Vi setter ingen sporings- eller analyse-cookies.</p>");
+        changed |= SetIfEmpty(node, "cookieKnappLabel", "Greit");
+        changed |= SetIfEmpty(node, "tittel404", "Siden ble ikke funnet");
+        changed |= SetIfEmpty(node, "beskrivelse404", "Beklager, vi fant ikke siden du leter etter. Den kan ha blitt flyttet eller fjernet.");
+        changed |= SetIfEmpty(node, "tittel503", "Vi er straks tilbake");
+        changed |= SetIfEmpty(node, "beskrivelse503", "ki.norge.no er midlertidig nede for vedlikehold.");
+        changed |= SetIfEmpty(node, "vedlikeholdEpost", "kontakt@ki.norge.no");
+
+        if (!changed && node.HasIdentity) return;
+
+        SaveAndPublish(node);
+        Console.WriteLine(node.HasIdentity
+            ? "ContentSeeder: Backfilled globaleInnstillinger fields"
+            : "ContentSeeder: Created globaleInnstillinger at root");
+    }
+
+    /// <summary>
+    /// Backfills the new lead fields on faqSamling and ordbokSamling containers
+    /// with the previously hardcoded page text. Idempotent.
+    /// </summary>
+    private void BackfillFaqOrdbokLeads()
+    {
+        foreach (var root in _contentService.GetRootContent())
+        {
+            if (root.ContentType.Alias == "faqSamling")
+            {
+                bool faqChanged = SetIfEmpty(root, "lead", "<p>Her finner du svar på de mest stilte spørsmålene om KI Norge og bruk av kunstig intelligens i offentlig sektor.</p>");
+                if (faqChanged) SaveAndPublish(root);
+            }
+            else if (root.ContentType.Alias == "ordbokSamling")
+            {
+                bool ordbokChanged = false;
+                ordbokChanged |= SetIfEmpty(root, "tittel", "KI Ordboka");
+                ordbokChanged |= SetIfEmpty(root, "lead", "<p>KI ordboken forklarer vanlige begreper innenfor kunstig intelligens på en enkel og forståelig måte.</p>");
+                if (ordbokChanged) SaveAndPublish(root);
+            }
+        }
+    }
+
+    private bool SetIfEmpty(IContent node, string alias, string value)
+    {
+        var existing = node.GetValue<string>(alias);
+        if (!string.IsNullOrWhiteSpace(existing)) return false;
+        node.SetValue(alias, value);
+        return true;
     }
 
     /// <summary>

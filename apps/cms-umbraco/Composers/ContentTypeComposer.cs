@@ -240,6 +240,10 @@ public class ContentTypeComponent : IAsyncComponent
                 CreateOrdbokOppslag();
             CreateContainerIfMissing("ordbokSamling", "KI-ordbok", "icon-book-alt", "ordbokOppslag");
 
+            if (_contentTypeService.Get("globaleInnstillinger") == null)
+                CreateGlobaleInnstillinger();
+            MigrateContainerLeadFields();
+
             // RichText data types are ensured by ResolveDataTypes() at the very start of this method.
             // Standard + Restricted variants get correct toolbar+extensions config every startup.
             // No need to call again here.
@@ -1931,6 +1935,7 @@ public class ContentTypeComponent : IAsyncComponent
             "veiledningSteg",  // child of veiledningGuide
             "faq",             // child of faqSamling
             "forside",         // always at root
+            "globaleInnstillinger", // singleton at root
             // Containers themselves (sider can't contain other containers)
             "sider", "artikler", "caser", "eksempler", "veiledninger",
             "faqSamling", "merkelapper", "ordbokSamling", "tilgjengeligeIkoner",
@@ -2154,6 +2159,65 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("rekkefolgeSandkasse", "Sandkasse", _numericDt, description: "Rekkefølge for Sandkasse-seksjonen (1-5)"), "rekkefolge");
             ct.AddPropertyType(Prop("rekkefolgeArrangement", "Arrangement", _numericDt, description: "Rekkefølge for Arrangement-seksjonen (1-5)"), "rekkefolge");
             _contentTypeService.Save(ct);
+        }
+    }
+
+    private IContentType CreateGlobaleInnstillinger()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "globaleInnstillinger",
+            Name = "Globale innstillinger",
+            Description = "Globale tekster brukt på tvers av sidene (kontakt-kort, cookie-melding, feilsider). Ett node på rot.",
+            Icon = "icon-settings",
+            AllowedAsRoot = true,
+        };
+
+        ct.AddPropertyGroup("kontakt", "Kontakt-kort");
+        ct.AddPropertyType(Prop("kontaktTittel", "Tittel", _textStringDt, description: "Overskrift på kontaktkortet (vises på flere sider)."), "kontakt");
+        ct.AddPropertyType(Prop("kontaktIngress", "Ingress", _textAreaDt, description: "Kort tekst under tittelen."), "kontakt");
+        ct.AddPropertyType(Prop("kontaktTelefon", "Telefonnummer", _textStringDt, description: "Brukes i tel:-lenken (uten mellomrom). Eks: 75006000"), "kontakt");
+        ct.AddPropertyType(Prop("kontaktTelefonLabel", "Telefon-knapp-tekst", _textStringDt, description: "Synlig tekst på telefon-knappen. Eks: Ring 75 00 60 00"), "kontakt");
+        ct.AddPropertyType(Prop("kontaktEpost", "E-postadresse", _textStringDt, description: "Brukes i mailto:-lenken."), "kontakt");
+        ct.AddPropertyType(Prop("kontaktEpostLabel", "E-post-knapp-tekst", _textStringDt, description: "Synlig tekst på e-post-knappen. Eks: Send mail"), "kontakt");
+
+        ct.AddPropertyGroup("cookie", "Cookie-melding");
+        ct.AddPropertyType(Prop("cookieTekst", "Tekst", _richTextDt, description: "Vises i cookie-banneret nederst på siden."), "cookie");
+        ct.AddPropertyType(Prop("cookieKnappLabel", "Knapp-tekst", _textStringDt, description: "Tekst på avvis-knappen. Eks: Greit"), "cookie");
+
+        ct.AddPropertyGroup("feilsider", "Feilsider");
+        ct.AddPropertyType(Prop("tittel404", "404 tittel", _textStringDt, description: "Vises som overskrift når en side ikke finnes."), "feilsider");
+        ct.AddPropertyType(Prop("beskrivelse404", "404 beskrivelse", _textAreaDt, description: "Forklarende tekst på 404-siden."), "feilsider");
+        ct.AddPropertyType(Prop("tittel503", "503 tittel", _textStringDt, description: "Vises som overskrift på vedlikeholdssiden."), "feilsider");
+        ct.AddPropertyType(Prop("beskrivelse503", "503 beskrivelse", _textAreaDt, description: "Forklarende tekst på vedlikeholdssiden."), "feilsider");
+        ct.AddPropertyType(Prop("vedlikeholdEpost", "Vedlikehold-e-post", _textStringDt, description: "Kontakt-e-post for hjelp under vedlikehold."), "feilsider");
+
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private void MigrateContainerLeadFields()
+    {
+        var faq = _contentTypeService.Get("faqSamling");
+        if (faq != null && !faq.PropertyTypeExists("lead"))
+        {
+            faq.AddPropertyGroup("innhold", "Innhold");
+            faq.AddPropertyType(Prop("lead", "Lead-tekst", _richTextDt, description: "Kort tekst som vises over FAQ-listen."), "innhold");
+            _contentTypeService.Save(faq);
+            Console.WriteLine("ContentTypeComposer: Added lead to faqSamling");
+        }
+
+        var ordbok = _contentTypeService.Get("ordbokSamling");
+        if (ordbok != null && (!ordbok.PropertyTypeExists("tittel") || !ordbok.PropertyTypeExists("lead")))
+        {
+            if (!ordbok.PropertyGroups.Any(g => g.Alias == "innhold"))
+                ordbok.AddPropertyGroup("innhold", "Innhold");
+            if (!ordbok.PropertyTypeExists("tittel"))
+                ordbok.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Synlig overskrift på ordbok-siden."), "innhold");
+            if (!ordbok.PropertyTypeExists("lead"))
+                ordbok.AddPropertyType(Prop("lead", "Lead-tekst", _richTextDt, description: "Kort tekst som vises over ordbok-listen."), "innhold");
+            _contentTypeService.Save(ordbok);
+            Console.WriteLine("ContentTypeComposer: Added tittel + lead to ordbokSamling");
         }
     }
 }
