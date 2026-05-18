@@ -6,3 +6,5 @@ blockExoticSubdeps: true
 onlyBuiltDependencies:
   - "sharp"
   - "esbuild"
+overrides:
+  devalue: "^5.8.1"
