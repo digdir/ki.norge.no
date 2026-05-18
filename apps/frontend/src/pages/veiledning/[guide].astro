@@ -21,14 +21,11 @@ for (const step of allSteps) {
   stepMap.get(step.steg)!.substeps.push({ title: step.tittel, slug: step.slug });
 }
 
-// The step group titles from the overview design
-const stepGroupTitles: Record<number, string> = {
-  1: 'Finn ut hvilke data du trenger',
-  2: 'Samle inn data',
-  3: 'Forberede data til bruk',
-  4: 'Gjøre data tilgjengelig for KI-systemet',
-  5: 'Slette data',
-};
+const stepGroupTitles: Record<number, string> = {};
+(guideData.stegGruppeTittler || '').split('\n').forEach((line, i) => {
+  const trimmed = line.trim();
+  if (trimmed) stepGroupTitles[i + 1] = trimmed;
+});
 
 const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
   number: num,

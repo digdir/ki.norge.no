@@ -172,6 +172,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("veiledningGuide") == null)
                 CreateVeiledningGuide();
             MigrateVeiledningGuideEditorLayout();
+            MigrateVeiledningGuideStegtitler();
             if (_contentTypeService.Get("veiledningSteg") == null)
                 CreateVeiledningSteg();
             MigrateVeiledningSteg();
@@ -1236,7 +1237,7 @@ public class ContentTypeComponent : IAsyncComponent
 
         if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
-            ("tittel", 1), ("introTekst", 2),
+            ("tittel", 1), ("introTekst", 2), ("stegGruppeTittler", 3),
             ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
@@ -1456,6 +1457,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
         ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt, sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje. Tom linje = bruk standard 'Steg N'. Rekkefølgen følger steg-nummeret (linje 1 = steg 1, osv.).", sortOrder: 3), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
@@ -1467,6 +1469,17 @@ public class ContentTypeComponent : IAsyncComponent
         SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    private void MigrateVeiledningGuideStegtitler()
+    {
+        var ct = _contentTypeService.Get("veiledningGuide");
+        if (ct == null) return;
+        if (ct.PropertyTypeExists("stegGruppeTittler")) return;
+
+        ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje. Tom linje = bruk standard 'Steg N'. Rekkefølgen følger steg-nummeret (linje 1 = steg 1, osv.)."), "innhold");
+        _contentTypeService.Save(ct);
+        Console.WriteLine("ContentTypeComposer: Added stegGruppeTittler to veiledningGuide");
     }
 
     private IContentType CreateVeiledningSteg()
