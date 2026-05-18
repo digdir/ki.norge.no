@@ -151,6 +151,8 @@ export interface Artikkel {
   publishedAt: string;
 }
 
+export interface EnkelVeiledning extends Artikkel {}
+
 export interface Side {
   id: string;
   documentId: string;
@@ -195,6 +197,7 @@ export interface VeiledningGuide {
   tittel: string;
   slug: string;
   introTekst?: UmbracoBlock[];
+  stegGruppeTittler?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -675,7 +678,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
 
     case 'artikkel':
     case 'case':
-      // Case has identical shape to Artikkel (mirror content type)
+    case 'enkelVeiledning':
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -726,6 +729,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
         introTekst: mapRichText(props.introTekst),
+        stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
@@ -1366,6 +1370,10 @@ export async function getVeiledningSteg(guideSlug: string, options: FetchOptions
 export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: string, options: FetchOptions = {}) {
   const steps = await getVeiledningSteg(guideSlug, options);
   return steps.find(s => s.slug === stepSlug) || null;
+}
+
+export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {
+  return fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
 }
 
 // ── FAQ API functions ───────────────────────────────────────────
