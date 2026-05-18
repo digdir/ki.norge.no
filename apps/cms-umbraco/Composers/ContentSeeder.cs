@@ -153,7 +153,52 @@ public class ContentSeeder : IAsyncComponent
         FlattenOmOssSeksjonerToBlocks();
         MigrateEksempelToCase();
         FixBakgrunnDropdownValues();
+        BackfillBrukDataRettStegtitler();
         EnsureSandkasseExistsForDev();
+    }
+
+    /// <summary>
+    /// One-time backfill: the bruk-data-rett guide used to render with hardcoded
+    /// step group titles in the frontend route. Now that veiledningGuide has a
+    /// stegGruppeTittler field, copy the previous defaults onto the existing node
+    /// so the page keeps rendering with the same labels. Idempotent — skips if
+    /// the field already has a value, or if no such guide exists.
+    /// </summary>
+    private void BackfillBrukDataRettStegtitler()
+    {
+        var ct = _contentTypeService.Get("veiledningGuide");
+        if (ct == null) return;
+        if (!ct.PropertyTypeExists("stegGruppeTittler")) return;
+
+        IContent? guide = null;
+        foreach (var root in _contentService.GetRootContent())
+        {
+            if (root.ContentType.Alias == "veiledningGuide" && root.GetValue<string>("slug") == "bruk-data-rett")
+            {
+                guide = root;
+                break;
+            }
+            var descendants = _contentService.GetPagedDescendants(root.Id, 0, int.MaxValue, out _);
+            guide = descendants.FirstOrDefault(d =>
+                d.ContentType.Alias == "veiledningGuide" && d.GetValue<string>("slug") == "bruk-data-rett");
+            if (guide != null) break;
+        }
+        if (guide == null) return;
+
+        var existing = guide.GetValue<string>("stegGruppeTittler");
+        if (!string.IsNullOrWhiteSpace(existing)) return;
+
+        guide.SetValue("stegGruppeTittler", string.Join("\n", new[]
+        {
+            "Finn ut hvilke data du trenger",
+            "Samle inn data",
+            "Forberede data til bruk",
+            "Gjøre data tilgjengelig for KI-systemet",
+            "Slette data",
+        }));
+        _contentService.Save(guide);
+        if (guide.Published) _contentService.Publish(guide, new[] { "*" });
+        Console.WriteLine("ContentSeeder: Backfilled stegGruppeTittler on bruk-data-rett");
     }
 
     /// <summary>
