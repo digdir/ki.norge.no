@@ -11,8 +11,8 @@ const RULES: Record<string, string> = {
 
 export function applyDsClasses(html: string): string {
   if (!html) return '';
-  const { document } = parseHTML(`<template>${html}</template>`);
-  const root = document.querySelector('template')!;
+  const { document } = parseHTML(`<div>${html}</div>`);
+  const root = document.querySelector('div')!;
   for (const [sel, cls] of Object.entries(RULES)) {
     root.querySelectorAll(sel).forEach(el => el.classList.add(cls));
   }

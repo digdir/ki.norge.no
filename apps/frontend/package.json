@@ -7,6 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "start": "node dist/server/entry.mjs",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
     "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
     "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots"
@@ -29,6 +30,7 @@
     "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "1.59.1",
     "@types/node": "^22.10.7",
-    "postcss-nesting": "^14.0.0"
+    "postcss-nesting": "^14.0.0",
+    "vitest": "^4.1.6"
   }
 }
