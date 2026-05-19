@@ -2,7 +2,6 @@
 import Header from './Header.tsx';
 import Footer from './Footer.astro';
 import PreviewBanner from '../shared/PreviewBanner.astro';
-import SearchDialog from '../shared/SearchDialog.tsx';
 import BackToTop from '../shared/BackToTop.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
 import '../../styles/global.css';
@@ -92,7 +91,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <Footer />
     <BackToTop />
     <CookieNotice />
-    <SearchDialog client:load />
+    <!-- <SearchDialog client:load /> -->
     {isPreview && <PreviewBanner currentPath={currentPath} />}
     <script is:inline>
       document.querySelectorAll('a[href^="http"]').forEach(function(a) {
