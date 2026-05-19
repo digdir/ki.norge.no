@@ -475,32 +475,13 @@ interface CompatResponse<T> {
 
 // ── Umbraco RichText JSON → HTML converter ──────────────────────
 
-import { parseHTML } from 'linkedom';
+import { applyDsClasses } from './richtext-classes';
 
 interface RichTextNode {
   tag: string;
   text?: string;
   attributes?: Record<string, string>;
   elements?: RichTextNode[];
-}
-
-/**
- * Tag bare HTML elements coming out of Umbraco's RichText with the
- * designsystemet classes that match the components we'd otherwise hand-author.
- * Editors can't add class attributes from the Tiptap editor, so we attach
- * them server-side. Idempotent — classList.add() preserves existing classes
- * and won't add duplicates.
- */
-function applyDsClasses(html: string): string {
-  if (!html) return '';
-  const { document } = parseHTML(`<template>${html}</template>`);
-  const root = document.querySelector('template')!;
-
-  for (const el of root.querySelectorAll('ul, ol')) {
-    el.classList.add('ds-list');
-  }
-
-  return root.innerHTML;
 }
 
 function richTextToHtml(node: RichTextNode): string {
