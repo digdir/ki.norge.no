@@ -1,6 +1,18 @@
 @import '@digdir/designsystemet-css';
 @import '@digdir/designsystemet-css/theme.css';
 
+/* MPA View Transitions — cross-document, no SPA needed */
+@view-transition {
+  navigation: auto;
+}
+
+/* Disable all view transition animations (instant page swap) */
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
 :root {
   /* Stitch primary color override - blue #136dec */
   --ds-color-accent-1: #e6f0fd;
@@ -36,6 +48,7 @@
 
 html {
   font-family: var(--ds-font-family);
+  scrollbar-gutter: stable;
 }
 
 /* Full-bleed sections (e.g. .article-hero--bg-lyseblaa) use width: 100vw +
@@ -59,6 +72,8 @@ body {
   min-height: 100vh;
   background-color: var(--ds-color-neutral-background-default);
   color: var(--ds-color-neutral-text-default);
+  font-family: var(--ds-font-family), sans-serif;
+  font-feature-settings: "cv05" 1;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -73,6 +88,18 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Subgrid utility: direct children align their internal rows across the grid.
+   Each child spans 2 implicit rows and uses subgrid for equal-height alignment.
+   row-gap gives a minimum spacing between the two internal sections. */
+.grid-subrows {
+  row-gap: var(--ds-size-4);
+}
+.grid-subrows > * {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
 }
 
 /* TODO: sok.astro still uses Material Symbols — migrate to Aksel icons when /sok is prioritized */

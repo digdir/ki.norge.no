@@ -2,241 +2,45 @@
 // Hero — CSS gradient background (absolute, doesn't affect flow), centered bold headline
 ---
 
-<div class="hero-gradient" aria-hidden="true"></div>
 <section class="hero">
   <div class="hero-container">
-    <h1 class="hero-title">Innovativ og ansvarlig utvikling og bruk av kunstig intelligens</h1>
-
-    <button
-      type="button"
-      class="hero-search"
-      data-hero-search
-      aria-haspopup="dialog"
-      aria-keyshortcuts="Meta+K Control+K"
-      aria-label="Åpne søk på ki.norge.no"
-    >
-      <span class="hero-search-placeholder" aria-hidden="true">Hva kan vi hjelpe med</span>
-      <span class="hero-search-submit" aria-hidden="true">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="19" x2="12" y2="5"/>
-          <polyline points="5 12 12 5 19 12"/>
-        </svg>
-      </span>
-    </button>
-
-    <div class="hero-chips" role="group" aria-label="Forslag til søk">
-      <button type="button" class="hero-chip" data-hero-chip="Hva er KI Norge">
-        <span class="hero-chip-radio" aria-hidden="true"></span>
-        Hva er KI Norge
-      </button>
-      <button type="button" class="hero-chip" data-hero-chip="Regulatorisk sandkasse">
-        <span class="hero-chip-radio" aria-hidden="true"></span>
-        Regulatorisk sandkasse
-      </button>
-      <button type="button" class="hero-chip" data-hero-chip="Veiledning">
-        <span class="hero-chip-radio" aria-hidden="true"></span>
-        Veiledning
-      </button>
-      <button type="button" class="hero-chip" data-hero-chip="Gode eksempler">
-        <span class="hero-chip-radio" aria-hidden="true"></span>
-        Gode eksempler
-      </button>
-      <button type="button" class="hero-chip" data-hero-chip="KI-ordbok">
-        <span class="hero-chip-radio" aria-hidden="true"></span>
-        KI-ordbok
-      </button>
-    </div>
+    <h1 class="ds-heading" data-size="xl">Felleskapet for <strong>innovativ og ansvarlig</strong> utvikling og bruk av kunstig intelligens</h1>
+    <img src="/og-image.png" alt="Illustrasjon av mennesker som samarbeider med AI" />
   </div>
 </section>
 
-<script>
-  // Open search dialog from hero search bar + chips
-  document.querySelectorAll('[data-hero-search]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      window.dispatchEvent(new CustomEvent('open-search-dialog'));
-    });
-  });
-  document.querySelectorAll<HTMLButtonElement>('[data-hero-chip]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const query = btn.dataset.heroChip || '';
-      window.dispatchEvent(new CustomEvent('open-search-dialog', { detail: { query } }));
-    });
-  });
-</script>
-
 <style>
-  .hero-gradient {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse at 20% 50%, #c9a0d6 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 40%, #8b7cc8 0%, transparent 45%),
-      radial-gradient(ellipse at 70% 30%, #6a80d4 0%, transparent 50%),
-      radial-gradient(ellipse at 90% 50%, #8bbde8 0%, transparent 50%),
-      radial-gradient(ellipse at 10% 20%, #f0d0de 0%, transparent 40%),
-      radial-gradient(ellipse at 95% 20%, #a8d4f5 0%, transparent 40%),
-      linear-gradient(135deg, #f2dae8 0%, #b8a0d8 25%, #7b7cc8 45%, #6a80d4 60%, #8bbde8 80%, #c0dcf2 100%);
-    z-index: 0;
-  }
-
   .hero {
-    position: relative;
-    z-index: 1;
-    margin-top: -72px;
-    min-height: 720px;
     padding: 120px 0 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: #E7E9EA;
   }
-
+  
   .hero-container {
-    max-width: 860px;
     margin: 0 auto;
-    padding: 0 24px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 48px;
-  }
+    max-width: 1280px;
+    padding-inline: var(--ds-size-4);
+    display: grid;
+    gap: var(--ds-size-30);
+    grid-template-columns: 1fr 1fr;
 
-  /* Hero search pill — looks like an input (text cursor on hover),
-     but is actually a button that opens the search dialog. */
-  .hero-search {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 844px;
-    height: 64px;
-    padding: 8px 8px 8px 30px;
-    border: none;
-    border-radius: 80px;
-    background: white;
-    cursor: text; /* text cursor — looks like an input */
-    font-family: inherit;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.15s, transform 0.15s;
-  }
+    @media (max-width: 1023px) {
+      grid-template-columns: 1fr;
+      gap: var(--ds-size-8);
 
-  .hero-search:hover {
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-    transform: translateY(-1px);
-  }
-
-  .hero-search:focus-visible {
-    outline: 2px solid #005db1;
-    outline-offset: 2px;
-  }
-
-  .hero-search-placeholder {
-    /* Match designsystemet body/lg ~ font-size-5 (21px) */
-    font-size: var(--ds-font-size-5, 1.3125rem);
-    font-weight: 500;
-    color: #5e6776;
-    text-align: left;
-    pointer-events: none;
-  }
-
-  .hero-search-submit {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    background: #111d46;
-    color: white;
-    border-radius: 24px;
-    flex-shrink: 0;
-  }
-
-  /* Chip row — uses designsystemet tokens */
-  .hero-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ds-size-3, 12px);
-    justify-content: center;
-  }
-
-  .hero-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: var(--ds-size-8, 32px);
-    padding: 0 var(--ds-size-3, 12px) 0 var(--ds-size-2, 8px);
-    background: var(--ds-color-surface-tinted, #ddeaf6);
-    border: var(--ds-border-width-default, 1px) solid var(--ds-color-border-subtle, #99c0e3);
-    border-radius: var(--ds-border-radius-full, 9999px);
-    font-size: var(--ds-font-size-3, 1rem);
-    font-weight: 400;
-    color: var(--ds-color-text-default, #002c54);
-    cursor: pointer;
-    font-family: inherit;
-    line-height: 1.3;
-    letter-spacing: 0.04px;
-    transition: background 0.1s, border-color 0.1s;
-  }
-
-  .hero-chip:hover {
-    background: var(--ds-color-surface-hover, #b8d5ee);
-  }
-
-  .hero-chip-radio {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--ds-color-text-subtle, #005db1);
-    border-radius: var(--ds-border-radius-full, 9999px);
-    flex-shrink: 0;
-  }
-
-  .hero-title {
-    font-size: 64px;
-    font-weight: 700;
-    line-height: 68px;
-    color: #000000;
-    margin: 0;
-    letter-spacing: -0.02em;
-    text-shadow: 0 0 80px rgba(255, 255, 255, 0.5);
-  }
-
-  @media (max-width: 1023px) {
-    .hero-title {
-      font-size: 48px;
-      line-height: 52px;
+      & h1 {
+        --ds-size-mode-font-size: 0.8;
+      }
     }
-  }
 
-  @media (max-width: 640px) {
-    .hero {
-      min-height: 560px;
-      padding: 80px 0 40px;
+    & img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--ds-border-radius-xl);
     }
-    .hero-gradient {
-      height: 600px;
-    }
-    .hero-title {
-      font-size: 32px;
-      line-height: 38px;
-    }
-    .hero-container {
-      gap: 32px;
-    }
-    .hero-search {
-      height: 56px;
-      padding: 6px 6px 6px 20px;
-    }
-    .hero-search-placeholder {
-      font-size: 1rem;
-    }
-    .hero-search-submit {
-      width: 44px;
-      height: 44px;
+
+    & h1 {
+      margin-block: auto;
+      text-wrap: balance;
     }
   }
 </style>

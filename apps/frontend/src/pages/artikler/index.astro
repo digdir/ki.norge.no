@@ -1,5 +1,6 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import NewsCard from '../../components/shared/NewsCard.astro';
 import { getArtikler, getPlainText, type Artikkel } from '../../lib/umbraco';
 
 let articles: Artikkel[] = [];
@@ -22,16 +23,12 @@ try {
       {articles.length > 0 ? (
         <div class="artikler-grid">
           {articles.map(article => (
-            <a href={`/artikler/${article.slug}`} class="artikel-card">
-              <div class="artikel-card-text">
-                <h2 class="artikel-card-title">{article.tittel}</h2>
-                <span class="artikel-card-date">
-                  {new Date(article.publishedAt).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-                <p class="artikel-card-lead">{getPlainText(article.innhold, 100)}</p>
-              </div>
-              <div class="artikel-card-image"></div>
-            </a>
+            <NewsCard
+              href={`/artikler/${article.slug}`}
+              title={article.tittel}
+              date={article.publishedAt}
+              lead={getPlainText(article.innhold, 100)}
+            />
           ))}
         </div>
       ) : (
@@ -92,61 +89,6 @@ try {
     .artikler-grid {
       grid-template-columns: repeat(3, 1fr);
     }
-  }
-
-  .artikel-card {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    padding: 24px;
-    height: 384px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.15s;
-  }
-
-  .artikel-card:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  .artikel-card-text {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .artikel-card-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #000;
-    margin: 0;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  .artikel-card-date {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    line-height: 1.45;
-  }
-
-  .artikel-card-lead {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    margin: 0;
-    line-height: 1.45;
-  }
-
-  .artikel-card-image {
-    flex: 1;
-    background: var(--image-fallback-bg, #D9D9D9);
-    border-radius: 24px;
-    min-height: 120px;
   }
 
   .empty-state {

@@ -1,6 +1,7 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
+import NewsCard from '../../components/shared/NewsCard.astro';
 
 import { getArtikkel, getArtikler, getPlainText, getMediaUrl, type Artikkel } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
@@ -84,18 +85,14 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
     {otherArticles.length > 0 && (
       <section class="more-articles col-center-10">
         <h2 class="more-articles-heading">Flere artikler</h2>
-        <div class="more-articles-grid">
+        <div class="more-articles-grid grid-subrows" data-color="neutral">
           {otherArticles.map(a => (
-            <a href={`/artikler/${a.slug}`} class="more-article-card">
-              <div class="more-article-text">
-                <h3 class="more-article-title">{a.tittel}</h3>
-                <span class="more-article-date">
-                  {new Date(a.publishedAt).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-                <p class="more-article-lead">{getPlainText(a.innhold, 80)}</p>
-              </div>
-              <div class="more-article-image"></div>
-            </a>
+            <NewsCard
+              href={`/artikler/${a.slug}`}
+              title={a.tittel}
+              date={a.publishedAt}
+              lead={getPlainText(a.innhold, 80)}
+            />
           ))}
         </div>
       </section>
@@ -261,60 +258,5 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
     .more-articles-grid {
       grid-template-columns: repeat(3, 1fr);
     }
-  }
-
-  .more-article-card {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    padding: 24px;
-    min-height: 280px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.15s;
-  }
-
-  .more-article-card:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  .more-article-text {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .more-article-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #000;
-    margin: 0;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  .more-article-date {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    line-height: 1.45;
-  }
-
-  .more-article-lead {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    margin: 0;
-    line-height: 1.45;
-  }
-
-  .more-article-image {
-    flex: 1;
-    background: var(--image-fallback-bg, #D9D9D9);
-    border-radius: 8px;
-    min-height: 120px;
   }
 </style>

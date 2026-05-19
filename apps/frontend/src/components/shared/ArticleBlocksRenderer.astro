@@ -92,16 +92,13 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     return (
       <section class="article-accordion-group col-center-6">
         {item.tittel && <h2 class="article-accordion-group-title">{item.tittel}</h2>}
-        <div class="article-accordion-group-list">
+        <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
-            <details class="article-accordion">
-              <summary class="article-accordion-summary">
+            <details class="ds-details">
+              <summary>
                 {block.content.tittel}
-                <svg class="article-accordion-chevron" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m6 9 6 6 6-6"/>
-                </svg>
               </summary>
-              <div class="article-accordion-body" set:html={block.content.innhold} />
+              <div set:html={block.content.innhold} />
             </details>
           ))}
         </div>
