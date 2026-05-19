@@ -73,10 +73,12 @@ const { title, href, image, imageAlt = '' } = Astro.props;
         line-height: 1.6;
         color: var(--ds-color-neutral-text-default);
 
+        & ol, & ul {
+            font-size: 1.5rem;
+        }
 
         & li {
           line-height: 1.5;
-          font-size: 1.5rem;
         }
 
         & li p,
