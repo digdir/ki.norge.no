@@ -151,6 +151,8 @@ export interface Artikkel {
   publishedAt: string;
 }
 
+export interface EnkelVeiledning extends Artikkel {}
+
 export interface Side {
   id: string;
   documentId: string;
@@ -195,6 +197,7 @@ export interface VeiledningGuide {
   tittel: string;
   slug: string;
   introTekst?: UmbracoBlock[];
+  stegGruppeTittler?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -416,6 +419,37 @@ export interface Merkelapp {
   slug: string;
   beskrivelse?: string;
   locale: string;
+}
+
+export interface GlobaleInnstillinger {
+  id: string;
+  documentId: string;
+  kontaktTittel?: string;
+  kontaktIngress?: string;
+  kontaktTelefon?: string;
+  kontaktTelefonLabel?: string;
+  kontaktEpost?: string;
+  kontaktEpostLabel?: string;
+  cookieTekst?: string;
+  cookieKnappLabel?: string;
+  tittel404?: string;
+  beskrivelse404?: string;
+  tittel503?: string;
+  beskrivelse503?: string;
+  vedlikeholdEpost?: string;
+}
+
+export interface FaqSamling {
+  id: string;
+  documentId: string;
+  lead?: string;
+}
+
+export interface OrdbokSamling {
+  id: string;
+  documentId: string;
+  tittel?: string;
+  lead?: string;
 }
 
 export interface UmbracoMedia {
@@ -644,7 +678,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
 
     case 'artikkel':
     case 'case':
-      // Case has identical shape to Artikkel (mirror content type)
+    case 'enkelVeiledning':
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -695,6 +729,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
         introTekst: mapRichText(props.introTekst),
+        stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
@@ -864,6 +899,37 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         definisjon: props.definisjon as string || '',
       } as T;
 
+    case 'globaleInnstillinger':
+      return {
+        ...base,
+        kontaktTittel: props.kontaktTittel as string || '',
+        kontaktIngress: props.kontaktIngress as string || '',
+        kontaktTelefon: props.kontaktTelefon as string || '',
+        kontaktTelefonLabel: props.kontaktTelefonLabel as string || '',
+        kontaktEpost: props.kontaktEpost as string || '',
+        kontaktEpostLabel: props.kontaktEpostLabel as string || '',
+        cookieTekst: richTextHtml(props.cookieTekst),
+        cookieKnappLabel: props.cookieKnappLabel as string || '',
+        tittel404: props.tittel404 as string || '',
+        beskrivelse404: props.beskrivelse404 as string || '',
+        tittel503: props.tittel503 as string || '',
+        beskrivelse503: props.beskrivelse503 as string || '',
+        vedlikeholdEpost: props.vedlikeholdEpost as string || '',
+      } as T;
+
+    case 'faqSamling':
+      return {
+        ...base,
+        lead: richTextHtml(props.lead),
+      } as T;
+
+    case 'ordbokSamling':
+      return {
+        ...base,
+        tittel: props.tittel as string || '',
+        lead: richTextHtml(props.lead),
+      } as T;
+
     default:
       return { ...base, ...props } as T;
   }
@@ -991,6 +1057,15 @@ function mapArtikkelBlocks(value: unknown): UmbracoBlock[] {
  * Convert to a single UmbracoBlock with contentType "tekst" containing HTML.
  * Also handles Block List arrays (future use).
  */
+function richTextHtml(value: unknown): string {
+  if (!value) return '';
+  if (typeof value === 'object' && !Array.isArray(value) && (value as any).tag === '#root') {
+    return richTextToHtml(value as RichTextNode);
+  }
+  if (typeof value === 'string') return value;
+  return '';
+}
+
 function mapRichText(value: unknown): UmbracoBlock[] | undefined {
   if (!value) return undefined;
 
@@ -1260,6 +1335,21 @@ export async function getForside(options: FetchOptions = {}): Promise<Forside | 
   return result.data[0] || null;
 }
 
+export async function getGlobaleInnstillinger(options: FetchOptions = {}): Promise<GlobaleInnstillinger | null> {
+  const result = await fetchCollection<GlobaleInnstillinger>('globaleInnstillinger', { ...options, take: 1 });
+  return result.data[0] || null;
+}
+
+export async function getFaqSamling(options: FetchOptions = {}): Promise<FaqSamling | null> {
+  const result = await fetchCollection<FaqSamling>('faqSamling', { ...options, take: 1 });
+  return result.data[0] || null;
+}
+
+export async function getOrdbokSamling(options: FetchOptions = {}): Promise<OrdbokSamling | null> {
+  const result = await fetchCollection<OrdbokSamling>('ordbokSamling', { ...options, take: 1 });
+  return result.data[0] || null;
+}
+
 // ── Veiledning Guide/Step API functions ─────────────────────────
 
 export async function getVeiledningGuider(options: FetchOptions = {}) {
@@ -1280,6 +1370,10 @@ export async function getVeiledningSteg(guideSlug: string, options: FetchOptions
 export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: string, options: FetchOptions = {}) {
   const steps = await getVeiledningSteg(guideSlug, options);
   return steps.find(s => s.slug === stepSlug) || null;
+}
+
+export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {
+  return fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
 }
 
 // ── FAQ API functions ───────────────────────────────────────────

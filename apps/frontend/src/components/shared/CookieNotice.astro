@@ -1,15 +1,16 @@
 ---
+import { getGlobaleInnstillinger } from '../../lib/umbraco';
+
+const gi = await getGlobaleInnstillinger().catch(() => null);
+const tekstHtml = gi?.cookieTekst || '<p>Vi bruker kun nødvendige informasjonskapsler for at nettsiden skal fungere. Vi sporer ikke besøk eller setter analyse-cookies. <a href="/cookies">Les mer</a></p>';
+const knappLabel = gi?.cookieKnappLabel || 'Greit';
 ---
 
 <div id="cookie-notice" class="cookie-notice" hidden>
   <div class="cookie-notice__inner">
-    <p class="cookie-notice__text">
-      Vi bruker kun nødvendige informasjonskapsler for at nettsiden skal fungere.
-      Vi sporer ikke besøk eller setter analyse-cookies.
-      <a href="/cookies">Les mer</a>
-    </p>
+    <div class="cookie-notice__text" set:html={tekstHtml}></div>
     <button id="cookie-notice-dismiss" type="button" class="cookie-notice__btn">
-      Greit
+      {knappLabel}
     </button>
   </div>
 </div>

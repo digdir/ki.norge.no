@@ -1,7 +1,11 @@
 ---
 import Layout from '../components/layout/Layout.astro';
-import { getOrdbokOppslag } from '../lib/umbraco';
+import { getOrdbokOppslag, getOrdbokSamling } from '../lib/umbraco';
 import { definedTermSetSchema } from '../lib/seo';
+
+const ordbokSamling = await getOrdbokSamling().catch(() => null);
+const ordbokTittel = ordbokSamling?.tittel || 'KI Ordboka';
+const ordbokLeadHtml = ordbokSamling?.lead || '<p>KI ordboken forklarer vanlige begreper innen kunstig intelligens. Søk etter et ord eller bla deg gjennom listen.</p>';
 
 interface OrdEntry {
   term: string;
@@ -277,16 +281,14 @@ const ordbokJsonLd = definedTermSetSchema(
 ---
 
 <Layout
-  title="KI Ordboka"
-  description="KI ordboken forklarer vanlige begreper innen kunstig intelligens. Søk etter et ord eller bla deg gjennom listen."
+  title={ordbokTittel}
+  description={ordbokSamling?.lead?.replace(/<[^>]+>/g, '').trim() || 'KI ordboken forklarer vanlige begreper innen kunstig intelligens. Søk etter et ord eller bla deg gjennom listen.'}
 >
   <script type="application/ld+json" set:html={JSON.stringify(ordbokJsonLd).replace(/</g, '\\u003c')} />
   <div class="ordbok-page">
     <div class="ordbok-header">
-      <h1 class="ordbok-title">KI Ordboka</h1>
-      <p class="ordbok-lead">
-        KI ordboken forklarer vanlige begreper innen kunstig intelligens. Søk etter et ord eller bla deg gjennom listen.
-      </p>
+      <h1 class="ordbok-title">{ordbokTittel}</h1>
+      <div class="ordbok-lead" set:html={ordbokLeadHtml}></div>
 
       <div class="search-container">
         <div class="search-inner">
