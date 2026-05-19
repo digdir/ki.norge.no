@@ -89,10 +89,12 @@ public class ContentSeeder : IAsyncComponent
 
         try
         {
-            // Create container nodes (folders) at root
+            // Create container nodes (folders) at root.
+            // Eksempler folder/SeedExamples deliberately omitted: the eksempel
+            // content type stays defined so MigrateEksempelToCase can convert
+            // any legacy prod data, but fresh installs go straight to Caser.
             var artiklerFolder = CreateFolder("artikler", "Artikler");
             var siderFolder = CreateFolder("sider", "Sider");
-            var eksemplerFolder = CreateFolder("eksempler", "Eksempler");
             var caserFolder = CreateFolder("caser", "Caser");
             var veiledningerFolder = CreateFolder("veiledninger", "Veiledninger");
             var faqFolder = CreateFolder("faqSamling", "FAQ");
@@ -117,7 +119,6 @@ public class ContentSeeder : IAsyncComponent
             // Seed content under each folder (with merkelapp references)
             SeedArticles(artiklerFolder.Id);
             SeedPages(siderFolder.Id);
-            SeedExamples(eksemplerFolder.Id);
             SeedCases(caserFolder.Id);
             SeedVeiledninger(veiledningerFolder.Id);
             SeedFAQ(faqFolder.Id, merkelappMap);
@@ -1409,104 +1410,6 @@ for å utvikle og teste nye KI-tjenester på en trygg måte.</p>
 deltakelse i sandkassen.</p>");
         sandkasse.SetValue("seoBeskrivelse", "Regulatorisk sandkasse for utprøving av KI-løsninger i offentlig sektor.");
         SaveAndPublish(sandkasse);
-    }
-
-    // ── Eksempler ──────────────────────────────────────────────
-
-    private void SeedExamples(int parentId)
-    {
-        var e1 = Create("eksempel", "KI-chatbot for innbyggerdialog", parentId);
-        e1.SetValue("tittel", "KI-chatbot for innbyggerdialog");
-        e1.SetValue("slug", "ki-chatbot-for-innbyggerdialog");
-        e1.SetValue("organisasjon", "Trondheim kommune");
-        e1.SetValue("beskrivelse", @"<p>Trondheim kommune har utviklet en KI-basert chatbot som hjelper
-innbyggere med å finne riktig kommunal tjeneste. Chatboten forstår naturlig språk
-og kan svare på vanlige spørsmål om åpningstider, søknadsprosesser og tjenestetilbud.</p>
-<p>Løsningen er bygget på en stor språkmodell som er finjustert på kommunens
-egne data, med strenge personvernregler og full sporbarhet.</p>");
-        e1.SetValue("verktoy", "[\"Azure OpenAI\", \"LangChain\", \"Pinecone\"]");
-        e1.SetValue("resultater", "40% reduksjon i henvendelser til servicekontoret. 85% av innbyggerne oppgir at de fikk svar på spørsmålet sitt.");
-        e1.SetValue("status", "i_drift");
-        e1.SetValue("merkelapper", "[\"chatbot\", \"naturlig-sprak\", \"kommune\"]");
-        SaveAndPublish(e1);
-
-        var e2 = Create("eksempel", "Prediktivt vedlikehold av kommunale bygg", parentId);
-        e2.SetValue("tittel", "Prediktivt vedlikehold av kommunale bygg");
-        e2.SetValue("slug", "prediktivt-vedlikehold-kommunale-bygg");
-        e2.SetValue("organisasjon", "Stavanger kommune");
-        e2.SetValue("beskrivelse", @"<p>Stavanger kommune bruker maskinlæring for å forutsi når kommunale bygg
-trenger vedlikehold. Systemet analyserer sensordata fra bygningene — temperatur,
-fuktighet, energiforbruk — og varsler før problemer oppstår.</p>
-<p>Prosjektet har spart kommunen for betydelige kostnader ved å unngå
-akutte reparasjoner og forlenge levetiden på tekniske installasjoner.</p>");
-        e2.SetValue("verktoy", "[\"Python\", \"scikit-learn\", \"Azure IoT Hub\"]");
-        e2.SetValue("resultater", "25% reduksjon i vedlikeholdskostnader. 60% færre akutte reparasjoner.");
-        e2.SetValue("status", "pilot");
-        e2.SetValue("merkelapper", "[\"maskinlaering\", \"automatisering\", \"kommune\"]");
-        SaveAndPublish(e2);
-
-        var e3 = Create("eksempel", "Automatisk klassifisering av henvendelser", parentId);
-        e3.SetValue("tittel", "Automatisk klassifisering av henvendelser");
-        e3.SetValue("slug", "automatisk-klassifisering-av-henvendelser");
-        e3.SetValue("organisasjon", "Bergen kommune");
-        e3.SetValue("beskrivelse", @"<p>Bergen kommune har tatt i bruk maskinlæring for automatisk klassifisering
-av innkommende henvendelser fra innbyggere. Systemet sorterer e-post, skjemaer
-og meldinger til riktig avdeling basert på innholdet.</p>
-<p>Dette har redusert behandlingstiden betydelig og sikrer at henvendelser
-raskt kommer til rett saksbehandler.</p>");
-        e3.SetValue("verktoy", "[\"Python\", \"spaCy\", \"Azure ML\"]");
-        e3.SetValue("resultater", "40% reduksjon i svartid. 92% korrekt klassifisering.");
-        e3.SetValue("status", "i_drift");
-        e3.SetValue("merkelapper", "[\"maskinlaering\", \"automatisering\", \"kommune\"]");
-        SaveAndPublish(e3);
-
-        var e4 = Create("eksempel", "KI-assistert oversettelse av offentlige dokumenter", parentId);
-        e4.SetValue("tittel", "KI-assistert oversettelse av offentlige dokumenter");
-        e4.SetValue("slug", "ki-assistert-oversettelse");
-        e4.SetValue("organisasjon", "Digitaliseringsdirektoratet");
-        e4.SetValue("beskrivelse", @"<p>Digitaliseringsdirektoratet tester KI-basert oversettelse for å gjøre
-offentlig informasjon tilgjengelig på flere språk. Løsningen kombinerer
-maskinoversettelse med menneskelig kvalitetskontroll.</p>
-<p>Målet er at viktig offentlig informasjon skal være tilgjengelig på
-norsk, samisk, engelsk og de mest utbredte innvandrerspråkene.</p>");
-        e4.SetValue("verktoy", "[\"Azure Translator\", \"GPT-4\", \"Custom glossary\"]");
-        e4.SetValue("resultater", "70% raskere oversettelsesprosess. Tilgjengelig på 8 språk.");
-        e4.SetValue("status", "i_utvikling");
-        e4.SetValue("merkelapper", "[\"naturlig-sprak\", \"automatisering\"]");
-        SaveAndPublish(e4);
-
-        // Full-featured example using all CMS fields
-        var eFull = Create("eksempel", "Kunnskapsassistenten", parentId);
-        eFull.SetValue("tittel", "Kunnskapsassistenten");
-        eFull.SetValue("slug", "kunnskapsassistenten");
-        eFull.SetValue("organisasjon", "Digitaliseringsdirektoratet");
-        eFull.SetValue("beskrivelse", @"<p>Kunnskapsassistenten skal styrke – ikke erstatte – faglige vurderinger i staten. Piloten viser at den har størst verdi i starten av en kunnskapsprosess, og at vi må øke presisjonen, kunnskapsforberedelsen og kontrolltiltakene videre når oppgavene krever flere steg.</p>
-
-<h2>Utfordringen vi skulle løse</h2>
-<p>Målet har vært å undersøke hvordan KI kan støtte raske utredningsprosesser – på en trygg, åpen og faglig forsvarlig måte.</p>
-<p>Kunnskapsproduksjon i staten er krevende og tidkrevende. Informasjon er fragmentert, spredt på tvers av mange kilder og i stadig endring. I tillegg utvikler vi ikke kunnskapsgrunnlaget godt nok, og det øker risikoen for feilaktige beslutninger.</p>
-
-<h2>Løsning</h2>
-<p>Kunnskapsassistenten er et spesialisert KI-verktøy for kunnskapsarbeid i offentlig sektor. Den hjelper brukerne med å finne, sammenstille og vurdere informasjon fra store mengder kilder, og har innebygde mekanismer for kontroll og etterprøvelighet.</p>
-<p>Kunnskapsassistenten skal støtte utforskende analyse, styrke menneskelig vurdering og faglig forankring slik at utredningsarbeidet og verifisering av informasjon blir bedre.</p>
-
-<h2>Resultat</h2>
-<p>Kunnskapsassistenten:</p>
-<ul>
-<li>Gir økt kunnskapstilgjengelighet for alle ansatte</li>
-<li>Reduserer tid brukt på informasjonsinnhenting og databehandling</li>
-<li>Økt kvalitet ved å presentere flere relevante datakilder</li>
-<li>Redusert behov for manuell koordinering på tvers av virksomheter</li>
-<li>Teknisk system som demonstrerer en ansvarlig, etterprøvelig og transparent bruk av KI</li>
-</ul>");
-        eFull.SetValue("verktoy", "[\"Azure OpenAI\", \"RAG\", \"Kudos-databasen\", \"LangChain\"]");
-        eFull.SetValue("resultater", @"<p>Den største utfordringen er ikke teknologisk, men institusjonell: KI må oppleves som trygg, etterprøvbar og tillitsvekkende.</p>
-<p>Piloten viste at kunnskapsassistenten gir størst verdi i tidlige faser av arbeidet – når brukeren skal orientere seg, oppsummere og finne relevante dokumenter.</p>");
-        eFull.SetValue("status", "pilot");
-        eFull.SetValue("merkelapper", "[\"naturlig-sprak\", \"automatisering\", \"etikk\"]");
-        eFull.SetValue("seoTittel", "Kunnskapsassistenten – KI for kunnskapsarbeid i staten");
-        eFull.SetValue("seoBeskrivelse", "Kunnskapsassistenten er et KI-verktøy som støtter faglige vurderinger og utredningsprosesser i offentlig sektor.");
-        SaveAndPublish(eFull);
     }
 
     // ── Caser (new content type, mirror of artikkel) ──────────
