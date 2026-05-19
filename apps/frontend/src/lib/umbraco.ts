@@ -475,11 +475,32 @@ interface CompatResponse<T> {
 
 // ── Umbraco RichText JSON → HTML converter ──────────────────────
 
+import { parseHTML } from 'linkedom';
+
 interface RichTextNode {
   tag: string;
   text?: string;
   attributes?: Record<string, string>;
   elements?: RichTextNode[];
+}
+
+/**
+ * Tag bare HTML elements coming out of Umbraco's RichText with the
+ * designsystemet classes that match the components we'd otherwise hand-author.
+ * Editors can't add class attributes from the Tiptap editor, so we attach
+ * them server-side. Idempotent — classList.add() preserves existing classes
+ * and won't add duplicates.
+ */
+function applyDsClasses(html: string): string {
+  if (!html) return '';
+  const { document } = parseHTML(`<template>${html}</template>`);
+  const root = document.querySelector('template')!;
+
+  for (const el of root.querySelectorAll('ul, ol')) {
+    el.classList.add('ds-list');
+  }
+
+  return root.innerHTML;
 }
 
 function richTextToHtml(node: RichTextNode): string {
@@ -488,9 +509,13 @@ function richTextToHtml(node: RichTextNode): string {
     return escapeHtml(node.text || '');
   }
 
-  // Root node — just render children
+  // Root node — render children, then tag designsystem classes onto bare
+  // elements (Umbraco's RichText emits <ul>/<ol>/<table>/... with no class).
+  // Done once at root level so we parse the assembled HTML exactly once per
+  // RichText field, not recursively per node.
   if (node.tag === '#root') {
-    return (node.elements || []).map(richTextToHtml).join('');
+    const inner = (node.elements || []).map(richTextToHtml).join('');
+    return applyDsClasses(inner);
   }
 
   // Comment node
