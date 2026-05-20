@@ -5,7 +5,7 @@ interface Props {
 }
 const { title, type } = Astro.props;
 ---
-<div class="guide-card" data-type={type}>
+<div class="guide-card" data-color={type === 'info' ? 'neutral' : 'success'}>
   <div class="guide-card-header">
     <span class="guide-card-icon" aria-hidden="true">
       {type === 'info' ? (
@@ -30,41 +30,35 @@ const { title, type } = Astro.props;
     padding-block: var(--ds-size-8);
     padding-inline: var(--ds-size-6);
     margin-block: var(--ds-size-6);
-  }
-  .guide-card[data-type="info"] {
-    background-color: var(--ds-color-neutral-background-tinted);
-    border: 1px solid var(--ds-color-neutral-border-subtle);
-    color: var(--ds-color-neutral-text-default);
-  }
-  .guide-card[data-type="example"] {
-    background-color: var(--ds-color-success-background-tinted);
-    border: 1px solid var(--ds-color-success-border-subtle);
-    color: var(--ds-color-success-text-default);
-  }
-  .guide-card-header {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-size-2);
-    margin-bottom: var(--ds-size-4);
-  }
-  .guide-card-icon {
-    display: flex;
-    margin-block-end: auto;
-  }
-  .guide-card-title {
-    font-weight: 700;
-  }
-  .guide-card-body :global(p) {
-    margin: 0 0 var(--ds-size-3);
-  }
-  .guide-card-body :global(p:last-child) {
-    margin-bottom: 0;
-  }
-  .guide-card-body :global(ol), .guide-card-body :global(ul) {
-    margin: var(--ds-size-2) 0;
-    padding-inline-start: var(--ds-size-6);
-  }
-  .guide-card-body :global(li) {
-    margin-bottom: var(--ds-size-1);
+    background-color: var(--ds-color-background-tinted);
+    border: 1px solid var(--ds-color-border-subtle);
+    color: var(--ds-color-text-default);
+
+    .guide-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--ds-size-2);
+      margin-bottom: var(--ds-size-4);
+    }
+    .guide-card-icon {
+      display: flex;
+      margin-block-end: auto;
+    }
+    .guide-card-title {
+      font-weight: 700;
+    }
+    .guide-card-body :global(p) {
+      margin: 0 0 var(--ds-size-3);
+    }
+    .guide-card-body :global(p:last-child) {
+      margin-bottom: 0;
+    }
+    .guide-card-body :global(ol), .guide-card-body :global(ul) {
+      margin: var(--ds-size-2) 0;
+      padding-inline-start: var(--ds-size-6);
+    }
+    .guide-card-body :global(li) {
+      margin-bottom: var(--ds-size-1);
+    }
   }
 </style>
