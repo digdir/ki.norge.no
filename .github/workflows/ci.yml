@@ -57,6 +57,86 @@ jobs:
       - name: Run smoke tests
         run: bash scripts/smoke-test.sh --prod
 
+  playwright-local-smoke:
+    name: Playwright smoke (frontend + CMS auth)
+    runs-on: ubuntu-latest
+    needs: [frontend-build, cms-build]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: ./pnpm-lock.yaml
+
+      - name: Install frontend deps
+        working-directory: apps/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        working-directory: apps/frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Start CMS in background
+        working-directory: apps/cms-umbraco
+        run: nohup dotnet run > /tmp/cms.log 2>&1 &
+
+      - name: Wait for CMS ready
+        run: |
+          for i in $(seq 1 100); do
+            if curl -sf -o /dev/null -w '%{http_code}' http://localhost:5000/ | grep -qE '^(200|404|301|302)$'; then
+              echo "CMS up after ${i}x3s"; exit 0
+            fi
+            sleep 3
+          done
+          echo "CMS failed to start within 5min. Last log:"
+          tail -50 /tmp/cms.log
+          exit 1
+
+      - name: Start frontend in background
+        working-directory: apps/frontend
+        run: nohup pnpm run dev > /tmp/frontend.log 2>&1 &
+
+      - name: Wait for frontend ready
+        run: |
+          for i in $(seq 1 40); do
+            if curl -sf -o /dev/null http://localhost:4321/; then
+              echo "Frontend up after ${i}x3s"; exit 0
+            fi
+            sleep 3
+          done
+          echo "Frontend failed to start. Last log:"
+          tail -30 /tmp/frontend.log
+          exit 1
+
+      - name: Run Playwright tests (frontend smoke + CMS auth-and-tree)
+        working-directory: apps/frontend
+        env:
+          TARGET: local
+        run: |
+          npx playwright test --config=../../tests/playwright.config.ts --project=frontend tests/frontend/smoke.spec.ts
+          npx playwright test --config=../../tests/playwright.config.ts --project=cms tests/cms/auth-and-tree.spec.ts
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/frontend/playwright-report/
+            test-results/
+            /tmp/cms.log
+            /tmp/frontend.log
+          retention-days: 7
+
   trivy-fs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest

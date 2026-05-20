@@ -10,18 +10,16 @@ async function login(page: Page) {
   await page.goto('/umbraco');
   await page.waitForLoadState('domcontentloaded');
 
-  // Umbraco 17 uses Lit components; login form is shadow DOM in some places.
-  // Try to find the email input — fall back across selectors.
-  const emailInput = page.locator('input[name="email"], input[type="email"]').first();
-  await emailInput.waitFor({ state: 'visible', timeout: 30_000 });
-  await emailInput.fill(ADMIN_EMAIL);
+  // Umbraco 17 renders the login form inside Lit shadow roots. Playwright
+  // auto-pierces open shadow DOM, so we can target the inputs by their
+  // stable ids (#username-input, #password-input, #umb-login-button).
+  const usernameInput = page.locator('#username-input');
+  await usernameInput.waitFor({ state: 'visible', timeout: 30_000 });
+  await usernameInput.fill(ADMIN_EMAIL);
 
-  const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
-  await passwordInput.fill(ADMIN_PASS);
+  await page.locator('#password-input').fill(ADMIN_PASS);
+  await page.locator('#umb-login-button').click();
 
-  await page.getByRole('button', { name: /log in|logg inn|sign in/i }).first().click();
-
-  // Wait for backoffice to load — look for the Content section nav
   await page.waitForURL(/\/umbraco\/section\/.+/, { timeout: 30_000 });
 }
 
@@ -36,10 +34,10 @@ test('Content tree shows expected structure', async ({ page }) => {
   await page.goto('/umbraco/section/content');
   await page.waitForLoadState('networkidle');
 
-  // Forside should be at the top
-  const tree = page.locator('umb-tree, [role="tree"]').first();
-  // Items we expect (post-cleanup): Forside, Artikler, Caser, Veiledning, Sider, Ofte stilte spørsmål, Merkelapper, KI-ordbok
-  for (const name of ['Forside', 'Artikler', 'Caser', 'Veiledning', 'Sider', 'Merkelapper']) {
+  // Only items created by RunStructureMigrations survive on a fresh install:
+  // demo content seeding has been removed, the rest is bootstrapped via
+  // uSync import (issue #232).
+  for (const name of ['Caser', 'KI-ordbok']) {
     await expect(page.locator(`text=${name}`).first()).toBeVisible({ timeout: 10_000 });
   }
 

@@ -23,8 +23,9 @@ for (const { path, label } of PUBLIC_URLS) {
   test(`${label} loads`, async ({ page }) => {
     const response = await page.goto(path);
     expect(response?.status(), `${label} HTTP status`).toBeLessThan(400);
-    // Page should render the header (KI Norge brand) — proves SSR didn't fail
-    await expect(page.locator('header')).toBeVisible();
+    // Page should render the KI Norge brand header — proves SSR didn't fail.
+    // Use class selector to avoid Astro dev-toolbar headers in dev mode.
+    await expect(page.locator('header.header')).toBeVisible();
   });
 }
 
@@ -44,7 +45,7 @@ test('Artikkel detail page renders for first article', async ({ page, request })
 
   const response = await page.goto(`/artikler/${slug}`);
   expect(response?.status()).toBe(200);
-  await expect(page.locator('h1')).toBeVisible();
+  await expect(page.locator('main h1').first()).toBeVisible();
 });
 
 test('Case detail page renders for first case', async ({ page, request }) => {
@@ -62,5 +63,5 @@ test('Case detail page renders for first case', async ({ page, request }) => {
 
   const response = await page.goto(`/caser/${slug}`);
   expect(response?.status()).toBe(200);
-  await expect(page.locator('h1')).toBeVisible();
+  await expect(page.locator('main h1').first()).toBeVisible();
 });
