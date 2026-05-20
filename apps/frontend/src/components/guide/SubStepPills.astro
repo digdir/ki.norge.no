@@ -23,7 +23,7 @@ const { substeps, guideSlug, stepNumber, stepTitle } = Astro.props;
           <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="substep-pill ds-focus--inset">{sub.title}</a>
         )}
         {i < substeps.length - 1 && (
-          <span class="substep-arrow ds-focus--inset" aria-hidden="true">&rarr;</span>
+          <span class="substep-arrow" aria-hidden="true">&rarr;</span>
         )}
       </>
     ))}
