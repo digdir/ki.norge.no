@@ -51,26 +51,11 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* Full-bleed sections (e.g. .article-hero--bg-lyseblaa) use width: 100vw +
-   negative-margin trick to escape the grid's max-width. 100vw includes the
-   scrollbar on desktop which would create a horizontal scrollbar — `clip`
-   suppresses that. `clip` over `hidden` because it doesn't create a new
-   scroll container, so future sticky/fixed elements inside still work.
-   Tradeoff: the whole site can never horizontally scroll. Acceptable for
-   content; revisit if a module ever genuinely needs horizontal overflow. */
-html, body {
-  overflow-x: clip;
-}
-
-html, body {
-  overflow-x: hidden;
-}
-
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: var(--ds-color-neutral-background-default);
+  background-color: #EEBBC1;
   color: var(--ds-color-neutral-text-default);
   font-family: var(--ds-font-family), sans-serif;
   font-feature-settings: "cv05" 1;

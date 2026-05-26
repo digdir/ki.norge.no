@@ -50,9 +50,9 @@ const sectionOrder = {
   <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
   <Hero />
 
-  <div class="sections-container grid">
+  <div class="sections-container">
   <!-- Veiledning -->
-  <section class="veiledning col-center-10" style={`order: ${sectionOrder.veiledning}`}>
+  <section class="veiledning" data-layout-block="content" style={`order: ${sectionOrder.veiledning}`}>
       <h2 class="section-heading">{v.overskrift}</h2>
       <div class="veiledning-grid">
         <a href={v.kort1Url} class="veiledning-card">
@@ -75,7 +75,7 @@ const sectionOrder = {
   </section>
 
   <!-- Aktuelt -->
-  <section class="aktuelt col-center-10" style={`order: ${sectionOrder.aktuelt}`}>
+  <section class="aktuelt" data-layout-block="content" style={`order: ${sectionOrder.aktuelt}`}>
       <h2 class="section-heading">{a.overskrift}</h2>
       <div class="aktuelt-grid grid-subrows" data-color="neutral">
         {latestArticles.map(article => (
@@ -90,19 +90,21 @@ const sectionOrder = {
   </section>
 
   <!-- Tre råd -->
-  <section class="col-center-10" style={`order: ${sectionOrder.treraad}`}>
-    <TextWithImage title="Kom i gang med KI" href="/veiledning" image="/placeholder.png" imageAlt="Illustrasjon av tre råd">
-      <ol class="ds-list">
-        <li>Bruk KI til å dekke ekte behov</li>
-        <li>Sørg for god datakvalitet</li>
-        <li>Pass på at du følger regelverk</li>
-      </ol>
-    </TextWithImage>
-    <ArrowLink href="/veiledning" text="Se all veiledning" />
+  <section data-layout-block="edge" style={`order: ${sectionOrder.treraad}`}>
+    <div data-layout-block="content">
+      <TextWithImage title="Kom i gang med KI" href="/veiledning" image="/placeholder.png" imageAlt="Illustrasjon av tre råd">
+        <ol class="ds-list">
+          <li>Bruk KI til å dekke ekte behov</li>
+          <li>Sørg for god datakvalitet</li>
+          <li>Pass på at du følger regelverk</li>
+        </ol>
+      </TextWithImage>
+      <ArrowLink href="/veiledning" text="Se all veiledning" />
+    </div>
   </section>
 
   <!-- Sandkasse -->
-  <section class="sandkasse col-center-10" style={`order: ${sectionOrder.sandkasse}`}>
+  <section class="sandkasse" data-layout-block="content" style={`order: ${sectionOrder.sandkasse}`}>
       <a href="/sandkasse" class="sandkasse-card">
         <h2 class="sandkasse-title">Regulatorisk sandkasse for kunstig intelligens</h2>
         <div class="sandkasse-bottom">
@@ -118,7 +120,9 @@ const sectionOrder = {
 <style>
   /* Sections container for CMS-driven reordering */
   .sections-container {
-    row-gap: 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
     padding-block: 64px;
   }
 
