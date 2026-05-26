@@ -475,6 +475,8 @@ interface CompatResponse<T> {
 
 // ── Umbraco RichText JSON → HTML converter ──────────────────────
 
+import { applyDsClasses } from './richtext-classes';
+
 interface RichTextNode {
   tag: string;
   text?: string;
@@ -488,9 +490,13 @@ function richTextToHtml(node: RichTextNode): string {
     return escapeHtml(node.text || '');
   }
 
-  // Root node — just render children
+  // Root node — render children, then tag designsystem classes onto bare
+  // elements (Umbraco's RichText emits <ul>/<ol>/<table>/... with no class).
+  // Done once at root level so we parse the assembled HTML exactly once per
+  // RichText field, not recursively per node.
   if (node.tag === '#root') {
-    return (node.elements || []).map(richTextToHtml).join('');
+    const inner = (node.elements || []).map(richTextToHtml).join('');
+    return applyDsClasses(inner);
   }
 
   // Comment node
