@@ -7,6 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "start": "node dist/server/entry.mjs",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
     "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
     "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots"
@@ -20,6 +21,7 @@
     "@navikt/aksel-icons": "^8.0.1",
     "astro": "^6.3.1",
     "clsx": "^2.1.1",
+    "linkedom": "^0.18.12",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "tailwind-merge": "^3.4.0"
@@ -28,6 +30,7 @@
     "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "1.60.0",
     "@types/node": "^22.10.7",
-    "postcss-nesting": "^14.0.0"
+    "postcss-nesting": "^14.0.0",
+    "vitest": "^4.1.6"
   }
 }
