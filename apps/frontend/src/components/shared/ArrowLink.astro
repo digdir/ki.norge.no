@@ -1,0 +1,47 @@
+---
+import AkselIcon from './AkselIcon.astro';
+
+interface Props {
+  href: string;
+  text: string;
+}
+
+const { href, text } = Astro.props;
+---
+
+<a href={href} class="arrow-link ds-focus">
+    {text}
+    <span class="arrow-link-circle" aria-hidden="true">
+      <AkselIcon name="ArrowRight" size={24} />
+    </span>
+</a>
+
+<style>
+  .arrow-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+    font-size: var(--ds-body-lg-font-size);
+    font-weight: 500;
+    color: var(--ds-color-neutral-text-default);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    & .arrow-link-circle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--ds-size-10);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background-color: #FFD7E9;
+      font-size: 2rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+  }
+
+</style>

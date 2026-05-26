@@ -2,6 +2,9 @@
 import Layout from '../components/layout/Layout.astro';
 import Hero from '../components/landing/Hero.astro';
 import AkselIcon from '../components/shared/AkselIcon.astro';
+import NewsCard from '../components/shared/NewsCard.astro';
+import ArrowLink from '../components/shared/ArrowLink.astro';
+import TextWithImage from '../components/shared/TextWithImage.astro';
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getPlainText } from '../lib/umbraco';
 
@@ -47,10 +50,9 @@ const sectionOrder = {
   <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
   <Hero />
 
-  <div class="sections-container">
+  <div class="sections-container grid">
   <!-- Veiledning -->
-  <section class="veiledning" style={`order: ${sectionOrder.veiledning}`}>
-    <div class="veiledning-container">
+  <section class="veiledning col-center-10" style={`order: ${sectionOrder.veiledning}`}>
       <h2 class="section-heading">{v.overskrift}</h2>
       <div class="veiledning-grid">
         <a href={v.kort1Url} class="veiledning-card">
@@ -70,56 +72,37 @@ const sectionOrder = {
           <span class="veiledning-card-desc">{v.kort2Beskrivelse}</span>
         </a>
       </div>
-    </div>
   </section>
 
   <!-- Aktuelt -->
-  <section class="aktuelt" style={`order: ${sectionOrder.aktuelt}`}>
-    <div class="aktuelt-container">
+  <section class="aktuelt col-center-10" style={`order: ${sectionOrder.aktuelt}`}>
       <h2 class="section-heading">{a.overskrift}</h2>
-      <div class="aktuelt-grid">
+      <div class="aktuelt-grid grid-subrows" data-color="neutral">
         {latestArticles.map(article => (
-          <a href={`/artikler/${article.slug}`} class="aktuelt-card">
-            <h3 class="aktuelt-card-title">{article.tittel}</h3>
-            <span class="aktuelt-tag">Nyhet</span>
-            <div class="aktuelt-card-image"></div>
-          </a>
+          <NewsCard
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            tag="Artikkel"
+          />
         ))}
       </div>
-      <a href={a.lenkeUrl} class="aktuelt-link">
-        <span class="aktuelt-link-circle">→</span>
-        {a.lenkeTekst}
-      </a>
-    </div>
+      <ArrowLink href={a.lenkeUrl} text={a.lenkeTekst} />
   </section>
 
   <!-- Tre råd -->
-  <section class="tre-raad" style={`order: ${sectionOrder.treraad}`}>
-    <div class="tre-raad-container">
-      <h2 class="tre-raad-heading">Tre råd før du går i gang med KI</h2>
-      <div class="tre-raad-grid">
-        <div class="tre-raad-card">
-          <div class="tre-raad-illustration"></div>
-          <h3 class="tre-raad-card-title">Start med problemet</h3>
-          <p class="tre-raad-card-desc">Definer klart hva du ønsker å oppnå før du velger teknologi. Gode KI-prosjekter starter med et tydelig behov.</p>
-        </div>
-        <div class="tre-raad-card">
-          <div class="tre-raad-illustration"></div>
-          <h3 class="tre-raad-card-title">Forstå dataene dine</h3>
-          <p class="tre-raad-card-desc">Kartlegg hvilke data du har tilgang til, kvaliteten på dem, og om de er egnet for formålet.</p>
-        </div>
-        <div class="tre-raad-card">
-          <div class="tre-raad-illustration"></div>
-          <h3 class="tre-raad-card-title">Sjekk rammer og ansvar</h3>
-          <p class="tre-raad-card-desc">Forstå regelverket som gjelder for ditt bruksområde. Sørg for at løsningen ivaretar personvern og etikk.</p>
-        </div>
-      </div>
-    </div>
+  <section class="col-center-10" style={`order: ${sectionOrder.treraad}`}>
+    <TextWithImage title="Kom i gang med KI" href="/veiledning" image="/placeholder.png" imageAlt="Illustrasjon av tre råd">
+      <ol class="ds-list">
+        <li>Bruk KI til å dekke ekte behov</li>
+        <li>Sørg for god datakvalitet</li>
+        <li>Pass på at du følger regelverk</li>
+      </ol>
+    </TextWithImage>
+    <ArrowLink href="/veiledning" text="Se all veiledning" />
   </section>
 
   <!-- Sandkasse -->
-  <section class="sandkasse" style={`order: ${sectionOrder.sandkasse}`}>
-    <div class="sandkasse-container">
+  <section class="sandkasse col-center-10" style={`order: ${sectionOrder.sandkasse}`}>
       <a href="/sandkasse" class="sandkasse-card">
         <h2 class="sandkasse-title">Regulatorisk sandkasse for kunstig intelligens</h2>
         <div class="sandkasse-bottom">
@@ -127,7 +110,6 @@ const sectionOrder = {
           <span class="sandkasse-arrow">→</span>
         </div>
       </a>
-    </div>
   </section>
 
   </div>
@@ -136,8 +118,8 @@ const sectionOrder = {
 <style>
   /* Sections container for CMS-driven reordering */
   .sections-container {
-    display: flex;
-    flex-direction: column;
+    row-gap: 64px;
+    padding-block: 64px;
   }
 
   /* Shared */
@@ -154,12 +136,6 @@ const sectionOrder = {
   .veiledning {
     position: relative;
     z-index: 1;
-    padding: 0 24px 64px;
-  }
-  .veiledning-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 96px;
   }
   .veiledning-grid {
     display: grid;
@@ -182,7 +158,6 @@ const sectionOrder = {
     text-decoration: none;
     color: inherit;
     transition: box-shadow 0.2s ease;
-    aspect-ratio: 504 / 357;
     justify-content: space-between;
   }
   .veiledning-card:hover {
@@ -213,14 +188,6 @@ const sectionOrder = {
   }
 
   /* Aktuelt */
-  .aktuelt {
-    padding: 64px 24px;
-  }
-  .aktuelt-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 96px;
-  }
   .aktuelt-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -232,137 +199,8 @@ const sectionOrder = {
       grid-template-columns: repeat(3, 1fr);
     }
   }
-  .aktuelt-card {
-    display: flex;
-    flex-direction: column;
-    background-color: #e2f0fc;
-    border-radius: 8px;
-    padding: 24px;
-    height: 384px;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.2s ease;
-  }
-  .aktuelt-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  }
-  .aktuelt-card-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 12px;
-    color: #000;
-    line-height: 1.3;
-  }
-  .aktuelt-tag {
-    display: inline-block;
-    padding: 4px 12px;
-    background-color: #ffffff;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(0,0,0,0.7);
-    margin-bottom: 16px;
-    width: fit-content;
-  }
-  .aktuelt-card-image {
-    height: 185px;
-    background-color: #d9d9d9;
-    border-radius: 8px;
-    margin-top: auto;
-  }
-  .aktuelt-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0,0,0,0.7);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-  .aktuelt-link:hover {
-    color: #000;
-  }
-  .aktuelt-link-circle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 37px;
-    height: 37px;
-    border-radius: 50%;
-    background-color: #B8CFE3;
-    font-size: 18px;
-    font-weight: 500;
-    color: #474747;
-    flex-shrink: 0;
-  }
-
-  /* Tre råd */
-  .tre-raad {
-    background-color: #eef7ff;
-    padding: 64px 24px;
-  }
-  .tre-raad-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 176px;
-    text-align: center;
-  }
-  .tre-raad-heading {
-    font-family: 'Inter', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    color: #1a2a6d;
-    margin: 0 0 48px;
-  }
-  .tre-raad-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-  @media (min-width: 1024px) {
-    .tre-raad-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  .tre-raad-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 24px;
-  }
-  .tre-raad-illustration {
-    width: 206px;
-    height: 218px;
-    background-color: #d9d9d9;
-    border-radius: 12px;
-    margin-bottom: 24px;
-  }
-  .tre-raad-card-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 12px;
-    color: #000;
-  }
-  .tre-raad-card-desc {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0,0,0,0.55);
-    margin: 0;
-    line-height: 1.5;
-    max-width: 340px;
-  }
 
   /* Sandkasse */
-  .sandkasse {
-    padding: 64px 24px;
-  }
-  .sandkasse-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 96px;
-  }
   .sandkasse-card {
     display: flex;
     flex-direction: column;
@@ -403,36 +241,12 @@ const sectionOrder = {
   }
 
   /* Responsive */
-  @media (max-width: 1023px) {
-    .veiledning-container,
-    .aktuelt-container,
-    .sandkasse-container {
-      padding: 0;
-    }
-    .tre-raad-container {
-      padding: 0;
-    }
-  }
   @media (max-width: 640px) {
     .section-heading {
       font-size: 24px;
     }
     .veiledning-card-title {
       font-size: 20px;
-    }
-    .aktuelt-card {
-      height: auto;
-      min-height: 280px;
-    }
-    .aktuelt-card-title {
-      font-size: 20px;
-    }
-    .tre-raad-heading {
-      font-size: 24px;
-    }
-    .tre-raad-illustration {
-      width: 160px;
-      height: 170px;
     }
     .sandkasse-title {
       font-size: 24px;

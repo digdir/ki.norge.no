@@ -1,0 +1,98 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  tag?: string;
+  date?: string;
+  lead?: string;
+}
+
+const { href, title, tag, date, lead } = Astro.props;
+
+const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
+
+const formattedDate = date
+  ? new Date(date).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })
+  : undefined;
+---
+
+<div class="news-card" data-clickdelegatefor={id}>
+  <div class="news-card-text">
+    <h3 class="news-card-title"><a id={id} href={href}>{title}</a></h3>
+    {tag && <span class="ds-tag" data-color="neutral">{tag}</span>}
+    {formattedDate && <span class="news-card-date">{formattedDate}</span>}
+    {lead && <p class="news-card-lead">{lead}</p>}
+  </div>
+  <div class="news-card-image"></div>
+</div>
+
+<style>
+  .news-card {
+    background-color: var(--ds-color-surface-tinted);
+    color: var(--ds-color-text-default);
+    border-radius: var(--ds-border-radius-lg);
+    padding: var(--ds-size-6);
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+
+    & a {
+        text-decoration: none;
+        color: inherit;
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
+    }
+
+    &:focus-within {
+        box-shadow: var(--dsc-focus-boxShadow);
+        outline: var(--dsc-focus-outline);
+        outline-offset: var(--ds-border-width-focus);
+    }
+
+    & .ds-tag {
+      background-color: var(--ds-color-neutral-background-default);
+    }
+  }
+
+  .news-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .news-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .news-card-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #000;
+    line-height: 1.3;
+  }
+
+  .news-card-date {
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.55);
+    line-height: 1.45;
+  }
+
+  .news-card-lead {
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.55);
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .news-card-image {
+    height: 185px;
+    background-color: #d9d9d9;
+    border-radius: 8px;
+    margin-top: auto;
+  }
+</style>

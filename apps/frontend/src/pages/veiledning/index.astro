@@ -57,7 +57,6 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
-  <div class="veiledning-overview">
     <!-- Hero -->
     <section class="veil-hero">
       <div class="veil-hero-inner">
@@ -137,14 +136,9 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
         </div>
       </div>
     </section>
-  </div>
 </Layout>
 
 <style>
-  .veiledning-overview {
-    padding-top: var(--ds-size-4);
-  }
-
   /* Hero */
   .veil-hero {
     padding: 48px 24px 64px;

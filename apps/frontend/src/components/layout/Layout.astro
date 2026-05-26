@@ -1,13 +1,13 @@
 ---
-import Header from './Header.astro';
+import Header from './Header.tsx';
 import Footer from './Footer.astro';
 import PreviewBanner from '../shared/PreviewBanner.astro';
-import SearchDialog from '../shared/SearchDialog.tsx';
 import BackToTop from '../shared/BackToTop.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
 import '../../styles/global.css';
 import '../../styles/grid.css';
 import '../../styles/search-dialog.css';
+import './header.css';
 
 interface Props {
   title: string;
@@ -39,7 +39,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
 ---
 
 <!doctype html>
-<html lang="nb" data-ds-color-mode="light">
+<html lang="nb" data-ds-color-mode="light" data-color-scheme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -70,27 +70,31 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
 
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://altinncdn.no/fonts/inter/v4.1/inter.css"
+      integrity="sha384-OcHzc/By/OPw9uJREawUCjP2inbOGKtKb4A/I2iXxmknUfog2H8Adx71tWVZRscD"
+      crossorigin="anonymous"
+    />
 
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
   </head>
-  <body data-header-theme={headerTheme}>
-    <a href="#main-content" class="skip-to-main">Hopp til hovedinnhold</a>
-    <Header />
+  <body data-header-theme={headerTheme} data-color-scheme="light">
+    <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>
+    <Header client:load currentPath={currentPath} />
     <main id="main-content">
       <slot />
     </main>
     <Footer />
     <BackToTop />
     <CookieNotice />
-    <SearchDialog client:load />
+    <!-- <SearchDialog client:load /> -->
     {isPreview && <PreviewBanner currentPath={currentPath} />}
     <script is:inline>
-      document.querySelectorAll('a[href]').forEach(function(a) {
+      document.querySelectorAll('a[href^="http"]').forEach(function(a) {
         if (!a.rel || !a.rel.includes('noopener')) {
           a.rel = a.rel ? a.rel + ' noopener' : 'noopener';
         }
@@ -102,11 +106,11 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
 <style>
   main {
     flex: 1;
-    /* Padding equals the absolutely-positioned site header height so content
-       starts below it. Variable defined in global.css; full-bleed hero
-       sections (.article-hero--bg-lyseblaa) negate this with negative
-       margin to extend their background up behind the header. */
-    padding-top: var(--header-height, 72px);
+    margin-top: calc(var(--header-height, 72px) * -1);
+  }
+
+  main > :global(:first-child) {
+    padding-top: calc(var(--header-height, 72px) + var(--ds-size-8));
   }
 
   body {
@@ -114,25 +118,4 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     flex-direction: column;
     min-height: 100vh;
   }
-
-  .skip-to-main {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: var(--ds-size-3, 12px) var(--ds-size-4, 16px);
-    background: var(--ds-color-accent-base-default, #1a2a6d);
-    color: #fff;
-    text-decoration: none;
-    font-weight: 600;
-    z-index: 1000;
-    transform: translateY(-100%);
-    transition: transform 0.15s ease;
-  }
-
-  .skip-to-main:focus {
-    transform: translateY(0);
-    outline: 2px solid #fff;
-    outline-offset: -4px;
-  }
-
 </style>

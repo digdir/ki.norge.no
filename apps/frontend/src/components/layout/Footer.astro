@@ -24,20 +24,20 @@ const navCol2 = [
 ];
 ---
 
-<footer class="footer">
+<footer class="footer" data-color="neutral">
   <div class="footer-inner">
     <div class="footer-left">
       <p class="footer-brand">{brand}</p>
       <p class="footer-description">{desc}</p>
       <div class="footer-social">
-        <a href={igUrl} class="footer-social-icon" aria-label="Instagram">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/Instagram.svg" alt="Instagram" /></div>
+        <a href={igUrl} class="footer-social-icon ds-focus" aria-label="Instagram">
+          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/Instagram.svg" aria-hidden="true" /></div>
         </a>
-        <a href={liUrl} class="footer-social-icon" aria-label="LinkedIn">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/LinkenIn.svg" alt="LinkedIn" /></div>
+        <a href={liUrl} class="footer-social-icon ds-focus" aria-label="LinkedIn">
+          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/LinkenIn.svg" aria-hidden="true" /></div>
         </a>
-        <a href={xUrl} class="footer-social-icon" aria-label="X">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/X.svg" alt="X" /></div>
+        <a href={xUrl} class="footer-social-icon ds-focus" aria-label="X">
+          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/X.svg" aria-hidden="true" /></div>
         </a>
       </div>
     </div>
@@ -45,15 +45,15 @@ const navCol2 = [
       <div class="footer-nav-col">
         {navCol1.map(link => (
           link.url
-            ? <a href={link.url} class="footer-nav-link">{link.text}</a>
-            : <button type="button" class="footer-nav-link footer-nav-button">{link.text}</button>
+            ? <a href={link.url} class="ds-link">{link.text}</a>
+            : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
         ))}
       </div>
       <div class="footer-nav-col">
         {navCol2.map(link => (
           link.url
-            ? <a href={link.url} class="footer-nav-link">{link.text}</a>
-            : <button type="button" class="footer-nav-link footer-nav-button">{link.text}</button>
+            ? <a href={link.url} class="ds-link">{link.text}</a>
+            : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
         ))}
       </div>
     </div>
@@ -62,25 +62,19 @@ const navCol2 = [
 
 <style>
   .footer {
-    background: linear-gradient(
-      135deg,
-      #cedbfb 0%,
-      #d8cef5 30%,
-      #e8d5f0 50%,
-      #d4c8eb 70%,
-      #cedbfb 100%
-    );
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: var(--ds-color-neutral-background-default);
     margin-top: auto;
   }
 
   .footer-inner {
-    max-width: 1280px;
+    max-width: 1390px;
     margin: 0 auto;
-    padding: 80px 64px 120px;
+    padding-block: var(--ds-size-22);
+    padding-inline: var(--ds-size-4);
     display: flex;
     flex-direction: column;
     gap: 48px;
+    border-top: 1px solid var(--ds-color-neutral-border-subtle);
   }
 
   @media (min-width: 1024px) {
@@ -119,19 +113,13 @@ const navCol2 = [
     margin-top: 8px;
   }
 
-  .footer-social-icon {
-    text-decoration: none;
-  }
-
   .social-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.15);
-    transition: background-color 0.2s ease;
+    width: var(--ds-size-10);
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: var(--ds-border-radius-md);
   }
 
   .social-circle:hover {
@@ -163,18 +151,6 @@ const navCol2 = [
     display: flex;
     flex-direction: column;
     gap: 12px;
-  }
-
-  .footer-nav-link {
-    font-size: 16px;
-    font-weight: 500;
-    color: #000;
-    text-decoration: none;
-    transition: opacity 0.2s ease;
-  }
-
-  .footer-nav-link:hover {
-    opacity: 0.7;
   }
 
   .footer-nav-button {

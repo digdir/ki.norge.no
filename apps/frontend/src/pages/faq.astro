@@ -69,22 +69,20 @@ const faqJsonLd = faqPageSchema(
     </div>
 
     <div class="faq-content">
-      <div class="faq-list">
+      <div class="ds-card" data-variant="tinted">
         {usingFallback
           ? fallbackFaqs.map(faq => (
-              <details class="faq-item">
-                <summary class="faq-question">{faq.question}</summary>
-                <div class="faq-answer">
+              <details class="ds-details">
+                <summary>{faq.question}</summary>
+
                   <p>{faq.answer}</p>
-                </div>
+
               </details>
             ))
           : faqs.map(faq => (
-              <details class="faq-item">
-                <summary class="faq-question">{faq.sporsmal}</summary>
-                <div class="faq-answer">
-                  <BlocksRenderer blocks={faq.svar} />
-                </div>
+              <details class="ds-details">
+                <summary>{faq.sporsmal}</summary>
+                <BlocksRenderer blocks={faq.svar} />
               </details>
             ))
         }
@@ -131,72 +129,5 @@ const faqJsonLd = faqPageSchema(
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-3);
-  }
-
-  /* Accordion colours match the CMS info box: light blue #e5f2f7 header,
-     dark blue #1a2a6d text. When closed only the summary is rendered, so
-     the whole pill looks blue. When opened, the white answer panel below
-     pushes the blue down to the top. */
-  .faq-item {
-    border: 1px solid #b6d8e4;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: border-color 0.15s;
-  }
-
-  .faq-item:hover {
-    border-color: #1a2a6d;
-  }
-
-  .faq-item[open] {
-    border-color: #1a2a6d;
-  }
-
-  .faq-question {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 20px 24px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #1a2a6d;
-    cursor: pointer;
-    list-style: none;
-    background: #e5f2f7;
-  }
-
-  .faq-question::-webkit-details-marker {
-    display: none;
-  }
-
-  .faq-question::before {
-    content: '';
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a2a6d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-size: contain;
-    background-repeat: no-repeat;
-    transition: transform 0.2s ease;
-  }
-
-  .faq-item[open] > .faq-question::before {
-    transform: rotate(180deg);
-  }
-
-  .faq-answer {
-    padding: 20px 24px 20px 56px;
-    font-size: 0.9375rem;
-    line-height: 1.7;
-    color: rgba(0, 0, 0, 0.7);
-    background: white;
-  }
-
-  .faq-answer :global(p) {
-    margin: 0 0 12px;
-  }
-
-  .faq-answer :global(p:last-child) {
-    margin-bottom: 0;
   }
 </style>
