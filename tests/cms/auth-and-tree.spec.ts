@@ -34,10 +34,10 @@ test('Content tree shows expected structure', async ({ page }) => {
   await page.goto('/umbraco/section/content');
   await page.waitForLoadState('networkidle');
 
-  // Forside should be at the top
-  const tree = page.locator('umb-tree, [role="tree"]').first();
-  // Items we expect (post-cleanup): Forside, Artikler, Caser, Veiledning, Sider, Ofte stilte spørsmål, Merkelapper, KI-ordbok
-  for (const name of ['Forside', 'Artikler', 'Caser', 'Veiledning', 'Sider', 'Merkelapper']) {
+  // Only items created by RunStructureMigrations survive on a fresh install:
+  // demo content seeding has been removed, the rest is bootstrapped via
+  // uSync import (issue #232).
+  for (const name of ['Caser', 'KI-ordbok']) {
     await expect(page.locator(`text=${name}`).first()).toBeVisible({ timeout: 10_000 });
   }
 
