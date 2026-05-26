@@ -35,9 +35,10 @@
  */
 [data-layout-block="edge"] {
   margin-inline: var(--layout-edge-padding);
+  padding-inline: var(--layout-edge-padding);
+  padding-block: var(--ds-size-12);
+  border-radius: var(--ds-border-radius-xl);
   box-sizing: border-box;
-  background-color: #701A2C;
-  color: white;
 }
 
 /* ── Content block ───────────────────────────────────────
