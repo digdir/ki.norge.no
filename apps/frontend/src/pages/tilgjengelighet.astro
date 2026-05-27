@@ -3,7 +3,7 @@ import Layout from '../components/layout/Layout.astro';
 ---
 
 <Layout title="Tilgjengelighetserklæring" description="Tilgjengelighetserklæring for ki.norge.no.">
-  <div class="legal-page grid">
+  <div class="legal-page" data-layout-block="content">
     <article class="col-center-6">
       <header class="legal-header">
         <h1>Tilgjengelighetserklæring</h1>
@@ -50,7 +50,6 @@ import Layout from '../components/layout/Layout.astro';
 </Layout>
 
 <style>
-  .legal-page { padding: 64px 0 120px; }
   .legal-header { margin-bottom: 32px; }
   .legal-header h1 { font-size: 36px; font-weight: 700; margin: 0 0 8px; line-height: 1.2; }
   .legal-meta { color: rgba(0,0,0,0.55); margin: 0; }
