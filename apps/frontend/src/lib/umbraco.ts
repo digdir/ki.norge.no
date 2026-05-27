@@ -148,32 +148,14 @@ export interface VeiledningEksempelBlock {
   content: { tittel: string; innhold: string };
 }
 
-export type VeiledningObsVariant = 'obs' | 'advarsel' | 'suksess' | 'hvorforViktig';
-
 export interface VeiledningObsBlock {
   contentType: 'veiledningObs';
-  content: { variant: VeiledningObsVariant; tittel: string; tekst: string };
+  content: { tittel: string; tekst: string };
 }
 
 export interface VeiledningTrekkspillBlock {
   contentType: 'veiledningTrekkspill';
   content: { tittel: string; innhold: string };
-}
-
-export interface VeiledningTaValgItem {
-  tittel: string;
-  beskrivelse?: string;
-  lenke: string;
-}
-
-export interface VeiledningTaValgBlock {
-  contentType: 'veiledningTaValg';
-  content: { tittel?: string; tekst?: string; valg: VeiledningTaValgItem[] };
-}
-
-export interface VeiledningLenkekortBlock {
-  contentType: 'veiledningLenkekort';
-  content: { tittel: string; beskrivelse?: string; lenke: string };
 }
 
 // Content types matching Umbraco document type schemas
@@ -240,6 +222,7 @@ export interface VeiledningGuide {
   documentId: string;
   tittel: string;
   slug: string;
+  ingress?: string;
   innholdBlokker?: UmbracoBlock[];
   introTekst?: UmbracoBlock[];
   stegGruppeTittler?: string;
@@ -780,6 +763,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ...base,
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
+        ingress: props.ingress as string || '',
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
         introTekst: mapRichText(props.introTekst),
         stegGruppeTittler: props.stegGruppeTittler as string || '',
@@ -1145,37 +1129,12 @@ function mapVeiledningBlocks(value: unknown): UmbracoBlock[] | undefined {
     }
     if (ct === 'veiledningObs') {
       return { contentType: 'veiledningObs', content: {
-        variant: (props.variant as string) || 'obs',
         tittel: props.tittel || '',
         tekst: richHtml(props.tekst),
       } };
     }
     if (ct === 'veiledningTrekkspill') {
       return { contentType: 'veiledningTrekkspill', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
-    }
-    if (ct === 'veiledningTaValg') {
-      const valgItems = (props.valg as any)?.items || [];
-      const valg: VeiledningTaValgItem[] = valgItems.map((item: any) => {
-        const itemContent = item.content || item;
-        const itemProps = itemContent.properties || itemContent;
-        return {
-          tittel: itemProps.tittel || '',
-          beskrivelse: itemProps.beskrivelse || '',
-          lenke: itemProps.lenke || '',
-        };
-      });
-      return { contentType: 'veiledningTaValg', content: {
-        tittel: props.tittel || '',
-        tekst: props.tekst || '',
-        valg,
-      } };
-    }
-    if (ct === 'veiledningLenkekort') {
-      return { contentType: 'veiledningLenkekort', content: {
-        tittel: props.tittel || '',
-        beskrivelse: props.beskrivelse || '',
-        lenke: props.lenke || '',
-      } };
     }
 
     return { contentType: ct, content: props };

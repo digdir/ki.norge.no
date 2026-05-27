@@ -1,84 +1,141 @@
 ---
 import type { UmbracoBlock } from '../../lib/umbraco';
-import '../../styles/veiledning-blocks.css';
+import AkselIcon from './AkselIcon.astro';
 
 interface Props {
   blocks?: UmbracoBlock[];
 }
 
 const { blocks } = Astro.props;
+
+// Auto-grupper nabo-trekkspill til én aksordion-gruppe (samme mønster som
+// ArticleBlocksRenderer). Alle andre moduler er sin egen render-enhet.
+type RenderItem =
+  | { kind: 'block'; block: UmbracoBlock }
+  | { kind: 'trekkspillGruppe'; blocks: UmbracoBlock[] };
+
+function groupBlocks(input: UmbracoBlock[]): RenderItem[] {
+  const out: RenderItem[] = [];
+  for (const block of input) {
+    if (block.contentType !== 'veiledningTrekkspill') {
+      out.push({ kind: 'block', block });
+      continue;
+    }
+    const last = out[out.length - 1];
+    if (!last || last.kind !== 'trekkspillGruppe') {
+      out.push({ kind: 'trekkspillGruppe', blocks: [block] });
+    } else {
+      last.blocks.push(block);
+    }
+  }
+  return out;
+}
+
+const renderItems = groupBlocks(blocks || []);
+
+const moduleIcons: Record<string, string> = {
+  veiledningInfo: 'InformationSquare',
+  veiledningEksempel: 'LightBulb',
+  veiledningObs: 'ExclamationmarkTriangle',
+};
 ---
 
-{(blocks || []).map((block) => {
-  if (block.contentType === 'veiledningTekst') {
-    return <div class="veiledning-tekst col-center-6" set:html={block.content.innhold} />;
-  }
-
-  if (block.contentType === 'veiledningInfo') {
+{renderItems.map((item) => {
+  if (item.kind === 'trekkspillGruppe') {
     return (
-      <div class="veiledning-info col-center-6">
-        {block.content.tittel && <h3 class="veiledning-info-title">{block.content.tittel}</h3>}
-        <div class="veiledning-info-body" set:html={block.content.innhold} />
-      </div>
-    );
-  }
-
-  if (block.contentType === 'veiledningEksempel') {
-    return (
-      <div class="veiledning-eksempel col-center-6">
-        {block.content.tittel && <h3 class="veiledning-eksempel-title">{block.content.tittel}</h3>}
-        <div class="veiledning-eksempel-body" set:html={block.content.innhold} />
-      </div>
-    );
-  }
-
-  if (block.contentType === 'veiledningObs') {
-    const variant = block.content.variant || 'obs';
-    const role = variant === 'advarsel' ? 'alert' : 'note';
-    return (
-      <div class={`veiledning-obs veiledning-obs--${variant} col-center-6`} role={role}>
-        {block.content.tittel && <h3 class="veiledning-obs-title">{block.content.tittel}</h3>}
-        <div class="veiledning-obs-body" set:html={block.content.tekst} />
-      </div>
-    );
-  }
-
-  if (block.contentType === 'veiledningTrekkspill') {
-    return (
-      <details class="veiledning-trekkspill col-center-6">
-        <summary class="veiledning-trekkspill-title">{block.content.tittel}</summary>
-        <div class="veiledning-trekkspill-body" set:html={block.content.innhold} />
-      </details>
-    );
-  }
-
-  if (block.contentType === 'veiledningTaValg') {
-    const c = block.content;
-    return (
-      <div class="veiledning-ta-valg col-center-6">
-        {c.tittel && <h3 class="veiledning-ta-valg-title">{c.tittel}</h3>}
-        {c.tekst && <p class="veiledning-ta-valg-intro">{c.tekst}</p>}
-        <div class="veiledning-ta-valg-grid">
-          {(c.valg || []).map((v) => (
-            <a class="veiledning-ta-valg-card" href={v.lenke || '#'}>
-              <span class="veiledning-ta-valg-card-title">{v.tittel}</span>
-              {v.beskrivelse && <span class="veiledning-ta-valg-card-desc">{v.beskrivelse}</span>}
-            </a>
+      <div class="veiledning-trekkspill-gruppe col-center-6">
+        <div class="ds-card" data-variant="tinted">
+          {item.blocks.map((block) => (
+            <details class="ds-details">
+              <summary>{block.content.tittel}</summary>
+              <div set:html={block.content.innhold} />
+            </details>
           ))}
         </div>
       </div>
     );
   }
 
-  if (block.contentType === 'veiledningLenkekort') {
+  const block = item.block;
+
+  if (block.contentType === 'veiledningTekst') {
+    return <div class="veiledning-tekst col-center-6" set:html={block.content.innhold} />;
+  }
+
+  if (block.contentType === 'veiledningInfo'
+    || block.contentType === 'veiledningEksempel'
+    || block.contentType === 'veiledningObs') {
     const c = block.content;
+    const tekst = block.contentType === 'veiledningObs' ? c.tekst : c.innhold;
+    const ikon = moduleIcons[block.contentType];
     return (
-      <a class="veiledning-lenkekort col-center-6" href={c.lenke || '#'}>
-        <span class="veiledning-lenkekort-title">{c.tittel}</span>
-        {c.beskrivelse && <span class="veiledning-lenkekort-desc">{c.beskrivelse}</span>}
-      </a>
+      <div class="ds-card veiledning-modul col-center-6" data-variant="tinted">
+        <div class="veiledning-modul-head">
+          <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
+          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="2xs">{c.tittel}</h3>}
+        </div>
+        <div class="veiledning-modul-body" set:html={tekst} />
+      </div>
     );
   }
 
   return null;
 })}
+
+<style>
+  /* Brødtekst (samme rendring som artikkelTekst — bare set:html på en grid-celle) */
+  .veiledning-tekst {
+    font-size: var(--ds-body-md-font-size);
+    line-height: var(--ds-body-md-line-height);
+  }
+  .veiledning-tekst :global(p) {
+    margin: 0 0 var(--ds-size-3);
+  }
+  .veiledning-tekst :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .veiledning-tekst :global(ul),
+  .veiledning-tekst :global(ol) {
+    margin: var(--ds-size-2) 0 var(--ds-size-3);
+    padding-inline-start: var(--ds-size-6);
+  }
+  .veiledning-tekst :global(li) {
+    margin-bottom: var(--ds-size-1);
+  }
+
+  /* Info, Eksempel, Obs — identisk boks med ikon + valgfri tittel + innhold.
+     Bruker ds-card data-variant="tinted" som container. */
+  .veiledning-modul {
+    padding: var(--ds-size-6) var(--ds-size-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+  }
+  .veiledning-modul-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+  }
+  .veiledning-modul-ikon {
+    flex-shrink: 0;
+  }
+  .veiledning-modul-tittel {
+    margin: 0;
+  }
+  .veiledning-modul-body {
+    font-size: var(--ds-body-md-font-size);
+    line-height: var(--ds-body-md-line-height);
+  }
+  .veiledning-modul-body :global(p) {
+    margin: 0 0 var(--ds-size-3);
+  }
+  .veiledning-modul-body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Trekkspill-gruppe wrapper. Auto-grupperingen i scripted-delen
+     samler nabo-trekkspill til én ds-card. */
+  .veiledning-trekkspill-gruppe {
+    display: block;
+  }
+</style>
