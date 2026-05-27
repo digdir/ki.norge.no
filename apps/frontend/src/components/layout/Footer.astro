@@ -24,7 +24,7 @@ const navCol2 = [
 ];
 ---
 
-<footer class="footer">
+<footer class="footer" data-layout-block="content">
   <div class="footer-inner">
     <div class="footer-left">
       <p class="footer-brand">{brand}</p>
@@ -63,13 +63,12 @@ const navCol2 = [
 <style>
   .footer {
     margin-top: auto;
+    width: 100%;
   }
 
   .footer-inner {
-    max-width: 1390px;
     margin: 0 auto;
     padding-block: var(--ds-size-22);
-    padding-inline: var(--ds-size-4);
     display: flex;
     flex-direction: column;
     gap: 48px;
