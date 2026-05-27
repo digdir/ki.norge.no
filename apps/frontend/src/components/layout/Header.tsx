@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from '@digdir/designsystemet-react';
 import { MenuHamburgerIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cl from 'clsx/lite';
+import Logo from './Logo';
 
 interface NavItem {
   href: string;
@@ -92,9 +93,8 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
   return (
     <header className={cl('header', isHamburger && 'header--hamburger')} ref={headerRef}>
       <div className="header-container">
-        <Link href="/" className="logo-link" aria-label="KI Norge - Hjem">
-          <img loading="lazy" decoding="async" className="logo-icon" src="/logo.svg" alt="ki.norge.no" width="28" height="30" />
-          <span className="logo-text">ki.norge.no</span>
+        <Link href="/" className="logo-link" aria-label="KI Norge">
+          <Logo className="logo-icon" />
         </Link>
 
         <nav aria-label="Hovednavigasjon">
@@ -135,7 +135,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
       >
           <div className="mobile-menu-header">
             <Link href="/" className="logo-link" aria-label="KI Norge - Hjem">
-              <img  decoding="async" className="logo-icon" src="/logo.svg" alt="ki.norge.no" width="28" height="30" />
+              <Logo className="logo-icon" />
               <span className="logo-text">ki.norge.no</span>
             </Link>
             <button
