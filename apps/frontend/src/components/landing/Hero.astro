@@ -1,44 +1,102 @@
 ---
-// Hero — CSS gradient background (absolute, doesn't affect flow), centered bold headline
+// Hero — tagline with illustration, "Kom i gang" CTA
 ---
 
 <section class="hero" data-layout-block="content">
-  <div class="hero-container">
-    <h1 class="ds-heading" data-size="xl">Felleskapet for <strong>innovativ og ansvarlig</strong> utvikling og bruk av kunstig intelligens</h1>
-    <img src="/og-image.png" alt="Illustrasjon av mennesker som samarbeider med AI" />
+  <div class="hero-grid">
+    <div class="hero-text">
+      <p class="hero-tagline">Felleskap for KI — innovativ og ansvarlig bruk av kunstig intelligens</p>
+      <a class="hero-cta" href="/veiledning/hva-er-ki">
+        Kom i gang: <span class="hero-cta-link">Hva er KI og hva kan du bruke det til?</span>
+        <svg class="hero-cta-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 8l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+    <div class="hero-illustration">
+      <img src="/frontpage.svg" alt="" width="400" height="300" />
+    </div>
   </div>
 </section>
 
 <style>
   .hero {
-    padding-block-start: 120px;
-    padding-block-end: 80px;
+    padding-block-end: var(--ds-size-10);
+    padding-block-start: calc(var(--header-height, 72px) + var(--ds-size-18));
   }
-  
-  .hero-container {
-    margin: 0 auto;
+
+  .hero-grid {
     display: grid;
-    gap: var(--ds-size-30);
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--ds-size-8);
+  }
 
-    @media (max-width: 1023px) {
+  @media (max-width: 767px) {
+    .hero-grid {
       grid-template-columns: 1fr;
-      gap: var(--ds-size-8);
-
-      & h1 {
-        --ds-size-mode-font-size: 0.8;
-      }
     }
+  }
 
-    & img {
-      max-width: 100%;
-      height: auto;
-      border-radius: var(--ds-border-radius-xl);
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-8);
+  }
+
+  .hero-tagline {
+    font-size: var(--ds-heading-lg-font-size);
+    font-weight: 300;
+    line-height: 1.3;
+    margin: 0;
+    max-width: 520px;
+    text-wrap: balance;
+  }
+
+  @media (max-width: 767px) {
+    .hero-tagline {
+      font-size: var(--ds-heading-md-font-size);
     }
+  }
 
-    & h1 {
-      margin-block: auto;
-      text-wrap: balance;
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+    font-size: var(--ds-body-md-font-size);
+    color: var(--ds-color-text-default);
+    text-decoration: none;
+  }
+
+  .hero-cta-link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .hero-cta:hover .hero-cta-link {
+    text-decoration-thickness: 2px;
+  }
+
+  .hero-cta-arrow {
+    flex-shrink: 0;
+    color: var(--ds-color-brand1-base-default);
+  }
+
+  .hero-illustration img {
+    width: 320px;
+    height: auto;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-illustration img {
+      width: 400px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero-illustration {
+      display: none;
     }
   }
 </style>

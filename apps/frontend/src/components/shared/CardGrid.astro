@@ -1,0 +1,66 @@
+---
+interface Props {
+  columns?: 2 | 3 | 4;
+  divided?: boolean;
+}
+
+const { columns = 3, divided = false } = Astro.props;
+---
+
+<div class:list={['card-grid', `card-grid--${columns}`, divided && 'card-grid--divided']}>
+  <slot />
+</div>
+
+<style>
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-size-6);
+  }
+
+  /* ── Column variants ──────────────────────────────── */
+  @media (min-width: 768px) {
+    .card-grid--2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .card-grid--3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .card-grid--4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* ── Divided variant ───────────────────────────────── */
+  .card-grid--divided {
+    border-top: 1px solid var(--ds-color-border-subtle);
+    border-bottom: 1px solid var(--ds-color-border-subtle);
+    padding-block: var(--ds-size-6);
+  }
+
+  .card-grid--divided {
+    @media (min-width: 768px) {
+      gap: 0;
+    }
+  }
+
+  .card-grid--divided > :global(*) {
+    @media (min-width: 768px) {
+      border-right: 1px solid var(--ds-color-border-subtle);
+      padding-inline: var(--ds-size-6);
+    }
+  }
+
+  .card-grid--divided > :global(*:first-child) {
+    @media (min-width: 768px) {
+      padding-left: 0;
+    }
+  }
+
+  .card-grid--divided > :global(*:last-child) {
+    @media (min-width: 768px) {
+      border-right: none;
+      padding-right: 0;
+    }
+  }
+</style>
