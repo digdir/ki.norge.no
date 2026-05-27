@@ -1,5 +1,5 @@
 @import '@digdir/designsystemet-css';
-@import '@digdir/designsystemet-css/theme.css';
+@import '../../../../design-tokens-build/theme.css';
 
 /* MPA View Transitions — cross-document, no SPA needed */
 @view-transition {

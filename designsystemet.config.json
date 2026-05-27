@@ -1,0 +1,50 @@
+{
+  "$schema": "https://designsystemet.no/schemas/cli/1.14.0.json",
+  "outDir": "./design-tokens",
+  "themes": {
+    "theme": {
+      "colors": {
+        "main": {
+          "accent": "#B42946"
+        },
+        "support": {
+          "brand1": "#A24D83",
+          "brand2": "#89634A",
+          "brand3": "#E9B596",
+          "brand4": "#F5898D"
+        },
+        "neutral": "#24272B"
+      },
+      "overrides": {
+        "colors": {
+          "accent": {
+            "background-tinted": {
+              "light": "#EEBBC1"
+            }
+          },
+          "brand1": {
+            "background-tinted": {
+              "light": "#D0ADC3"
+            }
+          },
+          "brand2": {
+            "background-tinted": {
+              "light": "#BA9F8E"
+            }
+          },
+          "brand3": {
+            "background-tinted": {
+              "light": "#FCC9A9"
+            }
+          },
+          "brand4": {
+            "background-tinted": {
+              "light": "#EEBBBB"
+            }
+          }
+        }
+      },
+      "borderRadius": 0
+    }
+  }
+}
