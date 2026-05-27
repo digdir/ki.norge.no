@@ -31,7 +31,7 @@ const COMING_SOON_HTML = `<!doctype html>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; box-sizing: border-box; }
-    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #1e293b; }
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', system-ui, sans-serif; background: var(--ds-color-background-default); color: #1e293b; }
     .card { text-align: center; padding: 3rem 2rem; max-width: 600px; }
     h1 { font-size: 2rem; font-weight: 600; margin-bottom: 1rem; }
     p { font-size: 1.1rem; line-height: 1.6; color: #475569; }

@@ -14,28 +14,6 @@
 }
 
 :root {
-  /* Stitch primary color override - blue #136dec */
-  --ds-color-accent-1: #e6f0fd;
-  --ds-color-accent-2: #cce1fb;
-  --ds-color-accent-3: #99c3f7;
-  --ds-color-accent-4: #66a5f3;
-  --ds-color-accent-5: #3387ef;
-  --ds-color-accent-6: #136dec;
-  --ds-color-accent-7: #0f57bd;
-  --ds-color-accent-8: #0b418e;
-  --ds-color-accent-9: #136dec;
-  --ds-color-accent-base-default: var(--ds-color-accent-9);
-
-  /* Background overrides */
-  --ds-color-neutral-background-default: #ffffff;
-  --ds-color-neutral-surface-default: #ffffff;
-
-  --image-fallback-bg: #D9D9D9;
-
-  /* Stitch-specific custom properties */
-  --stitch-primary: #136dec;
-  --stitch-bg-light: #f6f7f8;
-
   /* Font family */
   --ds-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -55,8 +33,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #EEBBC1;
-  color: var(--ds-color-neutral-text-default);
+  background-color: var(--ds-color-background-tinted);
+  color: var(--ds-color-text-default);
   font-family: var(--ds-font-family), sans-serif;
   font-feature-settings: "cv05" 1;
   transition: background-color 0.3s ease, color 0.3s ease;

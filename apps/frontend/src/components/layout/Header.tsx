@@ -90,7 +90,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
   }, [isHamburger, viewportWidth]);
 
   return (
-    <header className={cl('header', isHamburger && 'header--hamburger')} ref={headerRef} data-color="neutral">
+    <header className={cl('header', isHamburger && 'header--hamburger')} ref={headerRef}>
       <div className="header-container">
         <Link href="/" className="logo-link" aria-label="KI Norge - Hjem">
           <img loading="lazy" decoding="async" className="logo-icon" src="/logo.svg" alt="ki.norge.no" width="28" height="30" />

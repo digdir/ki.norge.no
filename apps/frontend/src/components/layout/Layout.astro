@@ -82,7 +82,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
   </head>
-  <body data-header-theme={headerTheme} data-color-scheme="light">
+  <body data-color-scheme="light" data-color="accent">
     <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>
     <Header client:load currentPath={currentPath} />
     <main id="main-content">

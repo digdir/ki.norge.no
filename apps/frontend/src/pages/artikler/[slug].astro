@@ -85,7 +85,7 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
     {otherArticles.length > 0 && (
       <section class="more-articles col-center-10">
         <h2 class="more-articles-heading">Flere artikler</h2>
-        <div class="more-articles-grid grid-subrows" data-color="neutral">
+        <div class="more-articles-grid grid-subrows">
           {otherArticles.map(a => (
             <NewsCard
               href={`/artikler/${a.slug}`}
