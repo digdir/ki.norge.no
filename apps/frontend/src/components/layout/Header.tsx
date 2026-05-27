@@ -136,7 +136,6 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
           <div className="mobile-menu-header">
             <Link href="/" className="logo-link" aria-label="KI Norge - Hjem">
               <Logo className="logo-icon" />
-              <span className="logo-text">ki.norge.no</span>
             </Link>
             <button
               className="hamburger-toggle ds-focus"
