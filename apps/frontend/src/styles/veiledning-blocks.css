@@ -1,0 +1,226 @@
+/*
+  Veiledning-blokker. Brukes av VeiledningBlocksRenderer i veiledningSteg
+  og veiledningGuide-sider. Farger er interim hex-verdier med TODO-markører
+  inntil DS-tokenpalett-navn lander.
+*/
+
+/* Tekstblokk (samme oppførsel som artikkelTekst, men eget navnerom) */
+.veiledning-tekst {
+  font-size: 18px;
+  line-height: 1.7;
+}
+.veiledning-tekst > * + * {
+  margin-top: var(--ds-size-3);
+}
+
+/* Infomodul */
+.veiledning-info {
+  --_vi-bg: #f1f4fa; /* TODO: farger ikke landet */
+  --_vi-border: #c8d2e8; /* TODO: farger ikke landet */
+  --_vi-title: #1a2a6d; /* TODO: farger ikke landet */
+  background: var(--_vi-bg);
+  border-left: 4px solid var(--_vi-border);
+  padding: 24px 28px;
+  border-radius: 4px;
+}
+.veiledning-info-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--_vi-title);
+}
+.veiledning-info-body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.veiledning-info-body > * + * {
+  margin-top: 8px;
+}
+
+/* Eksempel */
+.veiledning-eksempel {
+  --_ve-bg: #f0faf3; /* TODO: farger ikke landet */
+  --_ve-border: #b7d9bf; /* TODO: farger ikke landet */
+  --_ve-title: #1f5731; /* TODO: farger ikke landet */
+  background: var(--_ve-bg);
+  border-left: 4px solid var(--_ve-border);
+  padding: 24px 28px;
+  border-radius: 4px;
+}
+.veiledning-eksempel-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--_ve-title);
+}
+.veiledning-eksempel-body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.veiledning-eksempel-body > * + * {
+  margin-top: 8px;
+}
+
+/* Obs (med varianter: obs, advarsel, suksess, hvorforViktig) */
+.veiledning-obs {
+  padding: 24px 28px;
+  border-radius: 4px;
+  border-left: 4px solid;
+}
+.veiledning-obs--obs {
+  --_vo-bg: #fff6e5; /* TODO: farger ikke landet */
+  --_vo-border: #e0a52f; /* TODO: farger ikke landet */
+  --_vo-title: #6f4500; /* TODO: farger ikke landet */
+  background: var(--_vo-bg);
+  border-left-color: var(--_vo-border);
+}
+.veiledning-obs--advarsel {
+  --_vo-bg: #fdecec; /* TODO: farger ikke landet */
+  --_vo-border: #c93a3a; /* TODO: farger ikke landet */
+  --_vo-title: #6c1818; /* TODO: farger ikke landet */
+  background: var(--_vo-bg);
+  border-left-color: var(--_vo-border);
+}
+.veiledning-obs--suksess {
+  --_vo-bg: #e9f6ec; /* TODO: farger ikke landet */
+  --_vo-border: #2b9651; /* TODO: farger ikke landet */
+  --_vo-title: #14431f; /* TODO: farger ikke landet */
+  background: var(--_vo-bg);
+  border-left-color: var(--_vo-border);
+}
+.veiledning-obs--hvorforViktig {
+  --_vo-bg: #eef0f8; /* TODO: farger ikke landet */
+  --_vo-border: #28478e; /* TODO: farger ikke landet */
+  --_vo-title: #1a2a6d; /* TODO: farger ikke landet */
+  background: var(--_vo-bg);
+  border-left-color: var(--_vo-border);
+}
+.veiledning-obs-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--_vo-title);
+}
+.veiledning-obs-body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.veiledning-obs-body > * + * {
+  margin-top: 8px;
+}
+
+/* Trekkspill */
+.veiledning-trekkspill {
+  --_vt-border: #c8cfdc; /* TODO: farger ikke landet */
+  border: 1px solid var(--_vt-border);
+  border-radius: 4px;
+  background: #ffffff;
+}
+.veiledning-trekkspill-title {
+  cursor: pointer;
+  padding: 16px 20px;
+  font-size: 17px;
+  font-weight: 600;
+  list-style: none;
+}
+.veiledning-trekkspill-title::-webkit-details-marker {
+  display: none;
+}
+.veiledning-trekkspill-title::after {
+  content: '+';
+  float: right;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+}
+.veiledning-trekkspill[open] .veiledning-trekkspill-title::after {
+  content: '−';
+}
+.veiledning-trekkspill-body {
+  padding: 0 20px 20px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.veiledning-trekkspill-body > * + * {
+  margin-top: 8px;
+}
+
+/* Ta valg */
+.veiledning-ta-valg {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.veiledning-ta-valg-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+.veiledning-ta-valg-intro {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.veiledning-ta-valg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.veiledning-ta-valg-card {
+  --_vtv-bg: #ffffff; /* TODO: farger ikke landet */
+  --_vtv-border: #c8cfdc; /* TODO: farger ikke landet */
+  --_vtv-title: #1a2a6d; /* TODO: farger ikke landet */
+  --_vtv-text: #2c3243; /* TODO: farger ikke landet */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 22px;
+  background: var(--_vtv-bg);
+  border: 1px solid var(--_vtv-border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--_vtv-text);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.veiledning-ta-valg-card:hover {
+  border-color: var(--_vtv-title);
+  transform: translateY(-1px);
+}
+.veiledning-ta-valg-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--_vtv-title);
+}
+.veiledning-ta-valg-card-desc {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Lenkekort */
+.veiledning-lenkekort {
+  --_vlk-bg: #f6f8fc; /* TODO: farger ikke landet */
+  --_vlk-border: #c8cfdc; /* TODO: farger ikke landet */
+  --_vlk-title: #1a2a6d; /* TODO: farger ikke landet */
+  --_vlk-text: #2c3243; /* TODO: farger ikke landet */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 22px;
+  background: var(--_vlk-bg);
+  border: 1px solid var(--_vlk-border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--_vlk-text);
+}
+.veiledning-lenkekort:hover {
+  border-color: var(--_vlk-title);
+}
+.veiledning-lenkekort-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--_vlk-title);
+}
+.veiledning-lenkekort-desc {
+  font-size: 15px;
+  line-height: 1.5;
+}

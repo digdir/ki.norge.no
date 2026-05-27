@@ -132,6 +132,50 @@ export interface ArtikkelKontaktkortBlock {
   };
 }
 
+// Veiledning block types (egen modulkatalog, separat fra artikkel)
+export interface VeiledningTekstBlock {
+  contentType: 'veiledningTekst';
+  content: { innhold: string };
+}
+
+export interface VeiledningInfoBlock {
+  contentType: 'veiledningInfo';
+  content: { tittel: string; innhold: string };
+}
+
+export interface VeiledningEksempelBlock {
+  contentType: 'veiledningEksempel';
+  content: { tittel: string; innhold: string };
+}
+
+export type VeiledningObsVariant = 'obs' | 'advarsel' | 'suksess' | 'hvorforViktig';
+
+export interface VeiledningObsBlock {
+  contentType: 'veiledningObs';
+  content: { variant: VeiledningObsVariant; tittel: string; tekst: string };
+}
+
+export interface VeiledningTrekkspillBlock {
+  contentType: 'veiledningTrekkspill';
+  content: { tittel: string; innhold: string };
+}
+
+export interface VeiledningTaValgItem {
+  tittel: string;
+  beskrivelse?: string;
+  lenke: string;
+}
+
+export interface VeiledningTaValgBlock {
+  contentType: 'veiledningTaValg';
+  content: { tittel?: string; tekst?: string; valg: VeiledningTaValgItem[] };
+}
+
+export interface VeiledningLenkekortBlock {
+  contentType: 'veiledningLenkekort';
+  content: { tittel: string; beskrivelse?: string; lenke: string };
+}
+
 // Content types matching Umbraco document type schemas
 export interface Artikkel {
   id: string;
@@ -196,6 +240,7 @@ export interface VeiledningGuide {
   documentId: string;
   tittel: string;
   slug: string;
+  innholdBlokker?: UmbracoBlock[];
   introTekst?: UmbracoBlock[];
   stegGruppeTittler?: string;
   seoTittel?: string;
@@ -215,6 +260,7 @@ export interface VeiledningSteg {
   guideSlug: string;
   steg: number;
   understeg: number;
+  innholdBlokker?: UmbracoBlock[];
   innhold?: UmbracoBlock[];
   infoKortTittel?: string;
   infoKortInnhold?: UmbracoBlock[];
@@ -734,6 +780,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ...base,
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
+        innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
         introTekst: mapRichText(props.introTekst),
         stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
@@ -749,6 +796,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         guideSlug: props.guideSlug as string || '',
         steg: props.steg as number || 0,
         understeg: props.understeg as number || 0,
+        innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
         innhold: mapRichText(props.innhold),
         infoKortTittel: props.infoKortTittel as string || undefined,
         infoKortInnhold: mapRichText(props.infoKortInnhold),
@@ -1070,6 +1118,68 @@ function richTextHtml(value: unknown): string {
   }
   if (typeof value === 'string') return value;
   return '';
+}
+
+function mapVeiledningBlocks(value: unknown): UmbracoBlock[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any) => {
+    const content = block.content || block;
+    const ct = content.contentType || 'veiledningTekst';
+    const props = content.properties || content;
+
+    const richHtml = (raw: unknown): string =>
+      (raw as any)?.tag === '#root'
+        ? richTextToHtml(raw as RichTextNode)
+        : (typeof raw === 'string' ? raw : '');
+
+    if (ct === 'veiledningTekst') {
+      return { contentType: 'veiledningTekst', content: { innhold: richHtml(props.innhold) } };
+    }
+    if (ct === 'veiledningInfo') {
+      return { contentType: 'veiledningInfo', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+    }
+    if (ct === 'veiledningEksempel') {
+      return { contentType: 'veiledningEksempel', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+    }
+    if (ct === 'veiledningObs') {
+      return { contentType: 'veiledningObs', content: {
+        variant: (props.variant as string) || 'obs',
+        tittel: props.tittel || '',
+        tekst: richHtml(props.tekst),
+      } };
+    }
+    if (ct === 'veiledningTrekkspill') {
+      return { contentType: 'veiledningTrekkspill', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+    }
+    if (ct === 'veiledningTaValg') {
+      const valgItems = (props.valg as any)?.items || [];
+      const valg: VeiledningTaValgItem[] = valgItems.map((item: any) => {
+        const itemContent = item.content || item;
+        const itemProps = itemContent.properties || itemContent;
+        return {
+          tittel: itemProps.tittel || '',
+          beskrivelse: itemProps.beskrivelse || '',
+          lenke: itemProps.lenke || '',
+        };
+      });
+      return { contentType: 'veiledningTaValg', content: {
+        tittel: props.tittel || '',
+        tekst: props.tekst || '',
+        valg,
+      } };
+    }
+    if (ct === 'veiledningLenkekort') {
+      return { contentType: 'veiledningLenkekort', content: {
+        tittel: props.tittel || '',
+        beskrivelse: props.beskrivelse || '',
+        lenke: props.lenke || '',
+      } };
+    }
+
+    return { contentType: ct, content: props };
+  });
 }
 
 function mapRichText(value: unknown): UmbracoBlock[] | undefined {

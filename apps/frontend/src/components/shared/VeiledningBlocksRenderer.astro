@@ -1,0 +1,84 @@
+---
+import type { UmbracoBlock } from '../../lib/umbraco';
+import '../../styles/veiledning-blocks.css';
+
+interface Props {
+  blocks?: UmbracoBlock[];
+}
+
+const { blocks } = Astro.props;
+---
+
+{(blocks || []).map((block) => {
+  if (block.contentType === 'veiledningTekst') {
+    return <div class="veiledning-tekst col-center-6" set:html={block.content.innhold} />;
+  }
+
+  if (block.contentType === 'veiledningInfo') {
+    return (
+      <div class="veiledning-info col-center-6">
+        {block.content.tittel && <h3 class="veiledning-info-title">{block.content.tittel}</h3>}
+        <div class="veiledning-info-body" set:html={block.content.innhold} />
+      </div>
+    );
+  }
+
+  if (block.contentType === 'veiledningEksempel') {
+    return (
+      <div class="veiledning-eksempel col-center-6">
+        {block.content.tittel && <h3 class="veiledning-eksempel-title">{block.content.tittel}</h3>}
+        <div class="veiledning-eksempel-body" set:html={block.content.innhold} />
+      </div>
+    );
+  }
+
+  if (block.contentType === 'veiledningObs') {
+    const variant = block.content.variant || 'obs';
+    const role = variant === 'advarsel' ? 'alert' : 'note';
+    return (
+      <div class={`veiledning-obs veiledning-obs--${variant} col-center-6`} role={role}>
+        {block.content.tittel && <h3 class="veiledning-obs-title">{block.content.tittel}</h3>}
+        <div class="veiledning-obs-body" set:html={block.content.tekst} />
+      </div>
+    );
+  }
+
+  if (block.contentType === 'veiledningTrekkspill') {
+    return (
+      <details class="veiledning-trekkspill col-center-6">
+        <summary class="veiledning-trekkspill-title">{block.content.tittel}</summary>
+        <div class="veiledning-trekkspill-body" set:html={block.content.innhold} />
+      </details>
+    );
+  }
+
+  if (block.contentType === 'veiledningTaValg') {
+    const c = block.content;
+    return (
+      <div class="veiledning-ta-valg col-center-6">
+        {c.tittel && <h3 class="veiledning-ta-valg-title">{c.tittel}</h3>}
+        {c.tekst && <p class="veiledning-ta-valg-intro">{c.tekst}</p>}
+        <div class="veiledning-ta-valg-grid">
+          {(c.valg || []).map((v) => (
+            <a class="veiledning-ta-valg-card" href={v.lenke || '#'}>
+              <span class="veiledning-ta-valg-card-title">{v.tittel}</span>
+              {v.beskrivelse && <span class="veiledning-ta-valg-card-desc">{v.beskrivelse}</span>}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.contentType === 'veiledningLenkekort') {
+    const c = block.content;
+    return (
+      <a class="veiledning-lenkekort col-center-6" href={c.lenke || '#'}>
+        <span class="veiledning-lenkekort-title">{c.tittel}</span>
+        {c.beskrivelse && <span class="veiledning-lenkekort-desc">{c.beskrivelse}</span>}
+      </a>
+    );
+  }
+
+  return null;
+})}

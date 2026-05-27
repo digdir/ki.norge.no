@@ -49,6 +49,10 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _blockListProsessStegItemsDt = null!;
     private IDataType _blockListCaseDt = null!;
     private IDataType _blockListOmOssDt = null!;
+    private IDataType _blockListVeiledningStegDt = null!;
+    private IDataType _blockListVeiledningGuideDt = null!;
+    private IDataType _blockListTaValgItemsDt = null!;
+    private IDataType _obsVariantDt = null!;
 
     public ContentTypeComponent(
         IContentTypeService contentTypeService,
@@ -135,7 +139,28 @@ public class ContentTypeComponent : IAsyncComponent
             MigrateVeiledningKort();
             MigrateVerktoyKort();
 
+            // Veiledning-moduler (egen modulkatalog for veiledningSteg + veiledningGuide).
+            // Sub-item (taValgItem) må opprettes før container (taValg) refererer til block list.
+            if (_contentTypeService.Get("veiledningTekst") == null)
+                CreateVeiledningTekstElement();
+            if (_contentTypeService.Get("veiledningInfo") == null)
+                CreateVeiledningInfoElement();
+            if (_contentTypeService.Get("veiledningEksempel") == null)
+                CreateVeiledningEksempelElement();
+            if (_contentTypeService.Get("veiledningObs") == null)
+                CreateVeiledningObsElement();
+            if (_contentTypeService.Get("veiledningTrekkspill") == null)
+                CreateVeiledningTrekkspillElement();
+            if (_contentTypeService.Get("veiledningTaValgItem") == null)
+                CreateVeiledningTaValgItemElement();
+            if (_contentTypeService.Get("veiledningLenkekort") == null)
+                CreateVeiledningLenkekortElement();
+
             CreateBlockListDataTypes();
+
+            // veiledningTaValg container avhenger av _blockListTaValgItemsDt
+            if (_contentTypeService.Get("veiledningTaValg") == null)
+                CreateVeiledningTaValgElement();
 
             // Prosessteg container depends on _blockListProsessStegItemsDt being created above
             if (_contentTypeService.Get("artikkelProsessteg") == null)
@@ -147,6 +172,12 @@ public class ContentTypeComponent : IAsyncComponent
 
             // Refresh Case block list too
             RefreshMultiBlockListAllowedModules("Block List - Case Innhold", CaseModules);
+
+            // Refresh Veiledning Steg + Guide block lists. veiledningTaValg ble opprettet
+            // ETTER CreateBlockListDataTypes (avhenger av _blockListTaValgItemsDt), så uten
+            // denne refresh-en ville den manglet i steg-modulkatalogen.
+            RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules);
+            RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules);
 
             if (_contentTypeService.Get("merkelapp") == null)
                 CreateMerkelapp();
@@ -173,6 +204,7 @@ public class ContentTypeComponent : IAsyncComponent
                 CreateVeiledningGuide();
             MigrateVeiledningGuideEditorLayout();
             MigrateVeiledningGuideStegtitler();
+            MigrateVeiledningGuideInnhold();
             if (_contentTypeService.Get("veiledningSteg") == null)
                 CreateVeiledningSteg();
             MigrateVeiledningSteg();
@@ -277,6 +309,7 @@ public class ContentTypeComponent : IAsyncComponent
         _mediaPickerDt = FindDataType(Constants.PropertyEditors.Aliases.MediaPicker3);
         _contentPickerDt = FindDataType(Constants.PropertyEditors.Aliases.ContentPicker);
         _calloutVariantDt = CreateOrGetCalloutVariantDropdown();
+        _obsVariantDt = CreateOrGetObsVariantDropdown();
         _bakgrunnDropdownDt = CreateOrGetBakgrunnDropdown();
         _trueFalseDt = FindDataType(Constants.PropertyEditors.Aliases.Boolean);
         _datePickerDt = FindDataTypeByName(Constants.PropertyEditors.Aliases.DateTime, "Date Picker");
@@ -336,6 +369,29 @@ public class ContentTypeComponent : IAsyncComponent
             ConfigurationData = new Dictionary<string, object>
             {
                 ["items"] = new[] { "info", "obs", "advarsel", "suksess" },
+            },
+        };
+        _dataTypeService.Save(dt);
+        return dt;
+    }
+
+    private IDataType CreateOrGetObsVariantDropdown()
+    {
+        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
+            .FirstOrDefault(dt => dt.Name == "Obs Variant");
+        if (existing != null) return existing;
+
+        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.DropDownListFlexible]
+            ?? throw new InvalidOperationException("DropDownListFlexible editor not found");
+
+        var dt = new DataType(editor, _configSerializer)
+        {
+            Name = "Obs Variant",
+            DatabaseType = ValueStorageType.Nvarchar,
+            EditorUiAlias = "Umb.PropertyEditorUi.Dropdown",
+            ConfigurationData = new Dictionary<string, object>
+            {
+                ["items"] = new[] { "obs", "advarsel", "suksess", "hvorforViktig" },
             },
         };
         _dataTypeService.Save(dt);
@@ -723,6 +779,147 @@ public class ContentTypeComponent : IAsyncComponent
             _contentTypeService.Save(ct);
     }
 
+    // --- Veiledning element types (egen modulkatalog for veiledningSteg + veiledningGuide) ---
+
+    private IContentType CreateVeiledningTekstElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningTekst",
+            Name = "Brødtekst",
+            Description = "Rik tekstblokk med overskrifter (H2/H3/H4), lister, lenker, fet, kursiv og blockquote.",
+            Icon = "icon-edit",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateVeiledningInfoElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningInfo",
+            Name = "Infomodul",
+            Description = "Informasjonsboks med tittel og innhold. Brukes for nyttige opplysninger som ikke krever varsel.",
+            Icon = "icon-info",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateVeiledningEksempelElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningEksempel",
+            Name = "Eksempel",
+            Description = "Eksempel-boks med tittel og innhold. Brukes for å vise konkrete eksempler i et veiledningssteg.",
+            Icon = "icon-lightbulb",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateVeiledningObsElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningObs",
+            Name = "Obs",
+            Description = "Varselboks. Variant styrer visuelt uttrykk (obs, advarsel, suksess, eller 'hvorfor er dette viktig').",
+            Icon = "icon-alert",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("variant", "Variant", _obsVariantDt, mandatory: true, description: "Velg variant: obs, advarsel, suksess, eller 'hvorfor er dette viktig'."), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("tekst", "Tekst", _richTextDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateVeiledningTrekkspillElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningTrekkspill",
+            Name = "Trekkspill",
+            Description = "Klikkbar tittel som åpner skjult innhold under. Bra for bonus-info eller detaljer leseren kan hoppe over.",
+            Icon = "icon-list",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateVeiledningTaValgItemElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningTaValgItem",
+            Name = "Ta valg-element",
+            Description = "Ett enkelt valg i en Ta valg-modul. Inneholder tittel, kort beskrivelse og lenke.",
+            Icon = "icon-arrow-right",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("beskrivelse", "Beskrivelse", _textAreaDt, description: "Kort beskrivelse av valget"), "innhold");
+        ct.AddPropertyType(Prop("lenke", "Lenke (URL)", _textStringDt, mandatory: true, description: "URL valget skal lede til"), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateVeiledningTaValgElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningTaValg",
+            Name = "Ta valg",
+            Description = "Container med valg som leder brukeren videre. Hvert valg er en separat handlings-boks med tittel og lenke.",
+            Icon = "icon-target",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri overskrift over valgene"), "innhold");
+        ct.AddPropertyType(Prop("tekst", "Tekst", _textAreaDt, description: "Valgfri intro-tekst over valgene"), "innhold");
+        ct.AddPropertyType(Prop("valg", "Valg", _blockListTaValgItemsDt, mandatory: true, description: "Legg til to eller flere valg."), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateVeiledningLenkekortElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "veiledningLenkekort",
+            Name = "Lenkekort",
+            Description = "Lenke-kort med tittel, beskrivelse og URL. Brukes for å peke til ekstern dokumentasjon eller andre ressurser.",
+            Icon = "icon-link",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("beskrivelse", "Beskrivelse", _textAreaDt, description: "Kort beskrivelse av hva lenkekortet peker til"), "innhold");
+        ct.AddPropertyType(Prop("lenke", "Lenke (URL)", _textStringDt, mandatory: true, description: "URL lenkekortet skal lede til"), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
     // --- Block List DataTypes ---
 
     private void CreateBlockListDataTypes()
@@ -748,6 +945,17 @@ public class ContentTypeComponent : IAsyncComponent
         // Block list for Om Oss seksjoner (replaces standalone omOssSeksjon child content)
         _blockListOmOssDt = CreateOrGetBlockListDataType(
             "Block List - Om Oss Seksjoner", "omOssBlokk");
+        // Veiledning Ta valg items (sub-blokker brukt inni veiledningTaValg-containeren)
+        _blockListTaValgItemsDt = CreateOrGetBlockListDataType(
+            "Block List - Ta Valg Items", "veiledningTaValgItem");
+        // Veiledningssteg-modulkatalog (egen, separat fra artikkel)
+        _blockListVeiledningStegDt = CreateOrGetMultiBlockListDataType(
+            "Block List - Veiledning Steg",
+            VeiledningStegModules);
+        // Guide-oversikt med Trekkspill + Obs + Tekst (mindre utvalg per Dortes spec)
+        _blockListVeiledningGuideDt = CreateOrGetMultiBlockListDataType(
+            "Block List - Veiledning Guide",
+            VeiledningGuideModules);
     }
 
     private IDataType CreateOrGetBlockListDataType(string name, string elementTypeAlias)
@@ -910,6 +1118,26 @@ public class ContentTypeComponent : IAsyncComponent
     };
 
     private static readonly string[] CaseModules = BaseArticleModules;
+
+    // Veiledning har sin egen, helt separate modulkatalog. Ingen overlapp med artikkel.
+    private static readonly string[] VeiledningStegModules =
+    {
+        "veiledningTekst",
+        "veiledningInfo",
+        "veiledningEksempel",
+        "veiledningObs",
+        "veiledningTrekkspill",
+        "veiledningTaValg",
+        "veiledningLenkekort",
+    };
+
+    // Guide-oversikt har et mindre modulutvalg, kun det Dorte spesifiserte.
+    private static readonly string[] VeiledningGuideModules =
+    {
+        "veiledningTekst",
+        "veiledningTrekkspill",
+        "veiledningObs",
+    };
 
     // ── RichText configurations ────────────────────────────────────────
     // Single source of truth for ALL RichText editors in the CMS.
@@ -1258,12 +1486,71 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
+        // Legg til innholdBlokker (block list) hvis den ikke finnes.
+        if (!ct.PropertyTypes.Any(p => p.Alias == "innholdBlokker"))
+        {
+            ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill, ta valg, lenkekort).", sortOrder: 2), "innhold");
+            changed = true;
+        }
+
+        // Rename gamle felter slik at redaktør ser at de utgår. Innholdet beholdes,
+        // frontend rendrer fra innholdBlokker hvis populert, ellers faller tilbake.
+        foreach (var (alias, nyttNavn, nyDescription) in new[]
+        {
+            ("innhold", "Hovedinnhold (utgår)", "Utgår. Bruk Innhold-blokklisten i stedet."),
+            ("infoKortTittel", "Infokort-tittel (utgår)", "Utgår. Bruk Infomodul i Innhold-blokklisten."),
+            ("infoKortInnhold", "Infokort-innhold (utgår)", "Utgår."),
+            ("accordionSeksjoner", "Accordion-seksjoner (utgår)", "Utgår. Bruk Trekkspill-modul i Innhold-blokklisten."),
+            ("eksempelTittel", "Eksempel-tittel (utgår)", "Utgår. Bruk Eksempel-modul i Innhold-blokklisten."),
+            ("eksempelTekst", "Eksempel-tekst (utgår)", "Utgår."),
+        })
+        {
+            var prop = ct.PropertyTypes.FirstOrDefault(p => p.Alias == alias);
+            if (prop == null) continue;
+            if (prop.Name != nyttNavn)
+            {
+                prop.Name = nyttNavn;
+                prop.Description = nyDescription;
+                changed = true;
+            }
+        }
+
         if (EnsureInnstillingerGroup(ct, "slug", "guideSlug", "steg", "understeg")) changed = true;
         if (SetPropertySortOrders(ct,
-            ("tittel", 1), ("innhold", 2), ("infoKortTittel", 3), ("infoKortInnhold", 4),
-            ("accordionSeksjoner", 5), ("eksempelTittel", 6), ("eksempelTekst", 7),
+            ("tittel", 1), ("innholdBlokker", 2),
+            ("innhold", 3), ("infoKortTittel", 4), ("infoKortInnhold", 5),
+            ("accordionSeksjoner", 6), ("eksempelTittel", 7), ("eksempelTekst", 8),
             ("slug", 1), ("guideSlug", 2), ("steg", 3), ("understeg", 4))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
+
+        if (changed)
+            _contentTypeService.Save(ct);
+    }
+
+    private void MigrateVeiledningGuideInnhold()
+    {
+        var ct = _contentTypeService.Get("veiledningGuide");
+        if (ct == null) return;
+
+        bool changed = false;
+
+        if (!ct.PropertyTypes.Any(p => p.Alias == "innholdBlokker"))
+        {
+            ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningGuideDt, description: "Moduler som vises på guide-oversikten (tekst, trekkspill, obs).", sortOrder: 2), "innhold");
+            changed = true;
+        }
+
+        var introProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "introTekst");
+        if (introProp != null && introProp.Name != "Intro-tekst (utgår)")
+        {
+            introProp.Name = "Intro-tekst (utgår)";
+            introProp.Description = "Utgår. Bruk Innhold-blokklisten i stedet.";
+            changed = true;
+        }
+
+        if (SetPropertySortOrders(ct,
+            ("tittel", 1), ("innholdBlokker", 2),
+            ("introTekst", 3), ("stegGruppeTittler", 4))) changed = true;
 
         if (changed)
             _contentTypeService.Save(ct);
@@ -1462,7 +1749,7 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt, sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningGuideDt, description: "Moduler som vises på guide-oversikten (tekst, trekkspill, obs).", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje. Tom linje = bruk standard 'Steg N'. Rekkefølgen følger steg-nummeret (linje 1 = steg 1, osv.).", sortOrder: 3), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
@@ -1500,12 +1787,15 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, description: "Hovedinnhold", sortOrder: 2), "innhold");
-        ct.AddPropertyType(Prop("infoKortTittel", "Infokort-tittel", _textStringDt, description: "Tittel på informasjonskort (valgfritt)", sortOrder: 3), "innhold");
-        ct.AddPropertyType(Prop("infoKortInnhold", "Infokort-innhold", _richTextDt, description: "Innhold i informasjonskort (valgfritt)", sortOrder: 4), "innhold");
-        ct.AddPropertyType(Prop("accordionSeksjoner", "Accordion-seksjoner", _blockListAccordionDt, description: "Trekkspill-seksjoner (valgfritt)", sortOrder: 5), "innhold");
-        ct.AddPropertyType(Prop("eksempelTittel", "Eksempel-tittel", _textStringDt, description: "Tittel på eksempelkort (valgfritt)", sortOrder: 6), "innhold");
-        ct.AddPropertyType(Prop("eksempelTekst", "Eksempel-tekst", _richTextDt, description: "Tekst i eksempelkort (valgfritt)", sortOrder: 7), "innhold");
+        ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill, ta valg, lenkekort).", sortOrder: 2), "innhold");
+        // Gamle fikserte felter beholdes inntil migrasjon har konvertert all eksisterende data.
+        // Fjernes i en senere PR når vi har bekreftet at innholdBlokker har full dekning.
+        ct.AddPropertyType(Prop("innhold", "Hovedinnhold (utgår)", _richTextDt, description: "Utgår. Bruk Innhold-blokklisten i stedet.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("infoKortTittel", "Infokort-tittel (utgår)", _textStringDt, description: "Utgår. Bruk Infomodul i Innhold-blokklisten.", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("infoKortInnhold", "Infokort-innhold (utgår)", _richTextDt, sortOrder: 5), "innhold");
+        ct.AddPropertyType(Prop("accordionSeksjoner", "Accordion-seksjoner (utgår)", _blockListAccordionDt, description: "Utgår. Bruk Trekkspill-modul i Innhold-blokklisten.", sortOrder: 6), "innhold");
+        ct.AddPropertyType(Prop("eksempelTittel", "Eksempel-tittel (utgår)", _textStringDt, sortOrder: 7), "innhold");
+        ct.AddPropertyType(Prop("eksempelTekst", "Eksempel-tekst (utgår)", _richTextDt, sortOrder: 8), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");

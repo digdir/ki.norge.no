@@ -2,6 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import BlocksRenderer from '../../components/shared/BlocksRenderer.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
+import VeiledningBlocksRenderer from '../../components/shared/VeiledningBlocksRenderer.astro';
 import StepNavigator from '../../components/guide/StepNavigator.astro';
 import InfoBanner from '../../components/guide/InfoBanner.astro';
 import {
@@ -136,16 +137,22 @@ if (guideData) {
   </Layout>
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc}>
-    <div class="guide-overview">
-      <h1 class="guide-title">{guideData.tittel}</h1>
+    <div class="guide-overview grid">
+      <h1 class="guide-title col-center-6">{guideData.tittel}</h1>
 
-      {guideData.introTekst && (
-        <InfoBanner>
-          <BlocksRenderer blocks={guideData.introTekst} />
-        </InfoBanner>
-      )}
+      {guideData.innholdBlokker && guideData.innholdBlokker.length > 0 ? (
+        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
+      ) : guideData.introTekst ? (
+        <div class="col-center-6">
+          <InfoBanner>
+            <BlocksRenderer blocks={guideData.introTekst} />
+          </InfoBanner>
+        </div>
+      ) : null}
 
-      <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
+      <div class="col-center-6">
+        <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
+      </div>
     </div>
   </Layout>
 ) : null }
