@@ -26,7 +26,16 @@
 
 :root {
   --layout-content-max-width: 1230px;
-  --layout-edge-padding: 24px;
+  --layout-edge-padding: var(--ds-size-4);
+  --layout-content-padding: var(--ds-size-4);
+  --layout-edge-margin: var(--ds-size-4);
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --layout-edge-padding: var(--ds-size-6);
+    --layout-edge-margin: 0;
+  }
 }
 
 /* ── Edge block ──────────────────────────────────────────
@@ -34,11 +43,15 @@
  * Inner padding keeps content away from screen edges.
  */
 [data-layout-block="edge"] {
-  margin-inline: var(--layout-edge-padding);
+  margin-inline: var(--layout-edge-margin);
   padding-inline: var(--layout-edge-padding);
   padding-block: var(--ds-size-12);
   border-radius: var(--ds-border-radius-xl);
   box-sizing: border-box;
+
+  @media (max-width: 1024px) {
+    --layout-content-padding: 0;
+  }
 }
 
 /* ── Content block ───────────────────────────────────────
@@ -47,6 +60,6 @@
 [data-layout-block="content"] {
   max-width: var(--layout-content-max-width);
   margin-inline: auto;
-  padding-inline: var(--layout-edge-padding);
+  padding-inline: var(--layout-content-padding);
   box-sizing: border-box;
 }
