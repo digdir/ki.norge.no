@@ -162,6 +162,9 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("veiledningTaValg") == null)
                 CreateVeiledningTaValgElement();
 
+            // Rename element types for å unngå display-navn-kollisjon med artikkel-elementer.
+            MigrateVeiledningElementNames();
+
             // Prosessteg container depends on _blockListProsessStegItemsDt being created above
             if (_contentTypeService.Get("artikkelProsessteg") == null)
                 CreateArtikkelProsessStegElement();
@@ -786,7 +789,7 @@ public class ContentTypeComponent : IAsyncComponent
         var ct = new ContentType(_shortStringHelper, -1)
         {
             Alias = "veiledningTekst",
-            Name = "Brødtekst",
+            Name = "Brødtekst (veiledning)",
             Description = "Rik tekstblokk med overskrifter (H2/H3/H4), lister, lenker, fet, kursiv og blockquote.",
             Icon = "icon-edit",
             IsElement = true,
@@ -819,7 +822,7 @@ public class ContentTypeComponent : IAsyncComponent
         var ct = new ContentType(_shortStringHelper, -1)
         {
             Alias = "veiledningEksempel",
-            Name = "Eksempel",
+            Name = "Eksempel (veiledning)",
             Description = "Eksempel-boks med tittel og innhold. Brukes for å vise konkrete eksempler i et veiledningssteg.",
             Icon = "icon-lightbulb",
             IsElement = true,
@@ -854,7 +857,7 @@ public class ContentTypeComponent : IAsyncComponent
         var ct = new ContentType(_shortStringHelper, -1)
         {
             Alias = "veiledningTrekkspill",
-            Name = "Trekkspill",
+            Name = "Trekkspill (veiledning)",
             Description = "Klikkbar tittel som åpner skjult innhold under. Bra for bonus-info eller detaljer leseren kan hoppe over.",
             Icon = "icon-list",
             IsElement = true,
@@ -900,6 +903,29 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("valg", "Valg", _blockListTaValgItemsDt, mandatory: true, description: "Legg til to eller flere valg."), "innhold");
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    /// <summary>
+    /// Rename veiledning-element-types så de ikke kolliderer med artikkel-elementer
+    /// i Document Types-listen. Idempotent — kjører kun hvis navnet ikke er oppdatert.
+    /// </summary>
+    private void MigrateVeiledningElementNames()
+    {
+        var renames = new[]
+        {
+            ("veiledningTekst", "Brødtekst (veiledning)"),
+            ("veiledningTrekkspill", "Trekkspill (veiledning)"),
+            ("veiledningEksempel", "Eksempel (veiledning)"),
+        };
+
+        foreach (var (alias, nyttNavn) in renames)
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            if (ct.Name == nyttNavn) continue;
+            ct.Name = nyttNavn;
+            _contentTypeService.Save(ct);
+        }
     }
 
     private IContentType CreateVeiledningLenkekortElement()
