@@ -4,6 +4,7 @@
   z-index: 1000;
   height: var(--header-height);
   min-height: var(--header-height);
+  overflow-x: clip;
   view-transition-name: header;
 }
 
