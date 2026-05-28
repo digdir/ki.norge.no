@@ -1391,7 +1391,7 @@ public class ContentTypeComponent : IAsyncComponent
 
         if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
-            ("tittel", 1), ("introTekst", 2), ("stegGruppeTittler", 3),
+            ("tittel", 1), ("ingress", 2), ("innholdBlokker", 3), ("stegGruppeTittler", 4),
             ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
@@ -1406,38 +1406,30 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
-        if (!ct.PropertyTypes.Any(p => p.Alias == "innholdBlokker"))
+        if (!ct.PropertyTypes.Any(p => p.Alias == "ingress"))
         {
-            ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 2), "innhold");
+            ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
             changed = true;
         }
 
-        // Rename gamle felter til "(utgår)" inntil innholdet er flyttet til block-listen.
-        foreach (var (alias, nyttNavn, nyDescription) in new[]
+        if (!ct.PropertyTypes.Any(p => p.Alias == "innholdBlokker"))
         {
-            ("innhold", "Hovedinnhold (utgår)", "Utgår. Bruk Innhold-blokklisten i stedet."),
-            ("infoKortTittel", "Infokort-tittel (utgår)", "Utgår. Bruk Infomodul i Innhold-blokklisten."),
-            ("infoKortInnhold", "Infokort-innhold (utgår)", "Utgår."),
-            ("accordionSeksjoner", "Accordion-seksjoner (utgår)", "Utgår. Bruk Trekkspill-modul i Innhold-blokklisten."),
-            ("eksempelTittel", "Eksempel-tittel (utgår)", "Utgår. Bruk Eksempel-modul i Innhold-blokklisten."),
-            ("eksempelTekst", "Eksempel-tekst (utgår)", "Utgår."),
-        })
+            ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 3), "innhold");
+            changed = true;
+        }
+
+        foreach (var alias in new[] { "innhold", "infoKortTittel", "infoKortInnhold", "accordionSeksjoner", "eksempelTittel", "eksempelTekst" })
         {
-            var prop = ct.PropertyTypes.FirstOrDefault(p => p.Alias == alias);
-            if (prop == null) continue;
-            if (prop.Name != nyttNavn)
+            if (ct.PropertyTypes.Any(p => p.Alias == alias))
             {
-                prop.Name = nyttNavn;
-                prop.Description = nyDescription;
+                ct.RemovePropertyType(alias);
                 changed = true;
             }
         }
 
         if (EnsureInnstillingerGroup(ct, "slug", "guideSlug", "steg", "understeg")) changed = true;
         if (SetPropertySortOrders(ct,
-            ("tittel", 1), ("innholdBlokker", 2),
-            ("innhold", 3), ("infoKortTittel", 4), ("infoKortInnhold", 5),
-            ("accordionSeksjoner", 6), ("eksempelTittel", 7), ("eksempelTekst", 8),
+            ("tittel", 1), ("ingress", 2), ("innholdBlokker", 3),
             ("slug", 1), ("guideSlug", 2), ("steg", 3), ("understeg", 4))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
@@ -1464,17 +1456,14 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        var introProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "introTekst");
-        if (introProp != null && introProp.Name != "Intro-tekst (utgår)")
+        if (ct.PropertyTypes.Any(p => p.Alias == "introTekst"))
         {
-            introProp.Name = "Intro-tekst (utgår)";
-            introProp.Description = "Utgår. Bruk Ingress og Innhold-blokklisten i stedet.";
+            ct.RemovePropertyType("introTekst");
             changed = true;
         }
 
         if (SetPropertySortOrders(ct,
-            ("tittel", 1), ("ingress", 2), ("innholdBlokker", 3),
-            ("introTekst", 4), ("stegGruppeTittler", 5))) changed = true;
+            ("tittel", 1), ("ingress", 2), ("innholdBlokker", 3), ("stegGruppeTittler", 4))) changed = true;
 
         if (changed)
             _contentTypeService.Save(ct);
@@ -1722,14 +1711,8 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 2), "innhold");
-        // Gamle felter beholdes inntil innholdet er flyttet til block-listen.
-        ct.AddPropertyType(Prop("innhold", "Hovedinnhold (utgår)", _richTextDt, description: "Utgår. Bruk Innhold-blokklisten i stedet.", sortOrder: 3), "innhold");
-        ct.AddPropertyType(Prop("infoKortTittel", "Infokort-tittel (utgår)", _textStringDt, description: "Utgår. Bruk Infomodul i Innhold-blokklisten.", sortOrder: 4), "innhold");
-        ct.AddPropertyType(Prop("infoKortInnhold", "Infokort-innhold (utgår)", _richTextDt, sortOrder: 5), "innhold");
-        ct.AddPropertyType(Prop("accordionSeksjoner", "Accordion-seksjoner (utgår)", _blockListAccordionDt, description: "Utgår. Bruk Trekkspill-modul i Innhold-blokklisten.", sortOrder: 6), "innhold");
-        ct.AddPropertyType(Prop("eksempelTittel", "Eksempel-tittel (utgår)", _textStringDt, sortOrder: 7), "innhold");
-        ct.AddPropertyType(Prop("eksempelTekst", "Eksempel-tekst (utgår)", _richTextDt, sortOrder: 8), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 3), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");

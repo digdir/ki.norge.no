@@ -1,10 +1,8 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
-import BlocksRenderer from '../../components/shared/BlocksRenderer.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import VeiledningBlocksRenderer from '../../components/shared/VeiledningBlocksRenderer.astro';
 import StepNavigator from '../../components/guide/StepNavigator.astro';
-import InfoBanner from '../../components/guide/InfoBanner.astro';
 import {
   getVeiledningGuide,
   getVeiledningSteg,
@@ -82,7 +80,7 @@ if (guideData) {
 
   guideCtx = {
     seoTitle: guideData.seoTittel || guideData.tittel,
-    seoDesc: guideData.seoBeskrivelse || getPlainText(guideData.introTekst, 200),
+    seoDesc: guideData.seoBeskrivelse || guideData.ingress || getPlainText(guideData.innholdBlokker, 200),
     steps: Array.from(stepMap.entries()).map(([num, data]) => ({
       number: num,
       title: stepGroupTitles[num] || `Steg ${num}`,

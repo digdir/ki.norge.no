@@ -224,7 +224,6 @@ export interface VeiledningGuide {
   slug: string;
   ingress?: string;
   innholdBlokker?: UmbracoBlock[];
-  introTekst?: UmbracoBlock[];
   stegGruppeTittler?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
@@ -243,13 +242,8 @@ export interface VeiledningSteg {
   guideSlug: string;
   steg: number;
   understeg: number;
+  ingress?: string;
   innholdBlokker?: UmbracoBlock[];
-  innhold?: UmbracoBlock[];
-  infoKortTittel?: string;
-  infoKortInnhold?: UmbracoBlock[];
-  accordionSeksjoner?: AccordionSection[];
-  eksempelTittel?: string;
-  eksempelTekst?: UmbracoBlock[];
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -765,7 +759,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         slug: props.slug as string || '',
         ingress: props.ingress as string || '',
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
-        introTekst: mapRichText(props.introTekst),
         stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -780,13 +773,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         guideSlug: props.guideSlug as string || '',
         steg: props.steg as number || 0,
         understeg: props.understeg as number || 0,
+        ingress: props.ingress as string || '',
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
-        innhold: mapRichText(props.innhold),
-        infoKortTittel: props.infoKortTittel as string || undefined,
-        infoKortInnhold: mapRichText(props.infoKortInnhold),
-        accordionSeksjoner: mapAccordionSections(props.accordionSeksjoner),
-        eksempelTittel: props.eksempelTittel as string || undefined,
-        eksempelTekst: mapRichText(props.eksempelTekst),
       } as T;
 
     case 'faq':
@@ -1605,8 +1593,10 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
         }
       }
       for (const g of guides.data) {
-        if (g.tittel.toLowerCase().includes(lowerQuery) || getPlainText(g.introTekst, 500).toLowerCase().includes(lowerQuery)) {
-          allResults.push({ id: g.id, tittel: g.tittel, slug: g.slug, contentType: 'veiledningGuide', excerpt: getPlainText(g.introTekst, 200), publishedAt: g.publishedAt });
+        const guideBody = getPlainText(g.innholdBlokker, 500);
+        const guideIngress = g.ingress || '';
+        if (g.tittel.toLowerCase().includes(lowerQuery) || guideIngress.toLowerCase().includes(lowerQuery) || guideBody.toLowerCase().includes(lowerQuery)) {
+          allResults.push({ id: g.id, tittel: g.tittel, slug: g.slug, contentType: 'veiledningGuide', excerpt: guideIngress || getPlainText(g.innholdBlokker, 200), publishedAt: g.publishedAt });
         }
       }
     } catch { /* return empty if fallback also fails */ }
