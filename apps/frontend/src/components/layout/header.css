@@ -4,6 +4,7 @@
   z-index: 1000;
   height: var(--header-height);
   min-height: var(--header-height);
+  overflow-x: clip;
   view-transition-name: header;
 }
 
@@ -26,10 +27,10 @@
 }
 
 .header-container {
-  max-width: 1280px;
+  max-width: var(--layout-content-max-width);
   height: 100%;
   margin: 0 auto;
-  padding-inline: var(--ds-size-4);
+  padding-inline: var(--layout-content-padding);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -38,29 +39,20 @@
 
 .logo-link {
   text-decoration: none;
-  color: var(--ds-color-neutral-text-default);
+  color: var(--ds-color-text-default);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 
   & .logo-icon {
-    width: 28px;
-    height: 30px;
+    max-width: 300px;
   }
 
   & .logo-text {
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--ds-color-neutral-text-default);
+    color: var(--ds-color-text-default);
     letter-spacing: -0.015em;
-  }
-
-  [data-header-theme="dark"] & .logo-text {
-    color: white;
-  }
-
-  [data-header-theme="dark"] & .logo-icon {
-    filter: brightness(0) invert(1);
   }
 }
 
@@ -89,7 +81,7 @@
 
 .nav-link {
   text-decoration: none;
-  color: var(--ds-color-neutral-text-default);
+  color: var(--ds-color-text-default);
   font-size: var(--ds-font-size-4);
   font-weight: var(--ds-font-weight-medium);
   padding-inline: var(--ds-size-5);
@@ -102,11 +94,11 @@
   }
 
   &:hover {
-    border-bottom: 2px solid var(--ds-color-neutral-border-subtle);
+    border-bottom: 2px solid var(--ds-color-border-subtle);
   }
 
   &.active {
-    border-bottom: 2px solid var(--ds-color-neutral-border-default);
+    border-bottom: 2px solid var(--ds-color-border-default);
   }
 }
 
@@ -119,7 +111,7 @@
   cursor: pointer;
   padding: var(--ds-size-2);
   border-radius: var(--ds-border-radius-md);
-  color: var(--ds-color-neutral-text-default);
+  color: var(--ds-color-text-default);
 
   /* Desktop: hidden by default, shown only when JS detects wrap */
   @media (min-width: 769px) {
@@ -134,7 +126,7 @@
   }
 
   &:hover {
-    background-color: var(--ds-color-neutral-surface-hover);
+    background-color: var(--ds-color-surface-hover);
   }
 }
 
@@ -149,7 +141,7 @@
   max-height: none;
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--ds-color-neutral-background-default);
+  background-color: var(--ds-color-background-default);
   padding: var(--ds-size-4);
 
   &::backdrop {
@@ -185,12 +177,12 @@
       border-radius: var(--ds-border-radius-md);
 
       &:hover {
-        background-color: var(--ds-color-neutral-surface-hover);
+        background-color: var(--ds-color-surface-hover);
         border-bottom: none;
       }
 
       &.active {
-        background-color: var(--ds-color-neutral-surface-active);
+        background-color: var(--ds-color-surface-active);
         border-bottom: none;
       }
     }

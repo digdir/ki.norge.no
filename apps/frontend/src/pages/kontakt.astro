@@ -17,13 +17,12 @@ const seoImage = page?.seoBilde?.url;
 ---
 
 <Layout title={title} description={seoDescription} ogImage={seoImage}>
-  <div class="kontakt-page">
-    <div class="kontakt-title-bar">
-      <h1 class="kontakt-title">{title}</h1>
+    <div data-layout-block="content">
+      <h1 class="ds-heading" data-size="xl">{title}</h1>
       <p class="kontakt-lead">Har du spørsmål eller trenger hjelp? Vi er her for å bistå deg med kunstig intelligens i offentlig sektor.</p>
     </div>
 
-    <div class="kontakt-content">
+    <div class="kontakt-content" data-layout-block="content">
       <div class="kontakt-body">
         {page?.innhold ? (
           <BlocksRenderer blocks={page.innhold} />
@@ -39,7 +38,7 @@ const seoImage = page?.seoBilde?.url;
         )}
       </div>
 
-      <div class="kontakt-links">
+      <div class="kontakt-links" data-layout-block="content">
         <a href="/faq" class="kontakt-link-card">
           <span class="kontakt-link-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -62,7 +61,6 @@ const seoImage = page?.seoBilde?.url;
     </div>
 
     <ContactCard />
-  </div>
 </Layout>
 
 <style>
@@ -70,31 +68,11 @@ const seoImage = page?.seoBilde?.url;
     padding-top: var(--ds-size-4);
   }
 
-  .kontakt-title-bar {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 24px var(--ds-size-4) 24px;
-    border-bottom: 1px solid #b8bcc1;
-  }
-
-  .kontakt-title {
-    font-size: 1.625rem;
-    font-weight: 500;
-    margin: 0 0 8px;
-    color: #000;
-  }
-
   .kontakt-lead {
     font-size: 1.125rem;
     line-height: 1.5;
     color: rgba(0, 0, 0, 0.65);
     margin: 0;
-  }
-
-  .kontakt-content {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--ds-size-8) var(--ds-size-4);
   }
 
   .kontakt-body {

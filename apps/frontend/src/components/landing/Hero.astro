@@ -2,7 +2,7 @@
 // Hero — CSS gradient background (absolute, doesn't affect flow), centered bold headline
 ---
 
-<section class="hero">
+<section class="hero" data-layout-block="content">
   <div class="hero-container">
     <h1 class="ds-heading" data-size="xl">Felleskapet for <strong>innovativ og ansvarlig</strong> utvikling og bruk av kunstig intelligens</h1>
     <img src="/og-image.png" alt="Illustrasjon av mennesker som samarbeider med AI" />
@@ -11,14 +11,12 @@
 
 <style>
   .hero {
-    padding: 120px 0 80px;
-    background-color: #E7E9EA;
+    padding-block-start: 120px;
+    padding-block-end: 80px;
   }
   
   .hero-container {
     margin: 0 auto;
-    max-width: 1280px;
-    padding-inline: var(--ds-size-4);
     display: grid;
     gap: var(--ds-size-30);
     grid-template-columns: 1fr 1fr;

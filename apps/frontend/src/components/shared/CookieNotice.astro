@@ -2,94 +2,182 @@
 import { getGlobaleInnstillinger } from '../../lib/umbraco';
 
 const gi = await getGlobaleInnstillinger().catch(() => null);
-const tekstHtml = gi?.cookieTekst || '<p>Vi bruker kun nødvendige informasjonskapsler for at nettsiden skal fungere. Vi sporer ikke besøk eller setter analyse-cookies. <a href="/cookies">Les mer</a></p>';
-const knappLabel = gi?.cookieKnappLabel || 'Greit';
+const tittel = gi?.cookieTittel || 'Får vi samle informasjon om hvordan du bruker nettsiden?';
+const beskrivelseHtml = gi?.cookieTekst || '<p>Hvis du svarer ja, lagrer vi informasjon som vi bruker til statistikk og analyse for å forbedre nettsiden. <a href="/cookies">Du kan endre valget ditt når som helst</a>.</p>';
+const sekundaerHtml = gi?.cookieSekundaerTekst || '<p>Vi lagrer også informasjon fordi det er nødvendig for at nettsiden skal fungere. <a href="/cookies">Se oversikt over nødvendig informasjon.</a></p>';
+const jaLabel = gi?.cookieJaLabel || 'Ja';
+const neiLabel = gi?.cookieNeiLabel || 'Nei';
 ---
 
 <div id="cookie-notice" class="cookie-notice" hidden>
   <div class="cookie-notice__inner">
-    <div class="cookie-notice__text" set:html={tekstHtml}></div>
-    <button id="cookie-notice-dismiss" type="button" class="cookie-notice__btn">
-      {knappLabel}
-    </button>
+    <h2 class="cookie-notice__title">{tittel}</h2>
+    <div class="cookie-notice__text" set:html={beskrivelseHtml}></div>
+    <div class="cookie-notice__actions">
+      <button id="cookie-notice-allow" type="button" class="cookie-notice__btn">
+        {jaLabel}
+      </button>
+      <button id="cookie-notice-deny" type="button" class="cookie-notice__btn">
+        {neiLabel}
+      </button>
+    </div>
+    <div class="cookie-notice__secondary" set:html={sekundaerHtml}></div>
   </div>
 </div>
 
 <script is:inline>
   (function () {
-    var KEY = 'ki-cookie-notice-acked';
+    var KEY = 'ki-analytics-consent';
     var notice = document.getElementById('cookie-notice');
-    var btn = document.getElementById('cookie-notice-dismiss');
-    if (!notice || !btn) return;
+    var allowBtn = document.getElementById('cookie-notice-allow');
+    var denyBtn = document.getElementById('cookie-notice-deny');
+    if (!notice || !allowBtn || !denyBtn) return;
 
-    try {
-      if (localStorage.getItem(KEY) === '1') return;
-    } catch (e) {
-      // localStorage blocked — show the notice anyway, don't try to remember
+    function readConsent() {
+      try {
+        var raw = localStorage.getItem(KEY);
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        return parsed && parsed.analytics ? parsed.analytics : null;
+      } catch (e) { return null; }
+    }
+
+    function writeConsent(value) {
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ v: 1, analytics: value }));
+      } catch (e) {}
+    }
+
+    function loadSkyra() {
+      if (window.__skyraLoaded) return;
+      window.__skyraLoaded = true;
+      window.SKYRA_CONFIG = { org: 'digitaliseringsdirektoratet' };
+      var s = document.createElement('script');
+      s.src = 'https://survey.skyra.no/skyra-survey.js';
+      s.async = true;
+      document.head.appendChild(s);
+    }
+
+    var consent = readConsent();
+    if (consent === 'allow') {
+      loadSkyra();
+      return;
+    }
+    if (consent === 'deny') {
+      return;
     }
 
     notice.hidden = false;
-    btn.addEventListener('click', function () {
+    allowBtn.addEventListener('click', function () {
+      writeConsent('allow');
       notice.hidden = true;
-      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+      loadSkyra();
+    });
+    denyBtn.addEventListener('click', function () {
+      writeConsent('deny');
+      notice.hidden = true;
     });
   })();
 </script>
 
 <style>
   .cookie-notice {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-    z-index: 990;
-    background: #1a2a6d;
-    color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    max-width: 720px;
-    margin: 0 auto;
+    --_kn-bg: #28478e; /* TODO: farger ikke landet */
+    --_kn-text: #ffffff; /* TODO: farger ikke landet */
+    --_kn-text-subtle: rgba(255, 255, 255, 0.75); /* TODO: farger ikke landet */
+    --_kn-btn-bg: #f3dfdd; /* TODO: farger ikke landet */
+    --_kn-btn-text: #2c0f12; /* TODO: farger ikke landet */
+    --_kn-btn-hover: #ebcecb; /* TODO: farger ikke landet */
+
+    background: var(--_kn-bg);
+    color: var(--_kn-text);
+    width: 100%;
+  }
+
+  .cookie-notice[hidden] {
+    display: none;
   }
 
   .cookie-notice__inner {
+    padding: 24px;
     display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 18px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .cookie-notice__text {
+  .cookie-notice__title {
     margin: 0;
-    flex: 1;
-    min-width: 240px;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.64px;
   }
 
-  .cookie-notice__text a {
-    color: #fff;
+  .cookie-notice__text,
+  .cookie-notice__secondary {
+    margin: 0;
+    max-width: 710px;
+    font-size: 18px;
+    line-height: 1.7;
+    letter-spacing: 0.09px;
+  }
+
+  .cookie-notice__secondary {
+    color: var(--_kn-text-subtle);
+  }
+
+  .cookie-notice__text :global(p),
+  .cookie-notice__secondary :global(p) {
+    margin: 0;
+  }
+
+  .cookie-notice__text :global(a),
+  .cookie-notice__secondary :global(a) {
+    color: inherit;
     text-decoration: underline;
   }
 
+  .cookie-notice__actions {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
   .cookie-notice__btn {
-    background: #fff;
-    color: #1a2a6d;
+    background: var(--_kn-btn-bg);
+    color: var(--_kn-btn-text);
     border: none;
-    padding: 8px 18px;
+    padding: 11px 14px;
     border-radius: 4px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
+    line-height: 1;
+    min-height: 48px;
   }
 
   .cookie-notice__btn:hover {
-    background: #f0f0f0;
+    background: var(--_kn-btn-hover);
   }
 
   .cookie-notice__btn:focus-visible {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--_kn-text);
     outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .cookie-notice__inner {
+      padding: 18px 16px;
+    }
+    .cookie-notice__title {
+      font-size: 24px;
+      letter-spacing: -0.48px;
+    }
+    .cookie-notice__text,
+    .cookie-notice__secondary {
+      font-size: 16px;
+    }
   }
 
   @media print {

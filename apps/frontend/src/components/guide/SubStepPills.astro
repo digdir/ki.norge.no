@@ -18,9 +18,9 @@ const { substeps, guideSlug, stepNumber, stepTitle } = Astro.props;
     {substeps.map((sub, i) => (
       <>
         {sub.active ? (
-          <a class="substep-pill substep-pill--active" href={`/veiledning/${guideSlug}/${substeps[i].slug}`} aria-current="page">{sub.title}</a>
+          <a class="substep-pill substep-pill--active ds-focus--inset" href={`/veiledning/${guideSlug}/${substeps[i].slug}`} aria-current="page">{sub.title}</a>
         ) : (
-          <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="substep-pill">{sub.title}</a>
+          <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="substep-pill ds-focus--inset">{sub.title}</a>
         )}
         {i < substeps.length - 1 && (
           <span class="substep-arrow" aria-hidden="true">&rarr;</span>

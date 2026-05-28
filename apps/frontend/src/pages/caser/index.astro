@@ -22,7 +22,7 @@ const seoDesc = oversikt?.seoBeskrivelse || heroIngress;
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
-  <div class="caser-page grid">
+  <div class="caser-page grid" data-layout-block="content">
     <div class="caser-title-bar col-center-6">
       <h1 class="caser-title">{heroTittel}</h1>
       <p class="caser-lead">{heroIngress}</p>
@@ -53,10 +53,6 @@ const seoDesc = oversikt?.seoBeskrivelse || heroIngress;
 </Layout>
 
 <style>
-  .caser-page {
-    padding: 64px 0 120px;
-    row-gap: 48px;
-  }
   .caser-title {
     font-size: 40px;
     font-weight: 700;

@@ -14,28 +14,6 @@
 }
 
 :root {
-  /* Stitch primary color override - blue #136dec */
-  --ds-color-accent-1: #e6f0fd;
-  --ds-color-accent-2: #cce1fb;
-  --ds-color-accent-3: #99c3f7;
-  --ds-color-accent-4: #66a5f3;
-  --ds-color-accent-5: #3387ef;
-  --ds-color-accent-6: #136dec;
-  --ds-color-accent-7: #0f57bd;
-  --ds-color-accent-8: #0b418e;
-  --ds-color-accent-9: #136dec;
-  --ds-color-accent-base-default: var(--ds-color-accent-9);
-
-  /* Background overrides */
-  --ds-color-neutral-background-default: #ffffff;
-  --ds-color-neutral-surface-default: #ffffff;
-
-  --image-fallback-bg: #D9D9D9;
-
-  /* Stitch-specific custom properties */
-  --stitch-primary: #136dec;
-  --stitch-bg-light: #f6f7f8;
-
   /* Font family */
   --ds-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -51,27 +29,12 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* Full-bleed sections (e.g. .article-hero--bg-lyseblaa) use width: 100vw +
-   negative-margin trick to escape the grid's max-width. 100vw includes the
-   scrollbar on desktop which would create a horizontal scrollbar — `clip`
-   suppresses that. `clip` over `hidden` because it doesn't create a new
-   scroll container, so future sticky/fixed elements inside still work.
-   Tradeoff: the whole site can never horizontally scroll. Acceptable for
-   content; revisit if a module ever genuinely needs horizontal overflow. */
-html, body {
-  overflow-x: clip;
-}
-
-html, body {
-  overflow-x: hidden;
-}
-
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: var(--ds-color-neutral-background-default);
-  color: var(--ds-color-neutral-text-default);
+  background-color: var(--ds-color-background-tinted);
+  color: var(--ds-color-text-default);
   font-family: var(--ds-font-family), sans-serif;
   font-feature-settings: "cv05" 1;
   transition: background-color 0.3s ease, color 0.3s ease;

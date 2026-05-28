@@ -31,7 +31,7 @@ const COMING_SOON_HTML = `<!doctype html>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; box-sizing: border-box; }
-    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #1e293b; }
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', system-ui, sans-serif; background: var(--ds-color-background-default); color: #1e293b; }
     .card { text-align: center; padding: 3rem 2rem; max-width: 600px; }
     h1 { font-size: 2rem; font-weight: 600; margin-bottom: 1rem; }
     p { font-size: 1.1rem; line-height: 1.6; color: #475569; }
@@ -123,11 +123,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
       'Content-Security-Policy',
       [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline'",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "font-src 'self' https://fonts.gstatic.com data:",
-        "img-src 'self' data: https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no",
-        "connect-src 'self' https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no",
+        "script-src 'self' 'unsafe-inline' https://survey.skyra.no",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://altinncdn.no https://survey.skyra.no",
+        "font-src 'self' https://fonts.gstatic.com https://altinncdn.no data:",
+        "img-src 'self' data: https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no https://survey.skyra.no",
+        "connect-src 'self' https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no",
         // Allow CMS to embed the frontend in the preview iframe. Both the prod CMS
         // origin and the localhost CMS dev origin are listed so preview works in dev too.
         "frame-ancestors 'self' https://cms.ki.norge.no https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io http://localhost:5000 https://localhost:44391",

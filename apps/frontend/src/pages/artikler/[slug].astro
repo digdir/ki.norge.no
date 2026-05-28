@@ -47,7 +47,7 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
 <Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage}>
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="article-page grid">
+  <div class="article-page grid" data-layout-block="content">
     <!-- Artikkelhode: title + ingress + image, optionally on full-bleed colored background -->
     <section class={`article-hero ${isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
       {isLightBlueBg ? (
@@ -85,7 +85,7 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
     {otherArticles.length > 0 && (
       <section class="more-articles col-center-10">
         <h2 class="more-articles-heading">Flere artikler</h2>
-        <div class="more-articles-grid grid-subrows" data-color="neutral">
+        <div class="more-articles-grid grid-subrows">
           {otherArticles.map(a => (
             <NewsCard
               href={`/artikler/${a.slug}`}
@@ -129,11 +129,6 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
     padding-bottom: 80px;
     padding-left: 0;
     padding-right: 0;
-  }
-
-  /* When in bg-lyseblaa, the inner grid wrapper handles column placement */
-  .article-hero-bg-grid {
-    /* uses .grid class — already styled by grid.css */
   }
 
   .article-hero-inner {

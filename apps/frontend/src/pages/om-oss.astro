@@ -30,22 +30,21 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
 ---
 
 <Layout title={seoTitle} description={seoDesc} headerTheme="dark">
-  <div class="om-oss-page">
     <!-- Hero -->
-    <section class="om-oss-hero">
+    <section class="om-oss-hero" data-layout-block="content">
       <h1 class="om-oss-hero-title">{heroTittel}</h1>
       <p class="om-oss-hero-subtitle">{heroUndertittel}</p>
     </section>
 
     <!-- Intro -->
     {omOss?.introTekst ? (
-      <section class="om-oss-intro">
+      <section class="om-oss-intro" data-layout-block="content">
         <div class="om-oss-intro-inner">
           <BlocksRenderer blocks={omOss.introTekst} class="om-oss-intro-text" />
         </div>
       </section>
     ) : (
-      <section class="om-oss-intro">
+      <section class="om-oss-intro" data-layout-block="content">
         <div class="om-oss-intro-inner">
           <p class="om-oss-intro-text">KI Norge er en nasjonal satsing under Digitaliseringsdirektoratet (Digdir). Formålet er å gjøre det enklere for norske virksomheter å ta i bruk KI på en måte som er trygg, lovlig og verdiskapende, enten du driver en liten privat bedrift eller jobber i en offentlig virksomhet.</p>
         </div>
@@ -53,7 +52,7 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
     )}
 
     <!-- Alternating stubs -->
-    <div class="om-oss-seksjoner">
+    <div class="om-oss-seksjoner" data-layout-block="content">
       {seksjoner.map((seksjon, index) => {
         // New blocks: tekst is HTML string. Legacy seksjoner: tekst is RichText blocks.
         const isHtmlString = typeof seksjon.tekst === 'string';
@@ -82,8 +81,8 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
     </div>
 
     <!-- Mission banner -->
-    <section class="om-oss-mission">
-      <div class="om-oss-mission-inner">
+    <section class="om-oss-mission" data-layout-block="edge">
+      <div data-layout-block="content">
         {omOss?.misjonTekst ? (
           <BlocksRenderer blocks={omOss.misjonTekst} class="om-oss-mission-text" />
         ) : (
@@ -96,7 +95,7 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
     <PartnersSection />
 
     <!-- Aktuelt -->
-    <section class="om-oss-aktuelt">
+    <section class="om-oss-aktuelt" data-layout-block="content">
       <div class="om-oss-aktuelt-inner">
         <h2 class="om-oss-aktuelt-heading">Aktuelt</h2>
         <div class="om-oss-aktuelt-grid">
@@ -115,18 +114,12 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
         </div>
       </div>
     </section>
-  </div>
 </Layout>
 
 <style>
-  .om-oss-page {
-    margin-top: -72px;
-  }
 
   /* Hero */
   .om-oss-hero {
-    background: linear-gradient(180deg, #281ea8 0%, #20199a 40%, #1a1490 100%);
-    height: 584px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -138,7 +131,6 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
   .om-oss-hero-title {
     font-size: 3rem;
     font-weight: 700;
-    color: white;
     margin: 0;
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -153,7 +145,6 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
   .om-oss-hero-subtitle {
     font-size: 1.125rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.75);
     margin: 48px 0 0;
     max-width: 600px;
     line-height: 1.4;
@@ -171,7 +162,6 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
   }
 
   .om-oss-intro-inner {
-    max-width: 884px;
     margin: 0 auto;
   }
 
@@ -268,31 +258,12 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
 
   /* Mission banner */
   .om-oss-mission {
-    background-color: #C5E8FF;
-    padding: 80px 24px;
+    background-color: var(--ds-color-surface-tinted);
   }
 
-  .om-oss-mission-inner {
-    max-width: 884px;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .om-oss-mission-text {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #000;
-    margin: 0;
-    line-height: 1.5;
-  }
 
   /* Aktuelt */
-  .om-oss-aktuelt {
-    padding: 64px 24px;
-  }
-
   .om-oss-aktuelt-inner {
-    max-width: 1120px;
     margin: 0 auto;
   }
 
