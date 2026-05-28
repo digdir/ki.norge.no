@@ -4,6 +4,7 @@ import Footer from './Footer.astro';
 import PreviewBanner from '../shared/PreviewBanner.astro';
 import BackToTop from '../shared/BackToTop.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
+import SiteimproveAnalytics from '../shared/SiteimproveAnalytics.astro';
 import '../../styles/global.css';
 import '../../styles/layout.css';
 import '../../styles/search-dialog.css';
@@ -93,6 +94,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <!-- <BackToTop /> -->
     <!-- <SearchDialog client:load /> -->
     {isPreview && <PreviewBanner currentPath={currentPath} />}
+    <SiteimproveAnalytics />
     <script is:inline>
       document.querySelectorAll('a[href^="http"]').forEach(function(a) {
         if (!a.rel || !a.rel.includes('noopener')) {
