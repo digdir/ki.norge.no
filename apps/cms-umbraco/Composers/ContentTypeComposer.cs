@@ -137,7 +137,6 @@ public class ContentTypeComponent : IAsyncComponent
             MigrateVeiledningKort();
             MigrateVerktoyKort();
 
-            // Veiledning-moduler (egen modulkatalog for veiledningSteg + veiledningGuide).
             if (_contentTypeService.Get("veiledningTekst") == null)
                 CreateVeiledningTekstElement();
             if (_contentTypeService.Get("veiledningInfo") == null)
@@ -151,7 +150,6 @@ public class ContentTypeComponent : IAsyncComponent
 
             CreateBlockListDataTypes();
 
-            // Rename element types for å unngå display-navn-kollisjon med artikkel-elementer.
             MigrateVeiledningElementNames();
 
             // Prosessteg container depends on _blockListProsessStegItemsDt being created above
@@ -165,9 +163,6 @@ public class ContentTypeComponent : IAsyncComponent
             // Refresh Case block list too
             RefreshMultiBlockListAllowedModules("Block List - Case Innhold", CaseModules);
 
-            // Refresh Veiledning Steg + Guide block lists. veiledningTaValg ble opprettet
-            // ETTER CreateBlockListDataTypes (avhenger av _blockListTaValgItemsDt), så uten
-            // denne refresh-en ville den manglet i steg-modulkatalogen.
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules);
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules);
 
@@ -747,7 +742,7 @@ public class ContentTypeComponent : IAsyncComponent
             _contentTypeService.Save(ct);
     }
 
-    // --- Veiledning element types (egen modulkatalog for veiledningSteg + veiledningGuide) ---
+    // --- Veiledning element types ---
 
     private IContentType CreateVeiledningTekstElement()
     {
@@ -833,10 +828,8 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
-    /// <summary>
-    /// Rename veiledning-element-types så de ikke kolliderer med artikkel-elementer
-    /// i Document Types-listen. Idempotent — kjører kun hvis navnet ikke er oppdatert.
-    /// </summary>
+    // Suffikser veiledning-element-typenes display-navn så de ikke kolliderer
+    // med artikkel-elementer i Document Types-listen.
     private void MigrateVeiledningElementNames()
     {
         var renames = new[]
@@ -881,11 +874,9 @@ public class ContentTypeComponent : IAsyncComponent
         // Block list for Om Oss seksjoner (replaces standalone omOssSeksjon child content)
         _blockListOmOssDt = CreateOrGetBlockListDataType(
             "Block List - Om Oss Seksjoner", "omOssBlokk");
-        // Veiledningssteg-modulkatalog (egen, separat fra artikkel)
         _blockListVeiledningStegDt = CreateOrGetMultiBlockListDataType(
             "Block List - Veiledning Steg",
             VeiledningStegModules);
-        // Guide-oversikt med Trekkspill + Obs + Tekst (mindre utvalg per Dortes spec)
         _blockListVeiledningGuideDt = CreateOrGetMultiBlockListDataType(
             "Block List - Veiledning Guide",
             VeiledningGuideModules);
@@ -1052,7 +1043,6 @@ public class ContentTypeComponent : IAsyncComponent
 
     private static readonly string[] CaseModules = BaseArticleModules;
 
-    // Veiledning har sin egen, helt separate modulkatalog. Ingen overlapp med artikkel.
     private static readonly string[] VeiledningStegModules =
     {
         "veiledningTekst",
@@ -1062,7 +1052,6 @@ public class ContentTypeComponent : IAsyncComponent
         "veiledningTrekkspill",
     };
 
-    // Guide-oversikt har et mindre modulutvalg, kun det Dorte spesifiserte.
     private static readonly string[] VeiledningGuideModules =
     {
         "veiledningTekst",
@@ -1417,15 +1406,13 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
-        // Legg til innholdBlokker (block list) hvis den ikke finnes.
         if (!ct.PropertyTypes.Any(p => p.Alias == "innholdBlokker"))
         {
-            ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill, ta valg, lenkekort).", sortOrder: 2), "innhold");
+            ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 2), "innhold");
             changed = true;
         }
 
-        // Rename gamle felter slik at redaktør ser at de utgår. Innholdet beholdes,
-        // frontend rendrer fra innholdBlokker hvis populert, ellers faller tilbake.
+        // Rename gamle felter til "(utgår)" inntil innholdet er flyttet til block-listen.
         foreach (var (alias, nyttNavn, nyDescription) in new[]
         {
             ("innhold", "Hovedinnhold (utgår)", "Utgår. Bruk Innhold-blokklisten i stedet."),
@@ -1735,9 +1722,8 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill, ta valg, lenkekort).", sortOrder: 2), "innhold");
-        // Gamle fikserte felter beholdes inntil migrasjon har konvertert all eksisterende data.
-        // Fjernes i en senere PR når vi har bekreftet at innholdBlokker har full dekning.
+        ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 2), "innhold");
+        // Gamle felter beholdes inntil innholdet er flyttet til block-listen.
         ct.AddPropertyType(Prop("innhold", "Hovedinnhold (utgår)", _richTextDt, description: "Utgår. Bruk Innhold-blokklisten i stedet.", sortOrder: 3), "innhold");
         ct.AddPropertyType(Prop("infoKortTittel", "Infokort-tittel (utgår)", _textStringDt, description: "Utgår. Bruk Infomodul i Innhold-blokklisten.", sortOrder: 4), "innhold");
         ct.AddPropertyType(Prop("infoKortInnhold", "Infokort-innhold (utgår)", _richTextDt, sortOrder: 5), "innhold");

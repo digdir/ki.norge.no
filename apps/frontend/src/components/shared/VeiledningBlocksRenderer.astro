@@ -8,8 +8,7 @@ interface Props {
 
 const { blocks } = Astro.props;
 
-// Auto-grupper nabo-trekkspill til én aksordion-gruppe (samme mønster som
-// ArticleBlocksRenderer). Alle andre moduler er sin egen render-enhet.
+// Nabo-trekkspill grupperes til én aksordion-gruppe (samme mønster som ArticleBlocksRenderer).
 type RenderItem =
   | { kind: 'block'; block: UmbracoBlock }
   | { kind: 'trekkspillGruppe'; blocks: UmbracoBlock[] };
@@ -83,7 +82,6 @@ const moduleIcons: Record<string, string> = {
 })}
 
 <style>
-  /* Brødtekst (samme rendring som artikkelTekst — bare set:html på en grid-celle) */
   .veiledning-tekst {
     font-size: var(--ds-body-md-font-size);
     line-height: var(--ds-body-md-line-height);
@@ -103,8 +101,6 @@ const moduleIcons: Record<string, string> = {
     margin-bottom: var(--ds-size-1);
   }
 
-  /* Info, Eksempel, Obs — identisk boks med ikon + valgfri tittel + innhold.
-     Bruker ds-card data-variant="tinted" som container. */
   .veiledning-modul {
     padding: var(--ds-size-6) var(--ds-size-8);
     display: flex;
@@ -133,8 +129,6 @@ const moduleIcons: Record<string, string> = {
     margin-bottom: 0;
   }
 
-  /* Trekkspill-gruppe wrapper. Auto-grupperingen i scripted-delen
-     samler nabo-trekkspill til én ds-card. */
   .veiledning-trekkspill-gruppe {
     display: block;
   }
