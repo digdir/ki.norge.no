@@ -2,9 +2,8 @@
 import Layout from '../../../components/layout/Layout.astro';
 import BlocksRenderer from '../../../components/shared/BlocksRenderer.astro';
 import SubStepPills from '../../../components/guide/SubStepPills.astro';
-import ExampleCard from '../../../components/guide/ExampleCard.astro';
+import GuideCard from '../../../components/guide/GuideCard.astro';
 import NextBar from '../../../components/guide/NextBar.astro';
-import InfoCard from '../../../components/guide/InfoCard.astro';
 import { getVeiledningGuide, getVeiledningSteg, getVeiledningStegBySlug } from '../../../lib/umbraco';
 
 const { guide: guideSlug, step: stepSlug } = Astro.params;
@@ -54,19 +53,19 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
     )}
 
     {currentStep.infoKortTittel && (
-      <InfoCard title={currentStep.infoKortTittel}>
+      <GuideCard type="info" title={currentStep.infoKortTittel}>
         {currentStep.infoKortInnhold && (
           <BlocksRenderer blocks={currentStep.infoKortInnhold} />
         )}
-      </InfoCard>
+      </GuideCard>
     )}
 
     {currentStep.eksempelTittel && (
-      <ExampleCard title={currentStep.eksempelTittel}>
+      <GuideCard type="example" title={currentStep.eksempelTittel}>
         {currentStep.eksempelTekst && (
           <BlocksRenderer blocks={currentStep.eksempelTekst} />
         )}
-      </ExampleCard>
+      </GuideCard>
     )}
 
     {nextStep && (
