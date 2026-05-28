@@ -27,7 +27,7 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
 
 <Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="article-page grid">
+  <div class="article-page grid" data-layout-block="content">
     <section class={`article-hero ${isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
       {isLightBlueBg ? (
         <div class={`grid article-hero-bg-grid`}>
