@@ -5,6 +5,7 @@ import NewsCard from '../components/shared/NewsCard.astro';
 import CardGrid from '../components/shared/CardGrid.astro';
 import EventCard from '../components/shared/EventCard.astro';
 import ArrowLink from '../components/shared/ArrowLink.astro';
+import ExampleLinkCards from '../components/shared/ExampleLinkCards.astro';
 import TextWithImage from '../components/shared/TextWithImage.astro';
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getPlainText } from '../lib/umbraco';
@@ -96,20 +97,12 @@ const featuredArticle = latestArticles[0];
   </section>
 
   <!-- Lær av andre -->
-  <section data-layout-block="content">
+  <section data-layout-block="content" class="examples-section">
     <h2 class="ds-heading section-heading" data-size="lg">Lær av andre</h2>
-    <CardGrid columns={2}>
-      <NewsCard
-        href="/caser/ki-chat-staten"
-        title="KI-chat effektiviserer analysearbeid i staten"
-        tag="Eksempel"
-      />
-      <NewsCard
-        href="/caser/politiet-tale-til-tekst"
-        title="Politiet - Fra tale til tekst på minutter"
-        tag="Eksempel"
-      />
-    </CardGrid>
+    <ExampleLinkCards cards={[
+      { href: "/caser/ki-chat-staten", title: "KI-chat effektiviserer analysearbeid i staten", tag: "Eksempel" },
+      { href: "/caser/politiet-tale-til-tekst", title: "Politiet - Fra tale til tekst på minutter", tag: "Eksempel" },
+    ]} />
     <ArrowLink href="/caser" text="Se alle eksempler" />
   </section>
 
@@ -137,7 +130,7 @@ const featuredArticle = latestArticles[0];
 
   /* ── Aktuelt ─────────────────────────────────────────── */
   .aktuelt {
-    background-color: var(--ds-color-surface-tinted);
+    background-color: var(--ds-color-surface-default);
   }
 
   .aktuelt :global(.card-grid) {
@@ -169,6 +162,12 @@ const featuredArticle = latestArticles[0];
     font-weight: 500;
     color: var(--ds-color-neutral-text-subtle);
     margin: 0;
+  }
+
+  .examples-section {
+    & :global(.arrow-link) {
+      margin-block-start: var(--ds-size-6);
+    }
   }
 
   /* ── Sandkassen ──────────────────────────────────────── */
