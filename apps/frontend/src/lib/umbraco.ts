@@ -220,6 +220,20 @@ export interface Side extends Artikkel {}
 
 export interface Eksempel extends Artikkel {}
 
+export interface ArtiklerOversikt {
+  id: string;
+  documentId: string;
+  heroTittel?: string;
+  heroSubtittel?: string;
+  featuredArtikkelId?: string;
+  seoTittel?: string;
+  seoBeskrivelse?: string;
+  seoBilde?: UmbracoMedia;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
 export interface EksemplerOversikt {
   id: string;
   documentId: string;
@@ -679,6 +693,20 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
       } as T;
+
+    case 'artikler': {
+      const featured = props.featuredArtikkel as { id?: string } | Array<{ id?: string }> | undefined;
+      const featuredNode = Array.isArray(featured) ? featured[0] : featured;
+      return {
+        ...base,
+        heroTittel: props.heroTittel as string || '',
+        heroSubtittel: props.heroSubtittel as string || '',
+        featuredArtikkelId: featuredNode?.id || undefined,
+        seoTittel: props.seoTittel as string || '',
+        seoBeskrivelse: props.seoBeskrivelse as string || '',
+        seoBilde: mapMedia(props.seoBilde),
+      } as T;
+    }
 
     case 'artikkel':
     case 'eksempel':
@@ -1307,6 +1335,11 @@ export async function getSide(slug: string, options: FetchOptions = {}) {
 
 export async function getEksemplerOversikt(options: FetchOptions = {}): Promise<EksemplerOversikt | null> {
   const result = await fetchCollection<EksemplerOversikt>('eksempler', { ...options, take: 1 });
+  return result.data[0] || null;
+}
+
+export async function getArtiklerOversikt(options: FetchOptions = {}): Promise<ArtiklerOversikt | null> {
+  const result = await fetchCollection<ArtiklerOversikt>('artikler', { ...options, take: 1 });
   return result.data[0] || null;
 }
 

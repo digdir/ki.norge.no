@@ -215,7 +215,9 @@ public class ContentTypeComponent : IAsyncComponent
                 MigrateSandkasse();
 
             // Create container types if missing
-            CreateContainerIfMissing("artikler", "Artikler", "icon-newspaper-alt", "artikkel");
+            if (_contentTypeService.Get("artikler") == null)
+                CreateArtiklerOversikt();
+            MigrateArtiklerToOversikt();
             CreateContainerIfMissing("sider", "Andre sider", "icon-folder", "side");
             MigrateSiderToAndreSider();
             LockSiderContainer();
@@ -1620,6 +1622,83 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
+    private IContentType CreateArtiklerOversikt()
+    {
+        var artikkelType = _contentTypeService.Get("artikkel");
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "artikler",
+            Name = "Artikler",
+            Description = "Oversiktsside for artikler. Redigerbart hode + artikkel-barn under.",
+            Icon = "icon-newspaper-alt",
+            AllowedAsRoot = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, description: "Vises som overskrift på /artikler. Default er 'Aktuelt' hvis tom.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("heroSubtittel", "Subtittel", _textStringDt, description: "Kort støttetekst under tittelen. Kan stå tom.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("featuredArtikkel", "Fremhevet artikkel", _contentPickerDt, description: "Velg artikkel som vises stort øverst. Tom = bruk nyeste automatisk.", sortOrder: 3), "innhold");
+
+        ct.AddPropertyGroup("seo", "SEO");
+        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+
+        if (artikkelType != null)
+        {
+            ct.AllowedContentTypes = new[]
+            {
+                new ContentTypeSort(artikkelType.Key, 0, artikkelType.Alias)
+            };
+        }
+
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private void MigrateArtiklerToOversikt()
+    {
+        var ct = _contentTypeService.Get("artikler");
+        if (ct == null) return;
+
+        bool changed = false;
+
+        if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
+        {
+            ct.AddPropertyGroup("innhold", "Innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("heroTittel"))
+        {
+            ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, description: "Vises som overskrift på /artikler. Default er 'Aktuelt' hvis tom.", sortOrder: 1), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("heroSubtittel"))
+        {
+            ct.AddPropertyType(Prop("heroSubtittel", "Subtittel", _textStringDt, description: "Kort støttetekst under tittelen. Kan stå tom.", sortOrder: 2), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("featuredArtikkel"))
+        {
+            ct.AddPropertyType(Prop("featuredArtikkel", "Fremhevet artikkel", _contentPickerDt, description: "Velg artikkel som vises stort øverst. Tom = bruk nyeste automatisk.", sortOrder: 3), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("seoTittel"))
+        {
+            if (!ct.PropertyGroups.Any(g => g.Alias == "seo"))
+                ct.AddPropertyGroup("seo", "SEO");
+            ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
+            ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
+            ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+            changed = true;
+        }
+
+        if (changed)
+        {
+            _contentTypeService.Save(ct);
+            Console.WriteLine("ContentTypeComposer: Migrated artikler container to editable overview page");
+        }
+    }
+
     private IContentType CreateVeiledningGuide()
     {
         var ct = new ContentType(_shortStringHelper, -1)
@@ -1933,7 +2012,7 @@ public class ContentTypeComponent : IAsyncComponent
         {
             Alias = "sandkasse",
             Name = "Sandkasse",
-            Description = "Sandkasse-siden. Skal kun finnes ett eksemplar, plassert under Sider.",
+            Description = "Sandkasse-siden.",
             Icon = "icon-science",
             AllowedAsRoot = false,
         };
@@ -2320,12 +2399,19 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("seksjon2Kort", "Seksjon 2 kort", _blockListVeiledningKortDt), "seksjon2");
             changed = true;
         }
-        // Verktøy
-        if (!ct.PropertyGroups.Any(g => g.Alias == "verktoy"))
+        // Verktøy-seksjonen er borte fra Figma — fjern fra eksisterende noder
+        foreach (var alias in new[] { "verktoyTittel", "verktoyKort" })
         {
-            ct.AddPropertyGroup("verktoy", "Verktøy");
-            ct.AddPropertyType(Prop("verktoyTittel", "Verktøy tittel", _textStringDt), "verktoy");
-            ct.AddPropertyType(Prop("verktoyKort", "Verktøy kort", _blockListVerktoyKortDt), "verktoy");
+            if (ct.PropertyTypes.Any(p => p.Alias == alias))
+            {
+                ct.RemovePropertyType(alias);
+                changed = true;
+            }
+        }
+        var verktoyGroup = ct.PropertyGroups.FirstOrDefault(g => g.Alias == "verktoy");
+        if (verktoyGroup != null && !verktoyGroup.PropertyTypes.Any())
+        {
+            ct.PropertyGroups.Remove("verktoy");
             changed = true;
         }
         // SEO

@@ -22,11 +22,15 @@ const now = new Date();
 const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
   new Date(a.startDato).getTime() - new Date(b.startDato).getTime();
 
+// Bruk sluttDato hvis satt så flerdagers-arrangement holder seg som "kommende"
+// helt til siste dag er passert. Sortering bruker fortsatt startDato.
+const effectiveEnd = (h: Kalenderhendelse) => new Date(h.sluttDato || h.startDato);
+
 const kommende = hendelser
-  .filter(h => new Date(h.startDato) >= now)
+  .filter(h => effectiveEnd(h) >= now)
   .sort(sortByStart);
 const tidligere = hendelser
-  .filter(h => new Date(h.startDato) < now)
+  .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
 
 const monthAbbrev = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'];
