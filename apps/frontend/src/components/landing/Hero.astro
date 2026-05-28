@@ -6,13 +6,14 @@
   <div class="hero-grid">
     <div class="hero-text">
       <p class="hero-tagline">Felleskap for KI — innovativ og ansvarlig bruk av kunstig intelligens</p>
-      <a class="hero-cta" href="/veiledning/hva-er-ki">
-        Kom i gang: <span class="hero-cta-link">Hva er KI og hva kan du bruke det til?</span>
-        <svg class="hero-cta-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M10 8l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
+      <p class="hero-cta">
+        Kom i gang: <a class="hero-cta-link ds-focus" href="/veiledning/hva-er-ki">Hva er KI og hva kan du bruke det til?
+          <svg class="hero-cta-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="11" fill="currentColor"/>
+            <path d="M10 8l4 4-4 4" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </p>
     </div>
     <div class="hero-illustration">
       <img src="/frontpage.svg" alt="" width="400" height="300" fetchpriority="high" />
@@ -60,26 +61,32 @@
   }
 
   .hero-cta {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: var(--ds-size-3);
-    font-size: var(--ds-body-md-font-size);
+    font-size: var(--ds-heading-sm-font-size);
     color: var(--ds-color-text-default);
-    text-decoration: none;
+    margin: 0;
+    flex-wrap: wrap;
   }
 
   .hero-cta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-3);
     text-decoration: underline;
     text-underline-offset: 3px;
+    color: inherit;
   }
 
-  .hero-cta:hover .hero-cta-link {
+  .hero-cta-link:hover {
     text-decoration-thickness: 2px;
   }
 
   .hero-cta-arrow {
     flex-shrink: 0;
-    color: var(--ds-color-brand1-base-default);
+    color: var(--ds-color-base-default);
+    text-decoration: none;
   }
 
   .hero-illustration img {
