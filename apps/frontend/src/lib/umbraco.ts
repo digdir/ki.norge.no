@@ -179,6 +179,43 @@ export interface Artikkel {
 
 export interface EnkelVeiledning extends Artikkel {}
 
+export interface Stegartikkel extends Artikkel {}
+
+export interface Kalenderhendelse {
+  id: string;
+  documentId: string;
+  tittel: string;
+  slug: string;
+  type?: string;
+  ingress?: string;
+  detaljertBeskrivelse?: UmbracoBlock[];
+  startDato: string;
+  sluttDato?: string;
+  tid?: string;
+  sted?: string;
+  lenke?: string;
+  tagger?: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  locale: string;
+}
+
+export interface Kalender {
+  id: string;
+  documentId: string;
+  tittel: string;
+  ingress?: string;
+  featuredHendelse?: Kalenderhendelse | null;
+  seoTittel?: string;
+  seoBeskrivelse?: string;
+  seoBilde?: UmbracoMedia;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  locale: string;
+}
+
 export interface Side {
   id: string;
   documentId: string;
@@ -708,6 +745,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'artikkel':
     case 'case':
     case 'enkelVeiledning':
+    case 'stegartikkel':
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -717,6 +755,33 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         bildeAlt: props.bildeAlt as string || '',
         bakgrunn: (props.bakgrunn as string) || 'hvit',
         innhold: mapArtikkelBlocks(props.innhold),
+        seoTittel: props.seoTittel as string || '',
+        seoBeskrivelse: props.seoBeskrivelse as string || '',
+        seoBilde: mapMedia(props.seoBilde),
+      } as T;
+
+    case 'kalenderhendelse':
+      return {
+        ...base,
+        tittel: props.tittel as string || item.name,
+        slug: props.slug as string || '',
+        type: props.type as string || undefined,
+        ingress: props.ingress as string || '',
+        detaljertBeskrivelse: mapRichText(props.detaljertBeskrivelse),
+        startDato: props.startDato as string || '',
+        sluttDato: props.sluttDato as string || undefined,
+        tid: props.tid as string || undefined,
+        sted: props.sted as string || undefined,
+        lenke: props.lenke as string || undefined,
+        tagger: props.tagger as string || undefined,
+      } as T;
+
+    case 'kalender':
+      return {
+        ...base,
+        tittel: props.tittel as string || item.name,
+        ingress: props.ingress as string || '',
+        featuredHendelse: mapFeaturedHendelse(props.featuredHendelse),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
@@ -1266,6 +1331,33 @@ function mapMerkelapper(value: unknown): Merkelapp[] {
   }));
 }
 
+function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
+  if (!value) return null;
+  const item = value as any;
+  const node = Array.isArray(item) ? item[0] : item;
+  if (!node) return null;
+  const p = node.properties || {};
+  return {
+    id: node.id || '',
+    documentId: node.id || '',
+    tittel: p.tittel || node.name || '',
+    slug: p.slug || '',
+    type: p.type || undefined,
+    ingress: p.ingress || '',
+    detaljertBeskrivelse: undefined,
+    startDato: p.startDato || '',
+    sluttDato: p.sluttDato || undefined,
+    tid: p.tid || undefined,
+    sted: p.sted || undefined,
+    lenke: p.lenke || undefined,
+    tagger: p.tagger || undefined,
+    createdAt: node.createDate || '',
+    updatedAt: node.updateDate || '',
+    publishedAt: node.createDate || '',
+    locale: 'nb-NO',
+  };
+}
+
 function mapKategori(value: unknown): Merkelapp | undefined {
   if (!value) return undefined;
   const item = value as any;
@@ -1328,6 +1420,29 @@ export async function getArtikler(limit?: number, options: FetchOptions = {}) {
 
 export async function getArtikkel(slug: string, options: FetchOptions = {}) {
   return fetchBySlug<Artikkel>('artikkel', slug, options);
+}
+
+export async function getStegartikkel(slug: string, options: FetchOptions = {}) {
+  return fetchBySlug<Stegartikkel>('stegartikkel', slug, options);
+}
+
+export async function getStegartiklerForSteg(stegSlug: string, options: FetchOptions = {}) {
+  const result = await fetchCollection<Stegartikkel>('stegartikkel', { ...options, take: 100 });
+  return result.data;
+}
+
+// ── Kalender API functions ──────────────────────────────────────
+
+export async function getKalender(options: FetchOptions = {}): Promise<Kalender | null> {
+  const result = await fetchCollection<Kalender>('kalender', { ...options, take: 1 });
+  return result.data[0] || null;
+}
+
+export async function getKalenderhendelser(options: FetchOptions = {}) {
+  return fetchCollection<Kalenderhendelse>('kalenderhendelse', {
+    ...options,
+    take: 100,
+  });
 }
 
 // ── Side (Page) API functions ───────────────────────────────────
@@ -1534,7 +1649,7 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
     const data: UmbracoResponse<SearchResult> = await res.json();
 
     const results: SearchResult[] = data.items
-      .filter(item => ['artikkel', 'eksempel', 'veiledningGuide', 'veiledningSteg', 'side', 'faq'].includes(item.contentType))
+      .filter(item => ['artikkel', 'eksempel', 'veiledningGuide', 'veiledningSteg', 'stegartikkel', 'side', 'faq'].includes(item.contentType))
       .map(item => {
         const props = item.properties;
         const tittel = (props.tittel as string) || (props.sporsmal as string) || item.name;

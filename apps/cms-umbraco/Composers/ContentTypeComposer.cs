@@ -195,6 +195,9 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("veiledningSteg") == null)
                 CreateVeiledningSteg();
             MigrateVeiledningSteg();
+            if (_contentTypeService.Get("stegartikkel") == null)
+                CreateStegartikkel();
+            MigrateVeiledningStegAllowedChildren();
             if (_contentTypeService.Get("enkelVeiledning") == null)
                 CreateEnkelVeiledning();
             if (_contentTypeService.Get("faq") == null)
@@ -260,6 +263,11 @@ public class ContentTypeComponent : IAsyncComponent
             // Migrate existing faqSamling container display name
             MigrateFaqSamlingName();
             CreateContainerIfMissing("merkelapper", "Merkelapper", "icon-tags", "merkelapp");
+
+            if (_contentTypeService.Get("kalenderhendelse") == null)
+                CreateKalenderhendelse();
+            if (_contentTypeService.Get("kalender") == null)
+                CreateKalender();
 
             if (_contentTypeService.Get("ordbokOppslag") == null)
                 CreateOrdbokOppslag();
@@ -1719,6 +1727,107 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, mandatory: true, description: "Slug til overordnet guide", sortOrder: 2), "innstillinger");
         ct.AddPropertyType(Prop("steg", "Steg", _numericDt, mandatory: true, description: "Stegnummer (1, 2, 3...)", sortOrder: 3), "innstillinger");
         ct.AddPropertyType(Prop("understeg", "Understeg", _numericDt, mandatory: true, description: "Understeg-nummer (1, 2, 3...)", sortOrder: 4), "innstillinger");
+        SetStandardGroupSortOrders(ct);
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateStegartikkel()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "stegartikkel",
+            Name = "Stegartikkel",
+            Description = "Supplerende artikkel under et veiledningssteg",
+            Icon = "icon-document",
+            AllowedAsRoot = false,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        AddArtikkelhodeFields(ct);
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
+
+        ct.AddPropertyGroup("seo", "SEO");
+        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+        SetStandardGroupSortOrders(ct);
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private void MigrateVeiledningStegAllowedChildren()
+    {
+        var stegType = _contentTypeService.Get("veiledningSteg");
+        var stegartikkelType = _contentTypeService.Get("stegartikkel");
+        if (stegType == null || stegartikkelType == null) return;
+
+        var current = stegType.AllowedContentTypes?.Select(a => a.Alias).ToList() ?? new List<string>();
+        if (current.Contains("stegartikkel")) return;
+
+        var existing = stegType.AllowedContentTypes?.ToList() ?? new List<ContentTypeSort>();
+        existing.Add(new ContentTypeSort(stegartikkelType.Key, existing.Count, stegartikkelType.Alias));
+        stegType.AllowedContentTypes = existing;
+        _contentTypeService.Save(stegType);
+        Console.WriteLine("ContentTypeComposer: Allowed stegartikkel under veiledningSteg");
+    }
+
+    private IContentType CreateKalenderhendelse()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "kalenderhendelse",
+            Name = "Kalenderhendelse",
+            Description = "Arrangement, workshop eller frokostseminar",
+            Icon = "icon-calendar",
+            AllowedAsRoot = false,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("type", "Type", _textStringDt, description: "Workshop, Frokostseminar, Konferanse...", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Kort beskrivelse for kortvisning.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("detaljertBeskrivelse", "Detaljert beskrivelse", _richTextDt, description: "Vises på enkeltsiden og i featured-boksen.", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("startDato", "Startdato", _datePickerDt, mandatory: true, sortOrder: 5), "innhold");
+        ct.AddPropertyType(Prop("sluttDato", "Sluttdato", _datePickerDt, description: "Fyll ut ved flere dager.", sortOrder: 6), "innhold");
+        ct.AddPropertyType(Prop("tid", "Tid", _textStringDt, description: "Klokkeslett, f.eks. \"09:00-11:00\" eller \"Hele dagen\".", sortOrder: 7), "innhold");
+        ct.AddPropertyType(Prop("sted", "Sted", _textStringDt, description: "Fysisk adresse eller \"Digitalt\".", sortOrder: 8), "innhold");
+        ct.AddPropertyType(Prop("lenke", "Lenke", _textStringDt, description: "URL til påmelding eller mer info.", sortOrder: 9), "innhold");
+        ct.AddPropertyType(Prop("tagger", "Tagger", _textAreaDt, description: "Kommaseparert liste med tagger.", sortOrder: 10), "innhold");
+
+        ct.AddPropertyGroup("innstillinger", "Innstillinger");
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
+        SetStandardGroupSortOrders(ct);
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateKalender()
+    {
+        var hendelseType = _contentTypeService.Get("kalenderhendelse");
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "kalender",
+            Name = "Kalender",
+            Description = "Navigasjonsside for arrangementer",
+            Icon = "icon-calendar",
+            AllowedAsRoot = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("featuredHendelse", "Fremhevet arrangement", _contentPickerDt, description: "Velg hvilken hendelse som vises i den store boksen på toppen.", sortOrder: 3), "innhold");
+
+        ct.AddPropertyGroup("seo", "SEO");
+        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt), "seo");
+        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt), "seo");
+        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt), "seo");
+
+        if (hendelseType != null)
+        {
+            ct.AllowedContentTypes = new[]
+            {
+                new ContentTypeSort(hendelseType.Key, 0, hendelseType.Alias),
+            };
+        }
         SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
