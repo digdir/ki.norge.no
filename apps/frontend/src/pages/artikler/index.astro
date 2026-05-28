@@ -1,6 +1,9 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
-import NewsCard from '../../components/shared/NewsCard.astro';
+import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.astro';
+import ArticleCardImage from '../../components/shared/ArticleCardImage.astro';
+import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
+import ArrowLink from '../../components/shared/ArrowLink.astro';
 import { getArtikler, getPlainText, type Artikkel } from '../../lib/umbraco';
 
 let articles: Artikkel[] = [];
@@ -10,83 +13,101 @@ try {
 } catch (e) {
   console.error('Failed to fetch artikler:', e);
 }
+
+const featured = articles[0];
+const compactCards = articles.slice(1, 4);
+const imageCards = articles.slice(4);
+
+function getImageUrl(article: Artikkel) {
+  return article.artikkelBilde?.url || undefined;
+}
 ---
 
 <Layout title="Aktuelt" description="Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.">
-  <div class="artikler-page">
-    <div class="artikler-header">
-      <h1 class="artikler-title">Aktuelt</h1>
-      <p class="artikler-lead">Hold deg oppdatert på nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.</p>
-    </div>
+  <section data-layout-block="content" class="artikler-page">
+    <h1 class="artikler-title">Aktuelt</h1>
 
-    <div class="artikler-content">
-      {articles.length > 0 ? (
-        <div class="artikler-grid">
-          {articles.map(article => (
-            <NewsCard
-              href={`/artikler/${article.slug}`}
-              title={article.tittel}
-              date={article.publishedAt}
-              lead={getPlainText(article.innhold, 100)}
-            />
-          ))}
-        </div>
-      ) : (
-        <p class="empty-state">Ingen artikler funnet.</p>
-      )}
-    </div>
-  </div>
+    {featured && (
+      <ArticleCardFeatured
+        href={`/artikler/${featured.slug}`}
+        title={featured.tittel}
+        lead={featured.ingress || getPlainText(featured.innhold, 150)}
+        image={getImageUrl(featured)}
+        imageAlt={featured.bildeAlt}
+      />
+    )}
+
+    {compactCards.length > 0 && (
+      <div class="compact-grid">
+        {compactCards.map(article => (
+          <ArticleCardCompact
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            tag={article.bakgrunn === 'lyseblaa' ? 'Offentlig sektor' : 'Digitalisering'}
+            tagColor="brand1"
+            date={article.publishedAt}
+          />
+        ))}
+      </div>
+    )}
+
+    {imageCards.length > 0 && (
+      <div class="image-grid">
+        {imageCards.map(article => (
+          <ArticleCardImage
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            date={article.publishedAt}
+            image={getImageUrl(article)}
+            imageAlt={article.bildeAlt}
+          />
+        ))}
+      </div>
+    )}
+
+    {articles.length === 0 && (
+      <p class="empty-state">Ingen artikler funnet.</p>
+    )}
+  </section>
 </Layout>
 
 <style>
   .artikler-page {
-    padding-top: var(--ds-size-4);
-  }
-
-  .artikler-header {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 24px 24px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-10);
+    padding-block: var(--ds-size-10) var(--ds-size-16);
   }
 
   .artikler-title {
-    font-size: 40px;
+    font-size: var(--ds-heading-lg-font-size);
     font-weight: 700;
-    color: #000;
-    margin: 0 0 12px;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  .artikler-lead {
-    font-size: 18px;
-    font-weight: 400;
-    color: rgba(0, 0, 0, 0.6);
     margin: 0;
-    line-height: 1.5;
-    max-width: 600px;
+    line-height: 1.2;
   }
 
-  .artikler-content {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 0 24px 120px;
-  }
-
-  .artikler-grid {
+  .compact-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 32px;
-  }
+    gap: var(--ds-size-4);
+    border-top: 1px solid var(--ds-color-neutral-border-subtle);
+    padding-top: var(--ds-size-6);
 
-  @media (min-width: 640px) {
-    .artikler-grid {
-      grid-template-columns: repeat(2, 1fr);
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
     }
   }
 
-  @media (min-width: 1024px) {
-    .artikler-grid {
+  .image-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-size-6);
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
       grid-template-columns: repeat(3, 1fr);
     }
   }
@@ -94,6 +115,6 @@ try {
   .empty-state {
     text-align: center;
     padding: var(--ds-size-12);
-    color: rgba(0, 0, 0, 0.62);
+    color: var(--ds-color-neutral-text-subtle);
   }
 </style>

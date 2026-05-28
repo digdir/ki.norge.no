@@ -58,7 +58,7 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
 
 <Layout title={seoTitle} description={seoDesc}>
     <!-- Hero -->
-    <section class="veil-hero">
+    <section class="veil-hero" data-layout-block="content">
       <div class="veil-hero-inner">
         <div class="veil-hero-text">
           <span class="veil-hero-label">{heroLabel}</span>
@@ -76,7 +76,7 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
     </section>
 
     <!-- Seksjon 1 -->
-    <section class="veil-section">
+    <section class="veil-section" data-layout-block="content">
       <div class="veil-section-inner">
         <h2 class="veil-section-heading">{seksjon1Title}</h2>
         <div class="veil-cards veil-cards--4">
@@ -95,7 +95,7 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
     </section>
 
     <!-- Seksjon 2 -->
-    <section class="veil-section">
+    <section class="veil-section" data-layout-block="content">
       <div class="veil-section-inner">
         <h2 class="veil-section-heading">{seksjon2Title}</h2>
         <div class="veil-cards veil-cards--4">
@@ -114,8 +114,8 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
     </section>
 
     <!-- Verktøy -->
-    <section class="veil-tools">
-      <div class="veil-section-inner">
+    <section class="veil-tools" data-layout-block="edge">
+      <div class="veil-section-inner" data-layout-block="content">
         <h2 class="veil-section-heading">{verktoyTitle}</h2>
         <div class="veil-cards veil-cards--2">
           {verktoyCards.map(card => (
@@ -139,14 +139,7 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
 </Layout>
 
 <style>
-  /* Hero */
-  .veil-hero {
-    padding: 48px 24px 64px;
-    background: #e8f4ec;
-  }
-
   .veil-hero-inner {
-    max-width: 1120px;
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -211,12 +204,7 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
 
   /* Sections */
   .veil-section {
-    padding: 48px 24px;
-  }
-
-  .veil-section-inner {
-    max-width: 1120px;
-    margin: 0 auto;
+    padding-block: var(--ds-size-8);
   }
 
   .veil-section-heading {
@@ -301,8 +289,7 @@ const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav
 
   /* Tools section */
   .veil-tools {
-    padding: 48px 24px 64px;
-    background: #e8f4ec;
+    background: var(--ds-color-surface-tinted);
   }
 
   .veil-tool-card {
