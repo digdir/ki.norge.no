@@ -36,29 +36,20 @@ const { columns = 3, divided = false } = Astro.props;
     padding-block: var(--ds-size-6);
   }
 
-  .card-grid--divided {
-    @media (min-width: 768px) {
+  @media (min-width: 768px) {
+    .card-grid--divided {
       gap: 0;
+      margin-inline: calc(-1 * var(--ds-size-6));
+      width: calc(100% + 2 * var(--ds-size-6));
     }
-  }
 
-  .card-grid--divided > :global(*) {
-    @media (min-width: 768px) {
-      border-right: 1px solid var(--ds-color-border-subtle);
+    .card-grid--divided > :global(*) {
       padding-inline: var(--ds-size-6);
+      border-right: 1px solid var(--ds-color-border-subtle);
     }
-  }
 
-  .card-grid--divided > :global(*:first-child) {
-    @media (min-width: 768px) {
-      padding-left: 0;
-    }
-  }
-
-  .card-grid--divided > :global(*:last-child) {
-    @media (min-width: 768px) {
+    .card-grid--divided > :global(*:last-child) {
       border-right: none;
-      padding-right: 0;
     }
   }
 </style>
