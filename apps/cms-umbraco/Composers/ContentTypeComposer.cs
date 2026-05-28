@@ -1688,7 +1688,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
         ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningGuideDt, description: "Moduler som vises på guide-oversikten (tekst, trekkspill, obs).", sortOrder: 3), "innhold");
-        ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje. Tom linje = bruk standard 'Steg N'. Rekkefølgen følger steg-nummeret (linje 1 = steg 1, osv.).", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje.", sortOrder: 4), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
@@ -1706,11 +1706,21 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("veiledningGuide");
         if (ct == null) return;
-        if (ct.PropertyTypeExists("stegGruppeTittler")) return;
 
-        ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje. Tom linje = bruk standard 'Steg N'. Rekkefølgen følger steg-nummeret (linje 1 = steg 1, osv.)."), "innhold");
-        _contentTypeService.Save(ct);
-        Console.WriteLine("ContentTypeComposer: Added stegGruppeTittler to veiledningGuide");
+        const string description = "Tittel per steg-gruppe, én per linje.";
+        var prop = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "stegGruppeTittler");
+        if (prop == null)
+        {
+            ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: description), "innhold");
+            _contentTypeService.Save(ct);
+            Console.WriteLine("ContentTypeComposer: Added stegGruppeTittler to veiledningGuide");
+            return;
+        }
+        if (prop.Description != description)
+        {
+            prop.Description = description;
+            _contentTypeService.Save(ct);
+        }
     }
 
     private IContentType CreateVeiledningSteg()
