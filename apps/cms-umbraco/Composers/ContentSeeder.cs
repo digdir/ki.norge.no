@@ -62,9 +62,7 @@ public class ContentSeeder : IAsyncComponent
         ForceForsideToTop();
         RemoveIkonerContent();
         RenameVeiledningerToVeiledning();
-        RenameFaqContainerNode();
         MoveOmOssIntoSider();
-        ClearFaqKategoriReferences();
         MoveVeiledningOversiktUnderVeiledning();
         FlattenVeiledningOversiktIntoContainer();
         NestVeiledningStegUnderGuide();
@@ -72,9 +70,38 @@ public class ContentSeeder : IAsyncComponent
         MigrateEksempelToCase();
         FixBakgrunnDropdownValues();
         EnsureGlobaleInnstillingerExist();
-        BackfillFaqOrdbokLeads();
         BackfillBrukDataRettStegtitler();
+        DeleteLegacySideNodes();
         EnsureSandkasseExistsForDev();
+    }
+
+    /// <summary>
+    /// side-CT changed schema from (tittel + richtext innhold) to artikkelhode + blocklist.
+    /// Existing side nodes have richtext HTML in the 'innhold' field which now fails block-list
+    /// JSON deserialization. Delete all existing side content so editors can recreate clean.
+    /// One-shot: idempotent (no-op if no side nodes exist).
+    /// </summary>
+    private void DeleteLegacySideNodes()
+    {
+        var rootContent = _contentService.GetRootContent().ToList();
+        foreach (var root in rootContent)
+        {
+            DeleteSideNodesRecursive(root);
+        }
+    }
+
+    private void DeleteSideNodesRecursive(IContent node)
+    {
+        var children = _contentService.GetPagedChildren(node.Id, 0, int.MaxValue, out _).ToList();
+        foreach (var child in children)
+        {
+            DeleteSideNodesRecursive(child);
+            if (child.ContentType.Alias == "side")
+            {
+                _contentService.Delete(child);
+                Console.WriteLine($"ContentSeeder: Deleted legacy side node '{child.Name}' (schema changed to blocklist)");
+            }
+        }
     }
 
     /// <summary>

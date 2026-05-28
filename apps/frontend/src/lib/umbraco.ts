@@ -216,21 +216,7 @@ export interface Kalender {
   locale: string;
 }
 
-export interface Side {
-  id: string;
-  documentId: string;
-  tittel: string;
-  slug: string;
-  innhold?: UmbracoBlock[];
-  template?: 'standard' | 'bred' | 'landingsside';
-  seoTittel?: string;
-  seoBeskrivelse?: string;
-  seoBilde?: UmbracoMedia;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  locale: string;
-}
+export interface Side extends Artikkel {}
 
 export interface Eksempel extends Artikkel {}
 
@@ -274,25 +260,6 @@ export interface VeiledningSteg {
   understeg: number;
   ingress?: string;
   innholdBlokker?: UmbracoBlock[];
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  locale: string;
-}
-
-export interface OrdbokOppslag {
-  term: string;
-  alternativTerm?: string;
-  definisjon: string;
-}
-
-export interface FAQ {
-  id: string;
-  documentId: string;
-  sporsmal: string;
-  svar?: UmbracoBlock[];
-  kategori?: Merkelapp;
-  rekkefølge?: number;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -465,15 +432,6 @@ export interface VeiledningOversikt {
   locale: string;
 }
 
-export interface Merkelapp {
-  id: string;
-  documentId: string;
-  navn: string;
-  slug: string;
-  beskrivelse?: string;
-  locale: string;
-}
-
 export interface GlobaleInnstillinger {
   id: string;
   documentId: string;
@@ -490,19 +448,6 @@ export interface GlobaleInnstillinger {
   tittel503?: string;
   beskrivelse503?: string;
   vedlikeholdEpost?: string;
-}
-
-export interface FaqSamling {
-  id: string;
-  documentId: string;
-  lead?: string;
-}
-
-export interface OrdbokSamling {
-  id: string;
-  documentId: string;
-  tittel?: string;
-  lead?: string;
 }
 
 export interface UmbracoMedia {
@@ -739,6 +684,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'eksempel':
     case 'enkelVeiledning':
     case 'stegartikkel':
+    case 'side':
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -780,17 +726,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
-    case 'side':
-      return {
-        ...base,
-        tittel: props.tittel as string || item.name,
-        slug: props.slug as string || '',
-        innhold: mapRichText(props.innhold),
-        template: props.template as string || 'standard',
-        seoTittel: props.seoTittel as string || '',
-        seoBeskrivelse: props.seoBeskrivelse as string || '',
-        seoBilde: mapMedia(props.seoBilde),
-      } as T;
 
 
     case 'veiledningGuide':
@@ -816,15 +751,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         understeg: props.understeg as number || 0,
         ingress: props.ingress as string || '',
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
-      } as T;
-
-    case 'faq':
-      return {
-        ...base,
-        sporsmal: props.sporsmal as string || item.name,
-        svar: mapRichText(props.svar),
-        kategori: mapKategori(props.kategori),
-        rekkefølge: props.rekkefolge as number || 0,
       } as T;
 
     case 'forside':
@@ -951,21 +877,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
-    case 'merkelapp':
-      return {
-        ...base,
-        navn: props.navn as string || item.name,
-        slug: props.slug as string || '',
-        beskrivelse: props.beskrivelse as string || '',
-      } as T;
-
-    case 'ordbokOppslag':
-      return {
-        term: props.term as string || item.name,
-        alternativTerm: props.alternativTerm as string || undefined,
-        definisjon: props.definisjon as string || '',
-      } as T;
-
     case 'globaleInnstillinger':
       return {
         ...base,
@@ -982,19 +893,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel503: props.tittel503 as string || '',
         beskrivelse503: props.beskrivelse503 as string || '',
         vedlikeholdEpost: props.vedlikeholdEpost as string || '',
-      } as T;
-
-    case 'faqSamling':
-      return {
-        ...base,
-        lead: richTextHtml(props.lead),
-      } as T;
-
-    case 'ordbokSamling':
-      return {
-        ...base,
-        tittel: props.tittel as string || '',
-        lead: richTextHtml(props.lead),
       } as T;
 
     default:
@@ -1295,18 +1193,6 @@ function mapMedia(value: unknown): UmbracoMedia | undefined {
   return undefined;
 }
 
-function mapMerkelapper(value: unknown): Merkelapp[] {
-  if (!value || !Array.isArray(value)) return [];
-  return value.map((item: any) => ({
-    id: item.id || '',
-    documentId: item.id || '',
-    navn: item.properties?.navn || item.name || '',
-    slug: item.properties?.slug || '',
-    beskrivelse: item.properties?.beskrivelse || '',
-    locale: 'nb-NO',
-  }));
-}
-
 function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
   if (!value) return null;
   const item = value as any;
@@ -1333,20 +1219,6 @@ function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
     locale: 'nb-NO',
   };
 }
-
-function mapKategori(value: unknown): Merkelapp | undefined {
-  if (!value) return undefined;
-  const item = value as any;
-  return {
-    id: item.id || '',
-    documentId: item.id || '',
-    navn: item.properties?.navn || item.name || '',
-    slug: item.properties?.slug || '',
-    beskrivelse: item.properties?.beskrivelse || '',
-    locale: 'nb-NO',
-  };
-}
-
 
 function parseJsonArray(value: string | undefined): string[] {
   if (!value) return [];
@@ -1463,16 +1335,6 @@ export async function getGlobaleInnstillinger(options: FetchOptions = {}): Promi
   return result.data[0] || null;
 }
 
-export async function getFaqSamling(options: FetchOptions = {}): Promise<FaqSamling | null> {
-  const result = await fetchCollection<FaqSamling>('faqSamling', { ...options, take: 1 });
-  return result.data[0] || null;
-}
-
-export async function getOrdbokSamling(options: FetchOptions = {}): Promise<OrdbokSamling | null> {
-  const result = await fetchCollection<OrdbokSamling>('ordbokSamling', { ...options, take: 1 });
-  return result.data[0] || null;
-}
-
 // ── Veiledning Guide/Step API functions ─────────────────────────
 
 export async function getVeiledningGuider(options: FetchOptions = {}) {
@@ -1498,27 +1360,6 @@ export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: strin
 export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {
   return fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
 }
-
-// ── FAQ API functions ───────────────────────────────────────────
-
-export async function getFAQs(options: FetchOptions = {}) {
-  return fetchCollection<FAQ>('faq', {
-    ...options,
-    sort: 'sortOrder:asc',
-  });
-}
-
-// ── KI-ordbok API functions ──────────────────────────────────────
-
-export async function getOrdbokOppslag(options: FetchOptions = {}) {
-  return fetchCollection<OrdbokOppslag>('ordbokOppslag', {
-    ...options,
-    sort: 'name:asc',
-    take: 500,
-  });
-}
-
-// ── Merkelapp (Tag) API functions ───────────────────────────────
 
 export async function getOmOssSeksjoner(options: FetchOptions = {}) {
   return fetchCollection<OmOssSeksjon>('omOssSeksjon', {
@@ -1547,11 +1388,7 @@ export async function getSandkasse(options: FetchOptions = {}): Promise<Sandkass
  * during the migration window.
  */
 export async function getVeiledningOversikt(options: FetchOptions = {}): Promise<VeiledningOversikt | null> {
-  // Try new structure first
-  const flat = await fetchCollection<VeiledningOversikt>('veiledninger', { ...options, take: 1 });
-  if (flat.data[0]?.heroTittel) return flat.data[0];
-  // Fall back to legacy
-  const result = await fetchCollection<VeiledningOversikt>('veiledningOversikt', { ...options, take: 1 });
+  const result = await fetchCollection<VeiledningOversikt>('veiledninger', { ...options, take: 1 });
   return result.data[0] || null;
 }
 

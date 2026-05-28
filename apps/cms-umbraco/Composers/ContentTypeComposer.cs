@@ -166,10 +166,11 @@ public class ContentTypeComponent : IAsyncComponent
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules);
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules);
 
-            if (_contentTypeService.Get("merkelapp") == null)
-                CreateMerkelapp();
-            else
-                MigrateMerkelapp();
+            // One-shot removal of legacy CTs that are no longer part of the product
+            // (FAQ, KI-ordbok, Merkelapper, veiledningOversikt). Runs early so containers
+            // are gone before the rest of the bootstrap tries to reference them.
+            MigrateRemoveLegacyCleanup();
+
             if (_contentTypeService.Get("artikkel") == null)
                 CreateArtikkel();
             MigrateArtikkelType();
@@ -198,8 +199,6 @@ public class ContentTypeComponent : IAsyncComponent
             MigrateVeiledningStegAllowedChildren();
             if (_contentTypeService.Get("enkelVeiledning") == null)
                 CreateEnkelVeiledning();
-            if (_contentTypeService.Get("faq") == null)
-                CreateFAQ();
             if (_contentTypeService.Get("forside") == null)
                 CreateForside();
             else
@@ -214,23 +213,18 @@ public class ContentTypeComponent : IAsyncComponent
                 CreateSandkasse();
             else
                 MigrateSandkasse();
-            if (_contentTypeService.Get("veiledningOversikt") == null)
-                CreateVeiledningOversikt();
 
             // Create container types if missing
             CreateContainerIfMissing("artikler", "Artikler", "icon-newspaper-alt", "artikkel");
             CreateContainerIfMissing("sider", "Andre sider", "icon-folder", "side");
             MigrateSiderToAndreSider();
-            // Lock sider container: existing Side children (kontakt, om-oss) stay,
-            // but no new Side can be created. Editors must use specific content types.
             LockSiderContainer();
             if (_contentTypeService.Get("eksempler") == null)
                 CreateEksemplerOversikt();
             if (_contentTypeService.Get("veiledninger") == null)
             {
                 var guideType = _contentTypeService.Get("veiledningGuide");
-                var oversiktType = _contentTypeService.Get("veiledningOversikt");
-                if (guideType != null && oversiktType != null)
+                if (guideType != null)
                 {
                     var ct = new ContentType(_shortStringHelper, -1)
                     {
@@ -241,31 +235,19 @@ public class ContentTypeComponent : IAsyncComponent
                     };
                     ct.AllowedContentTypes = new[]
                     {
-                        new ContentTypeSort(oversiktType.Key, 0, oversiktType.Alias),
-                        new ContentTypeSort(guideType.Key, 1, guideType.Alias)
+                        new ContentTypeSort(guideType.Key, 0, guideType.Alias)
                     };
                     _contentTypeService.Save(ct);
                 }
             }
-            // Migration for existing veiledninger container: update name + allowed children + add oversikt fields
             MigrateVeiledningerContainer();
-            // Migration for veiledningGuide: allow veiledningSteg as child (so steg can nest)
             MigrateVeiledningGuideAllowedChildren();
-            // Add oversikt fields to veiledninger so editor edits the overview page directly on the container
             AddOversiktFieldsToVeiledninger();
-            CreateContainerIfMissing("faqSamling", "Ofte stilte spørsmål", "icon-help-alt", "faq");
-            // Migrate existing faqSamling container display name
-            MigrateFaqSamlingName();
-            CreateContainerIfMissing("merkelapper", "Merkelapper", "icon-tags", "merkelapp");
 
             if (_contentTypeService.Get("kalenderhendelse") == null)
                 CreateKalenderhendelse();
             if (_contentTypeService.Get("kalender") == null)
                 CreateKalender();
-
-            if (_contentTypeService.Get("ordbokOppslag") == null)
-                CreateOrdbokOppslag();
-            CreateContainerIfMissing("ordbokSamling", "KI-ordbok", "icon-book-alt", "ordbokOppslag");
 
             if (_contentTypeService.Get("globaleInnstillinger") == null)
                 CreateGlobaleInnstillinger();
@@ -1222,62 +1204,6 @@ public class ContentTypeComponent : IAsyncComponent
 
     // --- Document types ---
 
-    private IContentType CreateMerkelapp()
-    {
-        var ct = new ContentType(_shortStringHelper, -1)
-        {
-            Alias = "merkelapp",
-            Name = "Merkelapp",
-            Description = "Tag for kategorisering. Bare metadata — vises ikke som egen side.",
-            Icon = "icon-tag",
-            AllowedAsRoot = false,
-        };
-        ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("navn", "Navn", _textStringDt, mandatory: true), "innhold");
-        // Slug stays in DB for stable filter URLs (eks /artikler?tag=helse) but is hidden
-        // from editor UI. Auto-generated from navn on save by MerkelappSavingHandler.
-        ct.AddPropertyGroup("teknisk", "Teknisk (skjult)");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, description: "Auto-generert fra navn ved lagring."), "teknisk");
-        _contentTypeService.Save(ct);
-        return ct;
-    }
-
-    private void MigrateMerkelapp()
-    {
-        var ct = _contentTypeService.Get("merkelapp");
-        if (ct == null) return;
-
-        bool changed = false;
-
-        // Remove beskrivelse field if present
-        var beskrivelseProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "beskrivelse");
-        if (beskrivelseProp != null)
-        {
-            ct.RemovePropertyType("beskrivelse");
-            changed = true;
-        }
-
-        var slugProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "slug");
-        if (slugProp != null && slugProp.Mandatory)
-        {
-            slugProp.Mandatory = false;
-            slugProp.Description = "Auto-generert fra navn ved lagring.";
-            changed = true;
-        }
-
-        if (ct.Description != "Tag for kategorisering. Bare metadata — vises ikke som egen side.")
-        {
-            ct.Description = "Tag for kategorisering. Bare metadata — vises ikke som egen side.";
-            changed = true;
-        }
-
-        if (changed)
-        {
-            _contentTypeService.Save(ct);
-            Console.WriteLine("ContentTypeComposer: Migrated Merkelapp (beskrivelse removed, slug auto)");
-        }
-    }
-
     private IContentType CreateArtikkel()
     {
         var ct = new ContentType(_shortStringHelper, -1)
@@ -1299,6 +1225,35 @@ public class ContentTypeComponent : IAsyncComponent
         SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    private void MigrateRemoveLegacyCleanup()
+    {
+        var aliasesToRemove = new[]
+        {
+            "faqSamling",
+            "faq",
+            "ordbokSamling",
+            "ordbokOppslag",
+            "merkelapper",
+            "merkelapp",
+            "veiledningOversikt",
+        };
+
+        foreach (var alias in aliasesToRemove)
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            try
+            {
+                _contentTypeService.Delete(ct);
+                Console.WriteLine($"ContentTypeComposer: Removed legacy '{alias}' content type and all its nodes");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ContentTypeComposer: Failed to remove '{alias}': {ex.Message}");
+            }
+        }
     }
 
     private void MigrateCaserToEksempler()
@@ -1332,10 +1287,44 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
-        if (EnsureInnstillingerGroup(ct, "slug", "template")) changed = true;
+        if (!ct.PropertyTypes.Any(p => p.Alias == "ingress"))
+        {
+            ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "artikkelBilde"))
+        {
+            ct.AddPropertyType(Prop("artikkelBilde", "Hovedbilde", _mediaPickerDt, description: "Hovedbilde som vises ved siden av tittelen.", sortOrder: 3), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "bildeAlt"))
+        {
+            ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere.", sortOrder: 4), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
+        {
+            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Bakgrunnsfarge for artikkelhodet.", sortOrder: 2), "innstillinger");
+            changed = true;
+        }
+
+        var innholdProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "innhold");
+        if (innholdProp != null && innholdProp.DataTypeId != _blockListArtikkelDt.Id)
+        {
+            innholdProp.DataTypeId = _blockListArtikkelDt.Id;
+            changed = true;
+        }
+
+        if (ct.PropertyTypes.Any(p => p.Alias == "template"))
+        {
+            ct.RemovePropertyType("template");
+            changed = true;
+        }
+
+        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
         if (SetPropertySortOrders(ct,
-            ("tittel", 1), ("innhold", 2),
-            ("slug", 1), ("template", 2))) changed = true;
+            ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
+            ("slug", 1), ("bakgrunn", 2))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
@@ -1559,17 +1548,13 @@ public class ContentTypeComponent : IAsyncComponent
         {
             Alias = "side",
             Name = "Side",
-            Description = "Generelle sider",
+            Description = "Generelle sider (cookies, personvern, tilgjengelighet osv.)",
             Icon = "icon-document",
             AllowedAsRoot = false,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, sortOrder: 2), "innhold");
-
-        ct.AddPropertyGroup("innstillinger", "Innstillinger");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
-        ct.AddPropertyType(Prop("template", "Mal", _textStringDt, description: "standard, bred, landingsside", sortOrder: 2), "innstillinger");
+        AddArtikkelhodeFields(ct);
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
@@ -1829,43 +1814,6 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
         SetStandardGroupSortOrders(ct);
-        _contentTypeService.Save(ct);
-        return ct;
-    }
-
-    private IContentType CreateFAQ()
-    {
-        var ct = new ContentType(_shortStringHelper, -1)
-        {
-            Alias = "faq",
-            Name = "FAQ",
-            Description = "Ofte stilte spørsmål",
-            Icon = "icon-help-alt",
-            AllowedAsRoot = false,
-        };
-        ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("sporsmal", "Spørsmål", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("svar", "Svar", _richTextDt), "innhold");
-        ct.AddPropertyType(Prop("kategori", "Kategori", _contentPickerDt), "innhold");
-        ct.AddPropertyType(Prop("rekkefolge", "Rekkefølge", _numericDt), "innhold");
-        _contentTypeService.Save(ct);
-        return ct;
-    }
-
-    private IContentType CreateOrdbokOppslag()
-    {
-        var ct = new ContentType(_shortStringHelper, -1)
-        {
-            Alias = "ordbokOppslag",
-            Name = "Ordbok-oppslag",
-            Description = "Et begrep i KI-ordboka",
-            Icon = "icon-book-alt",
-            AllowedAsRoot = false,
-        };
-        ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("term", "Term", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("alternativTerm", "Alternativt term (engelsk/alias)", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("definisjon", "Definisjon", _textAreaDt, mandatory: true), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2234,53 +2182,6 @@ public class ContentTypeComponent : IAsyncComponent
         _contentTypeService.Save(ct);
     }
 
-    private IContentType CreateVeiledningOversikt()
-    {
-        var ct = new ContentType(_shortStringHelper, -1)
-        {
-            Alias = "veiledningOversikt",
-            Name = "Veiledning Oversikt",
-            Description = "Oversiktsside for veiledning",
-            Icon = "icon-book-alt",
-            AllowedAsRoot = true,
-        };
-
-        // Tab: Hero
-        ct.AddPropertyGroup("hero", "Hero");
-        ct.AddPropertyType(Prop("heroLabel", "Hero-label", _textStringDt), "hero");
-        ct.AddPropertyType(Prop("heroTittel", "Hero-tittel", _textStringDt), "hero");
-        ct.AddPropertyType(Prop("heroTekst", "Hero-tekst", _textStringDt), "hero");
-        ct.AddPropertyType(Prop("heroBilde", "Hero-bilde", _mediaPickerDt), "hero");
-
-        // Tab: Seksjon 1
-        ct.AddPropertyGroup("seksjon1", "Seksjon 1");
-        ct.AddPropertyType(Prop("seksjon1Tittel", "Seksjon 1 tittel", _textStringDt), "seksjon1");
-        ct.AddPropertyType(Prop("seksjon1Kort", "Seksjon 1 kort", _blockListVeiledningKortDt), "seksjon1");
-
-        // Tab: Seksjon 2
-        ct.AddPropertyGroup("seksjon2", "Seksjon 2");
-        ct.AddPropertyType(Prop("seksjon2Tittel", "Seksjon 2 tittel", _textStringDt), "seksjon2");
-        ct.AddPropertyType(Prop("seksjon2Kort", "Seksjon 2 kort", _blockListVeiledningKortDt), "seksjon2");
-
-        // Tab: Verktøy
-        ct.AddPropertyGroup("verktoy", "Verktøy");
-        ct.AddPropertyType(Prop("verktoyTittel", "Verktøy tittel", _textStringDt), "verktoy");
-        ct.AddPropertyType(Prop("verktoyKort", "Verktøy kort", _blockListVerktoyKortDt), "verktoy");
-
-        // Tab: SEO
-        ct.AddPropertyGroup("seo", "SEO");
-        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
-        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
-        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
-
-        _contentTypeService.Save(ct);
-        return ct;
-    }
-
-    /// <summary>
-    /// Removes "side" from the sider container's AllowedContentTypes so editors
-    /// can't create new Side pages. Existing Side content stays untouched.
-    /// </summary>
     private void MigrateSiderToAndreSider()
     {
         var ct = _contentTypeService.Get("sider");
@@ -2292,53 +2193,29 @@ public class ContentTypeComponent : IAsyncComponent
         Console.WriteLine("ContentTypeComposer: Renamed sider container to 'Andre sider'");
     }
 
-    private void MigrateFaqSamlingName()
-    {
-        var ct = _contentTypeService.Get("faqSamling");
-        if (ct == null) return;
-        if (ct.Name == "Ofte stilte spørsmål") return;
-        ct.Name = "Ofte stilte spørsmål";
-        _contentTypeService.Save(ct);
-        Console.WriteLine("ContentTypeComposer: Renamed faqSamling to 'Ofte stilte spørsmål'");
-    }
-
     /// <summary>
-    /// Sider is a catch-all FOLDER for static pages — purely organizational, no rendering of its own.
-    /// Allows ALL existing content types as children EXCEPT:
-    ///   - "side" (legacy generic page type — no new ones should be created; existing kontakt stays)
-    ///   - "merkelapp" (lives in its own Merkelapper container)
-    ///   - "eksempel", "artikkel", "ordbokOppslag", "veiledningGuide", "veiledningSteg", "faq",
-    ///     "stegartikkel", "kalenderhendelse" (children of their own containers)
-    ///   - "forside" (always lives at root, top of tree)
-    ///   - container types themselves
-    /// Result: editor can drag Om Oss, Sandkasse, KI-ordbok (the page) into Sider freely.
-    /// New "side" content can never be created.
+    /// "Andre sider"-container holder generelle CMS-redigerbare sider (cookies, personvern,
+    /// tilgjengelighet osv.). Primær child-type er "side". Andre eksisterende CT-er
+    /// (omOss, sandkasse) tillates også slik at de kan flyttes inn hit i CMS-treet.
+    /// Children av andre containere (artikkel, eksempel, veiledningGuide osv.) ekskluderes.
     /// </summary>
     private void LockSiderContainer()
     {
         var ct = _contentTypeService.Get("sider");
         if (ct == null) return;
 
-        // Excluded: types that should not live under Sider
         var excluded = new HashSet<string>
         {
-            "side",            // legacy — no new generic Side pages
-            "merkelapp",       // tag, not a page
-            "eksempel",        // child of eksempler
-            "artikkel",        // child of artikler
-            "ordbokOppslag",   // child of ordbokSamling
-            "veiledningGuide", // child of veiledninger
-            "veiledningSteg",  // child of veiledningGuide
-            "stegartikkel",    // child of veiledningSteg
-            "enkelVeiledning", // child of veiledninger
-            "kalenderhendelse",// child of kalender
-            "faq",             // child of faqSamling
-            "forside",         // always at root
-            "globaleInnstillinger", // singleton at root
-            // Containers themselves (sider can't contain other containers)
+            "eksempel",
+            "artikkel",
+            "veiledningGuide",
+            "veiledningSteg",
+            "stegartikkel",
+            "enkelVeiledning",
+            "kalenderhendelse",
+            "forside",
+            "globaleInnstillinger",
             "sider", "artikler", "eksempler", "veiledninger", "kalender",
-            "faqSamling", "merkelapper", "ordbokSamling", "tilgjengeligeIkoner",
-            // Block list element types
             "artikkelTekst", "artikkelInfoBoks", "artikkelHero", "artikkelBildeSeksjon",
             "artikkelTrekkspill", "artikkelSitat", "artikkelCallout", "artikkelFremheving",
             "artikkelProsessteg", "artikkelProsessStegItem", "artikkelByline",
@@ -2377,18 +2254,16 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        var oversiktType = _contentTypeService.Get("veiledningOversikt");
         var guideType = _contentTypeService.Get("veiledningGuide");
         var enkelType = _contentTypeService.Get("enkelVeiledning");
-        if (oversiktType != null && guideType != null)
+        if (guideType != null)
         {
             var list = new List<ContentTypeSort>
             {
-                new(oversiktType.Key, 0, oversiktType.Alias),
-                new(guideType.Key, 1, guideType.Alias),
+                new(guideType.Key, 0, guideType.Alias),
             };
             if (enkelType != null)
-                list.Add(new(enkelType.Key, 2, enkelType.Alias));
+                list.Add(new(enkelType.Key, 1, enkelType.Alias));
 
             var desired = list.ToArray();
             var current = ct.AllowedContentTypes?.OrderBy(a => a.Alias).Select(a => a.Alias).ToArray() ?? Array.Empty<string>();

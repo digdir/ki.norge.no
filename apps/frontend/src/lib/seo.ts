@@ -85,27 +85,6 @@ export function caseSchema(opts: {
 }
 
 /**
- * For ki-ordbok terms. DefinedTerm is the right type for glossary entries.
- * Group all terms under a DefinedTermSet for the page-level schema.
- */
-export function definedTermSetSchema(terms: { term: string; definition: string; alternativTerm?: string }[]) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'DefinedTermSet',
-    name: 'KI-ordbok',
-    description: 'Ordliste over begreper innen kunstig intelligens',
-    url: `${SITE_URL}/ki-ordbok`,
-    hasDefinedTerm: terms.map(t => ({
-      '@type': 'DefinedTerm',
-      name: t.term,
-      description: t.definition,
-      ...(t.alternativTerm ? { alternateName: t.alternativTerm } : {}),
-      inDefinedTermSet: `${SITE_URL}/ki-ordbok`,
-    })),
-  };
-}
-
-/**
  * BreadcrumbList for nested pages. Helps search engines understand
  * site hierarchy and shows breadcrumbs in SERP results.
  */
