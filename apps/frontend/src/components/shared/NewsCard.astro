@@ -46,7 +46,7 @@ const formattedDate = date
   )}
   <div class="news-card-body">
     {tag && <span class="ds-tag" data-variant="outline">{tag.toUpperCase()}</span>}
-    <h3 class="news-card-title"><a id={id} href={href}>{title}</a></h3>
+    <h3 class="ds-heading news-card-title" data-size={variant === 'featured' ? 'lg' : 'sm'}><a id={id} href={href}>{title}</a></h3>
     {variant === 'featured' && lead && <p class="news-card-lead">{lead}</p>}
     {formattedDate && (
       <span class="news-card-meta">
@@ -117,10 +117,7 @@ const formattedDate = date
   }
 
   .news-card--small .news-card-title {
-    font-size: var(--ds-font-size-4);
-    font-weight: 500;
     margin: 0;
-    line-height: 1.35;
   }
 
   /* ── Image variant ────────────────────────────────── */
@@ -156,10 +153,7 @@ const formattedDate = date
   }
 
   .news-card--image .news-card-title {
-    font-size: var(--ds-font-size-4);
-    font-weight: 500;
     margin: 0;
-    line-height: 1.35;
   }
 
   /* ── Featured variant (large, optional image) ──────── */
@@ -192,13 +186,11 @@ const formattedDate = date
     gap: var(--ds-size-4);
     flex: 1;
     justify-content: center;
+    padding-block: var(--ds-size-8);
   }
 
   .news-card--featured .news-card-title {
-    font-size: var(--ds-heading-sm-font-size);
-    font-weight: 600;
     margin: 0;
-    line-height: 1.25;
     text-wrap: balance;
   }
 
