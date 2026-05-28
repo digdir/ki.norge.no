@@ -3,8 +3,8 @@ packages:
 injectWorkspacePackages: true
 minimumReleaseAge: 1440
 blockExoticSubdeps: true
-onlyBuiltDependencies:
-  - "sharp"
-  - "esbuild"
 overrides:
   devalue: "^5.8.1"
+allowBuilds:
+  esbuild: true
+  sharp: true

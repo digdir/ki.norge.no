@@ -84,13 +84,13 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
   </head>
   <body data-color-scheme="light" data-color="accent">
     <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>
+    <CookieNotice />
     <Header client:load currentPath={currentPath} />
     <main id="main-content">
       <slot />
     </main>
     <Footer />
     <!-- <BackToTop /> -->
-    <CookieNotice />
     <!-- <SearchDialog client:load /> -->
     {isPreview && <PreviewBanner currentPath={currentPath} />}
     <script is:inline>
