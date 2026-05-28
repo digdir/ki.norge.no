@@ -20,8 +20,8 @@ const typeLabels: Record<string, string> = {
 
 const typeRoutes: Record<string, string> = {
   artikkel: '/artikler/',
-  case: '/caser/',
-  eksempel: '/caser/', // legacy fallback
+  eksempel: '/eksempler/',
+  stegartikkel: '/veiledning/',
   veiledning: '/veiledning/',
   veiledningGuide: '/veiledning/',
   veiledningSteg: '/veiledning/',
@@ -111,7 +111,7 @@ function formatDate(dateStr: string): string {
           <Paragraph size="small">Forslag:</Paragraph>
           <div class="suggestion-links">
             <Link href="/veiledning">Utforsk veiledninger</Link>
-            <Link href="/caser">Se caser</Link>
+            <Link href="/eksempler">Se eksempler</Link>
             <Link href="/artikler">Les artikler</Link>
           </div>
         </div>

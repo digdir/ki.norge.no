@@ -67,7 +67,7 @@ const DUMMY_RESULT: Record<string, DummyData> = {
       { title: 'Kunstig intelligens', path: '/ki-ordbok#Kunstig-intelligens', excerpt: 'Datasystemer som kan utføre oppgaver som vanligvis krever menneskelig intelligens.', type: 'Ordbok' },
       { title: 'EU AI Act: Hva betyr det for norsk offentlig sektor?', path: '/artikler/eu-ai-act', excerpt: 'En gjennomgang av de viktigste kravene og hvordan de vil påvirke offentlige virksomheter.', type: 'Artikkel' },
       { title: 'Ny nasjonal strategi for kunstig intelligens', path: '/artikler/ny-strategi', excerpt: 'Regjeringen presenterer ny strategi for ansvarlig bruk av KI i offentlig sektor.', type: 'Artikkel' },
-      { title: 'KI-chatbot for innbyggerdialog', path: '/caser/ki-chatbot-for-innbyggerdialog', excerpt: 'Kommune X bruker generativ KI til å besvare innbyggerhenvendelser 24/7.', type: 'Case' },
+      { title: 'KI-chatbot for innbyggerdialog', path: '/eksempler/ki-chatbot-for-innbyggerdialog', excerpt: 'Kommune X bruker generativ KI til å besvare innbyggerhenvendelser 24/7.', type: 'Eksempel' },
       { title: 'Vi skal ta i bruk KI', path: '/veiledning/ta-i-bruk', excerpt: 'Veiledning for virksomheter som vil ta i bruk ferdig trent KI.', type: 'Veiledning' },
       { title: 'Slik bruker Nav kunstig intelligens til saksbehandling', path: '/artikler/nav-ki', excerpt: 'Hvordan Nav har tatt i bruk maskinlæring for å prioritere saker.', type: 'Artikkel' },
     ],

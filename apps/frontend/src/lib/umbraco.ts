@@ -232,26 +232,19 @@ export interface Side {
   locale: string;
 }
 
-export interface Eksempel {
+export interface Eksempel extends Artikkel {}
+
+export interface EksemplerOversikt {
   id: string;
   documentId: string;
-  tittel: string;
-  slug: string;
-  organisasjon?: string;
-  beskrivelse?: UmbracoBlock[];
-  verktoy?: string[];
-  resultater?: UmbracoBlock[];
-  accordionSeksjoner?: AccordionSection[];
-  status?: 'i_utvikling' | 'pilot' | 'i_drift' | 'avsluttet';
-  bilde?: UmbracoMedia;
-  merkelapper?: Merkelapp[];
+  heroTittel?: string;
+  heroIngress?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
-  locale: string;
 }
 
 export interface VeiledningGuide {
@@ -732,7 +725,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
   };
 
   switch (contentType) {
-    case 'caser':
+    case 'eksempler':
       return {
         ...base,
         heroTittel: props.heroTittel as string || '',
@@ -743,7 +736,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       } as T;
 
     case 'artikkel':
-    case 'case':
+    case 'eksempel':
     case 'enkelVeiledning':
     case 'stegartikkel':
       return {
@@ -799,23 +792,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
-    case 'eksempel':
-      return {
-        ...base,
-        tittel: props.tittel as string || item.name,
-        slug: props.slug as string || '',
-        organisasjon: props.organisasjon as string || '',
-        beskrivelse: mapRichText(props.beskrivelse),
-        verktoy: parseJsonArray(props.verktoy as string),
-        resultater: mapRichText(props.resultater),
-        accordionSeksjoner: mapAccordionSections(props.accordionSeksjoner),
-        status: props.status as string || undefined,
-        bilde: mapMedia(props.bilde),
-        merkelapper: mapMerkelapper(props.merkelapper),
-        seoTittel: props.seoTittel as string || '',
-        seoBeskrivelse: props.seoBeskrivelse as string || '',
-        seoBilde: mapMedia(props.seoBilde),
-      } as T;
 
     case 'veiledningGuide':
       return {
@@ -1455,50 +1431,19 @@ export async function getSide(slug: string, options: FetchOptions = {}) {
   return fetchBySlug<Side>('side', slug, options);
 }
 
-// ── Case API (new content type, replaces Eksempel) ──────────────
+// ── Eksempel API functions ──────────────────────────────────────
 
-export interface Case extends Artikkel {
-  // Same shape as Artikkel for now (mirror content type).
-  // Add case-specific fields here when they diverge.
-}
-
-export interface CaserOversikt {
-  id: string;
-  documentId: string;
-  heroTittel?: string;
-  heroIngress?: string;
-  seoTittel?: string;
-  seoBeskrivelse?: string;
-  seoBilde?: UmbracoMedia;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export async function getCaserOversikt(options: FetchOptions = {}): Promise<CaserOversikt | null> {
-  const result = await fetchCollection<CaserOversikt>('caser', { ...options, take: 1 });
+export async function getEksemplerOversikt(options: FetchOptions = {}): Promise<EksemplerOversikt | null> {
+  const result = await fetchCollection<EksemplerOversikt>('eksempler', { ...options, take: 1 });
   return result.data[0] || null;
 }
 
-export async function getCaser(options: FetchOptions = {}) {
-  return fetchCollection<Case>('case', {
+export async function getEksempler(options: FetchOptions = {}) {
+  return fetchCollection<Eksempel>('eksempel', {
     skip: 0,
     take: 50,
     sort: 'updateDate:desc',
     ...options,
-  });
-}
-
-export async function getCase(slug: string, options: FetchOptions = {}) {
-  return fetchBySlug<Case>('case', slug, options);
-}
-
-// ── Eksempel (legacy, will be removed once content migrates to Case) ──
-
-export async function getEksempler(options: FetchOptions = {}) {
-  return fetchCollection<Eksempel>('eksempel', {
-    ...options,
-    sort: 'createDate:desc',
   });
 }
 
@@ -1703,8 +1648,9 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
         }
       }
       for (const e of eksempler.data) {
-        if (e.tittel.toLowerCase().includes(lowerQuery) || (e.organisasjon || '').toLowerCase().includes(lowerQuery) || getPlainText(e.beskrivelse, 500).toLowerCase().includes(lowerQuery)) {
-          allResults.push({ id: e.id, tittel: e.tittel, slug: e.slug, contentType: 'eksempel', excerpt: getPlainText(e.beskrivelse, 200), publishedAt: e.publishedAt });
+        const eksempelIngress = e.ingress || '';
+        if (e.tittel.toLowerCase().includes(lowerQuery) || eksempelIngress.toLowerCase().includes(lowerQuery) || getPlainText(e.innhold, 500).toLowerCase().includes(lowerQuery)) {
+          allResults.push({ id: e.id, tittel: e.tittel, slug: e.slug, contentType: 'eksempel', excerpt: eksempelIngress || getPlainText(e.innhold, 200), publishedAt: e.publishedAt });
         }
       }
       for (const g of guides.data) {

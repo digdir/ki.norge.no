@@ -47,7 +47,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _blockListVeiledningKortDt = null!;
     private IDataType _blockListVerktoyKortDt = null!;
     private IDataType _blockListProsessStegItemsDt = null!;
-    private IDataType _blockListCaseDt = null!;
+    private IDataType _blockListEksempelDt = null!;
     private IDataType _blockListOmOssDt = null!;
     private IDataType _blockListVeiledningStegDt = null!;
     private IDataType _blockListVeiledningGuideDt = null!;
@@ -161,7 +161,7 @@ public class ContentTypeComponent : IAsyncComponent
             RefreshMultiBlockListAllowedModules("Block List - Artikkel Innhold", BaseArticleModules);
 
             // Refresh Case block list too
-            RefreshMultiBlockListAllowedModules("Block List - Case Innhold", CaseModules);
+            RefreshMultiBlockListAllowedModules("Block List - Eksempel Innhold", EksempelModules);
 
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules);
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules);
@@ -173,19 +173,17 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("artikkel") == null)
                 CreateArtikkel();
             MigrateArtikkelType();
-            if (_contentTypeService.Get("case") == null)
-                CreateCase();
-            else
-                MigrateCaseType();
+
+            // Caser → Eksempler all-in: drop legacy case/caser + the old skeleton eksempel
+            // before recreating eksempel + eksempler with artikkel-like structure.
+            MigrateCaserToEksempler();
+
             if (_contentTypeService.Get("side") == null)
                 CreateSide();
             MigrateSide();
 
-            IContentType? eksempel;
             if (_contentTypeService.Get("eksempel") == null)
-                eksempel = CreateEksempel();
-            else
-                eksempel = _contentTypeService.Get("eksempel");
+                CreateEksempel();
 
             if (_contentTypeService.Get("veiledningGuide") == null)
                 CreateVeiledningGuide();
@@ -225,13 +223,8 @@ public class ContentTypeComponent : IAsyncComponent
             // Lock sider container: existing Side children (kontakt, om-oss) stay,
             // but no new Side can be created. Editors must use specific content types.
             LockSiderContainer();
-            CreateContainerIfMissing("eksempler", "Eksempler", "icon-science", "eksempel");
-            // Caser is an editable overview page that ALSO holds case content as children.
-            // Not a bare container — has fields for hero/intro on /caser.
-            if (_contentTypeService.Get("caser") == null)
-                CreateCaserOversikt();
-            else
-                MigrateCaserOversikt();
+            if (_contentTypeService.Get("eksempler") == null)
+                CreateEksemplerOversikt();
             if (_contentTypeService.Get("veiledninger") == null)
             {
                 var guideType = _contentTypeService.Get("veiledningGuide");
@@ -869,9 +862,9 @@ public class ContentTypeComponent : IAsyncComponent
             "Block List - Artikkel Innhold",
             BaseArticleModules);
         // Case has its own block list so it can diverge from artikkel later (currently identical)
-        _blockListCaseDt = CreateOrGetMultiBlockListDataType(
-            "Block List - Case Innhold",
-            CaseModules);
+        _blockListEksempelDt = CreateOrGetMultiBlockListDataType(
+            "Block List - Eksempel Innhold",
+            EksempelModules);
         _blockListVeiledningKortDt = CreateOrGetBlockListDataType(
             "Block List - Veiledning Kort", "veiledningKort");
         _blockListVerktoyKortDt = CreateOrGetBlockListDataType(
@@ -1030,7 +1023,7 @@ public class ContentTypeComponent : IAsyncComponent
     // Single source of truth for which element types are allowed in each
     // content type's body Block List. To add a new module everywhere:
     // add it to BaseArticleModules. To diverge case from artikkel later:
-    // build CaseModules as BaseArticleModules.Concat(...).ToArray().
+    // build EksempelModules as BaseArticleModules.Concat(...).ToArray().
 
     private static readonly string[] BaseArticleModules =
     {
@@ -1049,7 +1042,7 @@ public class ContentTypeComponent : IAsyncComponent
         // "artikkelHero", "artikkelInfoBoks", "artikkelCallout", "artikkelSitat"
     };
 
-    private static readonly string[] CaseModules = BaseArticleModules;
+    private static readonly string[] EksempelModules = BaseArticleModules;
 
     private static readonly string[] VeiledningStegModules =
     {
@@ -1307,70 +1300,28 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
-    /// <summary>
-    /// Case content type — structurally identical to artikkel for now, but with its own
-    /// Block List data type so editors and developers can later add case-specific modules.
-    /// </summary>
-    private IContentType CreateCase()
+    private void MigrateCaserToEksempler()
     {
-        var ct = new ContentType(_shortStringHelper, -1)
+        var existing = _contentTypeService.Get("eksempel");
+        if (existing != null && existing.PropertyTypes.Any(p => p.Alias == "artikkelBilde"))
         {
-            Alias = "case",
-            Name = "Case",
-            Description = "Case-eksempler fra offentlig sektor",
-            Icon = "icon-science",
-            AllowedAsRoot = false,
-        };
-        ct.AddPropertyGroup("innhold", "Innhold");
-        AddArtikkelhodeFields(ct);
-        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListCaseDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
-
-        ct.AddPropertyGroup("seo", "SEO");
-        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
-        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
-        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
-        SetStandardGroupSortOrders(ct);
-        _contentTypeService.Save(ct);
-        return ct;
-    }
-
-    private void MigrateCaseType()
-    {
-        var ct = _contentTypeService.Get("case");
-        if (ct == null) return;
-
-        bool changed = false;
-
-        // Add Artikkelhode fields if missing (idempotent, in case of incremental schema changes)
-        if (!ct.PropertyTypes.Any(p => p.Alias == "ingress"))
-        {
-            ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true), "innhold");
-            changed = true;
-        }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "artikkelBilde"))
-        {
-            ct.AddPropertyType(Prop("artikkelBilde", "Hovedbilde", _mediaPickerDt), "innhold");
-            changed = true;
-        }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bildeAlt"))
-        {
-            ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt), "innhold");
-            changed = true;
-        }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
-        {
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt), "innhold");
-            changed = true;
+            return;
         }
 
-        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
-        if (SetPropertySortOrders(ct,
-            ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
-            ("slug", 1), ("bakgrunn", 2))) changed = true;
-        if (SetStandardGroupSortOrders(ct)) changed = true;
-
-        if (changed)
-            _contentTypeService.Save(ct);
+        foreach (var alias in new[] { "case", "caser", "eksempler", "eksempel" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            try
+            {
+                _contentTypeService.Delete(ct);
+                Console.WriteLine($"ContentTypeComposer: Deleted legacy '{alias}' content type for Caser→Eksempler rename");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ContentTypeComposer: Failed to delete '{alias}': {ex.Message}");
+            }
+        }
     }
 
     private void MigrateSide()
@@ -1634,26 +1585,51 @@ public class ContentTypeComponent : IAsyncComponent
         {
             Alias = "eksempel",
             Name = "Eksempel",
-            Description = "Gode eksempler / caser",
+            Description = "Eksempler fra offentlig sektor",
             Icon = "icon-science",
             AllowedAsRoot = false,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("organisasjon", "Organisasjon", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("beskrivelse", "Beskrivelse", _richTextDt), "innhold");
-        ct.AddPropertyType(Prop("verktoy", "Verktøy", _textAreaDt, description: "JSON array med verktøynavn"), "innhold");
-        ct.AddPropertyType(Prop("resultater", "Resultater", _richTextDt), "innhold");
-        ct.AddPropertyType(Prop("status", "Status", _textStringDt, description: "i_utvikling, pilot, i_drift, avsluttet"), "innhold");
-        ct.AddPropertyType(Prop("bilde", "Bilde", _mediaPickerDt), "innhold");
-        ct.AddPropertyType(Prop("merkelapper", "Merkelapper", _textAreaDt, description: "JSON array med merkelapp-slugs"), "innhold");
-        ct.AddPropertyType(Prop("accordionSeksjoner", "Accordion-seksjoner", _blockListAccordionDt, description: "Trekkspill-seksjoner"), "innhold");
+        AddArtikkelhodeFields(ct);
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListEksempelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+        SetStandardGroupSortOrders(ct);
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateEksemplerOversikt()
+    {
+        var eksempelType = _contentTypeService.Get("eksempel");
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "eksempler",
+            Name = "Eksempler",
+            Description = "Oversiktsside for eksempler. Redigerbart hode + eksempel-barn under.",
+            Icon = "icon-science",
+            AllowedAsRoot = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, mandatory: true, description: "Vises som overskrift på /eksempler"), "innhold");
+        ct.AddPropertyType(Prop("heroIngress", "Ingress", _textAreaDt, description: "Kort introduksjonstekst under tittelen på /eksempler"), "innhold");
+
+        ct.AddPropertyGroup("seo", "SEO");
+        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
+        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+
+        if (eksempelType != null)
+        {
+            ct.AllowedContentTypes = new[]
+            {
+                new ContentTypeSort(eksempelType.Key, 0, eksempelType.Alias)
+            };
+        }
+
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2304,89 +2280,6 @@ public class ContentTypeComponent : IAsyncComponent
     /// Removes "side" from the sider container's AllowedContentTypes so editors
     /// can't create new Side pages. Existing Side content stays untouched.
     /// </summary>
-    /// <summary>
-    /// Creates the Caser overview content type — editable page that also holds case children.
-    /// Editor clicks "Caser" in tree → sees a form for the overview page heading and lead.
-    /// Frontend /caser/index.astro reads these fields.
-    /// </summary>
-    private IContentType CreateCaserOversikt()
-    {
-        var caseType = _contentTypeService.Get("case");
-        var ct = new ContentType(_shortStringHelper, -1)
-        {
-            Alias = "caser",
-            Name = "Caser",
-            Description = "Oversiktsside for caser. Redigerbart hode + case-barn under.",
-            Icon = "icon-science",
-            AllowedAsRoot = true,
-        };
-        ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, mandatory: true, description: "Vises som overskrift på /caser"), "innhold");
-        ct.AddPropertyType(Prop("heroIngress", "Ingress", _textAreaDt, description: "Kort introduksjonstekst under tittelen på /caser"), "innhold");
-
-        ct.AddPropertyGroup("seo", "SEO");
-        ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
-        ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
-        ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
-
-        if (caseType != null)
-        {
-            ct.AllowedContentTypes = new[]
-            {
-                new ContentTypeSort(caseType.Key, 0, caseType.Alias)
-            };
-        }
-
-        _contentTypeService.Save(ct);
-        return ct;
-    }
-
-    /// <summary>
-    /// Migrates existing bare 'caser' container to editable overview page by adding fields.
-    /// Idempotent.
-    /// </summary>
-    private void MigrateCaserOversikt()
-    {
-        var ct = _contentTypeService.Get("caser");
-        if (ct == null) return;
-
-        bool changed = false;
-
-        if (ct.Description != "Oversiktsside for caser. Redigerbart hode + case-barn under.")
-        {
-            ct.Description = "Oversiktsside for caser. Redigerbart hode + case-barn under.";
-            changed = true;
-        }
-
-        if (!ct.PropertyTypeExists("heroTittel"))
-        {
-            if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
-                ct.AddPropertyGroup("innhold", "Innhold");
-            ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, mandatory: false, description: "Vises som overskrift på /caser"), "innhold");
-            changed = true;
-        }
-        if (!ct.PropertyTypeExists("heroIngress"))
-        {
-            ct.AddPropertyType(Prop("heroIngress", "Ingress", _textAreaDt, description: "Kort introduksjonstekst under tittelen på /caser"), "innhold");
-            changed = true;
-        }
-        if (!ct.PropertyTypeExists("seoTittel"))
-        {
-            if (!ct.PropertyGroups.Any(g => g.Alias == "seo"))
-                ct.AddPropertyGroup("seo", "SEO");
-            ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
-            ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
-            ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
-            changed = true;
-        }
-
-        if (changed)
-        {
-            _contentTypeService.Save(ct);
-            Console.WriteLine("ContentTypeComposer: Migrated caser to editable overview page");
-        }
-    }
-
     private void MigrateFaqSamlingName()
     {
         var ct = _contentTypeService.Get("faqSamling");
@@ -2402,8 +2295,8 @@ public class ContentTypeComponent : IAsyncComponent
     /// Allows ALL existing content types as children EXCEPT:
     ///   - "side" (legacy generic page type — no new ones should be created; existing kontakt stays)
     ///   - "merkelapp" (lives in its own Merkelapper container)
-    ///   - "case", "artikkel", "ordbokOppslag", "veiledningGuide", "veiledningSteg", "faq" (children
-    ///     of their own containers)
+    ///   - "eksempel", "artikkel", "ordbokOppslag", "veiledningGuide", "veiledningSteg", "faq",
+    ///     "stegartikkel", "kalenderhendelse" (children of their own containers)
     ///   - "forside" (always lives at root, top of tree)
     ///   - container types themselves
     /// Result: editor can drag Om Oss, Sandkasse, KI-ordbok (the page) into Sider freely.
@@ -2419,18 +2312,19 @@ public class ContentTypeComponent : IAsyncComponent
         {
             "side",            // legacy — no new generic Side pages
             "merkelapp",       // tag, not a page
-            "case",            // child of caser
+            "eksempel",        // child of eksempler
             "artikkel",        // child of artikler
-            "eksempel",        // legacy
             "ordbokOppslag",   // child of ordbokSamling
             "veiledningGuide", // child of veiledninger
             "veiledningSteg",  // child of veiledningGuide
+            "stegartikkel",    // child of veiledningSteg
             "enkelVeiledning", // child of veiledninger
+            "kalenderhendelse",// child of kalender
             "faq",             // child of faqSamling
             "forside",         // always at root
             "globaleInnstillinger", // singleton at root
             // Containers themselves (sider can't contain other containers)
-            "sider", "artikler", "caser", "eksempler", "veiledninger",
+            "sider", "artikler", "eksempler", "veiledninger", "kalender",
             "faqSamling", "merkelapper", "ordbokSamling", "tilgjengeligeIkoner",
             // Block list element types
             "artikkelTekst", "artikkelInfoBoks", "artikkelHero", "artikkelBildeSeksjon",

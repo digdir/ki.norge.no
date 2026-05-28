@@ -75,7 +75,7 @@ export function caseSchema(opts: {
     description: opts.description,
     datePublished: opts.datePublished,
     dateModified: opts.dateModified || opts.datePublished,
-    url: `${SITE_URL}/caser/${opts.slug}`,
+    url: `${SITE_URL}/eksempler/${opts.slug}`,
     publisher,
   };
   if (opts.organization) {
