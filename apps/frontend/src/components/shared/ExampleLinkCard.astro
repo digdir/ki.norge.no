@@ -54,7 +54,7 @@ const id = `example-link-card-${crypto.randomUUID().slice(0, 8)}`;
 
   /* ── Dark variant ──────────────────────────────── */
   .example-link-card[data-variant='dark'] {
-    background-color: var(--ds-color-base-default);
+    background-color: var(--ds-color-base-active);
     color: var(--ds-color-base-contrast-default);
 
     .example-link-card-arrow {
@@ -90,10 +90,9 @@ const id = `example-link-card-${crypto.randomUUID().slice(0, 8)}`;
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    transition: transform 0.15s ease;
   }
 
-  .example-link-card a.:click-delegate-hover {
+  .example-link-card a.\:click-delegate-hover {
     text-decoration: underline;
   }
 </style>
