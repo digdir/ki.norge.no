@@ -50,12 +50,9 @@ Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres ti
 - `src/components/shared/SearchDialog.tsx` — KI-søk dialog (React, client:load)
 - `src/components/shared/CookieNotice.astro` — minimal cookie-notice (essential cookies only)
 - `src/components/shared/BackToTop.astro` — flytende back-to-top knapp på lange sider
-- `src/styles/global.css`, `search-dialog.css`, `grid.css`, `article-blocks.css`
+- `src/styles/global.css`, `search-dialog.css`, `layout.css`, `article-blocks.css`
 
-**Grid-system:** 12-kolonne responsivt grid (se `src/styles/grid.css` og `Grid.astro`).
-- Over 1024px: 12 kolonner, under 768px: 6 kolonner
-- Brødtekst og moduler: `col-center-6`. Hero med bilde: `col-center-10`. Full bleed: `col-all`.
-- Alle nye artikkelmoduler skal ha `col-center-6` som standard.
+**layout-system:** Se layout.css
 
 **Breakpoints:** 768px og 1024px (grid). Eldre kode bruker også 640px.
 

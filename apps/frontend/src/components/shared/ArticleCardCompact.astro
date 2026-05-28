@@ -1,0 +1,84 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  tag?: string;
+  tagColor?: string;
+  date?: string;
+}
+
+const { href, title, tag, tagColor = 'neutral', date } = Astro.props;
+const id = `compact-card-${crypto.randomUUID().slice(0, 8)}`;
+
+const formattedDate = date
+  ? new Date(date).toLocaleDateString('nb-NO', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  : undefined;
+---
+
+<article class="compact-card" data-clickdelegatefor={id}>
+  {tag && <span class="compact-card-tag" data-color={tagColor}>{tag}</span>}
+  <h3 class="compact-card-title"><a id={id} href={href}>{title}</a></h3>
+  {formattedDate && (
+    <span class="compact-card-date">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M2 6h12" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      {formattedDate}
+    </span>
+  )}
+</article>
+
+<style>
+  .compact-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    cursor: pointer;
+    padding: var(--ds-size-4);
+    border-radius: var(--ds-border-radius-md);
+    transition: box-shadow 0.2s ease;
+
+    & a {
+      text-decoration: none;
+      color: inherit;
+
+      &:focus-visible {
+        outline: none;
+      }
+    }
+
+    &:focus-within {
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+    }
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  .compact-card-tag {
+    font-size: var(--ds-body-xs-font-size);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ds-color-accent-text-subtle);
+  }
+
+  .compact-card-title {
+    font-size: var(--ds-body-md-font-size);
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .compact-card-date {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+  }
+</style>

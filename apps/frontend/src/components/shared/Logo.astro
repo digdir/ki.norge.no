@@ -29,12 +29,4 @@ const { className = '' } = Astro.props;
     color: var(--ds-color-neutral-text-default);
     letter-spacing: -0.015em;
   }
-
-  :global([data-header-theme="dark"]) .logo-text {
-    color: white;
-  }
-
-  :global([data-header-theme="dark"]) .logo-icon {
-    filter: brightness(0) invert(1);
-  }
 </style>

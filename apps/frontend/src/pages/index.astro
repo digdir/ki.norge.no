@@ -12,7 +12,7 @@ let forside = null;
 let latestArticles: any[] = [];
 try {
   forside = await getForside();
-  const artiklerRes = await getArtikler(3);
+  const artiklerRes = await getArtikler(4);
   latestArticles = artiklerRes.data;
 } catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
@@ -22,237 +22,322 @@ const title = forside?.seoTittel || 'Hjem';
 const seoDescription = forside?.seoBeskrivelse || 'KI Norge - Norges nasjonale strategi for kunstig intelligens. Veiledning, regulatorisk sandkasse og gode eksempler for offentlig sektor.';
 const websiteJsonLd = websiteSchema(seoDescription);
 
-// CMS fields with fallbacks
-const v = {
-  overskrift: forside?.veiledningOverskrift || 'Veiledning',
-  kort1Tittel: forside?.veiledning1Tittel || 'Vi skal ta i bruk KI',
-  kort1Beskrivelse: forside?.veiledning1Beskrivelse || 'For deg som vil ta i bruk ferdig trent KI →',
-  kort1Url: forside?.veiledning1Url || '/veiledning',
-  kort2Tittel: forside?.veiledning2Tittel || 'Vi skal lage et KI-system',
-  kort2Beskrivelse: forside?.veiledning2Beskrivelse || 'For deg som ønsker å bygge en KI-løsning selv →',
-  kort2Url: forside?.veiledning2Url || '/veiledning',
-};
-const a = {
-  overskrift: forside?.aktueltOverskrift || 'Aktuelt',
-  lenkeTekst: forside?.aktueltLenkeTekst || 'Finn inspirasjon og lær av andre',
-  lenkeUrl: forside?.aktueltLenkeUrl || '/caser',
-};
-
-const sectionOrder = {
-  veiledning: forside?.rekkefolgeVeiledning ?? 1,
-  aktuelt: forside?.rekkefolgeAktuelt ?? 2,
-  treraad: forside?.rekkefolgeTreRaad ?? 3,
-  sandkasse: forside?.rekkefolgeSandkasse ?? 4,
-};
+const featuredArticle = latestArticles[0];
+const otherArticles = latestArticles.slice(1);
 ---
 
 <Layout title={title} description={seoDescription}>
   <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
   <Hero />
 
-  <div class="sections-container grid">
-  <!-- Veiledning -->
-  <section class="veiledning col-center-10" style={`order: ${sectionOrder.veiledning}`}>
-      <h2 class="section-heading">{v.overskrift}</h2>
-      <div class="veiledning-grid">
-        <a href={v.kort1Url} class="veiledning-card">
-          <span class="veiledning-card-top">
-            <AkselIcon name="HandHeart" size={24} />
-            <span class="veiledning-card-title">{v.kort1Tittel}</span>
-          </span>
-          <div class="veiledning-card-illustration"></div>
-          <span class="veiledning-card-desc">{v.kort1Beskrivelse}</span>
-        </a>
-        <a href={v.kort2Url} class="veiledning-card">
-          <span class="veiledning-card-top">
-            <AkselIcon name="Package" size={24} />
-            <span class="veiledning-card-title">{v.kort2Tittel}</span>
-          </span>
-          <div class="veiledning-card-illustration"></div>
-          <span class="veiledning-card-desc">{v.kort2Beskrivelse}</span>
-        </a>
-      </div>
-  </section>
-
   <!-- Aktuelt -->
-  <section class="aktuelt col-center-10" style={`order: ${sectionOrder.aktuelt}`}>
-      <h2 class="section-heading">{a.overskrift}</h2>
-      <div class="aktuelt-grid grid-subrows" data-color="neutral">
-        {latestArticles.map(article => (
+  <section class="aktuelt" data-layout-block="edge">
+    <div data-layout-block="content">
+      <h2 class="section-heading">Aktuelt</h2>
+
+      {featuredArticle && (
+        <a href={`/artikler/${featuredArticle.slug}`} class="featured-article">
+          <div class="featured-article-image"></div>
+          <div class="featured-article-text">
+            <h3 class="featured-article-title">{featuredArticle.tittel}</h3>
+            <p class="featured-article-lead">{featuredArticle.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}</p>
+          </div>
+        </a>
+      )}
+
+      <div class="article-grid">
+        {otherArticles.map(article => (
           <NewsCard
             href={`/artikler/${article.slug}`}
             title={article.tittel}
             tag="Artikkel"
+            date={article.publishedAt}
           />
         ))}
       </div>
-      <ArrowLink href={a.lenkeUrl} text={a.lenkeTekst} />
+
+      <ArrowLink href="/artikler" text="Se alle artikler" />
+    </div>
   </section>
 
-  <!-- Tre råd -->
-  <section class="col-center-10" style={`order: ${sectionOrder.treraad}`}>
-    <TextWithImage title="Kom i gang med KI" href="/veiledning" image="/placeholder.png" imageAlt="Illustrasjon av tre råd">
-      <ol class="ds-list">
-        <li>Bruk KI til å dekke ekte behov</li>
-        <li>Sørg for god datakvalitet</li>
-        <li>Pass på at du følger regelverk</li>
-      </ol>
-    </TextWithImage>
-    <ArrowLink href="/veiledning" text="Se all veiledning" />
-  </section>
-
-  <!-- Sandkasse -->
-  <section class="sandkasse col-center-10" style={`order: ${sectionOrder.sandkasse}`}>
-      <a href="/sandkasse" class="sandkasse-card">
-        <h2 class="sandkasse-title">Regulatorisk sandkasse for kunstig intelligens</h2>
-        <div class="sandkasse-bottom">
-          <p class="sandkasse-desc">I den regulatoriske sandkassen får du råd og veiledning som hjelper deg å utvikle et KI-system som følger loven.</p>
-          <span class="sandkasse-arrow">→</span>
+  <!-- Kommende arrangementer -->
+  <section data-layout-block="content">
+    <h2 class="section-heading">Kommende arrangementer</h2>
+    <div class="event-card">
+      <div class="event-card-date">
+        <span class="event-card-day">13.</span>
+        <span class="event-card-month">august</span>
+        <span class="event-card-time">09:00</span>
+      </div>
+      <div class="event-card-content">
+        <div class="event-card-header">
+          <span class="ds-tag" data-color="brand1">Konferanse</span>
+          <span class="event-card-meta">Digitalisering og ansvarlig datastyring</span>
         </div>
-      </a>
+        <h3 class="event-card-title">Digitaliseringskonferansen</h3>
+        <p class="event-card-desc">Korleis kunstig intelligens, bærekraftig datastyring, innovasjon og samhandling vil drive...</p>
+        <div class="event-card-details">
+          <span>09:00 - 16:00</span>
+          <span>Arrangert av Tone Berge</span>
+          <span>Thon Hotel The Hub, Oslo</span>
+        </div>
+      </div>
+      <div class="event-card-seats">64 PLASSER IGJEN</div>
+    </div>
+    <ArrowLink href="/arrangementer" text="Se alle arrangementer" />
   </section>
 
-  </div>
+  <!-- Veiledning -->
+  <section class="veiledning-section" data-layout-block="edge">
+    <div data-layout-block="content">
+      <TextWithImage title="Gjør dataene KI-klare" href="/veiledning" image="/placeholder.png" imageAlt="Illustrasjon av veiledning">
+        <p class="veiledning-label">Veiledning</p>
+        <p>Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.</p>
+      </TextWithImage>
+    </div>
+  </section>
+
+  <!-- Lær av andre -->
+  <section data-layout-block="content">
+    <h2 class="section-heading">Lær av andre</h2>
+    <div class="cases-grid">
+      <NewsCard
+        href="/caser/ki-chat-staten"
+        title="KI-chat effektiviserer analysearbeid i staten"
+        tag="Eksempel"
+      />
+      <NewsCard
+        href="/caser/politiet-tale-til-tekst"
+        title="Politiet - Fra tale til tekst på minutter"
+        tag="Eksempel"
+      />
+    </div>
+    <ArrowLink href="/caser" text="Se alle eksempler" />
+  </section>
+
+  <!-- Den regulatoriske sandkassen -->
+  <section class="sandkasse-section" data-layout-block="edge">
+    <div data-layout-block="content">
+      <h2 class="sandkasse-title">
+        Den regulatoriske sandkassen
+      </h2>
+      <p class="sandkasse-desc">Juridisk veiledning for deg som ønsker å utvikle et risikofylt KI-prosjekt.</p>
+    </div>
+  </section>
 </Layout>
 
 <style>
-  /* Sections container for CMS-driven reordering */
-  .sections-container {
-    row-gap: 64px;
-    padding-block: 64px;
+  /* Sections spacing */
+  :global(main) > * + * {
+    margin-top: var(--ds-size-6);
   }
 
-  /* Shared */
+  /* Section headings */
   .section-heading {
-    font-family: 'Inter', sans-serif;
-    font-size: 32px;
-    font-weight: 400;
+    font-size: var(--ds-heading-md-font-size);
+    font-weight: 500;
     line-height: 1.3;
-    margin: 0 0 32px;
-    color: #000;
+    margin: 0 0 var(--ds-size-8);
   }
 
-  /* Veiledning */
-  .veiledning {
-    position: relative;
-    z-index: 1;
+  /* ── Aktuelt ─────────────────────────────────────────── */
+  .aktuelt {
+    background-color: var(--ds-color-neutral-background-default);
   }
-  .veiledning-grid {
+
+  .featured-article {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 32px;
-  }
-  @media (min-width: 640px) {
-    .veiledning-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  .veiledning-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 24px;
-    background-color: #e2f0fc;
-    border-radius: 8px;
+    gap: var(--ds-size-6);
     text-decoration: none;
     color: inherit;
-    transition: box-shadow 0.2s ease;
-    justify-content: space-between;
-  }
-  .veiledning-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  }
-  .veiledning-card-top {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .veiledning-card-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #111d46;
-  }
-  .veiledning-card-illustration {
-    width: 100%;
-    height: 180px;
-    background-color: #d9d9d9;
-    border-radius: 8px;
-    margin-bottom: 16px;
-  }
-  .veiledning-card-desc {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(35, 44, 60, 0.75);
+    margin-bottom: var(--ds-size-8);
+
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 
-  /* Aktuelt */
-  .aktuelt-grid {
+  .featured-article-image {
+    aspect-ratio: 4 / 3;
+    background-color: var(--image-fallback-bg);
+    border-radius: var(--ds-border-radius-lg);
+  }
+
+  .featured-article-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    justify-content: center;
+  }
+
+  .featured-article-title {
+    font-size: var(--ds-heading-sm-font-size);
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  .featured-article-lead {
+    font-size: var(--ds-body-md-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .article-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 32px;
-    margin-bottom: 32px;
-  }
-  @media (min-width: 1024px) {
-    .aktuelt-grid {
+    gap: var(--ds-size-6);
+    margin-bottom: var(--ds-size-8);
+
+    @media (min-width: 768px) {
       grid-template-columns: repeat(3, 1fr);
     }
   }
 
-  /* Sandkasse */
-  .sandkasse-card {
-    display: flex;
-    flex-direction: column;
-    background-color: #f1e8d0;
-    border-radius: 8px;
-    padding: 24px 24px 32px;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.2s ease;
-  }
-  .sandkasse-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  }
-  .sandkasse-title {
-    font-size: 32px;
-    font-weight: 600;
-    margin: 0 0 16px;
-    color: #000;
-    line-height: 1.3;
-  }
-  .sandkasse-bottom {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-  }
-  .sandkasse-desc {
-    font-size: 24px;
-    font-weight: 400;
-    color: rgba(0,0,0,0.7);
-    margin: 0;
-    line-height: 1.5;
-  }
-  .sandkasse-arrow {
-    font-size: 24px;
-    color: rgba(0,0,0,0.7);
-    flex-shrink: 0;
+  /* ── Kommende arrangementer ──────────────────────────── */
+  .event-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--ds-size-6);
+    align-items: start;
+    background-color: var(--ds-color-neutral-background-default);
+    border-radius: var(--ds-border-radius-lg);
+    padding: var(--ds-size-6);
+    margin-bottom: var(--ds-size-6);
   }
 
-  /* Responsive */
-  @media (max-width: 640px) {
-    .section-heading {
-      font-size: 24px;
+  .event-card-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--ds-color-neutral-surface-tinted);
+    border-radius: var(--ds-border-radius-md);
+    padding: var(--ds-size-3) var(--ds-size-4);
+    min-width: 64px;
+  }
+
+  .event-card-day {
+    font-size: var(--ds-heading-md-font-size);
+    font-weight: 700;
+  }
+
+  .event-card-month {
+    font-size: var(--ds-body-sm-font-size);
+  }
+
+  .event-card-time {
+    font-size: var(--ds-body-xs-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+  }
+
+  .event-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+  }
+
+  .event-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+  }
+
+  .event-card-meta {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+  }
+
+  .event-card-title {
+    font-size: var(--ds-heading-xs-font-size);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .event-card-desc {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+    margin: 0;
+  }
+
+  .event-card-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-4);
+    font-size: var(--ds-body-xs-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+    margin-top: var(--ds-size-2);
+  }
+
+  .event-card-seats {
+    font-size: var(--ds-body-xs-font-size);
+    font-weight: 600;
+    color: var(--ds-color-neutral-text-subtle);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 767px) {
+    .event-card {
+      grid-template-columns: 1fr;
     }
-    .veiledning-card-title {
-      font-size: 20px;
+    .event-card-seats {
+      order: -1;
     }
-    .sandkasse-title {
-      font-size: 24px;
+  }
+
+  /* ── Veiledning ──────────────────────────────────────── */
+  .veiledning-section {
+    background-color: var(--ds-color-surface-default);
+  }
+
+  .veiledning-label {
+    font-size: var(--ds-body-sm-font-size);
+    font-weight: 500;
+    color: var(--ds-color-neutral-text-subtle);
+    margin: 0;
+  }
+
+  /* ── Lær av andre ────────────────────────────────────── */
+  .cases-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-size-6);
+    margin-bottom: var(--ds-size-8);
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
     }
-    .sandkasse-desc {
-      font-size: 18px;
-    }
+  }
+
+  /* ── Sandkassen ──────────────────────────────────────── */
+  .sandkasse-section {
+    background-color: var(--ds-color-surface-tinted);
+  }
+
+  .sandkasse-title {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+    font-size: var(--ds-heading-sm-font-size);
+    font-weight: 600;
+    margin: 0 0 var(--ds-size-3);
+  }
+
+  .sandkasse-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .sandkasse-desc {
+    font-size: var(--ds-body-md-font-size);
+    margin: 0;
+    opacity: 0.85;
+    max-width: 500px;
   }
 </style>

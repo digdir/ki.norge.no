@@ -5,7 +5,7 @@ import PreviewBanner from '../shared/PreviewBanner.astro';
 import BackToTop from '../shared/BackToTop.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
 import '../../styles/global.css';
-import '../../styles/grid.css';
+import '../../styles/layout.css';
 import '../../styles/search-dialog.css';
 import './header.css';
 
@@ -82,7 +82,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
   </head>
-  <body data-header-theme={headerTheme} data-color-scheme="light">
+  <body data-color-scheme="light" data-color="accent">
     <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>
     <CookieNotice />
     <Header client:load currentPath={currentPath} />
@@ -90,7 +90,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
       <slot />
     </main>
     <Footer />
-    <BackToTop />
+    <!-- <BackToTop /> -->
     <!-- <SearchDialog client:load /> -->
     {isPreview && <PreviewBanner currentPath={currentPath} />}
     <script is:inline>
