@@ -3,7 +3,7 @@ import Layout from '../../components/layout/Layout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import ExampleLinkCard from '../../components/shared/ExampleLinkCard.astro';
 
-import { getCase, getCaser, getPlainText, getMediaUrl, type Case } from '../../lib/umbraco';
+import { getCase, getCaser, getPlainText, type Case } from '../../lib/umbraco';
 import { caseSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
@@ -75,7 +75,9 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
         </aside>
         <div class="case-content">
           {article.ingress && <p class="case-ingress">{article.ingress}</p>}
-          <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+          <div data-layout-article>
+            <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+          </div>
         </div>
       </div>
     </section>
@@ -84,7 +86,9 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
     <div class="case-simple" data-layout-block="content">
       <h1 class="case-title">{article.tittel}</h1>
       {article.ingress && <p class="case-ingress">{article.ingress}</p>}
-      <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+      <div data-layout-article>
+        <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+      </div>
     </div>
   )}
 
@@ -206,29 +210,9 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
     font-weight: 500;
   }
 
-  .case-share-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ds-size-2);
-    background: none;
-    border: 1px solid var(--ds-color-border-default);
-    border-radius: var(--ds-border-radius-md);
-    padding: var(--ds-size-2) var(--ds-size-4);
-    font-size: var(--ds-font-size-1);
-    font-weight: 500;
-    color: var(--ds-color-text-default);
-    cursor: pointer;
-    width: fit-content;
-  }
-
-  .case-share-btn:hover {
-    background-color: var(--ds-color-surface-hover);
-  }
-
   .case-content {
     flex: 1;
     min-width: 0;
-    max-width: 80ch;
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-8);
@@ -240,8 +224,10 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
     flex-direction: column;
     gap: var(--ds-size-8);
     padding-block: var(--ds-size-12);
-    max-width: 720px;
-    margin-inline: auto;
+  }
+
+  .case-simple .case-ingress {
+    max-width: 100ch;
   }
 
   /* ── More cases ─────────────────────────────────── */
