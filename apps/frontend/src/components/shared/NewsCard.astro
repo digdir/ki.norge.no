@@ -52,12 +52,6 @@ const formattedDate = date
     {variant === 'featured' && lead && <p class="news-card-lead">{lead}</p>}
     {formattedDate && (
       <span class="news-card-meta">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
-          <line x1="5" y1="4.5" x2="11" y2="4.5" stroke="currentColor" stroke-width="1.2"/>
-          <line x1="5" y1="7.5" x2="11" y2="7.5" stroke="currentColor" stroke-width="1.2"/>
-          <line x1="5" y1="10.5" x2="8" y2="10.5" stroke="currentColor" stroke-width="1.2"/>
-        </svg>
         {formattedDate}
       </span>
     )}
@@ -221,12 +215,8 @@ const formattedDate = date
     display: flex;
     align-items: center;
     gap: var(--ds-size-2);
-    font-size: var(--ds-font-size-1);
+    font-size: var(--ds-font-size-3);
     font-weight: 500;
     color: var(--ds-color-brand1-text-default);
-  }
-
-  .news-card-meta svg {
-    flex-shrink: 0;
   }
 </style>
