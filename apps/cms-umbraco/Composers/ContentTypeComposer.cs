@@ -151,6 +151,8 @@ public class ContentTypeComponent : IAsyncComponent
             CreateBlockListDataTypes();
 
             MigrateVeiledningElementNames();
+            MigrateVeiledningObsRemoveVariant();
+            MigrateVeiledningInfo();
 
             // Prosessteg container depends on _blockListProsessStegItemsDt being created above
             if (_contentTypeService.Get("artikkelProsessteg") == null)
@@ -752,15 +754,48 @@ public class ContentTypeComponent : IAsyncComponent
         {
             Alias = "veiledningInfo",
             Name = "Infomodul",
-            Description = "Informasjonsboks med tittel og innhold. Brukes for nyttige opplysninger som ikke krever varsel.",
+            Description = "Informasjonsboks med tittel og innhold. Kan ha innebygd trekkspill og 'Les mer'-lenke.",
             Icon = "icon-info",
             IsElement = true,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("innhold", "Innhold", _richTextDt, mandatory: true, sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("trekkspill", "Trekkspill", _blockListAccordionDt, description: "Valgfri innebygd accordion under innholdet.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("lesMerTittel", "Les mer-tittel", _textStringDt, description: "Vises som lenketekst nederst, f.eks. 'Les mer hos Datatilsynet'.", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("lesMerUrl", "Les mer-URL", _textStringDt, description: "URL som 'Les mer'-lenken peker til.", sortOrder: 5), "innhold");
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    private void MigrateVeiledningInfo()
+    {
+        var ct = _contentTypeService.Get("veiledningInfo");
+        if (ct == null) return;
+
+        bool changed = false;
+
+        if (!ct.PropertyTypes.Any(p => p.Alias == "trekkspill"))
+        {
+            ct.AddPropertyType(Prop("trekkspill", "Trekkspill", _blockListAccordionDt, description: "Valgfri innebygd accordion under innholdet.", sortOrder: 3), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "lesMerTittel"))
+        {
+            ct.AddPropertyType(Prop("lesMerTittel", "Les mer-tittel", _textStringDt, description: "Vises som lenketekst nederst, f.eks. 'Les mer hos Datatilsynet'.", sortOrder: 4), "innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "lesMerUrl"))
+        {
+            ct.AddPropertyType(Prop("lesMerUrl", "Les mer-URL", _textStringDt, description: "URL som 'Les mer'-lenken peker til.", sortOrder: 5), "innhold");
+            changed = true;
+        }
+
+        if (changed)
+        {
+            _contentTypeService.Save(ct);
+            Console.WriteLine("ContentTypeComposer: Migrated veiledningInfo with trekkspill + lesMer fields");
+        }
     }
 
     private IContentType CreateVeiledningEksempelElement()
@@ -795,6 +830,16 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tekst", "Tekst", _richTextDt, mandatory: true), "innhold");
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    private void MigrateVeiledningObsRemoveVariant()
+    {
+        var ct = _contentTypeService.Get("veiledningObs");
+        if (ct == null) return;
+        if (!ct.PropertyTypes.Any(p => p.Alias == "variant")) return;
+        ct.RemovePropertyType("variant");
+        _contentTypeService.Save(ct);
+        Console.WriteLine("ContentTypeComposer: Removed variant property from veiledningObs");
     }
 
     private IContentType CreateVeiledningTrekkspillElement()
@@ -1240,6 +1285,9 @@ public class ContentTypeComponent : IAsyncComponent
             "merkelapper",
             "merkelapp",
             "veiledningOversikt",
+            "veiledningTaValg",
+            "veiledningTaValgItem",
+            "veiledningLenkekort",
         };
 
         foreach (var alias in aliasesToRemove)

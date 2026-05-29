@@ -140,7 +140,13 @@ export interface VeiledningTekstBlock {
 
 export interface VeiledningInfoBlock {
   contentType: 'veiledningInfo';
-  content: { tittel: string; innhold: string };
+  content: {
+    tittel: string;
+    innhold: string;
+    trekkspill?: { tittel: string; innhold: string }[];
+    lesMerTittel?: string;
+    lesMerUrl?: string;
+  };
 }
 
 export interface VeiledningEksempelBlock {
@@ -1077,7 +1083,20 @@ function mapVeiledningBlocks(value: unknown): UmbracoBlock[] | undefined {
       return { contentType: 'veiledningTekst', content: { innhold: richHtml(props.innhold) } };
     }
     if (ct === 'veiledningInfo') {
-      return { contentType: 'veiledningInfo', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+      const trekkspillRaw = (props.trekkspill as any)?.items;
+      const trekkspill = Array.isArray(trekkspillRaw)
+        ? trekkspillRaw.map((t: any) => {
+            const tc = t.content?.properties || t.content || t.properties || t;
+            return { tittel: tc.tittel || tc.title || '', innhold: richHtml(tc.innhold || tc.body) };
+          })
+        : undefined;
+      return { contentType: 'veiledningInfo', content: {
+        tittel: props.tittel || '',
+        innhold: richHtml(props.innhold),
+        trekkspill,
+        lesMerTittel: props.lesMerTittel || undefined,
+        lesMerUrl: props.lesMerUrl || undefined,
+      } };
     }
     if (ct === 'veiledningEksempel') {
       return { contentType: 'veiledningEksempel', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
