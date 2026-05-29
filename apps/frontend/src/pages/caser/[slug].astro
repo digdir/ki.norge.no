@@ -1,6 +1,7 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
+import ExampleLinkCard from '../../components/shared/ExampleLinkCard.astro';
 
 import { getCase, getCaser, getPlainText, getMediaUrl, type Case } from '../../lib/umbraco';
 import { caseSchema, breadcrumbSchema } from '../../lib/seo';
@@ -11,14 +12,13 @@ const article: Case | null = await getCase(slug!, { preview: isPreview });
 if (!article) return Astro.redirect('/caser');
 
 const formattedDate = new Date(article.publishedAt).toLocaleDateString('nb-NO', {
-  year: 'numeric',
-  month: 'long',
   day: 'numeric',
+  month: 'long',
+  year: 'numeric',
 });
 
 const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
-const heroImage = article.artikkelBilde || article.seoBilde;
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
 
 const articleJsonLd = caseSchema({
@@ -31,279 +31,247 @@ const articleJsonLd = caseSchema({
 
 const breadcrumbJsonLd = breadcrumbSchema([
   { name: 'Forside', url: '/' },
-  { name: 'Caser', url: '/caser' },
+  { name: 'Eksempler', url: '/caser' },
   { name: article.tittel, url: `/caser/${slug}` },
 ]);
 
-// Fetch other cases for "Flere caser" section
-const allCasesRes = await getCaser({ take: 10 });
+// Fetch other cases for "Flere eksempler" section
+const allCasesRes = await getCaser();
 const otherArticles = allCasesRes.data.filter(a => a.slug !== slug).slice(0, 3);
 
 const bakgrunn = article.bakgrunn || 'hvit';
-const isLightBlueBg = bakgrunn === 'lyseblaa';
+const hasSidebar = bakgrunn === 'lyseblaa';
+
+function checkerboard(i: number, cols: number): 'dark' | 'light' {
+  const row = Math.floor(i / cols);
+  const col = i % cols;
+  return (row + col) % 2 === 0 ? 'dark' : 'light';
+}
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage}>
+  {hasSidebar ? (
+    <!-- Sidebar layout: tinted body background, white content area -->
+    <div class="case-sidebar-page" data-layout-block="content">
+      <h1 class="case-title">{article.tittel}</h1>
+    </div>
+    <section class="case-content-bleed" data-layout-block="edge">
+      <div class="case-sidebar-grid" data-layout-block="content">
+        <aside class="case-sidebar">
+          <div class="case-sidebar-meta">
+            <p class="case-sidebar-label">Publisert</p>
+            <p class="case-sidebar-value">{formattedDate}</p>
+          </div>
+          <div class="case-sidebar-meta">
+            <p class="case-sidebar-label">Av</p>
+            <p class="case-sidebar-value">Redaksjonen</p>
+          </div>
+          <button class="ds-button" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M12 5.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM4 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM12 13.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM5.4 7.8l5.2-2.6M5.4 8.2l5.2 2.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Del
+          </button>
+        </aside>
+        <div class="case-content">
+          {article.ingress && <p class="case-ingress">{article.ingress}</p>}
+          <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+        </div>
+      </div>
+    </section>
+  ) : (
+    <!-- Simple centered layout -->
+    <div class="case-simple" data-layout-block="content">
+      <h1 class="case-title">{article.tittel}</h1>
+      {article.ingress && <p class="case-ingress">{article.ingress}</p>}
+      <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+    </div>
+  )}
+
+  <!-- Flere eksempler -->
+  {otherArticles.length > 0 && (
+    <section class="more-cases" data-layout-block="content">
+      <h2 class="more-cases-heading">Flere eksempler</h2>
+      <div class="more-cases-grid">
+        {otherArticles.map((a, i) => (
+          <ExampleLinkCard
+            href={`/caser/${a.slug}`}
+            title={a.tittel}
+            tag="Eksempel"
+            variant={checkerboard(i, 3)}
+          />
+        ))}
+      </div>
+    </section>
+  )}
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="article-page grid">
-    <!-- Artikkelhode: title + ingress + image, optionally on full-bleed colored background -->
-    <section class={`article-hero ${isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
-      {isLightBlueBg ? (
-        <div class={`grid article-hero-bg-grid`}>
-          <div class="article-hero-inner col-center-10">
-            <div class="article-hero-text">
-              <h1 class="article-title">{article.tittel}</h1>
-              {article.ingress && <p class="article-ingress">{article.ingress}</p>}
-            </div>
-            {heroImage?.url && (
-              <div class="article-hero-image">
-                <img src={getMediaUrl(heroImage)} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div class="article-hero-inner">
-          <div class="article-hero-text">
-            <h1 class="article-title">{article.tittel}</h1>
-            {article.ingress && <p class="article-ingress">{article.ingress}</p>}
-          </div>
-          {heroImage?.url && (
-            <div class="article-hero-image">
-              <img src={getMediaUrl(heroImage)} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-    <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
-
-    <!-- Flere caser: col-center-10 -->
-    {otherArticles.length > 0 && (
-      <section class="more-articles col-center-10">
-        <h2 class="more-articles-heading">Flere caser</h2>
-        <div class="more-articles-grid">
-          {otherArticles.map(a => (
-            <a href={`/caser/${a.slug}`} class="more-article-card">
-              <div class="more-article-text">
-                <h3 class="more-article-title">{a.tittel}</h3>
-                <span class="more-article-date">
-                  {new Date(a.publishedAt).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-                <p class="more-article-lead">{getPlainText(a.innhold, 80)}</p>
-              </div>
-              <div class="more-article-image"></div>
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
-  </div>
 </Layout>
 
 <style>
-  .article-page {
-    padding-top: 0; /* hero handles its own top padding (incl. clearance for absolute header) */
-    row-gap: 48px; /* vertikal avstand mellom grid-barn */
-  }
-
-  /* Hero / Ingress / Artikkelhode */
-  .article-hero {
-    padding: 100px 0;
-  }
-
-  /* Light-blue full-bleed background variant. See artikler/[slug].astro for
-     the full comment. Same pattern: 100vw + negative margin to bleed past
-     the grid; negative top margin to extend up behind the absolute header.
-     Depends on `overflow-x: clip` on body (set in global.css). */
-  .article-hero--bg-lyseblaa {
-    background: #e5f2f7;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-top: calc(-1 * var(--header-height, 72px));
-    padding-top: calc(140px + var(--header-height, 72px));
-    padding-bottom: 80px;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .article-hero-inner {
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-  }
-
-  @media (min-width: 1024px) {
-    .article-hero-inner {
-      flex-direction: row;
-      align-items: center;
-    }
-  }
-
-  .article-hero-text {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-  }
-
-  .article-title {
+  /* ── Shared ──────────────────────────────────────── */
+  .case-title {
     font-size: 2rem;
     font-weight: 700;
-    color: #000;
+    color: var(--ds-color-text-default);
     margin: 0;
     line-height: 1.3;
     letter-spacing: -0.5px;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    text-wrap: balance;
   }
 
   @media (min-width: 768px) {
-    .article-title {
+    .case-title {
       font-size: 2.5rem;
     }
   }
 
-  @media (min-width: 1024px) {
-    .article-title {
-      font-size: 36px;
-    }
-  }
-
-  .article-ingress {
-    font-size: 21px;
+  .case-ingress {
+    font-size: var(--ds-font-size-4, 21px);
     font-weight: 400;
-    color: rgba(0, 0, 0, 0.75);
+    color: var(--ds-color-text-subtle);
     line-height: 1.7;
-    letter-spacing: 0.5px;
     margin: 0;
   }
 
-  @media (min-width: 1024px) {
-    .article-ingress {
-      font-size: 24px;
+  /* ── Sidebar layout ─────────────────────────────── */
+  .case-sidebar-page {
+    padding-top: var(--ds-size-12);
+    padding-bottom: var(--ds-size-8);
+  }
+
+  .case-sidebar-page .case-title {
+    margin-left: calc(180px + var(--ds-size-12));
+  }
+
+  @media (max-width: 1023px) {
+    .case-sidebar-page .case-title {
+      margin-left: 0;
     }
   }
 
-  .article-hero-image {
+  :global(body:has(.case-sidebar-page)) {
+    background-color: var(--ds-color-surface-tinted);
+  }
+
+  .case-content-bleed {
+    background-color: var(--ds-color-surface-default);
+    border-radius: var(--ds-border-radius-lg);
+  }
+
+  .case-sidebar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-8);
+    padding-block: var(--ds-size-12);
+  }
+
+  @media (min-width: 1024px) {
+    .case-sidebar-grid {
+      flex-direction: row;
+      gap: var(--ds-size-12);
+    }
+  }
+
+  .case-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
     flex-shrink: 0;
-    width: 100%;
   }
 
   @media (min-width: 1024px) {
-    .article-hero-image {
-      width: 407px;
+    .case-sidebar {
+      width: 180px;
     }
   }
 
-  .article-hero-img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    display: block;
-    object-fit: cover;
+  .case-sidebar-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  @media (min-width: 1024px) {
-    .article-hero-img {
-      height: 331px;
-    }
+  .case-sidebar-label {
+    font-size: var(--ds-font-size-1);
+    color: var(--ds-color-text-subtle);
+    margin: 0;
+    font-weight: 500;
   }
 
-  /* More articles */
-  .more-articles {
-    padding: 64px 0 120px;
+  .case-sidebar-value {
+    font-size: var(--ds-font-size-2);
+    color: var(--ds-color-text-default);
+    margin: 0;
+    font-weight: 500;
   }
 
-  .more-articles-heading {
-    font-size: 32px;
+  .case-share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    background: none;
+    border: 1px solid var(--ds-color-border-default);
+    border-radius: var(--ds-border-radius-md);
+    padding: var(--ds-size-2) var(--ds-size-4);
+    font-size: var(--ds-font-size-1);
+    font-weight: 500;
+    color: var(--ds-color-text-default);
+    cursor: pointer;
+    width: fit-content;
+  }
+
+  .case-share-btn:hover {
+    background-color: var(--ds-color-surface-hover);
+  }
+
+  .case-content {
+    flex: 1;
+    min-width: 0;
+    max-width: 80ch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-8);
+  }
+
+  /* ── Simple centered layout ─────────────────────── */
+  .case-simple {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-8);
+    padding-block: var(--ds-size-12);
+    max-width: 720px;
+    margin-inline: auto;
+  }
+
+  /* ── More cases ─────────────────────────────────── */
+  .more-cases {
+    padding-block: var(--ds-size-12);
+  }
+
+  .more-cases-heading {
+    font-size: var(--ds-heading-lg-font-size, 32px);
     font-weight: 700;
-    color: #000;
-    margin: 0 0 24px;
+    color: var(--ds-color-text-default);
+    margin: 0 0 var(--ds-size-6);
     line-height: 1.2;
     letter-spacing: -0.02em;
   }
 
-  @media (min-width: 1024px) {
-    .more-articles-heading {
-      font-size: 40px;
-      margin-bottom: 32px;
-    }
-  }
-
-  .more-articles-grid {
+  .more-cases-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 24px;
   }
 
   @media (min-width: 768px) {
-    .more-articles-grid {
+    .more-cases-grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: 32px;
     }
   }
 
   @media (min-width: 1024px) {
-    .more-articles-grid {
+    .more-cases-grid {
       grid-template-columns: repeat(3, 1fr);
     }
-  }
-
-  .more-article-card {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    padding: 24px;
-    min-height: 280px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.15s;
-  }
-
-  .more-article-card:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  .more-article-text {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .more-article-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #000;
-    margin: 0;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  .more-article-date {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    line-height: 1.45;
-  }
-
-  .more-article-lead {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    margin: 0;
-    line-height: 1.45;
-  }
-
-  .more-article-image {
-    flex: 1;
-    background: var(--image-fallback-bg, #D9D9D9);
-    border-radius: 8px;
-    min-height: 120px;
   }
 </style>

@@ -25,7 +25,9 @@ const {
 const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
 
 const formattedDate = date
-  ? new Date(date).toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  ? variant === 'small'
+    ? new Date(date).toLocaleDateString('nb-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+    : new Date(date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })
   : undefined;
 ---
 
