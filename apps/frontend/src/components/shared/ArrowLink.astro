@@ -4,12 +4,13 @@ import AkselIcon from './AkselIcon.astro';
 interface Props {
   href: string;
   text: string;
+  variant?: 'default' | 'light';
 }
 
 const { href, text } = Astro.props;
 ---
 
-<a href={href} class="arrow-link ds-focus">
+<a href={href} class="arrow-link ds-focus" data-variant={Astro.props.variant || 'default'}>
     {text}
     <span class="arrow-link-circle" aria-hidden="true">
       <AkselIcon name="ArrowRight" size={24} />
@@ -18,6 +19,8 @@ const { href, text } = Astro.props;
 
 <style>
   .arrow-link {
+    --ki-background: var(--ds-color-surface-active);
+
     display: inline-flex;
     align-items: center;
     gap: var(--ds-size-3);
@@ -25,6 +28,10 @@ const { href, text } = Astro.props;
     font-weight: 500;
     color: var(--ds-color-neutral-text-default);
     text-decoration: none;
+
+    &[data-variant="light"] {
+      --ki-background: var(--ds-color-neutral-background-default);
+    }
 
     &:hover {
       text-decoration: underline;
@@ -37,7 +44,7 @@ const { href, text } = Astro.props;
       width: var(--ds-size-10);
       aspect-ratio: 1 / 1;
       border-radius: 50%;
-      background-color: #FFD7E9;
+      background-color: var(--ki-background);
       font-size: 2rem;
       flex-shrink: 0;
       line-height: 1;

@@ -11,6 +11,10 @@
     "frontend:dev:prod": "UMBRACO_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io UMBRACO_PUBLIC_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io pnpm --dir apps/frontend run dev",
     "frontend:build": "cd apps/frontend && pnpm run build",
     "azure:activate": "TOKEN=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv) && curl -s -X PUT 'https://management.azure.com/subscriptions/fdc58270-273a-4afc-b996-83e97fe5173a/providers/Microsoft.Authorization/roleAssignmentScheduleRequests/'$(uuidgen)'?api-version=2020-10-01' -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json' -d '{\"properties\":{\"principalId\":\"3beaadb7-8bbb-4396-9773-8843fa1b2057\",\"roleDefinitionId\":\"/subscriptions/fdc58270-273a-4afc-b996-83e97fe5173a/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c\",\"requestType\":\"SelfActivate\",\"justification\":\"Deploy ki.norge.no\",\"scheduleInfo\":{\"expiration\":{\"type\":\"AfterDuration\",\"duration\":\"PT8H\"}}}}' && echo '\\nPIM activated. Wait 15s then run: az login'",
-    "deploy": "bash scripts/deploy-azure.sh"
+    "deploy": "bash scripts/deploy-azure.sh",
+    "tokens:build": "designsystemet tokens create --config designsystemet.config.json && designsystemet tokens build --config designsystemet.config.json"
+  },
+  "devDependencies": {
+    "@digdir/designsystemet": "^1.14.0"
   }
 }

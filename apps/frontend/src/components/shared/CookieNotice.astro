@@ -5,8 +5,8 @@ const gi = await getGlobaleInnstillinger().catch(() => null);
 const tittel = gi?.cookieTittel || 'Får vi samle informasjon om hvordan du bruker nettsiden?';
 const beskrivelseHtml = gi?.cookieTekst || '<p>Hvis du svarer ja, lagrer vi informasjon som vi bruker til statistikk og analyse for å forbedre nettsiden. <a href="/cookies">Du kan endre valget ditt når som helst</a>.</p>';
 const sekundaerHtml = gi?.cookieSekundaerTekst || '<p>Vi lagrer også informasjon fordi det er nødvendig for at nettsiden skal fungere. <a href="/cookies">Se oversikt over nødvendig informasjon.</a></p>';
-const jaLabel = gi?.cookieJaLabel || 'Ja';
-const neiLabel = gi?.cookieNeiLabel || 'Nei';
+const jaLabel = gi?.cookieJaLabel || 'Godta';
+const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 ---
 
 <div id="cookie-notice" class="cookie-notice" hidden>
@@ -14,10 +14,10 @@ const neiLabel = gi?.cookieNeiLabel || 'Nei';
     <h2 class="cookie-notice__title">{tittel}</h2>
     <div class="cookie-notice__text" set:html={beskrivelseHtml}></div>
     <div class="cookie-notice__actions">
-      <button id="cookie-notice-allow" type="button" class="cookie-notice__btn">
+      <button id="ds-button cookie-notice-allow" type="button" class="cookie-notice__btn">
         {jaLabel}
       </button>
-      <button id="cookie-notice-deny" type="button" class="cookie-notice__btn">
+      <button id="ds-button cookie-notice-deny" type="button" class="cookie-notice__btn">
         {neiLabel}
       </button>
     </div>

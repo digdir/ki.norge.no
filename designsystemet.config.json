@@ -1,0 +1,80 @@
+{
+  "$schema": "node_modules/@digdir/designsystemet/dist/config.schema.json",
+  "outDir": "./design-tokens",
+  "themes": {
+    "theme": {
+      "colors": {
+        "main": {
+          "accent": "#B42946"
+        },
+        "support": {
+          "brand1": "#A24D83",
+          "brand2": "#89634A",
+          "brand3": "#E9B596",
+          "brand4": "#F5898D"
+        },
+        "neutral": "#24272B"
+      },
+      "overrides": {
+        "colors": {
+          "accent": {
+            "background-tinted": {
+              "light": "#EEBBC1"
+            },
+            "background-default": {
+              "light": "#F8F3EE"
+            },
+            "surface-default": {
+              "light": "#F8F3EE"
+            }
+          },
+          "brand1": {
+            "background-tinted": {
+              "light": "#D0ADC3"
+            },
+            "background-default": {
+              "light": "#F8F3EE"
+            },
+            "surface-default": {
+              "light": "#F8F3EE"
+            }
+          },
+          "brand2": {
+            "background-tinted": {
+              "light": "#BA9F8E"
+            },
+            "background-default": {
+              "light": "#F8F3EE"
+            },
+            "surface-default": {
+              "light": "#F8F3EE"
+            }
+          },
+          "brand3": {
+            "background-tinted": {
+              "light": "#FCC9A9"
+            },
+            "background-default": {
+              "light": "#F8F3EE"
+            },
+            "surface-default": {
+              "light": "#F8F3EE"
+            }
+          },
+          "brand4": {
+            "background-tinted": {
+              "light": "#EEBBBB"
+            },
+            "background-default": {
+              "light": "#F8F3EE"
+            },
+            "surface-default": {
+              "light": "#F8F3EE"
+            }
+          }
+        }
+      },
+      "borderRadius": 0
+    }
+  }
+}
