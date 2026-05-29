@@ -53,7 +53,7 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
   {hasSidebar ? (
     <!-- Sidebar layout: tinted body background, white content area -->
     <div class="case-sidebar-page" data-layout-block="content">
-      <h1 class="case-title">{article.tittel}</h1>
+      <h1 class="ds-heading case-title" data-size="xl">{article.tittel}</h1>
     </div>
     <section class="case-content-bleed" data-layout-block="edge">
       <div class="case-sidebar-grid" data-layout-block="content">
@@ -74,7 +74,7 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
           </button>
         </aside>
         <div class="case-content">
-          {article.ingress && <p class="case-ingress">{article.ingress}</p>}
+          {article.ingress && <p class="case-ingress ds-heading" data-size="lg">{article.ingress}</p>}
           <div data-layout-article>
             <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
           </div>
@@ -84,8 +84,8 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
   ) : (
     <!-- Simple centered layout -->
     <div class="case-simple" data-layout-block="content">
-      <h1 class="case-title">{article.tittel}</h1>
-      {article.ingress && <p class="case-ingress">{article.ingress}</p>}
+      <h1 class="case-title ds-heading" data-size="xl">{article.tittel}</h1>
+      {article.ingress && <p class="case-ingress ds-heading" data-size="md">{article.ingress}</p>}
       <div data-layout-article class="case-content-small">
         <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
       </div>
@@ -115,26 +115,13 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
 <style>
   /* ── Shared ──────────────────────────────────────── */
   .case-title {
-    font-size: 2rem;
     font-weight: 700;
-    color: var(--ds-color-text-default);
     margin: 0;
-    line-height: 1.3;
-    letter-spacing: -0.5px;
     text-wrap: balance;
   }
 
-  @media (min-width: 768px) {
-    .case-title {
-      font-size: 2.5rem;
-    }
-  }
-
   .case-ingress {
-    font-size: var(--ds-font-size-4, 21px);
     font-weight: 400;
-    color: var(--ds-color-text-subtle);
-    line-height: 1.7;
     margin: 0;
   }
 
