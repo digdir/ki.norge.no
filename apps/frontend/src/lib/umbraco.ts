@@ -240,11 +240,29 @@ export interface ArtiklerOversikt {
   publishedAt: string;
 }
 
+export interface EksemplerSeksjon {
+  contentType: 'eksempelFeatured' | 'eksempelGruppe' | 'eksempelRelatert' | 'eksempelKontakt';
+  id: string;
+  // Featured: én eksempel-referanse
+  eksempelId?: string;
+  // Gruppe: tittel + kolonner + 1-6 eksempel-referanser
+  tittel?: string;
+  antallKolonner?: number;
+  eksempelIds?: string[];
+  // Relatert: tittel + 1-3 referanser (kan være artikkel eller veiledningGuide)
+  relatertIds?: string[];
+  // Kontakt: tittel + navn + epost + stilling
+  navn?: string;
+  epost?: string;
+  stilling?: string;
+}
+
 export interface EksemplerOversikt {
   id: string;
   documentId: string;
   heroTittel?: string;
   heroIngress?: string;
+  seksjoner?: EksemplerSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -692,6 +710,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ...base,
         heroTittel: props.heroTittel as string || '',
         heroIngress: props.heroIngress as string || '',
+        seksjoner: mapEksemplerSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
@@ -1232,6 +1251,63 @@ function mapMedia(value: unknown): UmbracoMedia | undefined {
     };
   }
   return undefined;
+}
+
+function pickerId(value: unknown): string | undefined {
+  if (!value) return undefined;
+  const item = Array.isArray(value) ? value[0] : value;
+  return (item as any)?.id || undefined;
+}
+
+function pickerIds(value: unknown): string[] {
+  if (!value) return [];
+  const arr = Array.isArray(value) ? value : [value];
+  return arr.map((item: any) => item?.id).filter((id): id is string => !!id);
+}
+
+function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any) => {
+    const content = block.content || block;
+    const ct = content.contentType;
+    const props = content.properties || {};
+    const id = content.id || '';
+
+    if (ct === 'eksempelFeatured') {
+      return { contentType: ct, id, eksempelId: pickerId(props.eksempel) };
+    }
+    if (ct === 'eksempelGruppe') {
+      const eksempelIds = [props.eksempel1, props.eksempel2, props.eksempel3, props.eksempel4, props.eksempel5, props.eksempel6]
+        .map(pickerId)
+        .filter((id): id is string => !!id);
+      return {
+        contentType: ct,
+        id,
+        tittel: props.tittel || undefined,
+        antallKolonner: Number(props.antallKolonner) || 3,
+        eksempelIds,
+      };
+    }
+    if (ct === 'eksempelRelatert') {
+      const relatertIds = [props.relatert1, props.relatert2, props.relatert3]
+        .map(pickerId)
+        .filter((id): id is string => !!id);
+      return { contentType: ct, id, tittel: props.tittel || undefined, relatertIds };
+    }
+    if (ct === 'eksempelKontakt') {
+      return {
+        contentType: ct,
+        id,
+        tittel: props.tittel || '',
+        navn: props.navn || undefined,
+        epost: props.epost || undefined,
+        stilling: props.stilling || undefined,
+      };
+    }
+    return { contentType: ct, id };
+  });
 }
 
 function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {

@@ -35,6 +35,8 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _contentPickerDt = null!;
     private IDataType _calloutVariantDt = null!;
     private IDataType _bakgrunnDropdownDt = null!;    // Hvit / Lys blå dropdown for Artikkelhode
+    private IDataType _kolonneDropdownDt = null!;     // 1/2/3/4 kolonner for eksempel-grupper
+    private IDataType _blockListEksemplerSeksjonerDt = null!;
     private IDataType _trueFalseDt = null!;           // Boolean checkbox
     private IDataType _datePickerDt = null!;          // Date picker
 
@@ -148,6 +150,15 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("veiledningTrekkspill") == null)
                 CreateVeiledningTrekkspillElement();
 
+            if (_contentTypeService.Get("eksempelFeatured") == null)
+                CreateEksempelFeaturedElement();
+            if (_contentTypeService.Get("eksempelGruppe") == null)
+                CreateEksempelGruppeElement();
+            if (_contentTypeService.Get("eksempelRelatert") == null)
+                CreateEksempelRelatertElement();
+            if (_contentTypeService.Get("eksempelKontakt") == null)
+                CreateEksempelKontaktElement();
+
             CreateBlockListDataTypes();
 
             MigrateVeiledningElementNames();
@@ -225,6 +236,7 @@ public class ContentTypeComponent : IAsyncComponent
             LockSiderContainer();
             if (_contentTypeService.Get("eksempler") == null)
                 CreateEksemplerOversikt();
+            MigrateEksemplerOversikt();
             if (_contentTypeService.Get("veiledninger") == null)
             {
                 var guideType = _contentTypeService.Get("veiledningGuide");
@@ -286,6 +298,7 @@ public class ContentTypeComponent : IAsyncComponent
         _contentPickerDt = FindDataType(Constants.PropertyEditors.Aliases.ContentPicker);
         _calloutVariantDt = CreateOrGetCalloutVariantDropdown();
         _bakgrunnDropdownDt = CreateOrGetBakgrunnDropdown();
+        _kolonneDropdownDt = CreateOrGetKolonneDropdown();
         _trueFalseDt = FindDataType(Constants.PropertyEditors.Aliases.Boolean);
         _datePickerDt = FindDataTypeByName(Constants.PropertyEditors.Aliases.DateTime, "Date Picker");
     }
@@ -321,6 +334,29 @@ public class ContentTypeComponent : IAsyncComponent
             ConfigurationData = new Dictionary<string, object>
             {
                 ["items"] = new[] { "hvit", "lyseblaa" },
+            },
+        };
+        _dataTypeService.Save(dt);
+        return dt;
+    }
+
+    private IDataType CreateOrGetKolonneDropdown()
+    {
+        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
+            .FirstOrDefault(dt => dt.Name == "Eksempel-gruppe Kolonner");
+        if (existing != null) return existing;
+
+        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.DropDownListFlexible]
+            ?? throw new InvalidOperationException("DropDownListFlexible editor not found");
+
+        var dt = new DataType(editor, _configSerializer)
+        {
+            Name = "Eksempel-gruppe Kolonner",
+            DatabaseType = ValueStorageType.Nvarchar,
+            EditorUiAlias = "Umb.PropertyEditorUi.Dropdown",
+            ConfigurationData = new Dictionary<string, object>
+            {
+                ["items"] = new[] { "1", "2", "3", "4" },
             },
         };
         _dataTypeService.Save(dt);
@@ -860,6 +896,81 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
+    private IContentType CreateEksempelFeaturedElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "eksempelFeatured",
+            Name = "Fremhevet eksempel",
+            Description = "Stor hero-blokk på Eksempler-siden. Pek på ett eksempel som vises som featured.",
+            Icon = "icon-bullhorn",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("eksempel", "Eksempel", _contentPickerDt, mandatory: true, description: "Velg eksempelet som skal fremheves."), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateEksempelGruppeElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "eksempelGruppe",
+            Name = "Eksempel-gruppe",
+            Description = "Grid av eksempler. Velg tittel (valgfri), antall kolonner (1-4) og opptil 6 eksempler.",
+            Icon = "icon-grid",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri overskrift over gruppen.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("antallKolonner", "Antall kolonner", _kolonneDropdownDt, mandatory: true, description: "Hvor mange kort per rad i grid-visningen.", sortOrder: 2), "innhold");
+        for (int i = 1; i <= 6; i++)
+        {
+            ct.AddPropertyType(Prop($"eksempel{i}", $"Eksempel {i}", _contentPickerDt, description: i == 1 ? "Velg eksempel som vises i kortet." : "Valgfri, la stå tom hvis gruppen skal ha færre kort.", sortOrder: 2 + i), "innhold");
+        }
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateEksempelRelatertElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "eksempelRelatert",
+            Name = "Relatert innhold",
+            Description = "3 kort som peker til relaterte artikler eller veiledninger.",
+            Icon = "icon-link",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri overskrift over de relaterte lenkene.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("relatert1", "Relatert 1", _contentPickerDt, description: "Velg artikkel eller veiledning.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("relatert2", "Relatert 2", _contentPickerDt, description: "Valgfri.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("relatert3", "Relatert 3", _contentPickerDt, description: "Valgfri.", sortOrder: 4), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateEksempelKontaktElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "eksempelKontakt",
+            Name = "Kontakt-boks",
+            Description = "CTA-boks 'Ønsker du å dele et eksempel?' med navn/e-post/stilling.",
+            Icon = "icon-mailbox",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, description: "Eks: 'Ønsker du å dele et eksempel?'", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("navn", "Navn", _textStringDt, description: "Kontaktpersonens navn.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("epost", "E-post", _textStringDt, description: "Kontaktpersonens e-postadresse.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("stilling", "Stilling", _textStringDt, description: "Kontaktpersonens stilling/tittel.", sortOrder: 4), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
     // Suffikser veiledning-element-typenes display-navn så de ikke kolliderer
     // med artikkel-elementer i Document Types-listen.
     private void MigrateVeiledningElementNames()
@@ -909,6 +1020,9 @@ public class ContentTypeComponent : IAsyncComponent
         _blockListVeiledningStegDt = CreateOrGetMultiBlockListDataType(
             "Block List - Veiledning Steg",
             VeiledningStegModules);
+        _blockListEksemplerSeksjonerDt = CreateOrGetMultiBlockListDataType(
+            "Block List - Eksempler Seksjoner",
+            new[] { "eksempelFeatured", "eksempelGruppe", "eksempelRelatert", "eksempelKontakt" });
         _blockListVeiledningGuideDt = CreateOrGetMultiBlockListDataType(
             "Block List - Veiledning Guide",
             VeiledningGuideModules);
@@ -1651,8 +1765,9 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = true,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, mandatory: true, description: "Vises som overskrift på /eksempler"), "innhold");
-        ct.AddPropertyType(Prop("heroIngress", "Ingress", _textAreaDt, description: "Kort introduksjonstekst under tittelen på /eksempler"), "innhold");
+        ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, mandatory: true, description: "Vises som overskrift på /eksempler", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("heroIngress", "Ingress", _textAreaDt, description: "Kort introduksjonstekst under tittelen på /eksempler", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListEksemplerSeksjonerDt, description: "Bygg opp /eksempler med fremhevet eksempel, grupper med 1–4 kolonner, relaterte lenker og kontakt-CTA. Reorder ved drag og drop.", sortOrder: 3), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
@@ -1669,6 +1784,16 @@ public class ContentTypeComponent : IAsyncComponent
 
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    private void MigrateEksemplerOversikt()
+    {
+        var ct = _contentTypeService.Get("eksempler");
+        if (ct == null) return;
+        if (ct.PropertyTypes.Any(p => p.Alias == "seksjoner")) return;
+        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListEksemplerSeksjonerDt, description: "Bygg opp /eksempler med fremhevet eksempel, grupper med 1–4 kolonner, relaterte lenker og kontakt-CTA. Reorder ved drag og drop.", sortOrder: 3), "innhold");
+        _contentTypeService.Save(ct);
+        Console.WriteLine("ContentTypeComposer: Migrated eksempler with seksjoner Block List");
     }
 
     private IContentType CreateArtiklerOversikt()
