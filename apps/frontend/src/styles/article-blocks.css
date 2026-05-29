@@ -347,19 +347,17 @@
 .article-text-block {
   font-size: 21px;
   line-height: 1.7;
-  color: rgba(0,0,0,0.75);
+  color: var(--ds-color-text-default);
   letter-spacing: 0.005em;
 }
 .article-text-block h2 {
   font-size: 36px;
   font-weight: 500;
-  color: #1a2a6d;
   margin: 48px 0 24px;
 }
 .article-text-block h3 {
   font-size: 24px;
   font-weight: 500;
-  color: #1a2a6d;
   margin: 32px 0 16px;
 }
 .article-text-block p { margin: 0 0 16px; }

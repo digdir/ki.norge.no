@@ -86,7 +86,7 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
     <div class="case-simple" data-layout-block="content">
       <h1 class="case-title">{article.tittel}</h1>
       {article.ingress && <p class="case-ingress">{article.ingress}</p>}
-      <div data-layout-article>
+      <div data-layout-article class="case-content-small">
         <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
       </div>
     </div>
@@ -140,8 +140,8 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
 
   /* ── Sidebar layout ─────────────────────────────── */
   .case-sidebar-page {
-    padding-top: var(--ds-size-12);
-    padding-bottom: var(--ds-size-8);
+    padding-block: var(--ds-size-30);
+    padding-top: calc(calc(var(--header-height, 72px) + var(--ds-size-8)) + var(--ds-size-12)) !important;
   }
 
   .case-sidebar-page .case-title {
@@ -155,7 +155,7 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
   }
 
   :global(body:has(.case-sidebar-page)) {
-    background-color: var(--ds-color-surface-tinted);
+    background-color: var(--ds-color-surface-hover);
   }
 
   .case-content-bleed {
@@ -216,6 +216,10 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-8);
+  }
+
+  .case-content-small {
+    margin: 0 auto;
   }
 
   /* ── Simple centered layout ─────────────────────── */
