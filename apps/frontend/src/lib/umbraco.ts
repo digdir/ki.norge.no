@@ -455,14 +455,11 @@ export interface VeiledningOversikt {
 export interface GlobaleInnstillinger {
   id: string;
   documentId: string;
-  kontaktTittel?: string;
-  kontaktIngress?: string;
-  kontaktTelefon?: string;
-  kontaktTelefonLabel?: string;
-  kontaktEpost?: string;
-  kontaktEpostLabel?: string;
+  cookieTittel?: string;
   cookieTekst?: string;
-  cookieKnappLabel?: string;
+  cookieJaLabel?: string;
+  cookieNeiLabel?: string;
+  cookieSekundaerTekst?: string;
   tittel404?: string;
   beskrivelse404?: string;
   tittel503?: string;
@@ -914,14 +911,11 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'globaleInnstillinger':
       return {
         ...base,
-        kontaktTittel: props.kontaktTittel as string || '',
-        kontaktIngress: props.kontaktIngress as string || '',
-        kontaktTelefon: props.kontaktTelefon as string || '',
-        kontaktTelefonLabel: props.kontaktTelefonLabel as string || '',
-        kontaktEpost: props.kontaktEpost as string || '',
-        kontaktEpostLabel: props.kontaktEpostLabel as string || '',
+        cookieTittel: props.cookieTittel as string || '',
         cookieTekst: richTextHtml(props.cookieTekst),
-        cookieKnappLabel: props.cookieKnappLabel as string || '',
+        cookieJaLabel: props.cookieJaLabel as string || '',
+        cookieNeiLabel: props.cookieNeiLabel as string || '',
+        cookieSekundaerTekst: richTextHtml(props.cookieSekundaerTekst),
         tittel404: props.tittel404 as string || '',
         beskrivelse404: props.beskrivelse404 as string || '',
         tittel503: props.tittel503 as string || '',

@@ -255,6 +255,7 @@ public class ContentTypeComponent : IAsyncComponent
 
             if (_contentTypeService.Get("globaleInnstillinger") == null)
                 CreateGlobaleInnstillinger();
+            MigrateGlobaleInnstillinger();
             MigrateContainerLeadFields();
 
             // RichText data types are ensured by ResolveDataTypes() at the very start of this method.
@@ -2580,22 +2581,17 @@ public class ContentTypeComponent : IAsyncComponent
         {
             Alias = "globaleInnstillinger",
             Name = "Globale innstillinger",
-            Description = "Globale tekster brukt på tvers av sidene (kontakt-kort, cookie-melding, feilsider). Ett node på rot.",
+            Description = "Globale tekster brukt på tvers av sidene (cookie-melding, feilsider). Ett node på rot.",
             Icon = "icon-settings",
             AllowedAsRoot = true,
         };
 
-        ct.AddPropertyGroup("kontakt", "Kontakt-kort");
-        ct.AddPropertyType(Prop("kontaktTittel", "Tittel", _textStringDt, description: "Overskrift på kontaktkortet (vises på flere sider)."), "kontakt");
-        ct.AddPropertyType(Prop("kontaktIngress", "Ingress", _textAreaDt, description: "Kort tekst under tittelen."), "kontakt");
-        ct.AddPropertyType(Prop("kontaktTelefon", "Telefonnummer", _textStringDt, description: "Brukes i tel:-lenken (uten mellomrom). Eks: 75006000"), "kontakt");
-        ct.AddPropertyType(Prop("kontaktTelefonLabel", "Telefon-knapp-tekst", _textStringDt, description: "Synlig tekst på telefon-knappen. Eks: Ring 75 00 60 00"), "kontakt");
-        ct.AddPropertyType(Prop("kontaktEpost", "E-postadresse", _textStringDt, description: "Brukes i mailto:-lenken."), "kontakt");
-        ct.AddPropertyType(Prop("kontaktEpostLabel", "E-post-knapp-tekst", _textStringDt, description: "Synlig tekst på e-post-knappen. Eks: Send mail"), "kontakt");
-
         ct.AddPropertyGroup("cookie", "Cookie-melding");
-        ct.AddPropertyType(Prop("cookieTekst", "Tekst", _richTextDt, description: "Vises i cookie-banneret nederst på siden."), "cookie");
-        ct.AddPropertyType(Prop("cookieKnappLabel", "Knapp-tekst", _textStringDt, description: "Tekst på avvis-knappen. Eks: Greit"), "cookie");
+        ct.AddPropertyType(Prop("cookieTittel", "Tittel", _textStringDt, description: "Overskrift i cookie-banneret. Eks: 'Får vi samle informasjon om hvordan du bruker nettsiden?'"), "cookie");
+        ct.AddPropertyType(Prop("cookieTekst", "Tekst", _richTextDt, description: "Hovedbeskrivelse i cookie-banneret. Vises under tittelen, over knappene."), "cookie");
+        ct.AddPropertyType(Prop("cookieJaLabel", "Ja-knapp-tekst", _textStringDt, description: "Tekst på Ja-knappen. Klikker brukeren denne, lagrer vi informasjon for statistikk og analyse."), "cookie");
+        ct.AddPropertyType(Prop("cookieNeiLabel", "Nei-knapp-tekst", _textStringDt, description: "Tekst på Nei-knappen. Klikker brukeren denne, lagres kun strengt nødvendig informasjon."), "cookie");
+        ct.AddPropertyType(Prop("cookieSekundaerTekst", "Tekst under knappene", _richTextDt, description: "Lengre informasjonstekst under knappene (f.eks. om nødvendige cookies)."), "cookie");
 
         ct.AddPropertyGroup("feilsider", "Feilsider");
         ct.AddPropertyType(Prop("tittel404", "404 tittel", _textStringDt, description: "Vises som overskrift når en side ikke finnes."), "feilsider");
@@ -2606,6 +2602,70 @@ public class ContentTypeComponent : IAsyncComponent
 
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    private void MigrateGlobaleInnstillinger()
+    {
+        var ct = _contentTypeService.Get("globaleInnstillinger");
+        if (ct == null) return;
+
+        bool changed = false;
+
+        var legacyAliases = new[]
+        {
+            "kontaktTittel", "kontaktIngress",
+            "kontaktTelefon", "kontaktTelefonLabel",
+            "kontaktEpost", "kontaktEpostLabel",
+            "cookieKnappLabel",
+        };
+        foreach (var alias in legacyAliases)
+        {
+            if (ct.PropertyTypes.Any(p => p.Alias == alias))
+            {
+                ct.RemovePropertyType(alias);
+                changed = true;
+            }
+        }
+
+        var kontaktGroup = ct.PropertyGroups.FirstOrDefault(g => g.Alias == "kontakt");
+        if (kontaktGroup != null && !kontaktGroup.PropertyTypes.Any())
+        {
+            ct.PropertyGroups.Remove("kontakt");
+            changed = true;
+        }
+
+        if (!ct.PropertyTypes.Any(p => p.Alias == "cookieTittel"))
+        {
+            ct.AddPropertyType(Prop("cookieTittel", "Tittel", _textStringDt, description: "Overskrift i cookie-banneret. Eks: 'Får vi samle informasjon om hvordan du bruker nettsiden?'"), "cookie");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "cookieJaLabel"))
+        {
+            ct.AddPropertyType(Prop("cookieJaLabel", "Ja-knapp-tekst", _textStringDt, description: "Tekst på Ja-knappen. Klikker brukeren denne, lagrer vi informasjon for statistikk og analyse."), "cookie");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "cookieNeiLabel"))
+        {
+            ct.AddPropertyType(Prop("cookieNeiLabel", "Nei-knapp-tekst", _textStringDt, description: "Tekst på Nei-knappen. Klikker brukeren denne, lagres kun strengt nødvendig informasjon."), "cookie");
+            changed = true;
+        }
+        if (!ct.PropertyTypes.Any(p => p.Alias == "cookieSekundaerTekst"))
+        {
+            ct.AddPropertyType(Prop("cookieSekundaerTekst", "Tekst under knappene", _richTextDt, description: "Lengre informasjonstekst under knappene (f.eks. om nødvendige cookies)."), "cookie");
+            changed = true;
+        }
+
+        if (ct.Description != "Globale tekster brukt på tvers av sidene (cookie-melding, feilsider). Ett node på rot.")
+        {
+            ct.Description = "Globale tekster brukt på tvers av sidene (cookie-melding, feilsider). Ett node på rot.";
+            changed = true;
+        }
+
+        if (changed)
+        {
+            _contentTypeService.Save(ct);
+            Console.WriteLine("ContentTypeComposer: Migrated globaleInnstillinger (removed kontakt-kort, expanded cookie fields)");
+        }
     }
 
     private void MigrateContainerLeadFields()
