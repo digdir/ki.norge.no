@@ -13,13 +13,13 @@
     "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots"
   },
   "dependencies": {
-    "@astrojs/node": "^10.1.0",
-    "@astrojs/react": "^5.0.4",
-    "@astrojs/sitemap": "^3",
+    "@astrojs/node": "10.1.2",
+    "@astrojs/react": "5.0.6",
+    "@astrojs/sitemap": "3.7.3",
     "@digdir/designsystemet-css": "^1.11.0",
     "@digdir/designsystemet-react": "^1.11.0",
     "@navikt/aksel-icons": "^8.0.1",
-    "astro": "^6.3.1",
+    "astro": "6.4.2",
     "clsx": "^2.1.1",
     "linkedom": "^0.18.12",
     "react": "^19.2.3",
