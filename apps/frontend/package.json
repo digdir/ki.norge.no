@@ -5,14 +5,17 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "astro build && wrangler dev",
+    "deploy": "astro build && wrangler deploy",
     "start": "node dist/server/entry.mjs",
     "test:unit": "vitest run",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
     "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
-    "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots"
+    "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots",
+    "generate-types": "wrangler types"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^13.6.0",
     "@astrojs/node": "10.1.2",
     "@astrojs/react": "5.0.6",
     "@astrojs/sitemap": "3.7.3",
@@ -24,7 +27,8 @@
     "linkedom": "^0.18.12",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "wrangler": "^4.95.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
@@ -32,5 +36,8 @@
     "@types/node": "^25.9.1",
     "postcss-nesting": "^14.0.0",
     "vitest": "^4.1.7"
+  },
+  "overrides": {
+    "vite": "^8.0.14"
   }
 }
