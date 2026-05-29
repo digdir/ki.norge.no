@@ -60,6 +60,7 @@ if (builder.Environment.IsDevelopment())
 WebApplication app = builder.Build();
 
 await app.BootUmbracoAsync();
+app.UseForwardedHeaders();
 
 // ── Health endpoints (before Umbraco middleware so they always respond) ──
 // /api/health: liveness — process is alive, no DB check. Used for fast probes.
