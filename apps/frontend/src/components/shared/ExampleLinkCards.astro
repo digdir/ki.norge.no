@@ -1,0 +1,50 @@
+---
+import ExampleLinkCard from './ExampleLinkCard.astro';
+
+interface CardItem {
+  href: string;
+  title: string;
+  tag?: string;
+}
+
+interface Props {
+  cards: CardItem[];
+}
+
+const { cards } = Astro.props;
+
+const variants: Array<'dark' | 'light'> = ['dark', 'light'];
+const count = cards.length;
+---
+
+<div class="example-link-cards" data-count={count}>
+  {cards.map((card, i) => (
+    <ExampleLinkCard
+      href={card.href}
+      title={card.title}
+      tag={card.tag}
+      variant={variants[i % 2]}
+    />
+  ))}
+</div>
+
+<style>
+  .example-link-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .example-link-cards[data-count='2'] {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .example-link-cards[data-count='3'] {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .example-link-cards[data-count='4'] {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
