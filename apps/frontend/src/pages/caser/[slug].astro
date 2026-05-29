@@ -74,7 +74,7 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
           </button>
         </aside>
         <div class="case-content">
-          {article.ingress && <p class="case-ingress ds-heading" data-size="lg">{article.ingress}</p>}
+          {article.ingress && <p class="case-ingress ds-heading" data-size="md">{article.ingress}</p>}
           <div data-layout-article>
             <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
           </div>
@@ -123,6 +123,7 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
   .case-ingress {
     font-weight: 400;
     margin: 0;
+    font-family: "PT Serif", serif;
   }
 
   /* ── Sidebar layout ─────────────────────────────── */
@@ -180,18 +181,18 @@ function checkerboard(i: number, cols: number): 'dark' | 'light' {
   .case-sidebar-meta {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--ds-size-1);
   }
 
   .case-sidebar-label {
-    font-size: var(--ds-font-size-1);
+    font-size: var(--ds-font-size-3);
     color: var(--ds-color-text-subtle);
     margin: 0;
     font-weight: 500;
   }
 
   .case-sidebar-value {
-    font-size: var(--ds-font-size-2);
+    font-size: var(--ds-font-size-3);
     color: var(--ds-color-text-default);
     margin: 0;
     font-weight: 500;
