@@ -57,10 +57,10 @@ export function faqPageSchema(items: { question: string; answer: string }[]) {
 }
 
 /**
- * For Case (case study) detail pages. Schema.org doesn't have a "CaseStudy"
- * type but Article + about works well.
+ * For Eksempel (case study) detail pages — emits /eksempler/ URLs. Schema.org
+ * doesn't have a "CaseStudy" type but Article + about works well.
  */
-export function caseSchema(opts: {
+export function eksempelSchema(opts: {
   headline: string;
   description: string;
   slug: string;

@@ -35,14 +35,14 @@ const seksjoner = oversikt?.seksjoner || [];
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
-  <div class="eksempler-page grid" data-layout-block="content">
-    <div class="eksempler-title-bar col-center-6">
+  <div class="eksempler-page" data-layout-block="content">
+    <div class="eksempler-title-bar">
       <h1 class="eksempler-title">{heroTittel}</h1>
       <p class="eksempler-lead">{heroIngress}</p>
     </div>
 
     {seksjoner.length === 0 && eksempler.length > 0 && (
-      <div class="eksempler-grid col-center-10" data-cols="3">
+      <div class="eksempler-grid" data-cols="3">
         {eksempler.map(e => (
           <a href={`/eksempler/${e.slug}`} class="eksempel-card">
             <div class="eksempel-card-image">
@@ -66,7 +66,7 @@ const seksjoner = oversikt?.seksjoner || [];
         const e = eksempelById.get(s.eksempelId);
         if (!e) return null;
         return (
-          <section class="eksempler-featured col-center-10">
+          <section class="eksempler-featured">
             <a href={`/eksempler/${e.slug}`} class="eksempel-featured-card">
               {e.artikkelBilde && (
                 <div class="eksempel-featured-image">
@@ -88,7 +88,7 @@ const seksjoner = oversikt?.seksjoner || [];
         const items = (s.eksempelIds || []).map(id => eksempelById.get(id)).filter((e): e is Eksempel => !!e);
         if (items.length === 0) return null;
         return (
-          <section class="eksempler-gruppe col-center-10">
+          <section class="eksempler-gruppe">
             {s.tittel && <h2 class="eksempler-gruppe-tittel">{s.tittel}</h2>}
             <div class="eksempler-grid" data-cols={String(cols)}>
               {items.map(e => (
@@ -115,7 +115,7 @@ const seksjoner = oversikt?.seksjoner || [];
         const items = (s.relatertIds || []).map(id => relatertById.get(id)).filter((x): x is Artikkel | VeiledningGuide => !!x);
         if (items.length === 0) return null;
         return (
-          <section class="eksempler-relatert col-center-10">
+          <section class="eksempler-relatert">
             {s.tittel && <h2 class="eksempler-relatert-tittel">{s.tittel}</h2>}
             <div class="eksempler-relatert-grid">
               {items.map((item: any) => {
@@ -136,7 +136,7 @@ const seksjoner = oversikt?.seksjoner || [];
 
       if (s.contentType === 'eksempelKontakt') {
         return (
-          <section class="eksempler-kontakt col-center-8">
+          <section class="eksempler-kontakt">
             <h2 class="eksempler-kontakt-tittel">{s.tittel || ''}</h2>
             {(s.navn || s.epost || s.stilling) && (
               <div class="eksempler-kontakt-info">
@@ -153,12 +153,19 @@ const seksjoner = oversikt?.seksjoner || [];
     })}
 
     {seksjoner.length === 0 && eksempler.length === 0 && (
-      <p class="empty-state col-center-6">Ingen eksempler funnet.</p>
+      <p class="empty-state">Ingen eksempler funnet.</p>
     )}
   </div>
 </Layout>
 
 <style>
+  .eksempler-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-6);
+    padding-block: var(--ds-size-8);
+  }
+
   .eksempler-title {
     font-size: 40px;
     font-weight: 700;
@@ -310,8 +317,8 @@ const seksjoner = oversikt?.seksjoner || [];
   }
 
   .eksempler-kontakt {
-    background: var(--ds-color-accent-base-default, #1a2a6d);
-    color: var(--ds-color-accent-contrast-default, #fff);
+    background: var(--ds-color-accent-base-default);
+    color: var(--ds-color-accent-base-contrast-default);
     border-radius: 16px;
     padding: var(--ds-size-8);
     margin-block: var(--ds-size-6);

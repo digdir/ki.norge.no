@@ -21,8 +21,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ---
 <Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="side-page grid">
-    <header class="col-center-6 side-header">
+  <div class="side-page" data-layout-block="content">
+    <header class="side-header">
       <h1 class="ds-heading" data-size="xl">{page.tittel}</h1>
       {page.ingress && <p class="side-ingress">{page.ingress}</p>}
     </header>
@@ -32,9 +32,10 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
 <style>
   .side-page {
+    display: flex;
+    flex-direction: column;
     padding-block: var(--ds-size-8);
-    padding-inline: var(--ds-size-4);
-    row-gap: var(--ds-size-6);
+    gap: var(--ds-size-6);
   }
   .side-header {
     display: flex;

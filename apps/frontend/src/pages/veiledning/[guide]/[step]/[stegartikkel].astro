@@ -56,11 +56,11 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
 >
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="article-page grid">
-    <section class={`article-hero ${isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
+  <div class="article-page" data-layout-block="content">
+    <section class={`article-hero ${isLightBlueBg ? 'article-hero--bg-lyseblaa' : ''}`}>
       {isLightBlueBg ? (
-        <div class="grid article-hero-bg-grid">
-          <div class="article-hero-inner col-center-10">
+        <div class="article-hero-bg-grid" data-layout-block="content">
+          <div class="article-hero-inner">
             <div class="article-hero-text">
               <h1 class="article-title">{article.tittel}</h1>
               {article.ingress && <p class="article-ingress">{article.ingress}</p>}
@@ -93,8 +93,10 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
 
 <style>
   .article-page {
+    display: flex;
+    flex-direction: column;
     padding-top: 0;
-    row-gap: 48px;
+    gap: 48px;
   }
 
   .article-hero {

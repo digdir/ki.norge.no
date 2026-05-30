@@ -3,7 +3,7 @@ import Layout from '../../components/layout/Layout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 
 import { getEksempel, getEksempler, getPlainText, getMediaUrl, type Eksempel } from '../../lib/umbraco';
-import { caseSchema, breadcrumbSchema } from '../../lib/seo';
+import { eksempelSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -15,7 +15,7 @@ const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(articl
 const heroImage = article.artikkelBilde || article.seoBilde;
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
 
-const articleJsonLd = caseSchema({
+const articleJsonLd = eksempelSchema({
   headline: seoTitle,
   description: seoDesc,
   slug: slug!,
@@ -39,11 +39,11 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
 <Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage}>
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="article-page grid">
-    <section class={`article-hero ${isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
+  <div class="article-page" data-layout-block="content">
+    <section class={`article-hero ${isLightBlueBg ? 'article-hero--bg-lyseblaa' : ''}`}>
       {isLightBlueBg ? (
-        <div class={`grid article-hero-bg-grid`}>
-          <div class="article-hero-inner col-center-10">
+        <div class="article-hero-bg-grid" data-layout-block="content">
+          <div class="article-hero-inner">
             <div class="article-hero-text">
               <h1 class="article-title">{article.tittel}</h1>
               {article.ingress && <p class="article-ingress">{article.ingress}</p>}
@@ -72,7 +72,7 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
     <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
 
     {otherArticles.length > 0 && (
-      <section class="more-articles col-center-10">
+      <section class="more-articles">
         <h2 class="more-articles-heading">Flere eksempler</h2>
         <div class="more-articles-grid">
           {otherArticles.map(a => (
@@ -95,8 +95,10 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
 
 <style>
   .article-page {
+    display: flex;
+    flex-direction: column;
     padding-top: 0;
-    row-gap: 48px;
+    gap: 48px;
   }
 
   .article-hero {

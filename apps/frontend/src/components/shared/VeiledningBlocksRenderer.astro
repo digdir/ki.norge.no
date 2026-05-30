@@ -42,7 +42,7 @@ const moduleIcons: Record<string, string> = {
 {renderItems.map((item) => {
   if (item.kind === 'trekkspillGruppe') {
     return (
-      <div class="veiledning-trekkspill-gruppe col-center-6">
+      <div class="veiledning-trekkspill-gruppe">
         <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
             <details class="ds-details">
@@ -58,7 +58,7 @@ const moduleIcons: Record<string, string> = {
   const block = item.block;
 
   if (block.contentType === 'veiledningTekst') {
-    return <div class="veiledning-tekst col-center-6" set:html={block.content.innhold} />;
+    return <div class="veiledning-tekst" set:html={block.content.innhold} />;
   }
 
   if (block.contentType === 'veiledningInfo'
@@ -71,7 +71,7 @@ const moduleIcons: Record<string, string> = {
     const lesMerTittel = block.contentType === 'veiledningInfo' ? c.lesMerTittel : undefined;
     const lesMerUrl = block.contentType === 'veiledningInfo' ? c.lesMerUrl : undefined;
     return (
-      <div class="ds-card veiledning-modul col-center-6" data-variant="tinted">
+      <div class="ds-card veiledning-modul" data-variant="tinted">
         <div class="veiledning-modul-head">
           <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
           {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="2xs">{c.tittel}</h3>}

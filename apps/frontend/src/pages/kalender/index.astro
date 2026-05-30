@@ -17,6 +17,9 @@ const ingress = kalender?.ingress || 'Arrangementer om KI i offentlig sektor.';
 const seoTitle = kalender?.seoTittel || tittel;
 const seoDesc = kalender?.seoBeskrivelse || ingress;
 const featured = kalender?.featuredHendelse || null;
+// Den fremhevede hendelsen vises i hero-boksen. Filtrer den ut av listene
+// under så den ikke dukker opp dobbelt.
+const featuredId = featured?.id;
 
 const now = new Date();
 const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
@@ -27,9 +30,11 @@ const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
 const effectiveEnd = (h: Kalenderhendelse) => new Date(h.sluttDato || h.startDato);
 
 const kommende = hendelser
+  .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) >= now)
   .sort(sortByStart);
 const tidligere = hendelser
+  .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
 
@@ -43,104 +48,102 @@ const parseTagger = (s?: string) =>
   (s || '').split(',').map(t => t.trim()).filter(Boolean);
 ---
 <Layout title={seoTitle} description={seoDesc}>
-  <div class="kalender-page grid">
-    <header class="col-center-8 kalender-header">
-      <h1 class="ds-heading" data-size="xl">{tittel}</h1>
-      {ingress && <p class="kalender-ingress">{ingress}</p>}
-    </header>
+  <header class="kalender-header" data-layout-block="content">
+    <h1 class="ds-heading" data-size="xl">{tittel}</h1>
+    {ingress && <p class="kalender-ingress">{ingress}</p>}
+  </header>
 
-    {featured && (
-      <section class="col-center-10 kalender-featured">
-        <div class="kalender-featured-inner">
-          <div class="kalender-featured-text">
-            {featured.type && <p class="kalender-featured-type">{featured.type}</p>}
-            <h2 class="ds-heading" data-size="lg">{featured.tittel}</h2>
-            {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
-            {featured.lenke && (
-              <a class="ds-button" data-color="neutral" data-variant="primary" href={featured.lenke}>
-                Les mer
-              </a>
-            )}
-          </div>
-          <div class="kalender-featured-date">
-            <div class="kalender-date-box">
-              <span class="kalender-date-day">{formatDate(featured.startDato).day}</span>
-              <span class="kalender-date-month">{formatDate(featured.startDato).month}</span>
-            </div>
-            {featured.tid && <p class="kalender-featured-time">{featured.tid}</p>}
-            {featured.sted && <p class="kalender-featured-place">{featured.sted}</p>}
-          </div>
+  {featured && (
+    <section class="kalender-featured" data-layout-block="edge">
+      <div class="kalender-featured-inner" data-layout-block="content">
+        <div class="kalender-featured-text">
+          {featured.type && <p class="kalender-featured-type">{featured.type}</p>}
+          <h2 class="ds-heading" data-size="lg">{featured.tittel}</h2>
+          {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
+          {featured.lenke && (
+            <a class="ds-button" data-color="neutral" data-variant="primary" href={featured.lenke}>
+              Les mer
+            </a>
+          )}
         </div>
-      </section>
-    )}
-
-    <div class="col-center-8 kalender-tabs">
-      <h2 class="ds-heading" data-size="md">Arrangementer</h2>
-      <div role="tablist" class="kalender-tablist">
-        <button type="button" role="tab" aria-selected="true" data-tab="kommende" class="kalender-tab kalender-tab--active">
-          Kommende arrangement
-        </button>
-        <button type="button" role="tab" aria-selected="false" data-tab="tidligere" class="kalender-tab">
-          Tidligere arrangement
-        </button>
+        <div class="kalender-featured-date">
+          <time class="kalender-date-box" datetime={featured.startDato}>
+            <span class="kalender-date-day">{formatDate(featured.startDato).day}</span>
+            <span class="kalender-date-month">{formatDate(featured.startDato).month}</span>
+          </time>
+          {featured.tid && <p class="kalender-featured-time"><span class="kalender-meta-label">Tid:</span> {featured.tid}</p>}
+          {featured.sted && <p class="kalender-featured-place"><span class="kalender-meta-label">Sted:</span> {featured.sted}</p>}
+        </div>
       </div>
+    </section>
+  )}
 
-      <div role="tabpanel" data-panel="kommende" class="kalender-panel">
-        {kommende.length === 0 ? (
-          <p class="kalender-empty">Ingen kommende arrangement.</p>
-        ) : (
-          <ul class="kalender-list">
-            {kommende.map(h => (
-              <li class="kalender-card">
-                <div class="kalender-date-box">
-                  <span class="kalender-date-day">{formatDate(h.startDato).day}</span>
-                  <span class="kalender-date-month">{formatDate(h.startDato).month}</span>
-                </div>
-                <div class="kalender-card-body">
-                  {h.type && <p class="kalender-card-type">{h.type}</p>}
-                  {parseTagger(h.tagger).length > 0 && (
-                    <ul class="kalender-card-tags">
-                      {parseTagger(h.tagger).map(t => <li>{t}</li>)}
-                    </ul>
-                  )}
-                  <h3 class="ds-heading" data-size="sm">{h.tittel}</h3>
-                  {h.ingress && <p class="kalender-card-ingress">{h.ingress}</p>}
-                  <p class="kalender-card-meta">
-                    {h.tid && <span>{h.tid}</span>}
-                    {h.sted && <span>{h.sted}</span>}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+  <div class="kalender-tabs" data-layout-block="content">
+    <h2 class="ds-heading" data-size="md">Arrangementer</h2>
+    <div role="tablist" class="kalender-tablist">
+      <button type="button" role="tab" aria-selected="true" data-tab="kommende" class="kalender-tab kalender-tab--active">
+        Kommende arrangement
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-tab="tidligere" class="kalender-tab">
+        Tidligere arrangement
+      </button>
+    </div>
 
-      <div role="tabpanel" data-panel="tidligere" class="kalender-panel" hidden>
-        {tidligere.length === 0 ? (
-          <p class="kalender-empty">Ingen tidligere arrangement.</p>
-        ) : (
-          <ul class="kalender-list">
-            {tidligere.map(h => (
-              <li class="kalender-card">
-                <div class="kalender-date-box">
-                  <span class="kalender-date-day">{formatDate(h.startDato).day}</span>
-                  <span class="kalender-date-month">{formatDate(h.startDato).month}</span>
-                </div>
-                <div class="kalender-card-body">
-                  {h.type && <p class="kalender-card-type">{h.type}</p>}
-                  <h3 class="ds-heading" data-size="sm">{h.tittel}</h3>
-                  {h.ingress && <p class="kalender-card-ingress">{h.ingress}</p>}
-                  <p class="kalender-card-meta">
-                    {h.tid && <span>{h.tid}</span>}
-                    {h.sted && <span>{h.sted}</span>}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <div role="tabpanel" data-panel="kommende" class="kalender-panel">
+      {kommende.length === 0 ? (
+        <p class="kalender-empty">Ingen kommende arrangement.</p>
+      ) : (
+        <ul class="kalender-list">
+          {kommende.map(h => (
+            <li class="kalender-card">
+              <time class="kalender-date-box" datetime={h.startDato}>
+                <span class="kalender-date-day">{formatDate(h.startDato).day}</span>
+                <span class="kalender-date-month">{formatDate(h.startDato).month}</span>
+              </time>
+              <div class="kalender-card-body">
+                {h.type && <p class="kalender-card-type">{h.type}</p>}
+                {parseTagger(h.tagger).length > 0 && (
+                  <ul class="kalender-card-tags">
+                    {parseTagger(h.tagger).map(t => <li>{t}</li>)}
+                  </ul>
+                )}
+                <h3 class="ds-heading" data-size="sm">{h.tittel}</h3>
+                {h.ingress && <p class="kalender-card-ingress">{h.ingress}</p>}
+                <p class="kalender-card-meta">
+                  {h.tid && <span aria-label={`Tid: ${h.tid}`}>{h.tid}</span>}
+                  {h.sted && <span aria-label={`Sted: ${h.sted}`}>{h.sted}</span>}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div role="tabpanel" data-panel="tidligere" class="kalender-panel" hidden>
+      {tidligere.length === 0 ? (
+        <p class="kalender-empty">Ingen tidligere arrangement.</p>
+      ) : (
+        <ul class="kalender-list">
+          {tidligere.map(h => (
+            <li class="kalender-card">
+              <time class="kalender-date-box" datetime={h.startDato}>
+                <span class="kalender-date-day">{formatDate(h.startDato).day}</span>
+                <span class="kalender-date-month">{formatDate(h.startDato).month}</span>
+              </time>
+              <div class="kalender-card-body">
+                {h.type && <p class="kalender-card-type">{h.type}</p>}
+                <h3 class="ds-heading" data-size="sm">{h.tittel}</h3>
+                {h.ingress && <p class="kalender-card-ingress">{h.ingress}</p>}
+                <p class="kalender-card-meta">
+                  {h.tid && <span aria-label={`Tid: ${h.tid}`}>{h.tid}</span>}
+                  {h.sted && <span aria-label={`Sted: ${h.sted}`}>{h.sted}</span>}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   </div>
 </Layout>
@@ -162,15 +165,11 @@ const parseTagger = (s?: string) =>
 </script>
 
 <style>
-  .kalender-page {
-    padding-block: var(--ds-size-8);
-    padding-inline: var(--ds-size-4);
-    row-gap: var(--ds-size-8);
-  }
   .kalender-header {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-3);
+    padding-block: var(--ds-size-8);
   }
   .kalender-ingress {
     margin: 0;
@@ -180,10 +179,9 @@ const parseTagger = (s?: string) =>
   }
 
   .kalender-featured {
-    background: var(--ds-color-accent-base-default, #5a1e1e);
-    color: var(--ds-color-accent-contrast-default, #fff);
+    background: var(--ds-color-accent-base-default);
+    color: var(--ds-color-accent-base-contrast-default);
     border-radius: var(--ds-border-radius-lg, 16px);
-    padding: var(--ds-size-6);
   }
   .kalender-featured-inner {
     display: grid;
@@ -225,11 +223,15 @@ const parseTagger = (s?: string) =>
   }
 
   .kalender-date-box {
+    display: block;
     background: rgba(255, 255, 255, 0.15);
     border-radius: var(--ds-border-radius-md, 8px);
     padding: var(--ds-size-2) var(--ds-size-3);
     text-align: center;
     min-width: 64px;
+  }
+  .kalender-meta-label {
+    font-weight: var(--ds-font-weight-semibold);
   }
   .kalender-date-day {
     display: block;
@@ -248,6 +250,7 @@ const parseTagger = (s?: string) =>
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-4);
+    padding-block: var(--ds-size-8);
   }
   .kalender-tablist {
     display: flex;
@@ -263,10 +266,15 @@ const parseTagger = (s?: string) =>
     cursor: pointer;
     border-bottom: 2px solid transparent;
   }
+  .kalender-tab:focus-visible {
+    box-shadow: var(--dsc-focus-boxShadow);
+    outline: var(--dsc-focus-outline);
+    outline-offset: var(--ds-border-width-focus);
+  }
   .kalender-tab--active {
     color: var(--ds-color-text-default);
     border-bottom-color: currentColor;
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-semibold);
   }
   .kalender-panel[hidden] {
     display: none;

@@ -1360,9 +1360,13 @@ export function getMediaUrl(media?: UmbracoMedia): string | undefined {
  */
 export function getPlainText(blocks?: UmbracoBlock[], maxLength?: number): string {
   if (!blocks || blocks.length === 0) return '';
+  // Read text from any block that carries body text. The PR maps side/eksempel
+  // bodies via 'artikkelTekst' (content.innhold); veiledning uses the same shape;
+  // legacy data used contentType 'tekst' (content.tekst or content.innhold).
+  // Stay generic so excerpts/SEO never silently return ''.
   const html = blocks
-    .filter(b => b.contentType === 'tekst')
-    .map(b => b.content.innhold as string || '')
+    .map(b => (b.content?.innhold as string) ?? (b.content?.tekst as string) ?? '')
+    .filter(Boolean)
     .join(' ');
   // Strip HTML tags
   const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
@@ -1553,7 +1557,7 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
     const data: UmbracoResponse<SearchResult> = await res.json();
 
     const results: SearchResult[] = data.items
-      .filter(item => ['artikkel', 'eksempel', 'veiledningGuide', 'veiledningSteg', 'stegartikkel', 'side', 'faq'].includes(item.contentType))
+      .filter(item => ['artikkel', 'eksempel', 'veiledningGuide', 'veiledningSteg', 'side', 'faq'].includes(item.contentType))
       .map(item => {
         const props = item.properties;
         const tittel = (props.tittel as string) || (props.sporsmal as string) || item.name;

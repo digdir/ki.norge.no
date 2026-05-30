@@ -9,7 +9,6 @@ const query = Astro.url.searchParams.get('q')?.trim() || '';
 const typeLabels: Record<string, string> = {
   artikkel: 'Artikkel',
   eksempel: 'Eksempel',
-  stegartikkel: 'Veiledning',
   veiledning: 'Veiledning',
   veiledningGuide: 'Veiledning',
   veiledningSteg: 'Veiledning',
@@ -19,7 +18,6 @@ const typeLabels: Record<string, string> = {
 const typeRoutes: Record<string, string> = {
   artikkel: '/artikler/',
   eksempel: '/eksempler/',
-  stegartikkel: '/veiledning/',
   veiledning: '/veiledning/',
   veiledningGuide: '/veiledning/',
   veiledningSteg: '/veiledning/',

@@ -19,6 +19,7 @@ public class ContentTypeComposer : ComponentComposer<ContentTypeComponent>
 public class ContentTypeComponent : IAsyncComponent
 {
     private readonly IContentTypeService _contentTypeService;
+    private readonly IContentService _contentService;
     private readonly IDataTypeService _dataTypeService;
     private readonly IShortStringHelper _shortStringHelper;
     private readonly IRuntimeState _runtimeState;
@@ -56,6 +57,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     public ContentTypeComponent(
         IContentTypeService contentTypeService,
+        IContentService contentService,
         IDataTypeService dataTypeService,
         IShortStringHelper shortStringHelper,
         IRuntimeState runtimeState,
@@ -63,6 +65,7 @@ public class ContentTypeComponent : IAsyncComponent
         PropertyEditorCollection propertyEditors)
     {
         _contentTypeService = contentTypeService;
+        _contentService = contentService;
         _dataTypeService = dataTypeService;
         _shortStringHelper = shortStringHelper;
         _runtimeState = runtimeState;
@@ -268,7 +271,6 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("globaleInnstillinger") == null)
                 CreateGlobaleInnstillinger();
             MigrateGlobaleInnstillinger();
-            MigrateContainerLeadFields();
 
             // RichText data types are ensured by ResolveDataTypes() at the very start of this method.
             // Standard + Restricted variants get correct toolbar+extensions config every startup.
@@ -958,7 +960,7 @@ public class ContentTypeComponent : IAsyncComponent
         {
             Alias = "eksempelKontakt",
             Name = "Kontakt-boks",
-            Description = "CTA-boks 'Ønsker du å dele et eksempel?' med navn/e-post/stilling.",
+            Description = "Kontakt-boks med tittel, navn, e-post og stilling.",
             Icon = "icon-mailbox",
             IsElement = true,
         };
@@ -1411,6 +1413,8 @@ public class ContentTypeComponent : IAsyncComponent
             if (ct == null) continue;
             try
             {
+                _contentService.GetPagedOfType(ct.Id, 0, 1, out long nodeCount, (Umbraco.Cms.Core.Persistence.Querying.IQuery<IContent>?)null);
+                Console.WriteLine($"ContentTypeComposer: WARNING — permanently cascade-deleting content type '{alias}' and its {nodeCount} content node(s). This runs on every startup.");
                 _contentTypeService.Delete(ct);
                 Console.WriteLine($"ContentTypeComposer: Removed legacy '{alias}' content type and all its nodes");
             }
@@ -1435,6 +1439,8 @@ public class ContentTypeComponent : IAsyncComponent
             if (ct == null) continue;
             try
             {
+                _contentService.GetPagedOfType(ct.Id, 0, 1, out long nodeCount, (Umbraco.Cms.Core.Persistence.Querying.IQuery<IContent>?)null);
+                Console.WriteLine($"ContentTypeComposer: WARNING — permanently cascade-deleting content type '{alias}' and its {nodeCount} content node(s) for Caser→Eksempler rename. This runs on every startup.");
                 _contentTypeService.Delete(ct);
                 Console.WriteLine($"ContentTypeComposer: Deleted legacy '{alias}' content type for Caser→Eksempler rename");
             }
@@ -2793,28 +2799,4 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
-    private void MigrateContainerLeadFields()
-    {
-        var faq = _contentTypeService.Get("faqSamling");
-        if (faq != null && !faq.PropertyTypeExists("lead"))
-        {
-            faq.AddPropertyGroup("innhold", "Innhold");
-            faq.AddPropertyType(Prop("lead", "Lead-tekst", _richTextDt, description: "Kort tekst som vises over FAQ-listen."), "innhold");
-            _contentTypeService.Save(faq);
-            Console.WriteLine("ContentTypeComposer: Added lead to faqSamling");
-        }
-
-        var ordbok = _contentTypeService.Get("ordbokSamling");
-        if (ordbok != null && (!ordbok.PropertyTypeExists("tittel") || !ordbok.PropertyTypeExists("lead")))
-        {
-            if (!ordbok.PropertyGroups.Any(g => g.Alias == "innhold"))
-                ordbok.AddPropertyGroup("innhold", "Innhold");
-            if (!ordbok.PropertyTypeExists("tittel"))
-                ordbok.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Synlig overskrift på ordbok-siden."), "innhold");
-            if (!ordbok.PropertyTypeExists("lead"))
-                ordbok.AddPropertyType(Prop("lead", "Lead-tekst", _richTextDt, description: "Kort tekst som vises over ordbok-listen."), "innhold");
-            _contentTypeService.Save(ordbok);
-            Console.WriteLine("ContentTypeComposer: Added tittel + lead to ordbokSamling");
-        }
-    }
 }
