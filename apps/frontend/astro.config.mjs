@@ -17,9 +17,7 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/status') &&
         !page.includes('/admin-tilgang') &&
-        !page.includes('/preview-tilgang') &&
-        !page.includes('/ki-ordboka') &&
-        !page.includes('/ki-ordboken'),
+        !page.includes('/preview-tilgang'),
     }),
   ],
   site: 'https://ki.norge.no',

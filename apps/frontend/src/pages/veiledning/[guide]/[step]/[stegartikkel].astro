@@ -1,0 +1,170 @@
+---
+import Layout from '../../../../components/layout/Layout.astro';
+import ArticleBlocksRenderer from '../../../../components/shared/ArticleBlocksRenderer.astro';
+import {
+  getVeiledningGuide,
+  getVeiledningSteg,
+  getStegartikkel,
+  getPlainText,
+  getMediaUrl,
+} from '../../../../lib/umbraco';
+import { articleSchema, breadcrumbSchema } from '../../../../lib/seo';
+
+const { guide: guideSlug, step: stepSlug, stegartikkel: stegartikkelSlug } = Astro.params;
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+
+const guideData = await getVeiledningGuide(guideSlug!, { preview: isPreview });
+if (!guideData) return Astro.redirect('/veiledning');
+
+const allSteps = await getVeiledningSteg(guideSlug!);
+const currentStep = allSteps.find(s => s.slug === stepSlug);
+if (!currentStep) return Astro.redirect(`/veiledning/${guideSlug}`);
+
+const article = await getStegartikkel(stegartikkelSlug!, { preview: isPreview });
+if (!article) return Astro.redirect(`/veiledning/${guideSlug}/${stepSlug}`);
+
+const seoTitle = article.seoTittel || article.tittel;
+const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
+const heroImage = article.artikkelBilde || article.seoBilde;
+const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
+const isLightBlueBg = (article.bakgrunn || 'hvit') === 'lyseblaa';
+
+const articleJsonLd = articleSchema({
+  headline: seoTitle,
+  description: seoDesc,
+  slug: `${guideSlug}/${stepSlug}/${stegartikkelSlug}`,
+  datePublished: article.publishedAt,
+  dateModified: article.updatedAt || article.publishedAt,
+});
+
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: 'Forside', url: '/' },
+  { name: 'Veiledning', url: '/veiledning' },
+  { name: guideData.tittel, url: `/veiledning/${guideSlug}` },
+  { name: currentStep.tittel, url: `/veiledning/${guideSlug}/${stepSlug}` },
+  { name: article.tittel, url: `/veiledning/${guideSlug}/${stepSlug}/${stegartikkelSlug}` },
+]);
+
+const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
+---
+<Layout
+  title={seoTitle}
+  description={seoDesc}
+  ogType="article"
+  publishedAt={article.publishedAt}
+  ogImage={seoImage}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <div class="article-page" data-layout-block="content">
+    <section class={`article-hero ${isLightBlueBg ? 'article-hero--bg-lyseblaa' : ''}`}>
+      {isLightBlueBg ? (
+        <div class="article-hero-bg-grid" data-layout-block="content">
+          <div class="article-hero-inner">
+            <div class="article-hero-text">
+              <h1 class="article-title">{article.tittel}</h1>
+              {article.ingress && <p class="article-ingress">{article.ingress}</p>}
+            </div>
+            {heroImageUrl && (
+              <div class="article-hero-image">
+                <img src={heroImageUrl} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div class="article-hero-inner">
+          <div class="article-hero-text">
+            <h1 class="article-title">{article.tittel}</h1>
+            {article.ingress && <p class="article-ingress">{article.ingress}</p>}
+          </div>
+          {heroImageUrl && (
+            <div class="article-hero-image">
+              <img src={heroImageUrl} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+
+    <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+  </div>
+</Layout>
+
+<style>
+  .article-page {
+    display: flex;
+    flex-direction: column;
+    padding-top: 0;
+    gap: 48px;
+  }
+
+  .article-hero {
+    padding: 100px 0;
+  }
+
+  .article-hero--bg-lyseblaa {
+    background: #e5f2f7;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-top: calc(-1 * var(--header-height, 72px));
+    padding-top: calc(140px + var(--header-height, 72px));
+    padding-bottom: 80px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .article-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  @media (min-width: 1024px) {
+    .article-hero-inner {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  .article-hero-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .article-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0;
+    color: var(--ds-color-text-default, #000);
+  }
+
+  .article-ingress {
+    font-size: 1.25rem;
+    line-height: 1.5;
+    margin: 0;
+    color: var(--ds-color-text-default, #000);
+  }
+
+  .article-hero-image {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .article-hero-image {
+      max-width: 50%;
+    }
+  }
+
+  .article-hero-img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+  }
+</style>

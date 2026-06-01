@@ -140,7 +140,13 @@ export interface VeiledningTekstBlock {
 
 export interface VeiledningInfoBlock {
   contentType: 'veiledningInfo';
-  content: { tittel: string; innhold: string };
+  content: {
+    tittel: string;
+    innhold: string;
+    trekkspill?: { tittel: string; innhold: string }[];
+    lesMerTittel?: string;
+    lesMerUrl?: string;
+  };
 }
 
 export interface VeiledningEksempelBlock {
@@ -179,13 +185,34 @@ export interface Artikkel {
 
 export interface EnkelVeiledning extends Artikkel {}
 
-export interface Side {
+export interface Stegartikkel extends Artikkel {}
+
+export interface Kalenderhendelse {
   id: string;
   documentId: string;
   tittel: string;
   slug: string;
-  innhold?: UmbracoBlock[];
-  template?: 'standard' | 'bred' | 'landingsside';
+  type?: string;
+  ingress?: string;
+  detaljertBeskrivelse?: UmbracoBlock[];
+  startDato: string;
+  sluttDato?: string;
+  tid?: string;
+  sted?: string;
+  lenke?: string;
+  tagger?: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  locale: string;
+}
+
+export interface Kalender {
+  id: string;
+  documentId: string;
+  tittel: string;
+  ingress?: string;
+  featuredHendelse?: Kalenderhendelse | null;
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -195,26 +222,53 @@ export interface Side {
   locale: string;
 }
 
-export interface Eksempel {
+export interface Side extends Artikkel {}
+
+export interface Eksempel extends Artikkel {}
+
+export interface ArtiklerOversikt {
   id: string;
   documentId: string;
-  tittel: string;
-  slug: string;
-  organisasjon?: string;
-  beskrivelse?: UmbracoBlock[];
-  verktoy?: string[];
-  resultater?: UmbracoBlock[];
-  accordionSeksjoner?: AccordionSection[];
-  status?: 'i_utvikling' | 'pilot' | 'i_drift' | 'avsluttet';
-  bilde?: UmbracoMedia;
-  merkelapper?: Merkelapp[];
+  heroTittel?: string;
+  heroSubtittel?: string;
+  featuredArtikkelId?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
-  locale: string;
+}
+
+export interface EksemplerSeksjon {
+  contentType: 'eksempelFeatured' | 'eksempelGruppe' | 'eksempelRelatert' | 'eksempelKontakt';
+  id: string;
+  // Featured: én eksempel-referanse
+  eksempelId?: string;
+  // Gruppe: tittel + kolonner + 1-6 eksempel-referanser
+  tittel?: string;
+  antallKolonner?: number;
+  eksempelIds?: string[];
+  // Relatert: tittel + 1-3 referanser (kan være artikkel eller veiledningGuide)
+  relatertIds?: string[];
+  // Kontakt: tittel + navn + epost + stilling
+  navn?: string;
+  epost?: string;
+  stilling?: string;
+}
+
+export interface EksemplerOversikt {
+  id: string;
+  documentId: string;
+  heroTittel?: string;
+  heroIngress?: string;
+  seksjoner?: EksemplerSeksjon[];
+  seoTittel?: string;
+  seoBeskrivelse?: string;
+  seoBilde?: UmbracoMedia;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 
 export interface VeiledningGuide {
@@ -244,25 +298,6 @@ export interface VeiledningSteg {
   understeg: number;
   ingress?: string;
   innholdBlokker?: UmbracoBlock[];
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  locale: string;
-}
-
-export interface OrdbokOppslag {
-  term: string;
-  alternativTerm?: string;
-  definisjon: string;
-}
-
-export interface FAQ {
-  id: string;
-  documentId: string;
-  sporsmal: string;
-  svar?: UmbracoBlock[];
-  kategori?: Merkelapp;
-  rekkefølge?: number;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -435,44 +470,19 @@ export interface VeiledningOversikt {
   locale: string;
 }
 
-export interface Merkelapp {
-  id: string;
-  documentId: string;
-  navn: string;
-  slug: string;
-  beskrivelse?: string;
-  locale: string;
-}
-
 export interface GlobaleInnstillinger {
   id: string;
   documentId: string;
-  kontaktTittel?: string;
-  kontaktIngress?: string;
-  kontaktTelefon?: string;
-  kontaktTelefonLabel?: string;
-  kontaktEpost?: string;
-  kontaktEpostLabel?: string;
+  cookieTittel?: string;
   cookieTekst?: string;
-  cookieKnappLabel?: string;
+  cookieJaLabel?: string;
+  cookieNeiLabel?: string;
+  cookieSekundaerTekst?: string;
   tittel404?: string;
   beskrivelse404?: string;
   tittel503?: string;
   beskrivelse503?: string;
   vedlikeholdEpost?: string;
-}
-
-export interface FaqSamling {
-  id: string;
-  documentId: string;
-  lead?: string;
-}
-
-export interface OrdbokSamling {
-  id: string;
-  documentId: string;
-  tittel?: string;
-  lead?: string;
 }
 
 export interface UmbracoMedia {
@@ -695,19 +705,36 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
   };
 
   switch (contentType) {
-    case 'caser':
+    case 'eksempler':
       return {
         ...base,
         heroTittel: props.heroTittel as string || '',
         heroIngress: props.heroIngress as string || '',
+        seksjoner: mapEksemplerSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
+    case 'artikler': {
+      const featured = props.featuredArtikkel as { id?: string } | Array<{ id?: string }> | undefined;
+      const featuredNode = Array.isArray(featured) ? featured[0] : featured;
+      return {
+        ...base,
+        heroTittel: props.heroTittel as string || '',
+        heroSubtittel: props.heroSubtittel as string || '',
+        featuredArtikkelId: featuredNode?.id || undefined,
+        seoTittel: props.seoTittel as string || '',
+        seoBeskrivelse: props.seoBeskrivelse as string || '',
+        seoBilde: mapMedia(props.seoBilde),
+      } as T;
+    }
+
     case 'artikkel':
-    case 'case':
+    case 'eksempel':
     case 'enkelVeiledning':
+    case 'stegartikkel':
+    case 'side':
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -722,35 +749,34 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
-    case 'side':
+    case 'kalenderhendelse':
       return {
         ...base,
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
-        innhold: mapRichText(props.innhold),
-        template: props.template as string || 'standard',
+        type: props.type as string || undefined,
+        ingress: props.ingress as string || '',
+        detaljertBeskrivelse: mapRichText(props.detaljertBeskrivelse),
+        startDato: props.startDato as string || '',
+        sluttDato: props.sluttDato as string || undefined,
+        tid: props.tid as string || undefined,
+        sted: props.sted as string || undefined,
+        lenke: props.lenke as string || undefined,
+        tagger: props.tagger as string || undefined,
+      } as T;
+
+    case 'kalender':
+      return {
+        ...base,
+        tittel: props.tittel as string || item.name,
+        ingress: props.ingress as string || '',
+        featuredHendelse: mapFeaturedHendelse(props.featuredHendelse),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
-    case 'eksempel':
-      return {
-        ...base,
-        tittel: props.tittel as string || item.name,
-        slug: props.slug as string || '',
-        organisasjon: props.organisasjon as string || '',
-        beskrivelse: mapRichText(props.beskrivelse),
-        verktoy: parseJsonArray(props.verktoy as string),
-        resultater: mapRichText(props.resultater),
-        accordionSeksjoner: mapAccordionSections(props.accordionSeksjoner),
-        status: props.status as string || undefined,
-        bilde: mapMedia(props.bilde),
-        merkelapper: mapMerkelapper(props.merkelapper),
-        seoTittel: props.seoTittel as string || '',
-        seoBeskrivelse: props.seoBeskrivelse as string || '',
-        seoBilde: mapMedia(props.seoBilde),
-      } as T;
+
 
     case 'veiledningGuide':
       return {
@@ -775,15 +801,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         understeg: props.understeg as number || 0,
         ingress: props.ingress as string || '',
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
-      } as T;
-
-    case 'faq':
-      return {
-        ...base,
-        sporsmal: props.sporsmal as string || item.name,
-        svar: mapRichText(props.svar),
-        kategori: mapKategori(props.kategori),
-        rekkefølge: props.rekkefolge as number || 0,
       } as T;
 
     case 'forside':
@@ -910,50 +927,19 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
-    case 'merkelapp':
-      return {
-        ...base,
-        navn: props.navn as string || item.name,
-        slug: props.slug as string || '',
-        beskrivelse: props.beskrivelse as string || '',
-      } as T;
-
-    case 'ordbokOppslag':
-      return {
-        term: props.term as string || item.name,
-        alternativTerm: props.alternativTerm as string || undefined,
-        definisjon: props.definisjon as string || '',
-      } as T;
-
     case 'globaleInnstillinger':
       return {
         ...base,
-        kontaktTittel: props.kontaktTittel as string || '',
-        kontaktIngress: props.kontaktIngress as string || '',
-        kontaktTelefon: props.kontaktTelefon as string || '',
-        kontaktTelefonLabel: props.kontaktTelefonLabel as string || '',
-        kontaktEpost: props.kontaktEpost as string || '',
-        kontaktEpostLabel: props.kontaktEpostLabel as string || '',
+        cookieTittel: props.cookieTittel as string || '',
         cookieTekst: richTextHtml(props.cookieTekst),
-        cookieKnappLabel: props.cookieKnappLabel as string || '',
+        cookieJaLabel: props.cookieJaLabel as string || '',
+        cookieNeiLabel: props.cookieNeiLabel as string || '',
+        cookieSekundaerTekst: richTextHtml(props.cookieSekundaerTekst),
         tittel404: props.tittel404 as string || '',
         beskrivelse404: props.beskrivelse404 as string || '',
         tittel503: props.tittel503 as string || '',
         beskrivelse503: props.beskrivelse503 as string || '',
         vedlikeholdEpost: props.vedlikeholdEpost as string || '',
-      } as T;
-
-    case 'faqSamling':
-      return {
-        ...base,
-        lead: richTextHtml(props.lead),
-      } as T;
-
-    case 'ordbokSamling':
-      return {
-        ...base,
-        tittel: props.tittel as string || '',
-        lead: richTextHtml(props.lead),
       } as T;
 
     default:
@@ -1110,7 +1096,20 @@ function mapVeiledningBlocks(value: unknown): UmbracoBlock[] | undefined {
       return { contentType: 'veiledningTekst', content: { innhold: richHtml(props.innhold) } };
     }
     if (ct === 'veiledningInfo') {
-      return { contentType: 'veiledningInfo', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+      const trekkspillRaw = (props.trekkspill as any)?.items;
+      const trekkspill = Array.isArray(trekkspillRaw)
+        ? trekkspillRaw.map((t: any) => {
+            const tc = t.content?.properties || t.content || t.properties || t;
+            return { tittel: tc.tittel || tc.title || '', innhold: richHtml(tc.innhold || tc.body) };
+          })
+        : undefined;
+      return { contentType: 'veiledningInfo', content: {
+        tittel: props.tittel || '',
+        innhold: richHtml(props.innhold),
+        trekkspill,
+        lesMerTittel: props.lesMerTittel || undefined,
+        lesMerUrl: props.lesMerUrl || undefined,
+      } };
     }
     if (ct === 'veiledningEksempel') {
       return { contentType: 'veiledningEksempel', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
@@ -1254,31 +1253,89 @@ function mapMedia(value: unknown): UmbracoMedia | undefined {
   return undefined;
 }
 
-function mapMerkelapper(value: unknown): Merkelapp[] {
-  if (!value || !Array.isArray(value)) return [];
-  return value.map((item: any) => ({
-    id: item.id || '',
-    documentId: item.id || '',
-    navn: item.properties?.navn || item.name || '',
-    slug: item.properties?.slug || '',
-    beskrivelse: item.properties?.beskrivelse || '',
-    locale: 'nb-NO',
-  }));
+function pickerId(value: unknown): string | undefined {
+  if (!value) return undefined;
+  const item = Array.isArray(value) ? value[0] : value;
+  return (item as any)?.id || undefined;
 }
 
-function mapKategori(value: unknown): Merkelapp | undefined {
-  if (!value) return undefined;
+function pickerIds(value: unknown): string[] {
+  if (!value) return [];
+  const arr = Array.isArray(value) ? value : [value];
+  return arr.map((item: any) => item?.id).filter((id): id is string => !!id);
+}
+
+function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any) => {
+    const content = block.content || block;
+    const ct = content.contentType;
+    const props = content.properties || {};
+    const id = content.id || '';
+
+    if (ct === 'eksempelFeatured') {
+      return { contentType: ct, id, eksempelId: pickerId(props.eksempel) };
+    }
+    if (ct === 'eksempelGruppe') {
+      const eksempelIds = [props.eksempel1, props.eksempel2, props.eksempel3, props.eksempel4, props.eksempel5, props.eksempel6]
+        .map(pickerId)
+        .filter((id): id is string => !!id);
+      return {
+        contentType: ct,
+        id,
+        tittel: props.tittel || undefined,
+        antallKolonner: Number(props.antallKolonner) || 3,
+        eksempelIds,
+      };
+    }
+    if (ct === 'eksempelRelatert') {
+      const relatertIds = [props.relatert1, props.relatert2, props.relatert3]
+        .map(pickerId)
+        .filter((id): id is string => !!id);
+      return { contentType: ct, id, tittel: props.tittel || undefined, relatertIds };
+    }
+    if (ct === 'eksempelKontakt') {
+      return {
+        contentType: ct,
+        id,
+        tittel: props.tittel || '',
+        navn: props.navn || undefined,
+        epost: props.epost || undefined,
+        stilling: props.stilling || undefined,
+      };
+    }
+    return { contentType: ct, id };
+  });
+}
+
+function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
+  if (!value) return null;
   const item = value as any;
+  const node = Array.isArray(item) ? item[0] : item;
+  if (!node) return null;
+  const p = node.properties || {};
   return {
-    id: item.id || '',
-    documentId: item.id || '',
-    navn: item.properties?.navn || item.name || '',
-    slug: item.properties?.slug || '',
-    beskrivelse: item.properties?.beskrivelse || '',
+    id: node.id || '',
+    documentId: node.id || '',
+    tittel: p.tittel || node.name || '',
+    slug: p.slug || '',
+    type: p.type || undefined,
+    ingress: p.ingress || '',
+    detaljertBeskrivelse: undefined,
+    startDato: p.startDato || '',
+    sluttDato: p.sluttDato || undefined,
+    tid: p.tid || undefined,
+    sted: p.sted || undefined,
+    lenke: p.lenke || undefined,
+    tagger: p.tagger || undefined,
+    createdAt: node.createDate || '',
+    updatedAt: node.updateDate || '',
+    publishedAt: node.createDate || '',
     locale: 'nb-NO',
   };
 }
-
 
 function parseJsonArray(value: string | undefined): string[] {
   if (!value) return [];
@@ -1303,9 +1360,13 @@ export function getMediaUrl(media?: UmbracoMedia): string | undefined {
  */
 export function getPlainText(blocks?: UmbracoBlock[], maxLength?: number): string {
   if (!blocks || blocks.length === 0) return '';
+  // Read text from any block that carries body text. The PR maps side/eksempel
+  // bodies via 'artikkelTekst' (content.innhold); veiledning uses the same shape;
+  // legacy data used contentType 'tekst' (content.tekst or content.innhold).
+  // Stay generic so excerpts/SEO never silently return ''.
   const html = blocks
-    .filter(b => b.contentType === 'tekst')
-    .map(b => b.content.innhold as string || '')
+    .map(b => (b.content?.innhold as string) ?? (b.content?.tekst as string) ?? '')
+    .filter(Boolean)
     .join(' ');
   // Strip HTML tags
   const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
@@ -1330,6 +1391,29 @@ export async function getArtikkel(slug: string, options: FetchOptions = {}) {
   return fetchBySlug<Artikkel>('artikkel', slug, options);
 }
 
+export async function getStegartikkel(slug: string, options: FetchOptions = {}) {
+  return fetchBySlug<Stegartikkel>('stegartikkel', slug, options);
+}
+
+export async function getStegartiklerForSteg(stegSlug: string, options: FetchOptions = {}) {
+  const result = await fetchCollection<Stegartikkel>('stegartikkel', { ...options, take: 100 });
+  return result.data;
+}
+
+// ── Kalender API functions ──────────────────────────────────────
+
+export async function getKalender(options: FetchOptions = {}): Promise<Kalender | null> {
+  const result = await fetchCollection<Kalender>('kalender', { ...options, take: 1 });
+  return result.data[0] || null;
+}
+
+export async function getKalenderhendelser(options: FetchOptions = {}) {
+  return fetchCollection<Kalenderhendelse>('kalenderhendelse', {
+    ...options,
+    take: 100,
+  });
+}
+
 // ── Side (Page) API functions ───────────────────────────────────
 
 export async function getSider(options: FetchOptions = {}) {
@@ -1340,50 +1424,24 @@ export async function getSide(slug: string, options: FetchOptions = {}) {
   return fetchBySlug<Side>('side', slug, options);
 }
 
-// ── Case API (new content type, replaces Eksempel) ──────────────
+// ── Eksempel API functions ──────────────────────────────────────
 
-export interface Case extends Artikkel {
-  // Same shape as Artikkel for now (mirror content type).
-  // Add case-specific fields here when they diverge.
-}
-
-export interface CaserOversikt {
-  id: string;
-  documentId: string;
-  heroTittel?: string;
-  heroIngress?: string;
-  seoTittel?: string;
-  seoBeskrivelse?: string;
-  seoBilde?: UmbracoMedia;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export async function getCaserOversikt(options: FetchOptions = {}): Promise<CaserOversikt | null> {
-  const result = await fetchCollection<CaserOversikt>('caser', { ...options, take: 1 });
+export async function getEksemplerOversikt(options: FetchOptions = {}): Promise<EksemplerOversikt | null> {
+  const result = await fetchCollection<EksemplerOversikt>('eksempler', { ...options, take: 1 });
   return result.data[0] || null;
 }
 
-export async function getCaser(options: FetchOptions = {}) {
-  return fetchCollection<Case>('case', {
+export async function getArtiklerOversikt(options: FetchOptions = {}): Promise<ArtiklerOversikt | null> {
+  const result = await fetchCollection<ArtiklerOversikt>('artikler', { ...options, take: 1 });
+  return result.data[0] || null;
+}
+
+export async function getEksempler(options: FetchOptions = {}) {
+  return fetchCollection<Eksempel>('eksempel', {
     skip: 0,
     take: 50,
     sort: 'updateDate:desc',
     ...options,
-  });
-}
-
-export async function getCase(slug: string, options: FetchOptions = {}) {
-  return fetchBySlug<Case>('case', slug, options);
-}
-
-// ── Eksempel (legacy, will be removed once content migrates to Case) ──
-
-export async function getEksempler(options: FetchOptions = {}) {
-  return fetchCollection<Eksempel>('eksempel', {
-    ...options,
-    sort: 'createDate:desc',
   });
 }
 
@@ -1400,16 +1458,6 @@ export async function getForside(options: FetchOptions = {}): Promise<Forside | 
 
 export async function getGlobaleInnstillinger(options: FetchOptions = {}): Promise<GlobaleInnstillinger | null> {
   const result = await fetchCollection<GlobaleInnstillinger>('globaleInnstillinger', { ...options, take: 1 });
-  return result.data[0] || null;
-}
-
-export async function getFaqSamling(options: FetchOptions = {}): Promise<FaqSamling | null> {
-  const result = await fetchCollection<FaqSamling>('faqSamling', { ...options, take: 1 });
-  return result.data[0] || null;
-}
-
-export async function getOrdbokSamling(options: FetchOptions = {}): Promise<OrdbokSamling | null> {
-  const result = await fetchCollection<OrdbokSamling>('ordbokSamling', { ...options, take: 1 });
   return result.data[0] || null;
 }
 
@@ -1439,27 +1487,6 @@ export async function getEnkelVeiledning(slug: string, options: FetchOptions = {
   return fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
 }
 
-// ── FAQ API functions ───────────────────────────────────────────
-
-export async function getFAQs(options: FetchOptions = {}) {
-  return fetchCollection<FAQ>('faq', {
-    ...options,
-    sort: 'sortOrder:asc',
-  });
-}
-
-// ── KI-ordbok API functions ──────────────────────────────────────
-
-export async function getOrdbokOppslag(options: FetchOptions = {}) {
-  return fetchCollection<OrdbokOppslag>('ordbokOppslag', {
-    ...options,
-    sort: 'name:asc',
-    take: 500,
-  });
-}
-
-// ── Merkelapp (Tag) API functions ───────────────────────────────
-
 export async function getOmOssSeksjoner(options: FetchOptions = {}) {
   return fetchCollection<OmOssSeksjon>('omOssSeksjon', {
     ...options,
@@ -1487,11 +1514,7 @@ export async function getSandkasse(options: FetchOptions = {}): Promise<Sandkass
  * during the migration window.
  */
 export async function getVeiledningOversikt(options: FetchOptions = {}): Promise<VeiledningOversikt | null> {
-  // Try new structure first
-  const flat = await fetchCollection<VeiledningOversikt>('veiledninger', { ...options, take: 1 });
-  if (flat.data[0]?.heroTittel) return flat.data[0];
-  // Fall back to legacy
-  const result = await fetchCollection<VeiledningOversikt>('veiledningOversikt', { ...options, take: 1 });
+  const result = await fetchCollection<VeiledningOversikt>('veiledninger', { ...options, take: 1 });
   return result.data[0] || null;
 }
 
@@ -1588,8 +1611,9 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
         }
       }
       for (const e of eksempler.data) {
-        if (e.tittel.toLowerCase().includes(lowerQuery) || (e.organisasjon || '').toLowerCase().includes(lowerQuery) || getPlainText(e.beskrivelse, 500).toLowerCase().includes(lowerQuery)) {
-          allResults.push({ id: e.id, tittel: e.tittel, slug: e.slug, contentType: 'eksempel', excerpt: getPlainText(e.beskrivelse, 200), publishedAt: e.publishedAt });
+        const eksempelIngress = e.ingress || '';
+        if (e.tittel.toLowerCase().includes(lowerQuery) || eksempelIngress.toLowerCase().includes(lowerQuery) || getPlainText(e.innhold, 500).toLowerCase().includes(lowerQuery)) {
+          allResults.push({ id: e.id, tittel: e.tittel, slug: e.slug, contentType: 'eksempel', excerpt: eksempelIngress || getPlainText(e.innhold, 200), publishedAt: e.publishedAt });
         }
       }
       for (const g of guides.data) {

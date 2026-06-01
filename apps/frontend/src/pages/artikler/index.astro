@@ -4,28 +4,45 @@ import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.ast
 import ArticleCardImage from '../../components/shared/ArticleCardImage.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
 import ArrowLink from '../../components/shared/ArrowLink.astro';
-import { getArtikler, getPlainText, type Artikkel } from '../../lib/umbraco';
+import { getArtikler, getArtiklerOversikt, getPlainText, type Artikkel } from '../../lib/umbraco';
 
 let articles: Artikkel[] = [];
+let oversikt = null;
 try {
-  const artiklerRes = await getArtikler();
+  const [artiklerRes, oversiktRes] = await Promise.all([
+    getArtikler(),
+    getArtiklerOversikt(),
+  ]);
   articles = artiklerRes.data;
+  oversikt = oversiktRes;
 } catch (e) {
   console.error('Failed to fetch artikler:', e);
 }
 
-const featured = articles[0];
-const compactCards = articles.slice(1, 4);
-const imageCards = articles.slice(4);
+const heroTittel = oversikt?.heroTittel || 'Aktuelt';
+const heroSubtittel = oversikt?.heroSubtittel || '';
+const seoTitle = oversikt?.seoTittel || heroTittel;
+const seoDesc = oversikt?.seoBeskrivelse || 'Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.';
+
+const featuredOverride = oversikt?.featuredArtikkelId
+  ? articles.find(a => a.id === oversikt!.featuredArtikkelId)
+  : null;
+const featured = featuredOverride || articles[0];
+const rest = articles.filter(a => a.id !== featured?.id);
+const compactCards = rest.slice(0, 3);
+const imageCards = rest.slice(3);
 
 function getImageUrl(article: Artikkel) {
   return article.artikkelBilde?.url || undefined;
 }
 ---
 
-<Layout title="Aktuelt" description="Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.">
+<Layout title={seoTitle} description={seoDesc}>
   <section data-layout-block="content" class="artikler-page">
-    <h1 class="artikler-title">Aktuelt</h1>
+    <header class="artikler-header">
+      <h1 class="artikler-title">{heroTittel}</h1>
+      {heroSubtittel && <p class="artikler-subtitle">{heroSubtittel}</p>}
+    </header>
 
     {featured && (
       <ArticleCardFeatured
@@ -79,11 +96,24 @@ function getImageUrl(article: Artikkel) {
     padding-block: var(--ds-size-10) var(--ds-size-16);
   }
 
+  .artikler-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+  }
+
   .artikler-title {
     font-size: var(--ds-heading-lg-font-size);
     font-weight: 700;
     margin: 0;
     line-height: 1.2;
+  }
+
+  .artikler-subtitle {
+    margin: 0;
+    font-size: var(--ds-body-lg-font-size);
+    line-height: var(--ds-body-lg-line-height);
+    color: var(--ds-color-neutral-text-subtle);
   }
 
   .compact-grid {
