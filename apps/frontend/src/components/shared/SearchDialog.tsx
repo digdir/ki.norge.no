@@ -59,15 +59,13 @@ const DUMMY_RESULT: Record<string, DummyData> = {
       'Veiledningen på ki.norge.no gir praktiske råd om alt fra dataforvaltning til juridiske vurderinger og tekniske anskaffelser. Gjennom KI-sandkassen kan virksomheter også teste løsninger sammen med Datatilsynet i en kontrollert setting. ' +
       'Populære temaer inkluderer bias og rettferdighet, forklarbarhet, personvern, og hvordan man måler og forbedrer datakvalitet før man trener modeller.',
     aiSources: [
-      { title: 'Hva er kunstig intelligens?', path: '/ki-ordbok' },
       { title: 'Veiledning: Ta i bruk KI', path: '/veiledning' },
       { title: 'Om KI-sandkassen', path: '/sandkasse' },
     ],
     results: [
-      { title: 'Kunstig intelligens', path: '/ki-ordbok#Kunstig-intelligens', excerpt: 'Datasystemer som kan utføre oppgaver som vanligvis krever menneskelig intelligens.', type: 'Ordbok' },
       { title: 'EU AI Act: Hva betyr det for norsk offentlig sektor?', path: '/artikler/eu-ai-act', excerpt: 'En gjennomgang av de viktigste kravene og hvordan de vil påvirke offentlige virksomheter.', type: 'Artikkel' },
       { title: 'Ny nasjonal strategi for kunstig intelligens', path: '/artikler/ny-strategi', excerpt: 'Regjeringen presenterer ny strategi for ansvarlig bruk av KI i offentlig sektor.', type: 'Artikkel' },
-      { title: 'KI-chatbot for innbyggerdialog', path: '/caser/ki-chatbot-for-innbyggerdialog', excerpt: 'Kommune X bruker generativ KI til å besvare innbyggerhenvendelser 24/7.', type: 'Case' },
+      { title: 'KI-chatbot for innbyggerdialog', path: '/eksempler/ki-chatbot-for-innbyggerdialog', excerpt: 'Kommune X bruker generativ KI til å besvare innbyggerhenvendelser 24/7.', type: 'Eksempel' },
       { title: 'Vi skal ta i bruk KI', path: '/veiledning/ta-i-bruk', excerpt: 'Veiledning for virksomheter som vil ta i bruk ferdig trent KI.', type: 'Veiledning' },
       { title: 'Slik bruker Nav kunstig intelligens til saksbehandling', path: '/artikler/nav-ki', excerpt: 'Hvordan Nav har tatt i bruk maskinlæring for å prioritere saker.', type: 'Artikkel' },
     ],

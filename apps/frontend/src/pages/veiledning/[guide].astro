@@ -1,9 +1,8 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
-import BlocksRenderer from '../../components/shared/BlocksRenderer.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
+import VeiledningBlocksRenderer from '../../components/shared/VeiledningBlocksRenderer.astro';
 import StepNavigator from '../../components/guide/StepNavigator.astro';
-import InfoBanner from '../../components/guide/InfoBanner.astro';
 import {
   getVeiledningGuide,
   getVeiledningSteg,
@@ -81,7 +80,7 @@ if (guideData) {
 
   guideCtx = {
     seoTitle: guideData.seoTittel || guideData.tittel,
-    seoDesc: guideData.seoBeskrivelse || getPlainText(guideData.introTekst, 200),
+    seoDesc: guideData.seoBeskrivelse || guideData.ingress || getPlainText(guideData.innholdBlokker, 200),
     steps: Array.from(stepMap.entries()).map(([num, data]) => ({
       number: num,
       title: stepGroupTitles[num] || `Steg ${num}`,
@@ -136,31 +135,37 @@ if (guideData) {
   </Layout>
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc}>
-    <div class="guide-overview">
-      <h1 class="guide-title">{guideData.tittel}</h1>
+    <div class="guide-overview grid">
+      <header class="col-center-6 guide-header">
+        <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
+        {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
+      </header>
 
-      {guideData.introTekst && (
-        <InfoBanner>
-          <BlocksRenderer blocks={guideData.introTekst} />
-        </InfoBanner>
-      )}
+      <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
 
-      <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
+      <div class="col-center-6">
+        <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
+      </div>
     </div>
   </Layout>
 ) : null }
 
 <style>
   .guide-overview {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--ds-size-8) var(--ds-size-4);
+    padding-block: var(--ds-size-8);
+    padding-inline: var(--ds-size-4);
+    row-gap: var(--ds-size-6);
   }
-  .guide-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0 0 32px;
-    color: #000;
+  .guide-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+  }
+  .guide-ingress {
+    margin: 0;
+    font-size: var(--ds-body-lg-font-size);
+    line-height: var(--ds-body-lg-line-height);
+    color: var(--ds-color-neutral-text-subtle);
   }
 
   .article-page {

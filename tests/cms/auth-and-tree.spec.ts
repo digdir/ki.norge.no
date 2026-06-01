@@ -34,16 +34,20 @@ test('Content tree shows expected structure', async ({ page }) => {
   await page.goto('/umbraco/section/content');
   await page.waitForLoadState('networkidle');
 
-  // Only items created by RunStructureMigrations survive on a fresh install:
-  // demo content seeding has been removed, the rest is bootstrapped via
-  // uSync import (issue #232).
-  for (const name of ['Caser', 'KI-ordbok']) {
-    await expect(page.locator(`text=${name}`).first()).toBeVisible({ timeout: 10_000 });
-  }
+  // Demo content seeding is removed; on a fresh install the tree is otherwise
+  // bootstrapped via uSync import (issue #232), which CI does not run. So we
+  // assert the negatives that guard pr-316's structural changes rather than
+  // positive nodes that only exist after a uSync import.
+  // Anchor: confirm we actually landed on the content section (so the
+  // toHaveCount(0) checks below aren't trivially true on a blank page).
+  await expect(page).toHaveURL(/\/umbraco\/section\/content/, { timeout: 10_000 });
+  await expect(page.getByRole('heading', { name: 'Content' })).toBeVisible({ timeout: 10_000 });
 
-  // Eksempler should NOT be in the tree (migrated to Caser, container deleted)
-  await expect(page.locator('text=Eksempler')).toHaveCount(0);
-  // Ikoner should NOT be in the tree
+  // Caser was renamed to Eksempler in pr-316 — the old name must be gone.
+  await expect(page.locator('text=Caser')).toHaveCount(0);
+  // KI-ordbok was removed in pr-316.
+  await expect(page.locator('text=KI-ordbok')).toHaveCount(0);
+  // Ikoner should NOT be in the tree.
   await expect(page.locator('text=Tilgjengelige ikoner')).toHaveCount(0);
 });
 
