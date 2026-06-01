@@ -29,7 +29,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: article.tittel, url: `/eksempler/${slug}` },
 ]);
 
-const allEksemplerRes = await getEksempler();
+const allEksemplerRes = await getEksempler({ take: 10 });
 const otherArticles = allEksemplerRes.data.filter(a => a.slug !== slug).slice(0, 3);
 
 const bakgrunn = article.bakgrunn || 'hvit';
