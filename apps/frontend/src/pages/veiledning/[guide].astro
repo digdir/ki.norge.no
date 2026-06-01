@@ -97,9 +97,7 @@ if (guideData) {
     publishedAt={enkel.publishedAt}
     ogImage={enkelCtx.seoImage}
   >
-    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.articleJsonLd).replace(/</g, '\\u003c')} />
-    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-    <div class="article-page grid">
+    <div class="article-page grid" data-layout-block="content">
       <section class={`article-hero ${enkelCtx.isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
         {enkelCtx.isLightBlueBg ? (
           <div class="grid article-hero-bg-grid">
@@ -132,11 +130,13 @@ if (guideData) {
 
       <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} />
     </div>
+    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.articleJsonLd).replace(/</g, '\\u003c')} />
+    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   </Layout>
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc}>
-    <div class="guide-overview grid">
-      <header class="col-center-6 guide-header">
+    <div class="guide-overview grid" data-layout-block="content">
+      <header class="guide-header">
         <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
         {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
       </header>
@@ -178,7 +178,6 @@ if (guideData) {
   }
 
   .article-hero--bg-lyseblaa {
-    background: #e5f2f7;
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-top: calc(-1 * var(--header-height, 72px));

@@ -7,7 +7,6 @@
 import Layout from '../../components/layout/Layout.astro';
 import TextWithImage from '../../components/shared/TextWithImage.astro';
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
-import ArrowLink from '../../components/shared/ArrowLink.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
 import { getVeiledningOversikt, getVeiledningGuider, getCaser, getPlainText, getMediaUrl } from '../../lib/umbraco';
@@ -41,7 +40,7 @@ const featuredImage = heroImageUrl || '/woman-speaking.svg';
 const richLinks = guides.data.length > 0
   ? guides.data.map(g => ({
       title: g.tittel,
-      desc: g.introTekst ? getPlainText(g.introTekst, 160) : '',
+      desc: g.ingress || '',
       href: `/veiledning/${g.slug}`,
     }))
   : (cmsData?.seksjon2Kort || []).map(k => ({
