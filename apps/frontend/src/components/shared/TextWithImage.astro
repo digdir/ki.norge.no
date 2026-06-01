@@ -15,14 +15,11 @@ const { title, href, image, imageAlt = '' } = Astro.props;
   <div class="text">
     <slot />
     <h2 class="ds-heading" data-size="xl">
-      <a href={href} class="ds-focus">{title}</a>
+      <a href={href} class="ds-focus">{title} <span aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></a>
     </h2>
-    <div class="body">
+    <div class="body ds-paragraph" data-size="lg">
       <slot name="body" />
     </div>
-    <a href={href} class="text-with-image-arrow" aria-label={title}>
-      <AkselIcon name="ArrowRight" size={20} />
-    </a>
   </div>
   <div class="illustration">
     <img src={image} alt={imageAlt} />
@@ -46,30 +43,28 @@ const { title, href, image, imageAlt = '' } = Astro.props;
       gap: var(--ds-size-3);
 
       & h2 {
-
         & a {
           color: inherit;
           text-decoration: underline;
           text-underline-offset: 4px;
           text-decoration-thickness: 2px;
+
+          & span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--ds-color-accent-surface-tinted);
+            color: var(--ds-color-accent-text-default);
+            margin-left: var(--ds-size-2);
+          }
         }
       }
 
-      & .text-with-image-arrow {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: var(--ds-color-accent-surface-tinted);
-        color: var(--ds-color-accent-text-default);
-        margin-top: var(--ds-size-4);
-      }
 
       & .body {
-        font-size: 18px;
-        line-height: 1.6;
         color: inherit;
 
         & ol, & ul {
