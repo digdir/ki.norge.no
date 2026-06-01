@@ -6,15 +6,18 @@ interface Props {
   href: string;
   image: string;
   imageAlt?: string;
+  imagePosition?: 'left' | 'right';
+  label?: string;
 }
 
-const { title, href, image, imageAlt = '' } = Astro.props;
+const { title, href, image, imageAlt = '', imagePosition = 'right', label } = Astro.props;
 ---
 
-<div class="text-with-image">
+<div class="text-with-image" data-image-position={imagePosition}>
   <div class="text">
+    {label && <p class="ds-paragraph" data-size="xl">{label}</p>}
     <slot />
-    <h2 class="ds-heading" data-size="xl">
+    <h2 class="ds-heading" data-size="lg">
       <a href={href} class="ds-focus">{title} <span aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></a>
     </h2>
     <div class="body ds-paragraph" data-size="lg">
@@ -37,10 +40,25 @@ const { title, href, image, imageAlt = '' } = Astro.props;
       align-items: center;
     }
 
+    &[data-image-position='left'] {
+      @media (min-width: 768px) {
+        grid-template-columns: 1fr 2fr;
+
+        & .illustration {
+          order: -1;
+        }
+      }
+    }
+
     & .text {
       display: flex;
       flex-direction: column;
       gap: var(--ds-size-3);
+
+      & .ds-paragraph {
+        margin-block-end: var(--ds-size-4)
+      }
+
 
       & h2 {
         & a {

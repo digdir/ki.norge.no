@@ -63,7 +63,7 @@ const simpleLinks = cmsData?.verktoyKort
 
 // Case cards — "Lær av andre"
 const caseCards = cases.data.length > 0
-  ? cases.data.slice(0, 4).map(c => ({
+  ? cases.data.slice(0, 2).map(c => ({
       title: c.tittel,
       href: `/caser/${c.slug}`,
       tag: 'Eksempel',
@@ -86,8 +86,7 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
 
   <!-- Kom i gang — Featured article with illustration -->
   <section class="veil-featured" data-layout-block="content">
-    <TextWithImage title={featuredTitle} href={featuredHref} image={featuredImage} imageAlt="Illustrasjon">
-      <p class="veil-featured-label">{featuredLabel}</p>
+    <TextWithImage title={featuredTitle} href={featuredHref} image={featuredImage} imageAlt="Illustrasjon" label={featuredLabel}>
       <p slot="body">{featuredDesc}</p>
     </TextWithImage>
   </section>
@@ -145,12 +144,18 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     <section class="veil-cases" data-layout-block="content">
       <h2 class="ds-heading veil-section-heading" data-size="xs">Lær av andre</h2>
       <ExampleLinkCards cards={caseCards} />
-      <ArrowLink href="/caser" text="Se alle eksempler" />
     </section>
   )}
 </Layout>
 
 <style>
+  h2 {
+    font-size: var(--ds-heading-sm-font-size);
+    font-family: var(--ds-heading-font-family);
+    font-style: none;
+    font-weight: 400;
+  }
+
   /* Hero */
   .veil-hero {
     padding-top: var(--ds-size-10);
@@ -166,17 +171,9 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     padding-block: var(--ds-size-8);
   }
 
-  .veil-featured-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ds-color-text-subtle);
-    margin: 0;
-  }
-
   /* Section headings */
   .veil-section-heading {
     margin: 0 0 var(--ds-size-6);
-    font-style: italic;
   }
 
   /* Rich link list */
@@ -191,11 +188,19 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-8);
+    gap: var(--ds-size-4);
   }
 
   .veil-rich-item {
     cursor: pointer;
+    padding-block: var(--ds-size-4);
+    padding-inline: var(--ds-size-4);
+    margin-inline-start: calc(-1 * var(--ds-size-4));
+    width: calc(100% + var(--ds-size-4));
+
+    &:hover {
+      background-color: var(--ds-color-surface-hover);
+    }
 
     & a {
       display: inline-flex;
