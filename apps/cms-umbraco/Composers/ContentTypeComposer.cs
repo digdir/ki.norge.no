@@ -142,6 +142,14 @@ public class ContentTypeComponent : IAsyncComponent
             MigrateVeiledningKort();
             MigrateVerktoyKort();
 
+            // veiledningInfo sitt trekkspill-felt bruker accordion-block-list-datatypen.
+            // På fresh install kjører CreateBlockListDataTypes() lenger ned, så vi må
+            // sikre at datatypen finnes her. CreateOrGetBlockListDataType er idempotent,
+            // så det senere kallet er uberørt. Uten dette krasjer InitializeAsync med
+            // "Value cannot be null (Parameter 'dataType')" og 0 content types seedes.
+            _blockListAccordionDt = CreateOrGetBlockListDataType(
+                "Block List - Accordion Sections", "accordionSection");
+
             if (_contentTypeService.Get("veiledningTekst") == null)
                 CreateVeiledningTekstElement();
             if (_contentTypeService.Get("veiledningInfo") == null)
