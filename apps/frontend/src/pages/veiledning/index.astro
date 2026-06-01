@@ -98,19 +98,24 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
       <div data-layout-block="content">
         <h2 class="ds-heading veil-section-heading" data-size="xs">{cmsData?.seksjon2Tittel || 'Steg for steg'}</h2>
         <ul class="veil-rich-list">
-          {richLinks.map(link => (
-            <li class="veil-rich-item">
-              <a href={link.href} class="veil-rich-link">
-                <div class="veil-rich-link-text">
-                  <h3 class="ds-heading" data-size="sm">{link.title}</h3>
-                  {link.desc && <p class="veil-rich-link-desc">{link.desc}</p>}
+          {richLinks.map((link) => {
+            const id = `rich-link-${crypto.randomUUID().slice(0, 8)}`;
+            return (
+              <li class="veil-rich-item" data-clickdelegatefor={id}>
+                <div class="veil-rich-link-heading">
+                  <h3 class="ds-heading" data-size="lg">
+                    <a id={id} href={link.href} class="ds-focus">
+                      {link.title}
+                      <span class="veil-rich-link-arrow" aria-hidden="true">
+                        <AkselIcon name="ArrowRight" size={18} />
+                      </span>
+                    </a>
+                  </h3>
                 </div>
-                <span class="veil-rich-link-arrow" aria-hidden="true">
-                  <AkselIcon name="ArrowRight" size={18} />
-                </span>
-              </a>
-            </li>
-          ))}
+                {link.desc && <p class="ds-paragraph veil-rich-link-desc" data-size="md">{link.desc}</p>}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>
@@ -186,64 +191,44 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-2);
+    gap: var(--ds-size-8);
   }
 
   .veil-rich-item {
-    background: var(--ds-color-surface-default);
-    border-radius: var(--ds-border-radius-lg);
-    transition: box-shadow 0.15s;
-  }
+    cursor: pointer;
 
-  .veil-rich-item:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  }
-
-  .veil-rich-link {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-size-6);
-    padding: var(--ds-size-6) var(--ds-size-8);
-    text-decoration: none;
-    color: inherit;
-
-    &:focus-visible {
-      outline: var(--dsc-focus-outline);
-      outline-offset: var(--ds-border-width-focus);
-      border-radius: var(--ds-border-radius-lg);
+    & a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ds-size-3);
+      color: var(--ds-color-accent-text-default);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 2px;
     }
   }
 
-  .veil-rich-link-text {
-    flex: 1;
-    min-width: 0;
-
+  .veil-rich-link-heading {
     & h3 {
       margin: 0;
-      color: var(--ds-color-accent-text-default);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      text-decoration-thickness: 1.5px;
     }
   }
 
   .veil-rich-link-desc {
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--ds-color-text-subtle);
     margin: var(--ds-size-2) 0 0;
   }
 
   .veil-rich-link-arrow {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-color: var(--ds-color-accent-surface-tinted);
+    background-color: var(--ds-color-surface-active);
     color: var(--ds-color-accent-text-default);
     flex-shrink: 0;
+    text-decoration: none;
   }
 
   /* Simple link list */
@@ -257,28 +242,22 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     padding: 0;
     display: flex;
     flex-direction: column;
+    gap: var(--ds-size-4);
   }
 
   .veil-simple-item {
-    border-bottom: 1px solid var(--ds-color-border-subtle);
-  }
-
-  .veil-simple-item:first-child {
-    border-top: 1px solid var(--ds-color-border-subtle);
   }
 
   .veil-simple-link {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--ds-size-4);
-    padding: var(--ds-size-5) var(--ds-size-2);
-    text-decoration: none;
-    color: inherit;
-
-    &:hover .veil-simple-link-title {
-      text-decoration: underline;
-    }
+    gap: var(--ds-size-3);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+    color: var(--ds-color-accent-text-default);
+    font-size: var(--ds-heading-sm-font-size);
+    font-weight: 400;
 
     &:focus-visible {
       outline: var(--dsc-focus-outline);
@@ -287,21 +266,19 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
   }
 
   .veil-simple-link-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--ds-color-accent-text-default);
   }
 
   .veil-simple-link-arrow {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background-color: var(--ds-color-accent-surface-tinted);
+    background-color: var(--ds-color-surface-active);
     color: var(--ds-color-accent-text-default);
     flex-shrink: 0;
+    text-decoration: none;
   }
 
   /* Case cards */
