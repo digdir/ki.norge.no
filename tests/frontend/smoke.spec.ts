@@ -10,13 +10,11 @@ import { test, expect } from '@playwright/test';
 const PUBLIC_URLS = [
   { path: '/', label: 'Forside' },
   { path: '/artikler', label: 'Artikler list' },
-  { path: '/caser', label: 'Caser list' },
+  { path: '/eksempler', label: 'Eksempler list' },
   { path: '/veiledning', label: 'Veiledning' },
   { path: '/om-oss', label: 'Om oss' },
-  { path: '/faq', label: 'FAQ' },
-  { path: '/ki-ordbok', label: 'KI-ordbok' },
   { path: '/sandkasse', label: 'Sandkasse' },
-  { path: '/kontakt', label: 'Kontakt' },
+  { path: '/sok', label: 'Søk' },
 ];
 
 for (const { path, label } of PUBLIC_URLS) {
@@ -48,20 +46,20 @@ test('Artikkel detail page renders for first article', async ({ page, request })
   await expect(page.locator('main h1').first()).toBeVisible();
 });
 
-test('Case detail page renders for first case', async ({ page, request }) => {
+test('Eksempel detail page renders for first eksempel', async ({ page, request }) => {
   const apiKey = 'ki-norge-delivery-key-2025';
   const cms = process.env.TARGET === 'local'
     ? 'http://localhost:5000'
     : 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
 
-  const res = await request.get(`${cms}/umbraco/delivery/api/v2/content?filter=contentType:case&take=1`, {
+  const res = await request.get(`${cms}/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1`, {
     headers: { 'Api-Key': apiKey },
   });
   const data = await res.json();
   const slug = data.items?.[0]?.properties?.slug;
-  test.skip(!slug, 'No published case to test against');
+  test.skip(!slug, 'No published eksempel to test against');
 
-  const response = await page.goto(`/caser/${slug}`);
+  const response = await page.goto(`/eksempler/${slug}`);
   expect(response?.status()).toBe(200);
   await expect(page.locator('main h1').first()).toBeVisible();
 });
