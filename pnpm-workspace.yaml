@@ -8,3 +8,14 @@ overrides:
 allowBuilds:
   esbuild: true
   sharp: true
+  workerd: false
+minimumReleaseAgeExclude:
+  - '@astrojs/internal-helpers@0.10.0'
+  - '@astrojs/markdown-remark@7.2.0'
+  - '@astrojs/node@10.1.2'
+  - '@astrojs/react@5.0.6'
+  - astro@6.4.2
+  - '@digdir/designsystemet-css@1.15.0'
+  - '@digdir/designsystemet-react@1.15.0'
+  - '@digdir/designsystemet-types@1.15.0'
+  - '@digdir/designsystemet-web@1.15.0'

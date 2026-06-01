@@ -13,17 +13,16 @@ const { title, href, image, imageAlt = '' } = Astro.props;
 
 <div class="text-with-image">
   <div class="text">
+    <slot />
     <h2 class="ds-heading" data-size="xl">
-      <a href={href} class="ds-focus">
-        {title}
-        <span class="arrow" aria-hidden="true">
-          <AkselIcon name="ArrowRight" size={28} />
-        </span>
-      </a>
+      <a href={href} class="ds-focus">{title}</a>
     </h2>
     <div class="body">
-      <slot />
+      <slot name="body" />
     </div>
+    <a href={href} class="text-with-image-arrow" aria-label={title}>
+      <AkselIcon name="ArrowRight" size={20} />
+    </a>
   </div>
   <div class="illustration">
     <img src={image} alt={imageAlt} />
@@ -49,23 +48,23 @@ const { title, href, image, imageAlt = '' } = Astro.props;
       & h2 {
 
         & a {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--ds-size-3);
           color: inherit;
-          text-decoration: none;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+          text-decoration-thickness: 2px;
         }
       }
 
-      & .arrow {
+      & .text-with-image-arrow {
         display: flex;
         align-items: center;
         justify-content: center;
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background-color: #FFD7E9;
-        flex-shrink: 0;
+        background-color: var(--ds-color-accent-surface-tinted);
+        color: var(--ds-color-accent-text-default);
+        margin-top: var(--ds-size-4);
       }
 
       & .body {

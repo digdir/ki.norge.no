@@ -1,0 +1,223 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  tag?: string;
+  tagColor?: 'brand1' | 'brand2' | 'brand3' | 'neutral';
+  category?: string;
+  day: string;
+  month: string;
+  year: string;
+  time?: string;
+  timeNote?: string;
+  location?: string;
+  seats?: string;
+}
+
+const {
+  href,
+  title,
+  description,
+  tag,
+  tagColor = 'brand1',
+  category,
+  day,
+  month,
+  year,
+  time,
+  timeNote,
+  location,
+  seats,
+} = Astro.props;
+
+const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
+---
+
+<div class="event-card" data-clickdelegatefor={id}>
+  <div class="event-card-date">
+    <span class="event-card-day">{day}</span>
+    <span class="event-card-month">{month}</span>
+    <span class="event-card-year">{year}</span>
+  </div>
+  <div class="event-card-main">
+    <div class="event-card-top">
+      <div class="event-card-tags">
+        {tag && <span class="ds-tag" data-color={tagColor}>{tag}</span>}
+        {category && <span class="event-card-meta">{category}</span>}
+      </div>
+      {seats && <span class="event-card-seats">{seats}</span>}
+    </div>
+    <div class="event-card-body">
+      <div class="event-card-info">
+        <h3 class="ds-heading event-card-title" data-size="xs"><a id={id} href={href}>{title}</a></h3>
+        {description && <p class="event-card-desc">{description}</p>}
+      </div>
+      {(time || location) && (
+        <div class="event-card-details">
+          {time && (
+            <span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v3.5l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>{time}{timeNote && <><br/>{timeNote}</>}</span>
+            </span>
+          )}
+          {location && (
+            <span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1C4.5 1 2.5 3 2.5 5.5C2.5 9 7 13 7 13s4.5-4 4.5-7.5C11.5 3 9.5 1 7 1z" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="5.5" r="1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+              {location}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
+<style>
+  .event-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0;
+    background-color: #FFF; /* TODO: this does not have a proper DS color */
+    border-radius: var(--ds-border-radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .event-card:focus-within {
+    box-shadow: var(--dsc-focus-boxShadow);
+    outline: var(--dsc-focus-outline);
+    outline-offset: var(--ds-border-width-focus);
+  }
+
+  .event-card-title a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .event-card-title a.\:click-delegate-hover {
+    text-decoration: underline;
+  }
+
+  .event-card-title a:focus-visible {
+    outline: none;
+  }
+
+  .event-card-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--ds-color-surface-tinted);
+    padding: var(--ds-size-6) var(--ds-size-8);
+    min-width: 100px;
+  }
+
+  .event-card-day {
+    font-size: var(--ds-heading-md-font-size);
+    font-weight: 400;
+  }
+
+  .event-card-month {
+    font-size: var(--ds-body-md-font-size);
+  }
+
+  .event-card-year {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-text-subtle);
+  }
+
+  .event-card-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    padding: var(--ds-size-6);
+  }
+
+  .event-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-size-4);
+    padding-bottom: var(--ds-size-4);
+    border-bottom: 1px solid var(--ds-color-border-subtle);
+  }
+
+  .event-card-tags {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+  }
+
+  .event-card-meta {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-text-subtle);
+  }
+
+  .event-card-seats {
+    font-size: var(--ds-body-xs-font-size);
+    font-weight: 600;
+    color: var(--ds-color-text-subtle);
+    white-space: nowrap;
+  }
+
+  .event-card-body {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--ds-size-6);
+  }
+
+  .event-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+  }
+
+  .event-card-title {
+    margin: 0;
+  }
+
+  .event-card-desc {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-text-subtle);
+    margin: 0;
+  }
+
+  .event-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-text-subtle);
+    border-left: 1px solid var(--ds-color-border-subtle);
+    padding-left: var(--ds-size-6);
+  }
+
+  .event-card-details span {
+    display: flex;
+    align-items: start;
+    gap: var(--ds-size-2);
+  }
+
+  .event-card-details svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  @media (max-width: 767px) {
+    .event-card {
+      grid-template-columns: 1fr;
+    }
+
+    .event-card-body {
+      grid-template-columns: 1fr;
+    }
+
+    .event-card-details {
+      border-left: none;
+      padding-left: 0;
+      border-top: 1px solid var(--ds-color-border-subtle);
+      padding-top: var(--ds-size-4);
+    }
+  }
+</style>

@@ -1,5 +1,5 @@
 @import '@digdir/designsystemet-css';
-@import '@digdir/designsystemet-css/theme.css';
+@import '../../../../design-tokens-build/theme.css';
 
 /* MPA View Transitions — cross-document, no SPA needed */
 @view-transition {
@@ -33,7 +33,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: var(--ds-color-background-tinted);
+  background-color: var(--ds-color-background-default);
   color: var(--ds-color-text-default);
   font-family: var(--ds-font-family), sans-serif;
   font-feature-settings: "cv05" 1;
