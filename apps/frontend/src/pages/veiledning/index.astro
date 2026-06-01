@@ -9,17 +9,17 @@ import TextWithImage from '../../components/shared/TextWithImage.astro';
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
-import { getVeiledningOversikt, getVeiledningGuider, getCaser, getPlainText, getMediaUrl } from '../../lib/umbraco';
+import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getMediaUrl } from '../../lib/umbraco';
 
 let cmsData: Awaited<ReturnType<typeof getVeiledningOversikt>> = null;
 let guides: Awaited<ReturnType<typeof getVeiledningGuider>> = { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } };
-let cases: Awaited<ReturnType<typeof getCaser>> = { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } };
+let cases: Awaited<ReturnType<typeof getEksempler>> = { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } };
 
 try {
   [cmsData, guides, cases] = await Promise.all([
     getVeiledningOversikt(),
     getVeiledningGuider(),
-    getCaser(),
+    getEksempler(),
   ]);
 } catch (e) {
   console.error('Failed to fetch veiledning page data:', e);
