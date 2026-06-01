@@ -1,0 +1,135 @@
+---
+import type { UmbracoBlock } from '../../lib/umbraco';
+import AkselIcon from './AkselIcon.astro';
+
+interface Props {
+  blocks?: UmbracoBlock[];
+}
+
+const { blocks } = Astro.props;
+
+// Nabo-trekkspill grupperes til én aksordion-gruppe (samme mønster som ArticleBlocksRenderer).
+type RenderItem =
+  | { kind: 'block'; block: UmbracoBlock }
+  | { kind: 'trekkspillGruppe'; blocks: UmbracoBlock[] };
+
+function groupBlocks(input: UmbracoBlock[]): RenderItem[] {
+  const out: RenderItem[] = [];
+  for (const block of input) {
+    if (block.contentType !== 'veiledningTrekkspill') {
+      out.push({ kind: 'block', block });
+      continue;
+    }
+    const last = out[out.length - 1];
+    if (!last || last.kind !== 'trekkspillGruppe') {
+      out.push({ kind: 'trekkspillGruppe', blocks: [block] });
+    } else {
+      last.blocks.push(block);
+    }
+  }
+  return out;
+}
+
+const renderItems = groupBlocks(blocks || []);
+
+const moduleIcons: Record<string, string> = {
+  veiledningInfo: 'InformationSquare',
+  veiledningEksempel: 'LightBulb',
+  veiledningObs: 'ExclamationmarkTriangle',
+};
+---
+
+{renderItems.map((item) => {
+  if (item.kind === 'trekkspillGruppe') {
+    return (
+      <div class="veiledning-trekkspill-gruppe col-center-6">
+        <div class="ds-card" data-variant="tinted">
+          {item.blocks.map((block) => (
+            <details class="ds-details">
+              <summary>{block.content.tittel}</summary>
+              <div set:html={block.content.innhold} />
+            </details>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const block = item.block;
+
+  if (block.contentType === 'veiledningTekst') {
+    return <div class="veiledning-tekst col-center-6" set:html={block.content.innhold} />;
+  }
+
+  if (block.contentType === 'veiledningInfo'
+    || block.contentType === 'veiledningEksempel'
+    || block.contentType === 'veiledningObs') {
+    const c = block.content;
+    const tekst = block.contentType === 'veiledningObs' ? c.tekst : c.innhold;
+    const ikon = moduleIcons[block.contentType];
+    return (
+      <div class="ds-card veiledning-modul col-center-6" data-variant="tinted">
+        <div class="veiledning-modul-head">
+          <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
+          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="2xs">{c.tittel}</h3>}
+        </div>
+        <div class="veiledning-modul-body" set:html={tekst} />
+      </div>
+    );
+  }
+
+  return null;
+})}
+
+<style>
+  .veiledning-tekst {
+    font-size: var(--ds-body-md-font-size);
+    line-height: var(--ds-body-md-line-height);
+  }
+  .veiledning-tekst :global(p) {
+    margin: 0 0 var(--ds-size-3);
+  }
+  .veiledning-tekst :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .veiledning-tekst :global(ul),
+  .veiledning-tekst :global(ol) {
+    margin: var(--ds-size-2) 0 var(--ds-size-3);
+    padding-inline-start: var(--ds-size-6);
+  }
+  .veiledning-tekst :global(li) {
+    margin-bottom: var(--ds-size-1);
+  }
+
+  .veiledning-modul {
+    padding: var(--ds-size-6) var(--ds-size-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+  }
+  .veiledning-modul-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+  }
+  .veiledning-modul-ikon {
+    flex-shrink: 0;
+  }
+  .veiledning-modul-tittel {
+    margin: 0;
+  }
+  .veiledning-modul-body {
+    font-size: var(--ds-body-md-font-size);
+    line-height: var(--ds-body-md-line-height);
+  }
+  .veiledning-modul-body :global(p) {
+    margin: 0 0 var(--ds-size-3);
+  }
+  .veiledning-modul-body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .veiledning-trekkspill-gruppe {
+    display: block;
+  }
+</style>

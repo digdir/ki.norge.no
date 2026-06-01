@@ -1,9 +1,0 @@
-# Note: Cloudflare doesnt accept periods in the name
-name = "ki-norge-no"
-compatibility_date = "2025-01-01"
-compatibility_flags = ["nodejs_compat"]
-
-# Astro builds to dist/ with _worker.js for SSR pages
-# and static assets for prerendered pages
-[assets]
-directory = "./dist"
