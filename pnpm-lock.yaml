@@ -29,7 +29,7 @@ importers:
         version: 10.1.2(astro@6.4.2(@types/node@25.9.1)(rollup@4.60.4))
       '@astrojs/react':
         specifier: 5.0.6
-        version: 5.0.6(@types/node@25.9.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 5.0.6(@types/node@25.9.1)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@astrojs/sitemap':
         specifier: 3.7.3
         version: 3.7.3
@@ -38,7 +38,7 @@ importers:
         version: 1.15.0
       '@digdir/designsystemet-react':
         specifier: ^1.15.0
-        version: 1.15.0(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.15.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@navikt/aksel-icons':
         specifier: ^8.11.0
         version: 8.11.0
@@ -73,6 +73,12 @@ importers:
       '@types/node':
         specifier: ^25.9.1
         version: 25.9.1
+      '@types/react':
+        specifier: ^19.2.15
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.15)
       postcss-nesting:
         specifier: ^14.0.0
         version: 14.0.0(postcss@8.5.15)
@@ -1267,8 +1273,8 @@ packages:
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react@19.2.14':
-    resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
+  '@types/react@19.2.15':
+    resolution: {integrity: sha512-eRwcGNHve+E8qtEQSSRl6urh+rFop4v8gm6O8rGv25CodbvFdLjA1vVQ1KkiFE0w0UPOnb8tDiFKL5lp0rtY5Q==}
 
   '@types/sax@1.2.7':
     resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
@@ -3055,11 +3061,11 @@ snapshots:
     dependencies:
       prismjs: 1.30.0
 
-  '@astrojs/react@5.0.6(@types/node@25.9.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+  '@astrojs/react@5.0.6(@types/node@25.9.1)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       '@astrojs/internal-helpers': 0.10.0
-      '@types/react': 19.2.14
-      '@types/react-dom': 19.2.3(@types/react@19.2.14)
+      '@types/react': 19.2.15
+      '@types/react-dom': 19.2.3(@types/react@19.2.15)
       '@vitejs/plugin-react': 5.2.0(vite@7.3.3(@types/node@25.9.1))
       devalue: 5.8.1
       react: 19.2.6
@@ -3315,14 +3321,14 @@ snapshots:
     dependencies:
       '@digdir/designsystemet-types': 1.15.0
 
-  '@digdir/designsystemet-react@1.15.0(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+  '@digdir/designsystemet-react@1.15.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       '@digdir/designsystemet-types': 1.15.0
       '@digdir/designsystemet-web': 1.15.0
       '@floating-ui/dom': 1.7.6
       '@floating-ui/react': 0.26.23(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@navikt/aksel-icons': 8.11.0
-      '@radix-ui/react-slot': 1.2.4(@types/react@19.2.14)(react@19.2.6)
+      '@radix-ui/react-slot': 1.2.4(@types/react@19.2.15)(react@19.2.6)
       '@tanstack/react-virtual': 3.13.24(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       clsx: 2.1.1
       react: 19.2.6
@@ -3827,18 +3833,18 @@ snapshots:
 
   '@poppinss/exception@1.2.3': {}
 
-  '@radix-ui/react-compose-refs@1.1.2(@types/react@19.2.14)(react@19.2.6)':
+  '@radix-ui/react-compose-refs@1.1.2(@types/react@19.2.15)(react@19.2.6)':
     dependencies:
       react: 19.2.6
     optionalDependencies:
-      '@types/react': 19.2.14
+      '@types/react': 19.2.15
 
-  '@radix-ui/react-slot@1.2.4(@types/react@19.2.14)(react@19.2.6)':
+  '@radix-ui/react-slot@1.2.4(@types/react@19.2.15)(react@19.2.6)':
     dependencies:
-      '@radix-ui/react-compose-refs': 1.1.2(@types/react@19.2.14)(react@19.2.6)
+      '@radix-ui/react-compose-refs': 1.1.2(@types/react@19.2.15)(react@19.2.6)
       react: 19.2.6
     optionalDependencies:
-      '@types/react': 19.2.14
+      '@types/react': 19.2.15
 
   '@rolldown/pluginutils@1.0.0-rc.3': {}
 
@@ -4049,11 +4055,11 @@ snapshots:
     dependencies:
       undici-types: 7.24.6
 
-  '@types/react-dom@19.2.3(@types/react@19.2.14)':
+  '@types/react-dom@19.2.3(@types/react@19.2.15)':
     dependencies:
-      '@types/react': 19.2.14
+      '@types/react': 19.2.15
 
-  '@types/react@19.2.14':
+  '@types/react@19.2.15':
     dependencies:
       csstype: 3.2.3
 

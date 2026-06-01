@@ -34,6 +34,8 @@
     "@axe-core/playwright": "^4.11.3",
     "@playwright/test": "1.60.0",
     "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
     "postcss-nesting": "^14.0.0",
     "vitest": "^4.1.7"
   },
