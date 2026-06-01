@@ -8,26 +8,20 @@ const query = Astro.url.searchParams.get('q')?.trim() || '';
 // Content type labels and route prefixes
 const typeLabels: Record<string, string> = {
   artikkel: 'Artikkel',
-  case: 'Case',
-  eksempel: 'Case', // legacy fallback for any pre-migration content
+  eksempel: 'Eksempel',
   veiledning: 'Veiledning',
   veiledningGuide: 'Veiledning',
   veiledningSteg: 'Veiledning',
   side: 'Side',
-  faq: 'Ofte stilte spørsmål',
-  ordbokOppslag: 'Ordboka',
 };
 
 const typeRoutes: Record<string, string> = {
   artikkel: '/artikler/',
-  case: '/caser/',
-  eksempel: '/caser/', // legacy fallback
+  eksempel: '/eksempler/',
   veiledning: '/veiledning/',
   veiledningGuide: '/veiledning/',
   veiledningSteg: '/veiledning/',
   side: '/',
-  faq: '/faq',
-  ordbokOppslag: '/ki-ordbok#',
 };
 
 let results: SearchResult[] = [];
@@ -44,7 +38,6 @@ if (query) {
 }
 
 function getResultUrl(result: SearchResult): string {
-  if (result.contentType === 'faq') return '/faq';
   const prefix = typeRoutes[result.contentType] || '/';
   return `${prefix}${result.slug}`;
 }
@@ -111,7 +104,7 @@ function formatDate(dateStr: string): string {
           <Paragraph size="small">Forslag:</Paragraph>
           <div class="suggestion-links">
             <Link href="/veiledning">Utforsk veiledninger</Link>
-            <Link href="/caser">Se caser</Link>
+            <Link href="/eksempler">Se eksempler</Link>
             <Link href="/artikler">Les artikler</Link>
           </div>
         </div>

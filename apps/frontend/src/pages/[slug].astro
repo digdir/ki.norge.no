@@ -1,0 +1,51 @@
+---
+import Layout from '../components/layout/Layout.astro';
+import ArticleBlocksRenderer from '../components/shared/ArticleBlocksRenderer.astro';
+import { getSide, getPlainText, type Side } from '../lib/umbraco';
+import { breadcrumbSchema } from '../lib/seo';
+
+const { slug } = Astro.params;
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+
+const page: Side | null = await getSide(slug!, { preview: isPreview });
+if (!page) return new Response(null, { status: 404 });
+
+const seoTitle = page.seoTittel || page.tittel;
+const seoDesc = page.seoBeskrivelse || page.ingress || getPlainText(page.innhold, 200);
+const seoImage = page.seoBilde?.url || page.artikkelBilde?.url;
+
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: 'Forside', url: '/' },
+  { name: page.tittel, url: `/${slug}` },
+]);
+---
+<Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <div class="side-page" data-layout-block="content">
+    <header class="side-header">
+      <h1 class="ds-heading" data-size="xl">{page.tittel}</h1>
+      {page.ingress && <p class="side-ingress">{page.ingress}</p>}
+    </header>
+    <ArticleBlocksRenderer blocks={page.innhold} defaultDate={page.publishedAt} />
+  </div>
+</Layout>
+
+<style>
+  .side-page {
+    display: flex;
+    flex-direction: column;
+    padding-block: var(--ds-size-8);
+    gap: var(--ds-size-6);
+  }
+  .side-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+  }
+  .side-ingress {
+    margin: 0;
+    font-size: var(--ds-body-lg-font-size);
+    line-height: var(--ds-body-lg-line-height);
+    color: var(--ds-color-neutral-text-subtle);
+  }
+</style>

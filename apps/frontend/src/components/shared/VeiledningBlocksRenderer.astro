@@ -42,7 +42,7 @@ const moduleIcons: Record<string, string> = {
 {renderItems.map((item) => {
   if (item.kind === 'trekkspillGruppe') {
     return (
-      <div class="veiledning-trekkspill-gruppe col-center-6">
+      <div class="veiledning-trekkspill-gruppe">
         <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
             <details class="ds-details">
@@ -58,7 +58,7 @@ const moduleIcons: Record<string, string> = {
   const block = item.block;
 
   if (block.contentType === 'veiledningTekst') {
-    return <div class="veiledning-tekst col-center-6" set:html={block.content.innhold} />;
+    return <div class="veiledning-tekst" set:html={block.content.innhold} />;
   }
 
   if (block.contentType === 'veiledningInfo'
@@ -67,13 +67,32 @@ const moduleIcons: Record<string, string> = {
     const c = block.content;
     const tekst = block.contentType === 'veiledningObs' ? c.tekst : c.innhold;
     const ikon = moduleIcons[block.contentType];
+    const trekkspill = block.contentType === 'veiledningInfo' ? c.trekkspill : undefined;
+    const lesMerTittel = block.contentType === 'veiledningInfo' ? c.lesMerTittel : undefined;
+    const lesMerUrl = block.contentType === 'veiledningInfo' ? c.lesMerUrl : undefined;
     return (
-      <div class="ds-card veiledning-modul col-center-6" data-variant="tinted">
+      <div class="ds-card veiledning-modul" data-variant="tinted">
         <div class="veiledning-modul-head">
           <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
           {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="2xs">{c.tittel}</h3>}
         </div>
         <div class="veiledning-modul-body" set:html={tekst} />
+        {trekkspill && trekkspill.length > 0 && (
+          <div class="veiledning-modul-trekkspill">
+            {trekkspill.map((t) => (
+              <details class="ds-details">
+                <summary>{t.tittel}</summary>
+                <div set:html={t.innhold} />
+              </details>
+            ))}
+          </div>
+        )}
+        {lesMerTittel && lesMerUrl && (
+          <a class="veiledning-modul-lesmer" href={lesMerUrl}>
+            <AkselIcon name="QuestionmarkCircle" size={20} />
+            <span>{lesMerTittel}</span>
+          </a>
+        )}
       </div>
     );
   }
@@ -131,5 +150,23 @@ const moduleIcons: Record<string, string> = {
 
   .veiledning-trekkspill-gruppe {
     display: block;
+  }
+
+  .veiledning-modul-trekkspill {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+  }
+
+  .veiledning-modul-lesmer {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-1);
+    color: inherit;
+    font-weight: 500;
+    text-decoration: underline;
+  }
+  .veiledning-modul-lesmer:hover {
+    text-decoration: none;
   }
 </style>

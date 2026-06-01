@@ -57,10 +57,10 @@ export function faqPageSchema(items: { question: string; answer: string }[]) {
 }
 
 /**
- * For Case (case study) detail pages. Schema.org doesn't have a "CaseStudy"
- * type but Article + about works well.
+ * For Eksempel (case study) detail pages — emits /eksempler/ URLs. Schema.org
+ * doesn't have a "CaseStudy" type but Article + about works well.
  */
-export function caseSchema(opts: {
+export function eksempelSchema(opts: {
   headline: string;
   description: string;
   slug: string;
@@ -75,34 +75,13 @@ export function caseSchema(opts: {
     description: opts.description,
     datePublished: opts.datePublished,
     dateModified: opts.dateModified || opts.datePublished,
-    url: `${SITE_URL}/caser/${opts.slug}`,
+    url: `${SITE_URL}/eksempler/${opts.slug}`,
     publisher,
   };
   if (opts.organization) {
     data.about = { '@type': 'Organization', name: opts.organization };
   }
   return data;
-}
-
-/**
- * For ki-ordbok terms. DefinedTerm is the right type for glossary entries.
- * Group all terms under a DefinedTermSet for the page-level schema.
- */
-export function definedTermSetSchema(terms: { term: string; definition: string; alternativTerm?: string }[]) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'DefinedTermSet',
-    name: 'KI-ordbok',
-    description: 'Ordliste over begreper innen kunstig intelligens',
-    url: `${SITE_URL}/ki-ordbok`,
-    hasDefinedTerm: terms.map(t => ({
-      '@type': 'DefinedTerm',
-      name: t.term,
-      description: t.definition,
-      ...(t.alternativTerm ? { alternateName: t.alternativTerm } : {}),
-      inDefinedTermSet: `${SITE_URL}/ki-ordbok`,
-    })),
-  };
 }
 
 /**
