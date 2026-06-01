@@ -1,10 +1,9 @@
 ---
 import Layout from '../../../components/layout/Layout.astro';
-import BlocksRenderer from '../../../components/shared/BlocksRenderer.astro';
+import VeiledningBlocksRenderer from '../../../components/shared/VeiledningBlocksRenderer.astro';
 import SubStepPills from '../../../components/guide/SubStepPills.astro';
-import GuideCard from '../../../components/guide/GuideCard.astro';
 import NextBar from '../../../components/guide/NextBar.astro';
-import { getVeiledningGuide, getVeiledningSteg, getVeiledningStegBySlug } from '../../../lib/umbraco';
+import { getVeiledningGuide, getVeiledningSteg } from '../../../lib/umbraco';
 
 const { guide: guideSlug, step: stepSlug } = Astro.params;
 const guideData = await getVeiledningGuide(guideSlug!);
@@ -14,7 +13,6 @@ const allSteps = await getVeiledningSteg(guideSlug!);
 const currentStep = allSteps.find(s => s.slug === stepSlug);
 if (!currentStep) return Astro.redirect(`/veiledning/${guideSlug}`);
 
-// Find sub-steps within same step number
 const sameStepSubsteps = allSteps.filter(s => s.steg === currentStep.steg);
 const substepPills = sameStepSubsteps.map(s => ({
   title: s.tittel,
@@ -22,7 +20,6 @@ const substepPills = sameStepSubsteps.map(s => ({
   active: s.slug === stepSlug,
 }));
 
-// The step group titles
 const stepGroupTitles: Record<number, string> = {
   1: 'Finn ut hvilke data du trenger',
   2: 'Samle inn data',
@@ -31,74 +28,49 @@ const stepGroupTitles: Record<number, string> = {
   5: 'Slette data',
 };
 
-// Find next step in sorted order
 const currentIndex = allSteps.findIndex(s => s.slug === stepSlug);
 const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1] : null;
 ---
 <Layout title={`${currentStep.tittel} | ${guideData.tittel}`}>
-  <div class="step-page">
-    <SubStepPills
-      substeps={substepPills}
-      guideSlug={guideSlug!}
-      stepNumber={currentStep.steg}
-      stepTitle={stepGroupTitles[currentStep.steg] || `Steg ${currentStep.steg}`}
-    />
+  <div class="step-page grid">
+    <div class="col-center-6">
+      <SubStepPills
+        substeps={substepPills}
+        guideSlug={guideSlug!}
+        stepNumber={currentStep.steg}
+        stepTitle={stepGroupTitles[currentStep.steg] || `Steg ${currentStep.steg}`}
+      />
 
-    <h1 class="step-title">{currentStep.tittel}</h1>
+      <h1 class="ds-heading step-title" data-size="lg">{currentStep.tittel}</h1>
+      {currentStep.ingress && <p class="step-ingress">{currentStep.ingress}</p>}
+    </div>
 
-    {currentStep.innhold && (
-      <div class="step-body">
-        <BlocksRenderer blocks={currentStep.innhold} />
-      </div>
-    )}
-
-    {currentStep.infoKortTittel && (
-      <GuideCard type="info" title={currentStep.infoKortTittel}>
-        {currentStep.infoKortInnhold && (
-          <BlocksRenderer blocks={currentStep.infoKortInnhold} />
-        )}
-      </GuideCard>
-    )}
-
-    {currentStep.eksempelTittel && (
-      <GuideCard type="example" title={currentStep.eksempelTittel}>
-        {currentStep.eksempelTekst && (
-          <BlocksRenderer blocks={currentStep.eksempelTekst} />
-        )}
-      </GuideCard>
-    )}
+    <VeiledningBlocksRenderer blocks={currentStep.innholdBlokker} />
 
     {nextStep && (
-      <NextBar
-        title={nextStep.tittel}
-        href={`/veiledning/${guideSlug}/${nextStep.slug}`}
-      />
+      <div class="col-center-6">
+        <NextBar
+          title={nextStep.tittel}
+          href={`/veiledning/${guideSlug}/${nextStep.slug}`}
+        />
+      </div>
     )}
   </div>
 </Layout>
+
 <style>
   .step-page {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--ds-size-8) var(--ds-size-4);
+    padding-block: var(--ds-size-8);
+    padding-inline: var(--ds-size-4);
+    row-gap: var(--ds-size-6);
   }
   .step-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 24px;
-    color: #000;
+    margin: 0 0 var(--ds-size-4);
   }
-  .step-body {
-    font-size: 1rem;
-    line-height: 1.7;
-    color: rgba(0,0,0,0.75);
-    margin-bottom: 24px;
-  }
-  .step-body :global(p) {
-    margin: 0 0 16px;
-  }
-  .step-body :global(ol), .step-body :global(ul) {
-    margin: 8px 0 16px;
-    padding-left: 24px;
+  .step-ingress {
+    margin: 0;
+    font-size: var(--ds-body-lg-font-size);
+    line-height: var(--ds-body-lg-line-height);
+    color: var(--ds-color-neutral-text-subtle);
   }
 </style>

@@ -5,32 +5,39 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "astro build && wrangler dev",
+    "deploy": "astro build && wrangler deploy",
     "start": "node dist/server/entry.mjs",
     "test:unit": "vitest run",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
     "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
-    "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots"
+    "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots",
+    "generate-types": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/node": "^10.1.0",
-    "@astrojs/react": "^5.0.4",
-    "@astrojs/sitemap": "^3",
-    "@digdir/designsystemet-css": "^1.11.0",
-    "@digdir/designsystemet-react": "^1.11.0",
-    "@navikt/aksel-icons": "^8.0.1",
-    "astro": "^6.3.1",
+    "@astrojs/cloudflare": "^13.6.0",
+    "@astrojs/node": "10.1.2",
+    "@astrojs/react": "5.0.6",
+    "@astrojs/sitemap": "3.7.3",
+    "@digdir/designsystemet-css": "^1.15.0",
+    "@digdir/designsystemet-react": "^1.15.0",
+    "@navikt/aksel-icons": "^8.11.0",
+    "astro": "6.4.2",
     "clsx": "^2.1.1",
     "linkedom": "^0.18.12",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "tailwind-merge": "^3.4.0"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwind-merge": "^3.6.0",
+    "wrangler": "^4.95.0"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.0",
+    "@axe-core/playwright": "^4.11.3",
     "@playwright/test": "1.60.0",
-    "@types/node": "^24.0.0",
+    "@types/node": "^25.9.1",
     "postcss-nesting": "^14.0.0",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.7"
+  },
+  "overrides": {
+    "vite": "^8.0.14"
   }
 }

@@ -5,6 +5,8 @@ import node from '@astrojs/node';
 
 import sitemap from '@astrojs/sitemap';
 
+import cloudflare from '@astrojs/cloudflare';
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
@@ -21,7 +23,5 @@ export default defineConfig({
     }),
   ],
   site: 'https://ki.norge.no',
-  adapter: node({
-    mode: 'standalone',
-  }),
+  adapter: cloudflare(),
 });

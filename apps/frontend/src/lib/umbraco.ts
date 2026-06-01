@@ -132,6 +132,32 @@ export interface ArtikkelKontaktkortBlock {
   };
 }
 
+// Veiledning block types (egen modulkatalog, separat fra artikkel)
+export interface VeiledningTekstBlock {
+  contentType: 'veiledningTekst';
+  content: { innhold: string };
+}
+
+export interface VeiledningInfoBlock {
+  contentType: 'veiledningInfo';
+  content: { tittel: string; innhold: string };
+}
+
+export interface VeiledningEksempelBlock {
+  contentType: 'veiledningEksempel';
+  content: { tittel: string; innhold: string };
+}
+
+export interface VeiledningObsBlock {
+  contentType: 'veiledningObs';
+  content: { tittel: string; tekst: string };
+}
+
+export interface VeiledningTrekkspillBlock {
+  contentType: 'veiledningTrekkspill';
+  content: { tittel: string; innhold: string };
+}
+
 // Content types matching Umbraco document type schemas
 export interface Artikkel {
   id: string;
@@ -196,7 +222,8 @@ export interface VeiledningGuide {
   documentId: string;
   tittel: string;
   slug: string;
-  introTekst?: UmbracoBlock[];
+  ingress?: string;
+  innholdBlokker?: UmbracoBlock[];
   stegGruppeTittler?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
@@ -215,12 +242,8 @@ export interface VeiledningSteg {
   guideSlug: string;
   steg: number;
   understeg: number;
-  innhold?: UmbracoBlock[];
-  infoKortTittel?: string;
-  infoKortInnhold?: UmbracoBlock[];
-  accordionSeksjoner?: AccordionSection[];
-  eksempelTittel?: string;
-  eksempelTekst?: UmbracoBlock[];
+  ingress?: string;
+  innholdBlokker?: UmbracoBlock[];
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -734,7 +757,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ...base,
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
-        introTekst: mapRichText(props.introTekst),
+        ingress: props.ingress as string || '',
+        innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
         stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -749,12 +773,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         guideSlug: props.guideSlug as string || '',
         steg: props.steg as number || 0,
         understeg: props.understeg as number || 0,
-        innhold: mapRichText(props.innhold),
-        infoKortTittel: props.infoKortTittel as string || undefined,
-        infoKortInnhold: mapRichText(props.infoKortInnhold),
-        accordionSeksjoner: mapAccordionSections(props.accordionSeksjoner),
-        eksempelTittel: props.eksempelTittel as string || undefined,
-        eksempelTekst: mapRichText(props.eksempelTekst),
+        ingress: props.ingress as string || '',
+        innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
       } as T;
 
     case 'faq':
@@ -1070,6 +1090,43 @@ function richTextHtml(value: unknown): string {
   }
   if (typeof value === 'string') return value;
   return '';
+}
+
+function mapVeiledningBlocks(value: unknown): UmbracoBlock[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any) => {
+    const content = block.content || block;
+    const ct = content.contentType || 'veiledningTekst';
+    const props = content.properties || content;
+
+    const richHtml = (raw: unknown): string =>
+      (raw as any)?.tag === '#root'
+        ? richTextToHtml(raw as RichTextNode)
+        : (typeof raw === 'string' ? raw : '');
+
+    if (ct === 'veiledningTekst') {
+      return { contentType: 'veiledningTekst', content: { innhold: richHtml(props.innhold) } };
+    }
+    if (ct === 'veiledningInfo') {
+      return { contentType: 'veiledningInfo', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+    }
+    if (ct === 'veiledningEksempel') {
+      return { contentType: 'veiledningEksempel', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+    }
+    if (ct === 'veiledningObs') {
+      return { contentType: 'veiledningObs', content: {
+        tittel: props.tittel || '',
+        tekst: richHtml(props.tekst),
+      } };
+    }
+    if (ct === 'veiledningTrekkspill') {
+      return { contentType: 'veiledningTrekkspill', content: { tittel: props.tittel || '', innhold: richHtml(props.innhold) } };
+    }
+
+    return { contentType: ct, content: props };
+  });
 }
 
 function mapRichText(value: unknown): UmbracoBlock[] | undefined {
@@ -1536,8 +1593,10 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
         }
       }
       for (const g of guides.data) {
-        if (g.tittel.toLowerCase().includes(lowerQuery) || getPlainText(g.introTekst, 500).toLowerCase().includes(lowerQuery)) {
-          allResults.push({ id: g.id, tittel: g.tittel, slug: g.slug, contentType: 'veiledningGuide', excerpt: getPlainText(g.introTekst, 200), publishedAt: g.publishedAt });
+        const guideBody = getPlainText(g.innholdBlokker, 500);
+        const guideIngress = g.ingress || '';
+        if (g.tittel.toLowerCase().includes(lowerQuery) || guideIngress.toLowerCase().includes(lowerQuery) || guideBody.toLowerCase().includes(lowerQuery)) {
+          allResults.push({ id: g.id, tittel: g.tittel, slug: g.slug, contentType: 'veiledningGuide', excerpt: guideIngress || getPlainText(g.innholdBlokker, 200), publishedAt: g.publishedAt });
         }
       }
     } catch { /* return empty if fallback also fails */ }
