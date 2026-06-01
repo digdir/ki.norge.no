@@ -15,7 +15,7 @@ const { links, heading } = Astro.props;
 ---
 
 <div class="link-list">
-  {heading && <h2 class="ds-heading link-list-heading" data-size="xs">{heading}</h2>}
+  {heading && <h2 class="ds-heading link-list-heading" data-size="sm">{heading}</h2>}
   <ul class="link-list-items">
     {links.map((link) => {
       const id = `link-list-${crypto.randomUUID().slice(0, 8)}`;
@@ -36,7 +36,8 @@ const { links, heading } = Astro.props;
 <style>
   .link-list-heading {
     margin: 0 0 var(--ds-size-6);
-    font-style: italic;
+    font-family: var(--ds-font-family);
+    font-weight: 400;
   }
 
   .link-list-items {
