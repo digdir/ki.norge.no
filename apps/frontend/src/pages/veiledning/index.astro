@@ -9,6 +9,7 @@ import TextWithImage from '../../components/shared/TextWithImage.astro';
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ArrowLink from '../../components/shared/ArrowLink.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
+import LinkList from '../../components/shared/LinkList.astro';
 import { getVeiledningOversikt, getVeiledningGuider, getCaser, getPlainText, getMediaUrl } from '../../lib/umbraco';
 
 let cmsData: Awaited<ReturnType<typeof getVeiledningOversikt>> = null;
@@ -123,19 +124,7 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
   <!-- Forstå regelverket — Simple link list -->
   {simpleLinks.length > 0 && (
     <section class="veil-simple-links" data-layout-block="content">
-      <h2 class="ds-heading veil-section-heading" data-size="xs">{cmsData?.verktoyTittel || 'Forstå regelverket'}</h2>
-      <ul class="veil-simple-list">
-        {simpleLinks.map(link => (
-          <li class="veil-simple-item">
-            <a href={link.href} class="veil-simple-link">
-              <span class="veil-simple-link-title">{link.title}</span>
-              <span class="veil-simple-link-arrow" aria-hidden="true">
-                <AkselIcon name="ArrowRight" size={16} />
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
+      <LinkList links={simpleLinks} heading={cmsData?.verktoyTittel || 'Forstå regelverket'} />
     </section>
   )}
 
@@ -236,54 +225,8 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     text-decoration: none;
   }
 
-  /* Simple link list */
   .veil-simple-links {
-    padding-block: var(--ds-size-10);
-  }
-
-  .veil-simple-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-4);
-  }
-
-  .veil-simple-item {
-  }
-
-  .veil-simple-link {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ds-size-3);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    text-decoration-thickness: 2px;
-    color: var(--ds-color-accent-text-default);
-    font-size: var(--ds-heading-sm-font-size);
-    font-weight: 400;
-
-    &:focus-visible {
-      outline: var(--dsc-focus-outline);
-      outline-offset: var(--ds-border-width-focus);
-    }
-  }
-
-  .veil-simple-link-title {
-  }
-
-  .veil-simple-link-arrow {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: var(--ds-color-surface-active);
-    color: var(--ds-color-accent-text-default);
-    flex-shrink: 0;
-    text-decoration: none;
+    margin-block: var(--ds-size-14);
   }
 
   /* Case cards */
