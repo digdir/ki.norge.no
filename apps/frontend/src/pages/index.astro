@@ -1,9 +1,11 @@
 ---
 import Layout from '../components/layout/Layout.astro';
 import Hero from '../components/landing/Hero.astro';
-import AkselIcon from '../components/shared/AkselIcon.astro';
 import NewsCard from '../components/shared/NewsCard.astro';
+import CardGrid from '../components/shared/CardGrid.astro';
+import EventCard from '../components/shared/EventCard.astro';
 import ArrowLink from '../components/shared/ArrowLink.astro';
+import ExampleLinkCards from '../components/shared/ExampleLinkCards.astro';
 import TextWithImage from '../components/shared/TextWithImage.astro';
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getPlainText } from '../lib/umbraco';
@@ -23,95 +25,84 @@ const seoDescription = forside?.seoBeskrivelse || 'KI Norge - Norges nasjonale s
 const websiteJsonLd = websiteSchema(seoDescription);
 
 const featuredArticle = latestArticles[0];
-const otherArticles = latestArticles.slice(1);
 ---
 
 <Layout title={title} description={seoDescription}>
-  <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
   <Hero />
+  <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
 
   <!-- Aktuelt -->
   <section class="aktuelt" data-layout-block="edge">
     <div data-layout-block="content">
-      <h2 class="section-heading">Aktuelt</h2>
+      <h2 class="ds-heading section-heading" data-size="lg">Aktuelt</h2>
 
+      <!-- Featured article -->
       {featuredArticle && (
-        <a href={`/artikler/${featuredArticle.slug}`} class="featured-article">
-          <div class="featured-article-image"></div>
-          <div class="featured-article-text">
-            <h3 class="featured-article-title">{featuredArticle.tittel}</h3>
-            <p class="featured-article-lead">{featuredArticle.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}</p>
-          </div>
-        </a>
+        <NewsCard
+          href={`/artikler/${featuredArticle.slug}`}
+          title={featuredArticle.tittel}
+          tagColor="brand1"
+          lead={featuredArticle.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}
+          image="/article_placeholder.png"
+          imageAlt=""
+          variant="featured"
+        />
       )}
 
-      <div class="article-grid">
-        {otherArticles.map(article => (
+      <!-- Image cards (3 across) -->
+      <CardGrid columns={3} divided>
+        {latestArticles.slice(1, 4).map(article => (
           <NewsCard
             href={`/artikler/${article.slug}`}
             title={article.tittel}
-            tag="Artikkel"
+            variant="image"
+            image="/article_placeholder.png"
             date={article.publishedAt}
           />
         ))}
-      </div>
+      </CardGrid>
 
       <ArrowLink href="/artikler" text="Se alle artikler" />
     </div>
-  </section>
 
-  <!-- Kommende arrangementer -->
-  <section data-layout-block="content">
-    <h2 class="section-heading">Kommende arrangementer</h2>
-    <div class="event-card">
-      <div class="event-card-date">
-        <span class="event-card-day">13.</span>
-        <span class="event-card-month">august</span>
-        <span class="event-card-time">09:00</span>
-      </div>
-      <div class="event-card-content">
-        <div class="event-card-header">
-          <span class="ds-tag" data-color="brand1">Konferanse</span>
-          <span class="event-card-meta">Digitalisering og ansvarlig datastyring</span>
-        </div>
-        <h3 class="event-card-title">Digitaliseringskonferansen</h3>
-        <p class="event-card-desc">Korleis kunstig intelligens, bærekraftig datastyring, innovasjon og samhandling vil drive...</p>
-        <div class="event-card-details">
-          <span>09:00 - 16:00</span>
-          <span>Arrangert av Tone Berge</span>
-          <span>Thon Hotel The Hub, Oslo</span>
-        </div>
-      </div>
-      <div class="event-card-seats">64 PLASSER IGJEN</div>
+    <div class="arrangementer-section" data-layout-block="content">
+      <h2 class="ds-heading section-heading" data-size="lg">Kommende arrangementer</h2>
+      <EventCard
+        href="/arrangementer/digitaliseringskonferansen"
+        title="Digitaliseringskonferansen"
+        description="Verden endres radikalt med kunstig intelligens. Norge kan sikre digital suverenitet og demokratiske verdier."
+        tag="Konferanse"
+        tagColor="brand1"
+        category="Digitalisering og samordning, datadeling"
+        day="13."
+        month="august"
+        year="2025"
+        time="09:00 – 16:00"
+        timeNote="Arrangement over flere dager"
+        location="Clarion Hotel The Hub, Oslo"
+        seats="FÅ PLASSER IGJEN!"
+      />
+      <ArrowLink href="/arrangementer" text="Se alle arrangementer" />
     </div>
-    <ArrowLink href="/arrangementer" text="Se alle arrangementer" />
   </section>
 
   <!-- Veiledning -->
   <section class="veiledning-section" data-layout-block="edge">
     <div data-layout-block="content">
-      <TextWithImage title="Gjør dataene KI-klare" href="/veiledning" image="/placeholder.png" imageAlt="Illustrasjon av veiledning">
+      <TextWithImage title="Gjør dataene KI-klare" href="/veiledning" image="/woman-speaking.svg" imageAlt="Illustrasjon av kvinne som snakker">
         <p class="veiledning-label">Veiledning</p>
-        <p>Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.</p>
+        <p slot="body">Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.</p>
       </TextWithImage>
     </div>
   </section>
 
   <!-- Lær av andre -->
-  <section data-layout-block="content">
-    <h2 class="section-heading">Lær av andre</h2>
-    <div class="cases-grid">
-      <NewsCard
-        href="/caser/ki-chat-staten"
-        title="KI-chat effektiviserer analysearbeid i staten"
-        tag="Eksempel"
-      />
-      <NewsCard
-        href="/caser/politiet-tale-til-tekst"
-        title="Politiet - Fra tale til tekst på minutter"
-        tag="Eksempel"
-      />
-    </div>
+  <section data-layout-block="content" class="examples-section">
+    <h2 class="ds-heading section-heading" data-size="lg">Lær av andre</h2>
+    <ExampleLinkCards cards={[
+      { href: "/caser/ki-chat-staten", title: "KI-chat effektiviserer analysearbeid i staten", tag: "Eksempel" },
+      { href: "/caser/politiet-tale-til-tekst", title: "Politiet - Fra tale til tekst på minutter", tag: "Eksempel" },
+    ]} />
     <ArrowLink href="/caser" text="Se alle eksempler" />
   </section>
 
@@ -134,15 +125,12 @@ const otherArticles = latestArticles.slice(1);
 
   /* Section headings */
   .section-heading {
-    font-size: var(--ds-heading-md-font-size);
-    font-weight: 500;
-    line-height: 1.3;
     margin: 0 0 var(--ds-size-8);
   }
 
   /* ── Aktuelt ─────────────────────────────────────────── */
   .aktuelt {
-    background-color: var(--ds-color-neutral-background-default);
+    background-color: var(--ds-color-surface-default);
   }
 
   .featured-article {
@@ -160,7 +148,7 @@ const otherArticles = latestArticles.slice(1);
 
   .featured-article-image {
     aspect-ratio: 4 / 3;
-    background-color: var(--image-fallback-bg);
+    background-color: #d9d9d9;
     border-radius: var(--ds-border-radius-lg);
   }
 
@@ -178,117 +166,28 @@ const otherArticles = latestArticles.slice(1);
     line-height: 1.3;
   }
 
-  .featured-article-lead {
-    font-size: var(--ds-body-md-font-size);
-    color: var(--ds-color-neutral-text-subtle);
-    margin: 0;
-    line-height: 1.6;
-  }
-
-  .article-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--ds-size-6);
-    margin-bottom: var(--ds-size-8);
-
-    @media (min-width: 768px) {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  /* ── Kommende arrangementer ──────────────────────────── */
-  .event-card {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: var(--ds-size-6);
-    align-items: start;
-    background-color: var(--ds-color-neutral-background-default);
-    border-radius: var(--ds-border-radius-lg);
-    padding: var(--ds-size-6);
+  .aktuelt :global(.card-grid) {
     margin-bottom: var(--ds-size-6);
   }
 
-  .event-card-date {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: var(--ds-color-neutral-surface-tinted);
-    border-radius: var(--ds-border-radius-md);
-    padding: var(--ds-size-3) var(--ds-size-4);
-    min-width: 64px;
+  .aktuelt :global(.news-card--featured) {
+    margin-bottom: var(--ds-size-8);
   }
 
-  .event-card-day {
-    font-size: var(--ds-heading-md-font-size);
-    font-weight: 700;
+  /* ── Kommende arrangementer ──────────────────────────── */
+  .arrangementer-section {
+    border-top: 1px solid var(--ds-color-border-subtle);
+    padding-top: var(--ds-size-22);
+    margin-top: var(--ds-size-22);
   }
 
-  .event-card-month {
-    font-size: var(--ds-body-sm-font-size);
-  }
-
-  .event-card-time {
-    font-size: var(--ds-body-xs-font-size);
-    color: var(--ds-color-neutral-text-subtle);
-  }
-
-  .event-card-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-2);
-  }
-
-  .event-card-header {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-size-3);
-  }
-
-  .event-card-meta {
-    font-size: var(--ds-body-sm-font-size);
-    color: var(--ds-color-neutral-text-subtle);
-  }
-
-  .event-card-title {
-    font-size: var(--ds-heading-xs-font-size);
-    font-weight: 600;
-    margin: 0;
-  }
-
-  .event-card-desc {
-    font-size: var(--ds-body-sm-font-size);
-    color: var(--ds-color-neutral-text-subtle);
-    margin: 0;
-  }
-
-  .event-card-details {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ds-size-4);
-    font-size: var(--ds-body-xs-font-size);
-    color: var(--ds-color-neutral-text-subtle);
-    margin-top: var(--ds-size-2);
-  }
-
-  .event-card-seats {
-    font-size: var(--ds-body-xs-font-size);
-    font-weight: 600;
-    color: var(--ds-color-neutral-text-subtle);
-    white-space: nowrap;
-  }
-
-  @media (max-width: 767px) {
-    .event-card {
-      grid-template-columns: 1fr;
-    }
-    .event-card-seats {
-      order: -1;
-    }
+  .arrangementer-section :global(.event-card) {
+    margin-bottom: var(--ds-size-6);
   }
 
   /* ── Veiledning ──────────────────────────────────────── */
   .veiledning-section {
-    background-color: var(--ds-color-surface-default);
+    
   }
 
   .veiledning-label {
@@ -298,40 +197,26 @@ const otherArticles = latestArticles.slice(1);
     margin: 0;
   }
 
-  /* ── Lær av andre ────────────────────────────────────── */
-  .cases-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--ds-size-6);
-    margin-bottom: var(--ds-size-8);
-
-    @media (min-width: 768px) {
-      grid-template-columns: repeat(2, 1fr);
+  .examples-section {
+    & :global(.arrow-link) {
+      margin-block-start: var(--ds-size-6);
     }
   }
 
   /* ── Sandkassen ──────────────────────────────────────── */
   .sandkasse-section {
-    background-color: var(--ds-color-surface-tinted);
+    background-color: var(--ds-color-base-active);
+    color: var(--ds-color-base-contrast-default);
+    padding-block: var(--ds-size-22);
   }
 
   .sandkasse-title {
     display: flex;
     align-items: center;
     gap: var(--ds-size-3);
-    font-size: var(--ds-heading-sm-font-size);
+    font-size: var(--ds-heading-lg-font-size);
     font-weight: 600;
     margin: 0 0 var(--ds-size-3);
-  }
-
-  .sandkasse-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.2);
   }
 
   .sandkasse-desc {

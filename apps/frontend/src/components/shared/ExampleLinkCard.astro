@@ -1,0 +1,98 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  tag?: string;
+  variant?: 'dark' | 'light';
+}
+
+const { href, title, tag = 'Eksempel', variant = 'dark' } = Astro.props;
+const id = `example-link-card-${crypto.randomUUID().slice(0, 8)}`;
+---
+
+<article class="example-link-card" data-variant={variant} data-clickdelegatefor={id}>
+  <span class="ds-tag example-link-card-tag">{tag}</span>
+  <h3 class="example-link-card-title"><a id={id} href={href}>{title}</a></h3>
+  <span class="example-link-card-arrow" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </span>
+</article>
+
+<style>
+  .example-link-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    padding: var(--ds-size-8);
+    border-radius: var(--ds-border-radius-lg);
+    cursor: pointer;
+    min-height: 220px;
+
+    & a {
+      text-decoration: none;
+      color: inherit;
+
+      &:focus-visible {
+        outline: none;
+      }
+    }
+
+    &:focus-within {
+      box-shadow: var(--dsc-focus-boxShadow);
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+      z-index: 1;
+    }
+
+    & .ds-tag {
+        --dsc-tag-background-color: var(--ds-color-surface-default);
+    }
+  }
+
+  /* ── Dark variant ──────────────────────────────── */
+  .example-link-card[data-variant='dark'] {
+    background-color: var(--ds-color-base-active);
+    color: var(--ds-color-base-contrast-default);
+
+    .example-link-card-arrow {
+      background-color: var(--ds-color-base-contrast-default);
+      color: var(--ds-color-text-default);
+    }
+  }
+
+  /* ── Light variant ─────────────────────────────── */
+  .example-link-card[data-variant='light'] {
+    background-color: var(--ds-color-surface-tinted);
+    color: var(--ds-color-text-default);
+
+    .example-link-card-arrow {
+      background-color: var(--ds-color-text-default);
+      color: var(--ds-color-base-contrast-default);
+    }
+  }
+
+  .example-link-card-title {
+    font-size: var(--ds-heading-sm-font-size);
+    font-weight: 400;
+    line-height: 1.3;
+    margin: 0;
+    flex: 1;
+  }
+
+  .example-link-card-arrow {
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+
+  .example-link-card a.\:click-delegate-hover {
+    text-decoration: underline;
+  }
+</style>
