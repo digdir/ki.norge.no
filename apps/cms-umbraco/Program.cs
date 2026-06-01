@@ -62,6 +62,23 @@ WebApplication app = builder.Build();
 await app.BootUmbracoAsync();
 app.UseForwardedHeaders();
 
+// Traefik rewrites :authority to the internal Kubernetes service hostname before
+// forwarding to the pod. Normalize Request.Host back to the public hostname so
+// Umbraco builds correct OAuth redirect URLs and media URLs.
+string? configuredBackOfficeHost = app.Configuration["Umbraco:CMS:Security:BackOfficeHost"];
+if (!string.IsNullOrEmpty(configuredBackOfficeHost) &&
+    Uri.TryCreate(configuredBackOfficeHost, UriKind.Absolute, out Uri? backOfficeUri))
+{
+    app.Use(async (context, next) =>
+    {
+        if (!context.Request.Host.Host.Equals(backOfficeUri.Host, StringComparison.OrdinalIgnoreCase))
+        {
+            context.Request.Host = new HostString(backOfficeUri.Host);
+        }
+        await next(context);
+    });
+}
+
 // ── Health endpoints (before Umbraco middleware so they always respond) ──
 // /api/health: liveness — process is alive, no DB check. Used for fast probes.
 // /api/health/ready: readiness — DB reachable, Umbraco initialized. Used for traffic decisions.
