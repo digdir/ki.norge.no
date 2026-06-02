@@ -32,7 +32,7 @@ const currentIndex = allSteps.findIndex(s => s.slug === stepSlug);
 const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1] : null;
 ---
 <Layout title={`${currentStep.tittel} | ${guideData.tittel}`}>
-  <div class="step-page grid">
+  <div class="step-page grid" data-layout-block="content">
     <div class="col-center-6">
       <SubStepPills
         substeps={substepPills}
