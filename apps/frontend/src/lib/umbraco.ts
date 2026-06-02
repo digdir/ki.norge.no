@@ -520,7 +520,7 @@ interface RichTextNode {
 // Embeddede media-URLer i RichText (bilder, fil-lenker) kommer relativt som
 // /media/... og ville blitt hentet fra frontend-domenet (404 pa Cloudflare).
 // Prefiks CMS-hosten. Allerede-absolutte URLer (http) treffes ikke av regexen.
-function absolutizeMediaUrls(html: string): string {
+export function absolutizeMediaUrls(html: string): string {
   return html.replace(
     /\b(src|href)="(\/media\/[^"]*)"/g,
     (_m, attr, value) => `${attr}="${UMBRACO_PUBLIC_URL}${value}"`,
