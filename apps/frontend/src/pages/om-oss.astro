@@ -85,12 +85,7 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
     padding-top: var(--ds-size-30);
     padding-bottom: 48px;
     display: grid;
-    grid-template-columns:
-      var(--ds-size-30)
-      1fr
-      var(--ds-size-30)
-      minmax(0, 680px)
-      1fr;
+    grid-template-columns: var(--article-layout-columns);
   }
 
   .article-title {
@@ -129,14 +124,6 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-3);
-  }
-
-  .om-oss-seksjon-tittel {
-    margin: 0;
-  }
-
-  .om-oss-seksjon-tekst {
-    color: var(--ds-color-text-subtle);
   }
 
   /* Aktuelt */

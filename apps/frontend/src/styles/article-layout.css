@@ -1,20 +1,31 @@
 /**
  * ArticleLayout — CSS Grid with gutter columns for centering + bleed.
  *
- * 5-column grid:
+ * 5-column grid (--article-layout-columns):
  *   | gutter | sidebar | gap | content | gutter |
- *   |  1fr   |  200px  | 32px| min(0,680px)|  1fr  |
+ *   | ds-30  | 200px   | ds-30 | min(0,680px) | 1fr |
  *
  * Normal content → col 4 (content column)
  * Sidebar → col 2
  * Edge blocks → col 1 / -1 (all 5 columns, full bleed)
+ *
+ * Defined on :root so hero sections (siblings of ArticleLayout) can also
+ * reference --article-layout-columns and stay pixel-perfect aligned.
  */
 
-.article-layout {
+:root {
   --article-layout-sidebar-width: 200px;
   --article-layout-gap: var(--ds-size-30);
   --article-layout-content-max-width: 680px;
+  --article-layout-columns:
+    var(--ds-size-30)
+    1fr
+    var(--article-layout-gap)
+    minmax(0, var(--article-layout-content-max-width))
+    1fr;
+}
 
+.article-layout {
   background-color: var(--ds-color-background-default);
   padding-block: var(--ds-size-12);
   padding-inline: 0;
@@ -22,12 +33,7 @@
 
 .article-layout__grid {
   display: grid;
-  grid-template-columns:
-    var(--ds-size-30)
-    1fr
-    var(--article-layout-gap)
-    minmax(0, var(--article-layout-content-max-width))
-    1fr;
+  grid-template-columns: var(--article-layout-columns);
   row-gap: var(--ds-size-6);
   box-sizing: border-box;
 }
@@ -100,5 +106,8 @@
 }
 
 .article-layout__share {
-  width: fit-content;
+    --dsc-button-background: var(--ds-color-surface-active);
+    --dsc-button-color: var(--ds-color-text-default);
+    border-radius: var(--ds-border-radius-full);
+    width: fit-content;
 }

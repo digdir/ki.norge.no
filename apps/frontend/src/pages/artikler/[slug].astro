@@ -81,12 +81,7 @@ const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 
     padding-top: var(--ds-size-30);
     padding-bottom: 48px;
     display: grid;
-    grid-template-columns:
-      var(--ds-size-30)
-      1fr
-      var(--ds-size-30)
-      minmax(0, 680px)
-      1fr;
+    grid-template-columns: var(--article-layout-columns);
   }
 
   .article-title {
