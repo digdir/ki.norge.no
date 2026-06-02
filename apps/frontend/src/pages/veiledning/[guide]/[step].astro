@@ -22,13 +22,6 @@ const substepPills = sameStepSubsteps.map(s => ({
   active: s.slug === stepSlug,
 }));
 
-const stepGroupTitles: Record<number, string> = {};
-(guideData.stegGruppeTittler || '').split('\n').forEach((line: string, i: number) => {
-  const trimmed = line.trim();
-  if (trimmed) stepGroupTitles[i + 1] = trimmed;
-});
-const stepGroupTitle = stepGroupTitles[currentStep.steg] || `Steg ${currentStep.steg}`;
-
 const currentIndex = allSteps.findIndex(s => s.slug === stepSlug);
 const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1] : null;
 ---
@@ -36,15 +29,18 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
   <div class="step-page" data-layout-block="content">
     <div class="step-content">
 
-      <a class="step-back" href={`/veiledning/${guideSlug}`}>
-        <span aria-hidden="true">&larr;</span>{guideData.tittel}
-      </a>
-
-      <h1 class="step-group-title">{currentStep.steg}. {stepGroupTitle}</h1>
+<ds-breadcrumbs
+  class="ds-breadcrumbs"
+  aria-label="Brødsmulesti"
+>
+  <a class="step-back ds-link" href={`/veiledning/${guideSlug}`} aria-label={`Tilbake til ${guideData.tittel}`}>
+    {guideData.tittel}
+  </a>
+</ds-breadcrumbs>
 
       <SubStepPills substeps={substepPills} guideSlug={guideSlug!} />
 
-      <h2 class="step-substep-title">{currentStep.tittel}</h2>
+      <h1 class="step-substep-title">{currentStep.tittel}</h1>
 
       {currentStep.ingress && <p class="step-ingress">{currentStep.ingress}</p>}
 
@@ -62,6 +58,11 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
 </Layout>
 
 <style>
+  .ds-breadcrumbs {
+    --dsc-breadcrumbs-icon-url: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2215%22%20viewBox%3D%220%200%2014%2015%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M13.707%208.071a1%201%200%200%200%200-1.414L7.343.293A1%201%200%200%200%205.93%201.707l5.657%205.657-5.657%205.657a1%201%200%201%200%201.414%201.414zM0%207.364v1h13v-2H0z%22%20fill%3D%22%2386567a%22%2F%3E%3C%2Fsvg%3E);
+    --dsc-breadcrumbs-icon-size: var(--ds-size-3);
+  }
+
   .step-page {
     padding-block: var(--ds-size-14);
   }
@@ -75,24 +76,12 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
   }
 
   .step-back {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ds-size-2);
     color: var(--ds-color-text-default);
     text-decoration: none;
-    font-size: var(--ds-body-sm-font-size);
-    font-weight: 500;
   }
 
   .step-back:hover {
     text-decoration: underline;
-  }
-
-  .step-group-title {
-    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-    font-weight: 700;
-    line-height: 1.2;
-    margin: 0;
   }
 
   .step-substep-title {
