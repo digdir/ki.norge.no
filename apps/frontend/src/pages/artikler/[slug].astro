@@ -1,9 +1,10 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 
-import { getArtikkel, getArtikler, getPlainText, getMediaUrl, type Artikkel } from '../../lib/umbraco';
+import { getArtikkel, getArtikler, getPlainText } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
@@ -19,7 +20,6 @@ const formattedDate = new Date(article.publishedAt).toLocaleDateString('nb-NO', 
 
 const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
-const heroImage = article.artikkelBilde || article.seoBilde;
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
 
 const articleJsonLd = articleSchema({
@@ -39,180 +39,130 @@ const breadcrumbJsonLd = breadcrumbSchema([
 // Fetch other articles for "Flere artikler" section
 const allArticlesRes = await getArtikler(10);
 const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 3);
-
-const bakgrunn = article.bakgrunn || 'hvit';
-const isLightBlueBg = bakgrunn === 'lyseblaa';
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage}>
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="article-page grid" data-layout-block="content">
-    <!-- Artikkelhode: title + ingress + image, optionally on full-bleed colored background -->
-    <section class={`article-hero ${isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
-      {isLightBlueBg ? (
-        <div class={`grid article-hero-bg-grid`}>
-          <div class="article-hero-inner col-center-10">
-            <div class="article-hero-text">
-              <h1 class="article-title">{article.tittel}</h1>
-              {article.ingress && <p class="article-ingress">{article.ingress}</p>}
-            </div>
-            {heroImage?.url && (
-              <div class="article-hero-image">
-                <img src={getMediaUrl(heroImage)} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div class="article-hero-inner">
-          <div class="article-hero-text">
-            <h1 class="article-title">{article.tittel}</h1>
-            {article.ingress && <p class="article-ingress">{article.ingress}</p>}
-          </div>
-          {heroImage?.url && (
-            <div class="article-hero-image">
-              <img src={getMediaUrl(heroImage)} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-            </div>
-          )}
-        </div>
-      )}
-    </section>
+
+  <section class="article-hero" data-layout-block="edge">
+    <h1 class="ds-heading article-title" data-size="xl">{article.tittel}</h1>
+  </section>
+
+  <ArticleLayout>
+    <Fragment slot="sidebar">
+      <time class="article-sidebar-date" datetime={article.publishedAt}>
+        <span class="article-sidebar-label">Publisert</span>
+        {formattedDate}
+      </time>
+      <button class="ds-button" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Del
+      </button>
+    </Fragment>
+
+    {article.ingress && (
+      <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
+    )}
 
     <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+  </ArticleLayout>
 
-    <!-- Flere artikler: col-center-10 -->
-    {otherArticles.length > 0 && (
-      <section class="more-articles col-center-10">
-        <h2 class="more-articles-heading">Flere artikler</h2>
-        <div class="more-articles-grid grid-subrows">
-          {otherArticles.map(a => (
-            <NewsCard
-              href={`/artikler/${a.slug}`}
-              title={a.tittel}
-              date={a.publishedAt}
-              lead={getPlainText(a.innhold, 80)}
-            />
-          ))}
-        </div>
-      </section>
-    )}
-  </div>
+  {otherArticles.length > 0 && (
+    <section class="more-articles" data-layout-block="content">
+      <h2 class="more-articles-heading">Flere artikler</h2>
+      <div class="more-articles-grid">
+        {otherArticles.map(a => (
+          <NewsCard
+            href={`/artikler/${a.slug}`}
+            title={a.tittel}
+            date={a.publishedAt}
+            lead={getPlainText(a.innhold, 80)}
+          />
+        ))}
+      </div>
+    </section>
+  )}
 </Layout>
 
+<style is:global>
+  body {
+    background-color: var(--ds-color-surface-active) !important;
+  }
+</style>
+
 <style>
-  .article-page {
-    padding-top: 0; /* hero handles its own top padding (incl. clearance for absolute header) */
-    row-gap: 48px; /* vertikal avstand mellom grid-barn */
-  }
-
-  /* Hero / Ingress / Artikkelhode */
+  /* Hero / Artikkelhode */
   .article-hero {
-    padding: 100px 0;
-  }
-
-  /* Light-blue full-bleed background variant. Extends BOTH:
-     - horizontally: from viewport-left to viewport-right, past the grid's
-       max-width (via 100vw + the negative-margin "yank" trick). Requires
-       overflow-x:clip on body — set in global.css. Without that, the 100vw
-       creates a horizontal scrollbar on desktops with visible scrollbars.
-     - vertically: up behind the absolutely-positioned site header. The
-       negative top margin counteracts main's padding-top (which equals
-       --header-height); we add it back as inner padding so the visible
-       content still starts where it did before. */
-  .article-hero--bg-lyseblaa {
-    background: #e5f2f7;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-top: calc(-1 * var(--header-height, 72px));
-    padding-top: calc(140px + var(--header-height, 72px));
-    padding-bottom: 80px;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .article-hero-inner {
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-  }
-
-  @media (min-width: 1024px) {
-    .article-hero-inner {
-      flex-direction: row;
-      align-items: center;
-    }
-  }
-
-  .article-hero-text {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
+    padding-top: var(--ds-size-30);
+    padding-bottom: 48px;
+    display: grid;
+    grid-template-columns:
+      1fr
+      200px
+      var(--ds-size-8)
+      minmax(0, 680px)
+      1fr;
   }
 
   .article-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #000;
-    margin: 0;
-    line-height: 1.3;
-    letter-spacing: -0.5px;
+    grid-column: 4;
     overflow-wrap: break-word;
     word-break: break-word;
   }
 
-  @media (min-width: 768px) {
-    .article-title {
-      font-size: 2.5rem;
+  @media (max-width: 768px) {
+    .article-hero {
+      grid-template-columns: 1fr;
     }
-  }
-
-  @media (min-width: 1024px) {
     .article-title {
-      font-size: 36px;
+      grid-column: 1;
     }
   }
 
   .article-ingress {
-    font-size: 21px;
-    font-weight: 400;
-    color: rgba(0, 0, 0, 0.75);
-    line-height: 1.7;
-    letter-spacing: 0.5px;
+    font-family: 'PT Serif';
     margin: 0;
   }
 
   @media (min-width: 1024px) {
     .article-ingress {
-      font-size: 24px;
+      font-size: 28px;
     }
   }
 
-  .article-hero-image {
-    flex-shrink: 0;
-    width: 100%;
+  /* Sidebar */
+  .article-sidebar-date {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
   }
 
-  @media (min-width: 1024px) {
-    .article-hero-image {
-      width: 407px;
-    }
+  .article-sidebar-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  .article-hero-img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    display: block;
-    object-fit: cover;
+  .article-sidebar-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--ds-color-border-default);
+    border-radius: 100px;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ds-color-text-default);
+    cursor: pointer;
+    transition: background-color 0.15s;
   }
 
-  @media (min-width: 1024px) {
-    .article-hero-img {
-      height: 331px;
-    }
+  .article-sidebar-share:hover {
+    background-color: var(--ds-color-surface-hover);
   }
 
   /* More articles */

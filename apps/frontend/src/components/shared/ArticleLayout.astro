@@ -1,0 +1,31 @@
+---
+/**
+ * ArticleLayout — two-column grid: sidebar + content.
+ *
+ * Uses CSS Grid. All default-slot children become direct grid children.
+ *   - By default they sit in the content column (col 2).
+ *   - data-layout-block="edge" makes them span both columns (full width).
+ *   - data-layout-block="content" constrains max-width for readability.
+ *
+ * The sidebar slot is placed in column 1, row 1.
+ *
+ * Outer wrapper provides full-bleed cream background.
+ */
+import '../../styles/article-layout.css';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const classes = ['article-layout', className].filter(Boolean).join(' ');
+---
+
+<div class={classes} data-layout-block="edge">
+  <div class="article-layout__grid">
+    <aside class="article-layout__sidebar">
+      <slot name="sidebar" />
+    </aside>
+    <slot />
+  </div>
+</div>

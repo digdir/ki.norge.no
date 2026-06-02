@@ -1,0 +1,85 @@
+/**
+ * ArticleLayout — CSS Grid with gutter columns for centering + bleed.
+ *
+ * 5-column grid:
+ *   | gutter | sidebar | gap | content | gutter |
+ *   |  1fr   |  200px  | 32px| min(0,680px)|  1fr  |
+ *
+ * Normal content → col 4 (content column)
+ * Sidebar → col 2
+ * Edge blocks → col 1 / -1 (all 5 columns, full bleed)
+ */
+
+.article-layout {
+  --article-layout-sidebar-width: 200px;
+  --article-layout-gap: var(--ds-size-30);
+  --article-layout-content-max-width: 680px;
+
+  background-color: var(--ds-color-background-default);
+  padding-block: var(--ds-size-12);
+  padding-inline: 0;
+}
+
+.article-layout__grid {
+  display: grid;
+  grid-template-columns:
+    var(--ds-size-30)
+    1fr
+    var(--article-layout-gap)
+    minmax(0, var(--article-layout-content-max-width))
+    1fr;
+  row-gap: var(--ds-size-6);
+  box-sizing: border-box;
+}
+
+/* Sidebar — column 2, row 1 */
+.article-layout__sidebar {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+
+  & .ds-button  {
+    width: fit-content;
+  }
+}
+
+/* All other direct children default to column 4 (content) */
+.article-layout__grid > :not(.article-layout__sidebar) {
+  grid-column: 4;
+}
+
+/* Edge blocks — span all columns, full bleed to cream container edges */
+.article-layout__grid > [data-layout-block="edge"] {
+  grid-column: 1 / -1;
+  padding-inline: var(--ds-size-6);
+  padding-block: var(--ds-size-6);
+}
+
+/* ── Responsive: single column on smaller screens ── */
+@media (max-width: 768px) {
+  .article-layout {
+    padding-inline: var(--ds-size-4);
+  }
+
+  .article-layout__grid {
+    grid-template-columns: 1fr;
+    row-gap: var(--ds-size-4);
+  }
+
+  .article-layout__sidebar {
+    grid-column: 1;
+    flex-wrap: wrap;
+    gap: var(--ds-size-3);
+  }
+
+  .article-layout__grid > :not(.article-layout__sidebar) {
+    grid-column: 1;
+  }
+
+  .article-layout__grid > [data-layout-block="edge"] {
+    grid-column: 1;
+    margin-inline: calc(-1 * var(--ds-size-4));
+  }
+}

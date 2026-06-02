@@ -12,94 +12,6 @@
  * sprinkle new values.
  */
 
-/* Accordion / trekkspill */
-.article-accordion {
-  border: 1px solid #b6d8e4;
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 24px 0;
-  transition: border-color 0.15s;
-}
-.article-accordion:hover { border-color: #1a2a6d; }
-.article-accordion[open] { border-color: #1a2a6d; }
-
-/* Accordion group wrapper. The renderer (ArticleBlocksRenderer.astro)
-   walks the block list and groups consecutive artikkelTrekkspill blocks
-   into one .article-accordion-group section. That section is the single
-   grid child, so the page-level `row-gap` only spaces the GROUP from
-   surrounding blocks — not the accordions inside. CSS collapses the
-   borders between adjacent accordions inside the group. Optional title
-   is rendered above the accordions but inside the same grid child, so
-   they read as one unit. */
-.article-accordion-group {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 24px 0;
-}
-.article-accordion-group-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #000;
-  margin: 0;
-  line-height: 1.3;
-}
-.article-accordion-group-list {
-  display: flex;
-  flex-direction: column;
-}
-.article-accordion-group .article-accordion {
-  margin: 0;            /* override the standalone accordion's margin */
-  border-radius: 0;
-}
-.article-accordion-group .article-accordion + .article-accordion {
-  margin-top: -1px;     /* overlap shared border */
-}
-.article-accordion-group .article-accordion:first-child {
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
-.article-accordion-group .article-accordion:last-child {
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-/* Open state in a group: bring the active item to the front so the inner
-   accent border draws over its neighbours instead of being clipped. */
-.article-accordion-group .article-accordion[open] {
-  position: relative;
-  z-index: 1;
-}
-.article-accordion-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #1a2a6d;
-  cursor: pointer;
-  list-style: none;
-  background: #e5f2f7;
-}
-.article-accordion-summary::-webkit-details-marker { display: none; }
-.article-accordion-chevron {
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-  color: #1a2a6d;
-}
-.article-accordion[open] > .article-accordion-summary .article-accordion-chevron {
-  transform: rotate(180deg);
-}
-.article-accordion-body {
-  padding: 20px 24px;
-  font-size: 1rem;
-  line-height: 1.7;
-  color: rgba(0, 0, 0, 0.75);
-  background: white;
-}
-.article-accordion-body p { margin: 0 0 12px; }
-.article-accordion-body p:last-child { margin-bottom: 0; }
-
 /* Sitat (legacy) */
 .article-quote {
   margin: 32px 0;
@@ -179,18 +91,21 @@
    is a secondary card, not a hero element, so it shouldn't compete with
    accent-colored fremheving/info blocks. */
 .article-kontaktkort {
-  background: #f4f5f7;
-  border-radius: 8px;
-  padding: 32px;
+  background: var(--ds-color-base-default);
+  padding: var(--ds-size-6);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--ds-size-2);
+  margin-inline: 0;
 }
-.article-kontaktkort-title { font-size: 21px; font-weight: 500; color: #1a2a6d; margin: 0 0 16px; }
-.article-kontaktkort-name { font-size: 18px; font-weight: 600; color: #000; margin: 0; }
-.article-kontaktkort-row { font-size: 16px; color: rgba(0, 0, 0, 0.75); margin: 0; }
-.article-kontaktkort-row a { color: #1a2a6d; text-decoration: none; }
-.article-kontaktkort-row a:hover { text-decoration: underline; }
+.article-kontaktkort-title { font-size: 21px; font-weight: 500; color: var(--ds-color-base-contrast-default); margin: 0 0 16px; }
+.article-kontaktkort-name { font-size: 18px; font-weight: 600; color: var(--ds-color-base-contrast-default); margin: 0; }
+.article-kontaktkort-row { font-size: 16px; color: var(--ds-color-base-contrast-default); margin: 0; }
+.article-kontaktkort a {
+  --dsc-link-color: var(--ds-color-base-contrast-default);
+  --dsc-link-color--hover: var(--ds-color-base-contrast-subtle);
+  --dsc-link-color--active: var(--ds-color-base-contrast-default);
+}
 
 /* Prosessteg */
 .article-prosessteg {

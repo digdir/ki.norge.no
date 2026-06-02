@@ -45,7 +45,7 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
         <div class="article-hero-bg-grid" data-layout-block="content">
           <div class="article-hero-inner">
             <div class="article-hero-text">
-              <h1 class="article-title">{article.tittel}</h1>
+              <h1 class="ds-heading" data-size="2xl">{article.tittel}</h1>
               {article.ingress && <p class="article-ingress">{article.ingress}</p>}
             </div>
             {heroImage?.url && (
@@ -58,7 +58,7 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
       ) : (
         <div class="article-hero-inner">
           <div class="article-hero-text">
-            <h1 class="article-title">{article.tittel}</h1>
+            <h1 class="ds-heading" data-size="xl">{article.tittel}</h1>
             {article.ingress && <p class="article-ingress">{article.ingress}</p>}
           </div>
           {heroImage?.url && (
@@ -135,29 +135,6 @@ const isLightBlueBg = bakgrunn === 'lyseblaa';
     display: flex;
     flex-direction: column;
     gap: 32px;
-  }
-
-  .article-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #000;
-    margin: 0;
-    line-height: 1.3;
-    letter-spacing: -0.5px;
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
-
-  @media (min-width: 768px) {
-    .article-title {
-      font-size: 2.5rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .article-title {
-      font-size: 36px;
-    }
   }
 
   .article-ingress {
