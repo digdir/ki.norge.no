@@ -1,9 +1,6 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
-import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.astro';
-import ArticleCardImage from '../../components/shared/ArticleCardImage.astro';
-import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
-import ArrowLink from '../../components/shared/ArrowLink.astro';
+import NewsCard from '../../components/shared/NewsCard.astro';
 import { getArtikler, getArtiklerOversikt, getPlainText, type Artikkel } from '../../lib/umbraco';
 
 let articles: Artikkel[] = [];
@@ -30,10 +27,18 @@ const featuredOverride = oversikt?.featuredArtikkelId
 const featured = featuredOverride || articles[0];
 const rest = articles.filter(a => a.id !== featured?.id);
 const compactCards = rest.slice(0, 3);
-const imageCards = rest.slice(3);
+const imageGridTop = rest.slice(3, 6);
+const imageGridBottom = rest.slice(6, 8);
+const bottomFeatured = rest[8];
+const remaining = rest.slice(9);
 
 function getImageUrl(article: Artikkel) {
   return article.artikkelBilde?.url || undefined;
+}
+
+function getTag(article: Artikkel) {
+  if (article.bakgrunn === 'lyseblaa') return 'Offentlig sektor';
+  return 'KI-strategien';
 }
 ---
 
@@ -45,7 +50,8 @@ function getImageUrl(article: Artikkel) {
     </header>
 
     {featured && (
-      <ArticleCardFeatured
+      <NewsCard
+        variant="featured"
         href={`/artikler/${featured.slug}`}
         title={featured.tittel}
         lead={featured.ingress || getPlainText(featured.innhold, 150)}
@@ -57,21 +63,63 @@ function getImageUrl(article: Artikkel) {
     {compactCards.length > 0 && (
       <div class="compact-grid">
         {compactCards.map(article => (
-          <ArticleCardCompact
+          <NewsCard
+            variant="small"
             href={`/artikler/${article.slug}`}
             title={article.tittel}
-            tag={article.bakgrunn === 'lyseblaa' ? 'Offentlig sektor' : 'Digitalisering'}
-            tagColor="brand1"
+            tag={getTag(article)}
             date={article.publishedAt}
           />
         ))}
       </div>
     )}
 
-    {imageCards.length > 0 && (
+    {imageGridTop.length > 0 && (
       <div class="image-grid">
-        {imageCards.map(article => (
-          <ArticleCardImage
+        {imageGridTop.map(article => (
+          <NewsCard
+            variant="image"
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            date={article.publishedAt}
+            image={getImageUrl(article)}
+            imageAlt={article.bildeAlt}
+          />
+        ))}
+      </div>
+    )}
+
+    {imageGridBottom.length > 0 && (
+      <div class="image-grid image-grid--2col">
+        {imageGridBottom.map(article => (
+          <NewsCard
+            variant="image"
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            date={article.publishedAt}
+            image={getImageUrl(article)}
+            imageAlt={article.bildeAlt}
+          />
+        ))}
+      </div>
+    )}
+
+    {bottomFeatured && (
+      <NewsCard
+        variant="featured"
+        href={`/artikler/${bottomFeatured.slug}`}
+        title={bottomFeatured.tittel}
+        lead={bottomFeatured.ingress || getPlainText(bottomFeatured.innhold, 150)}
+        image={getImageUrl(bottomFeatured)}
+        imageAlt={bottomFeatured.bildeAlt}
+      />
+    )}
+
+    {remaining.length > 0 && (
+      <div class="image-grid">
+        {remaining.map(article => (
+          <NewsCard
+            variant="image"
             href={`/artikler/${article.slug}`}
             title={article.tittel}
             date={article.publishedAt}
@@ -139,6 +187,12 @@ function getImageUrl(article: Artikkel) {
 
     @media (min-width: 1024px) {
       grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .image-grid--2col {
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 

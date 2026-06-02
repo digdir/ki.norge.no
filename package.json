@@ -8,7 +8,7 @@
     "cms:build": "cd apps/cms-umbraco && dotnet build -c Release",
     "cms:restore": "cd apps/cms-umbraco && dotnet restore",
     "frontend:dev": "cd apps/frontend && pnpm run dev",
-    "frontend:dev:prod": "UMBRACO_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io UMBRACO_PUBLIC_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io pnpm --dir apps/frontend run dev",
+    "frontend:dev:prod": "cross-env UMBRACO_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io UMBRACO_PUBLIC_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io pnpm --dir apps/frontend run dev",
     "frontend:build": "cd apps/frontend && pnpm run build",
     "frontend:preview": "cd apps/frontend && pnpm run preview",
     "frontend:deploy": "cd apps/frontend && pnpm run deploy",
@@ -17,6 +17,7 @@
     "tokens:build": "designsystemet tokens create --config designsystemet.config.json && designsystemet tokens build --config designsystemet.config.json"
   },
   "devDependencies": {
-    "@digdir/designsystemet": "^1.15.0"
+    "@digdir/designsystemet": "^1.15.0",
+    "cross-env": "^10.1.0"
   }
 }

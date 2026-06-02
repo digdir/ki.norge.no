@@ -1,0 +1,85 @@
+---
+import AkselIcon from './AkselIcon.astro';
+
+interface LinkItem {
+  title: string;
+  href: string;
+}
+
+interface Props {
+  links: LinkItem[];
+  heading?: string;
+}
+
+const { links, heading } = Astro.props;
+---
+
+<div class="link-list">
+  {heading && <h2 class="ds-heading link-list-heading" data-size="sm">{heading}</h2>}
+  <ul class="link-list-items">
+    {links.map((link) => {
+      const id = `link-list-${crypto.randomUUID().slice(0, 8)}`;
+      return (
+        <li class="link-list-item" data-clickdelegatefor={id}>
+          <a id={id} href={link.href}>
+            {link.title}
+            <span class="link-list-arrow" aria-hidden="true">
+              <AkselIcon name="ArrowRight" size={16} />
+            </span>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
+<style>
+  .link-list-heading {
+    margin: 0 0 var(--ds-size-6);
+    font-family: var(--ds-font-family);
+    font-weight: 400;
+  }
+
+  .link-list-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+  }
+
+  .link-list-item {
+    cursor: pointer;
+
+    & a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ds-size-3);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 2px;
+      color: var(--ds-color-accent-text-default);
+      font-size: var(--ds-heading-sm-font-size);
+      font-weight: 400;
+
+      &:focus-visible {
+        outline: var(--dsc-focus-outline);
+        outline-offset: var(--ds-border-width-focus);
+      }
+    }
+  }
+
+  .link-list-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--ds-color-surface-active);
+    color: var(--ds-color-accent-text-default);
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+</style>

@@ -1,345 +1,235 @@
 ---
 /**
- * Veiledning overview — "Lag et KI-system" landing page.
- * Based on Figma design 564:9097.
- * Content driven by CMS veiledningOversikt singleton with hardcoded fallbacks.
+ * Veiledning overview — "Guider & veiledning" landing page.
+ * Sections: Hero, Featured (Kom i gang), Rich link list (Steg for steg),
+ * Simple link list (Forstå regelverket), Case cards (Lær av andre).
  */
 import Layout from '../../components/layout/Layout.astro';
+import TextWithImage from '../../components/shared/TextWithImage.astro';
+import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
-import { getVeiledningOversikt, getMediaUrl } from '../../lib/umbraco';
-import type { VeiledningKort, VerktoyKort } from '../../lib/umbraco';
+import LinkList from '../../components/shared/LinkList.astro';
+import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getMediaUrl } from '../../lib/umbraco';
 
 let cmsData: Awaited<ReturnType<typeof getVeiledningOversikt>> = null;
+let guides: Awaited<ReturnType<typeof getVeiledningGuider>> = { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } };
+let cases: Awaited<ReturnType<typeof getEksempler>> = { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } };
+
 try {
-  cmsData = await getVeiledningOversikt();
+  [cmsData, guides, cases] = await Promise.all([
+    getVeiledningOversikt(),
+    getVeiledningGuider(),
+    getEksempler(),
+  ]);
 } catch (e) {
-  console.error('Failed to fetch veiledningOversikt from CMS:', e);
+  console.error('Failed to fetch veiledning page data:', e);
 }
 
-const heroLabel = cmsData?.heroLabel || 'Veiledning';
-const heroTitle = cmsData?.heroTittel || 'Lag et KI-system';
-const heroSubtitle = cmsData?.heroTekst || 'Vi veileder deg gjennom regler, krav og beste praksis.';
+const heroTitle = cmsData?.heroTittel || 'Guider & veiledning';
+const heroText = cmsData?.heroTekst || 'Lurer du på hva det er lurt å tenke på når du bruker KI eller lager KI-løsninger? Her finner du veiledninger laget og kvalitetssikret av jurister og andre fagfolk.';
 const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde) : undefined;
 
-const seksjon1Title = cmsData?.seksjon1Tittel || 'Før du går i gang';
-const forDuGarIGang: { title: string; desc: string; href: string; ikon?: string }[] =
-  cmsData?.seksjon1Kort && cmsData.seksjon1Kort.length > 0
-    ? cmsData.seksjon1Kort.map((k: VeiledningKort) => ({ title: k.tittel, desc: k.beskrivelse || '', href: k.url || '#', ikon: k.ikon }))
-    : [
-        { title: 'Definer behovet og hva KI skal løse', desc: '', href: '#', ikon: 'Search' },
-        { title: 'Finn ut hvilket risikonivå løsningen din har', desc: 'Hvis det du skal lage har høy risiko, må du få det godkjent før du kan sette det i drift.', href: '#', ikon: 'ShieldLock' },
-        { title: 'Forstå KI-loven og GDPR', desc: 'Det er nytt at loven stiller krav både til leverandøren og de som setter KI i drift.', href: '#', ikon: 'Paragraph' },
-        { title: 'Forstå krav til data og hva du må gjøre', desc: '', href: '/veiledning/bruk-data-rett', ikon: 'Database' },
-      ];
+// Featured article — "Kom i gang"
+const featuredTitle = cmsData?.seksjon1Kort?.[0]?.tittel || 'Hva er KI og hva kan du bruke det til?';
+const featuredDesc = cmsData?.seksjon1Kort?.[0]?.beskrivelse || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.';
+const featuredHref = cmsData?.seksjon1Kort?.[0]?.url || '/veiledning/kom-i-gang';
+const featuredLabel = cmsData?.seksjon1Tittel || 'Kom i gang';
+const featuredImage = heroImageUrl || '/woman-speaking.svg';
 
-const seksjon2Title = cmsData?.seksjon2Tittel || 'Utvikle KI-systemet';
-const utvikleSystemet: { title: string; desc: string; href: string; ikon?: string }[] =
-  cmsData?.seksjon2Kort && cmsData.seksjon2Kort.length > 0
-    ? cmsData.seksjon2Kort.map((k: VeiledningKort) => ({ title: k.tittel, desc: k.beskrivelse || '', href: k.url || '#', ikon: k.ikon }))
-    : [
-        { title: 'Dette er kravene du må følge for utforming', desc: '', href: '#', ikon: 'Ruler' },
-        { title: 'Valg av språkmodell – utvikle noe eget eller bruke en på markedet', desc: '', href: '#', ikon: 'Chat' },
-        { title: 'Dokumentasjon og testing', desc: '', href: '#', ikon: 'FileText' },
-        { title: 'Tiltak for sikkerhet og hindre misbruk', desc: '', href: '#', ikon: 'ShieldLock' },
-      ];
+// Rich link list — "Steg for steg" (guides with descriptions)
+const richLinks = guides.data.length > 0
+  ? guides.data.map(g => ({
+      title: g.tittel,
+      desc: g.ingress || '',
+      href: `/veiledning/${g.slug}`,
+    }))
+  : (cmsData?.seksjon2Kort || []).map(k => ({
+      title: k.tittel,
+      desc: k.beskrivelse || '',
+      href: k.url || '#',
+    }));
 
-const verktoyTitle = cmsData?.verktoyTittel || 'Verktøy';
-const verktoyCards: { title: string; desc: string; href: string; imageUrl?: string; ikon?: string }[] =
-  cmsData?.verktoyKort && cmsData.verktoyKort.length > 0
-    ? cmsData.verktoyKort.map((k: VerktoyKort) => ({ title: k.tittel, desc: k.beskrivelse || '', href: k.url || '#', imageUrl: k.bilde ? getMediaUrl(k.bilde) : undefined, ikon: k.ikon }))
-    : [
-        { title: 'Bias explorer', desc: 'Utforsk hvordan dataskjevheter blir til modellskjevheter', href: '#', ikon: 'BarChart' },
-        { title: 'Risikovurdering', desc: 'Modellen til Marie', href: '#', ikon: 'Task' },
-      ];
+// Simple link list — "Forstå regelverket"
+const simpleLinks = cmsData?.verktoyKort
+  ? cmsData.verktoyKort.map(k => ({
+      title: k.tittel,
+      href: k.url || '#',
+    }))
+  : [
+      { title: 'Hva innebærer KI-loven?', href: '/artikler/ki-loven' },
+      { title: 'Strategier og lovverk fra EU', href: '/artikler/eu-strategi' },
+      { title: 'Forstå KI-standardene', href: '/artikler/ki-standardene' },
+    ];
 
-const seoTitle = cmsData?.seoTittel || 'Veiledning';
-const seoDesc = cmsData?.seoBeskrivelse || 'Vi veileder deg gjennom regler, krav og beste praksis for å lage et KI-system.';
+// Case cards — "Lær av andre"
+const caseCards = cases.data.length > 0
+  ? cases.data.slice(0, 2).map(c => ({
+      title: c.tittel,
+      href: `/caser/${c.slug}`,
+      tag: 'Eksempel',
+    }))
+  : [
+      { title: 'Raskere analyser av dokumenter med KI-chat i Digdir', href: '/caser/ki-chat-staten', tag: 'Eksempel' },
+      { title: 'Politiet - Fra tale til tekst på minutter', href: '/caser/politiet-tale-til-tekst', tag: 'Eksempel' },
+    ];
+
+const seoTitle = cmsData?.seoTittel || 'Guider & veiledning';
+const seoDesc = cmsData?.seoBeskrivelse || heroText;
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
-    <!-- Hero -->
-    <section class="veil-hero" data-layout-block="content">
-      <div class="veil-hero-inner">
-        <div class="veil-hero-text">
-          <span class="veil-hero-label">{heroLabel}</span>
-          <h1 class="veil-hero-title">{heroTitle}</h1>
-          <p class="veil-hero-subtitle">{heroSubtitle}</p>
-        </div>
-        <div class="veil-hero-image">
-          {heroImageUrl ? (
-            <img loading="lazy" decoding="async" src={heroImageUrl} alt={heroTitle} class="veil-hero-img" />
-          ) : (
-            <div class="veil-hero-placeholder"></div>
-          )}
-        </div>
-      </div>
-    </section>
+  <!-- Hero -->
+  <section class="veil-hero" data-layout-block="content">
+    <h1 class="ds-heading" data-size="xl">{heroTitle}</h1>
+    <p class="ds-paragraph veil-hero-text" data-size="xl">{heroText}</p>
+  </section>
 
-    <!-- Seksjon 1 -->
-    <section class="veil-section" data-layout-block="content">
-      <div class="veil-section-inner">
-        <h2 class="veil-section-heading">{seksjon1Title}</h2>
-        <div class="veil-cards veil-cards--4">
-          {forDuGarIGang.map(card => (
-            <a href={card.href} class:list={['veil-card', { 'veil-card--disabled': card.href === '#' }]}>
-              <div class="veil-card-content">
-                {card.ikon && <AkselIcon name={card.ikon} size={20} />}
-                <h3 class="veil-card-title">{card.title}</h3>
-                {card.desc && <p class="veil-card-desc">{card.desc}</p>}
-              </div>
-              <span class="veil-card-arrow">&rarr;</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
+  <!-- Kom i gang — Featured article with illustration -->
+  <section class="veil-featured" data-layout-block="content">
+    <TextWithImage title={featuredTitle} href={featuredHref} image={featuredImage} imageAlt="Illustrasjon" label={featuredLabel}>
+      <p slot="body">{featuredDesc}</p>
+    </TextWithImage>
+  </section>
 
-    <!-- Seksjon 2 -->
-    <section class="veil-section" data-layout-block="content">
-      <div class="veil-section-inner">
-        <h2 class="veil-section-heading">{seksjon2Title}</h2>
-        <div class="veil-cards veil-cards--4">
-          {utvikleSystemet.map(card => (
-            <a href={card.href} class:list={['veil-card', { 'veil-card--disabled': card.href === '#' }]}>
-              <div class="veil-card-content">
-                {card.ikon && <AkselIcon name={card.ikon} size={20} />}
-                <h3 class="veil-card-title">{card.title}</h3>
-                {card.desc && <p class="veil-card-desc">{card.desc}</p>}
-              </div>
-              <span class="veil-card-arrow">&rarr;</span>
-            </a>
-          ))}
-        </div>
+  <!-- Steg for steg — Rich link list -->
+  {richLinks.length > 0 && (
+    <section class="veil-rich-links" data-layout-block="edge">
+      <div data-layout-block="content">
+        <h2 class="ds-heading veil-section-heading" data-size="xs">{cmsData?.seksjon2Tittel || 'Steg for steg'}</h2>
+        <ul class="veil-rich-list">
+          {richLinks.map((link) => {
+            const id = `rich-link-${crypto.randomUUID().slice(0, 8)}`;
+            return (
+              <li class="veil-rich-item" data-clickdelegatefor={id}>
+                <div class="veil-rich-link-heading">
+                  <h3 class="ds-heading" data-size="lg">
+                    <a id={id} href={link.href} class="ds-focus">
+                      {link.title}
+                      <span class="veil-rich-link-arrow" aria-hidden="true">
+                        <AkselIcon name="ArrowRight" size={18} />
+                      </span>
+                    </a>
+                  </h3>
+                </div>
+                {link.desc && <p class="ds-paragraph veil-rich-link-desc" data-size="md">{link.desc}</p>}
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
+  )}
 
-    <!-- Verktøy -->
-    <section class="veil-tools" data-layout-block="edge">
-      <div class="veil-section-inner" data-layout-block="content">
-        <h2 class="veil-section-heading">{verktoyTitle}</h2>
-        <div class="veil-cards veil-cards--2">
-          {verktoyCards.map(card => (
-            <a href={card.href} class="veil-tool-card">
-              <div class="veil-tool-text">
-                {card.ikon && <AkselIcon name={card.ikon} size={20} />}
-                <h3 class="veil-tool-title">{card.title}</h3>
-                <p class="veil-tool-desc">{card.desc}</p>
-              </div>
-              {card.imageUrl ? (
-                <img loading="lazy" decoding="async" src={card.imageUrl} alt={card.title} class="veil-tool-image" />
-              ) : (
-                <div class="veil-tool-image"></div>
-              )}
-              <span class="veil-tool-link">Utforsk &rarr;</span>
-            </a>
-          ))}
-        </div>
-      </div>
+  <!-- Forstå regelverket — Simple link list -->
+  {simpleLinks.length > 0 && (
+    <section class="veil-simple-links" data-layout-block="content">
+      <LinkList links={simpleLinks} heading={cmsData?.verktoyTittel || 'Forstå regelverket'} />
     </section>
+  )}
+
+  <!-- Lær av andre — Case cards -->
+  {caseCards.length > 0 && (
+    <section class="veil-cases" data-layout-block="content">
+      <h2 class="ds-heading veil-section-heading" data-size="xs">Lær av andre</h2>
+      <ExampleLinkCards cards={caseCards} />
+    </section>
+  )}
 </Layout>
 
 <style>
-  .veil-hero-inner {
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 48px;
+  h2 {
+    font-size: var(--ds-heading-sm-font-size);
+    font-family: var(--ds-heading-font-family);
+    font-style: none;
+    font-weight: 400;
+  }
+
+  /* Hero */
+  .veil-hero {
+    padding-top: var(--ds-size-10);
+    padding-bottom: var(--ds-size-6);
   }
 
   .veil-hero-text {
-    flex: 1;
-    min-width: 0;
+    margin: var(--ds-size-4) 0 0;
   }
 
-  .veil-hero-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    display: block;
-    margin-bottom: 8px;
-  }
-
-  .veil-hero-title {
-    font-size: 40px;
-    font-weight: 400;
-    color: #000;
-    margin: 0 0 12px;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  .veil-hero-subtitle {
-    font-size: 18px;
-    font-weight: 400;
-    color: rgba(0, 0, 0, 0.65);
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .veil-hero-image {
-    width: 300px;
-    flex-shrink: 0;
-  }
-
-  .veil-hero-placeholder {
-    width: 100%;
-    height: 200px;
-    background: var(--image-fallback-bg, #D9D9D9);
-    border-radius: 8px;
-    opacity: 0.4;
-  }
-
-  .veil-hero-img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    object-fit: cover;
-  }
-
-  @media (max-width: 639px) {
-    .veil-hero-image {
-      display: none;
-    }
-  }
-
-  /* Sections */
-  .veil-section {
+  /* Featured */
+  .veil-featured {
     padding-block: var(--ds-size-8);
   }
 
+  /* Section headings */
   .veil-section-heading {
-    font-size: 28px;
-    font-weight: 700;
-    font-style: italic;
-    color: #000;
-    margin: 0 0 24px;
-    line-height: 1.3;
+    margin: 0 0 var(--ds-size-6);
   }
 
-  /* Cards grid */
-  .veil-cards {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
+  /* Rich link list */
+  .veil-rich-links {
+    background-color: var(--ds-color-accent-surface-tinted);
+    padding-block: var(--ds-size-10);
   }
 
-  @media (min-width: 640px) {
-    .veil-cards--4 {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .veil-cards--2 {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .veil-cards--4 {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .veil-card {
+  .veil-rich-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 20px;
-    background: #e2f0fc;
-    border-radius: 8px;
+    gap: var(--ds-size-4);
+  }
+
+  .veil-rich-item {
+    cursor: pointer;
+    padding-block: var(--ds-size-4);
+    padding-inline: var(--ds-size-4);
+    margin-inline-start: calc(-1 * var(--ds-size-4));
+    width: calc(100% + var(--ds-size-4));
+
+    &:hover {
+      background-color: var(--ds-color-surface-hover);
+    }
+
+    & a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ds-size-3);
+      color: var(--ds-color-accent-text-default);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  .veil-rich-link-heading {
+    & h3 {
+      margin: 0;
+    }
+  }
+
+  .veil-rich-link-desc {
+    margin: var(--ds-size-2) 0 0;
+  }
+
+  .veil-rich-link-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--ds-color-surface-active);
+    color: var(--ds-color-accent-text-default);
+    flex-shrink: 0;
     text-decoration: none;
-    color: inherit;
-    min-height: 160px;
-    transition: box-shadow 0.15s;
   }
 
-  .veil-card:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  .veil-simple-links {
+    margin-block: var(--ds-size-14);
   }
 
-  .veil-card--disabled {
-    cursor: default;
-    background-color: #edf4fa;
-  }
-
-  .veil-card-content {
-    flex: 1;
-  }
-
-  .veil-card-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 8px;
-    color: #000;
-    line-height: 1.4;
-  }
-
-  .veil-card-desc {
-    font-size: 14px;
-    font-weight: 400;
-    color: rgba(0, 0, 0, 0.6);
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .veil-card-arrow {
-    font-size: 18px;
-    color: rgba(0, 0, 0, 0.4);
-    margin-top: 12px;
-    align-self: flex-end;
-  }
-
-  /* Tools section */
-  .veil-tools {
-    background: var(--ds-color-surface-tinted);
-  }
-
-  .veil-tool-card {
-    display: flex;
-    flex-direction: column;
-    padding: 24px;
-    background: white;
-    border-radius: 12px;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.15s;
-    min-height: 200px;
-  }
-
-  .veil-tool-card:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  .veil-tool-text {
-    margin-bottom: 16px;
-  }
-
-  .veil-tool-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 4px;
-    color: #000;
-  }
-
-  .veil-tool-desc {
-    font-size: 14px;
-    font-weight: 400;
-    color: rgba(0, 0, 0, 0.6);
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .veil-tool-image {
-    flex: 1;
-    background: var(--image-fallback-bg, #D9D9D9);
-    border-radius: 8px;
-    min-height: 100px;
-    opacity: 0.4;
-  }
-
-  .veil-tool-link {
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.6);
-    margin-top: 12px;
-    align-self: flex-end;
+  /* Case cards */
+  .veil-cases {
+    padding-block: var(--ds-size-10);
   }
 </style>
