@@ -58,9 +58,21 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
       document.head.appendChild(s);
     }
 
+    function loadSiteimprove() {
+      if (window.__siteimproveLoaded) return;
+      var search = decodeURIComponent(window.location.search);
+      if (search.match(/\d(?:\d|\D\d){5,}/g) || search.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)) return;
+      window.__siteimproveLoaded = true;
+      var s = document.createElement('script');
+      s.src = 'https://siteimproveanalytics.com/js/siteanalyze_6255470.js';
+      s.async = true;
+      document.head.appendChild(s);
+    }
+
     var consent = readConsent();
     if (consent === 'allow') {
       loadSkyra();
+      loadSiteimprove();
       return;
     }
     if (consent === 'deny') {
@@ -72,6 +84,7 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
       writeConsent('allow');
       notice.hidden = true;
       loadSkyra();
+      loadSiteimprove();
     });
     denyBtn.addEventListener('click', function () {
       writeConsent('deny');
