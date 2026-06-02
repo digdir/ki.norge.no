@@ -5,27 +5,51 @@
  * Uses CSS Grid. All default-slot children become direct grid children.
  *   - By default they sit in the content column (col 2).
  *   - data-layout-block="edge" makes them span both columns (full width).
- *   - data-layout-block="content" constrains max-width for readability.
  *
  * The sidebar slot is placed in column 1, row 1.
+ * If no sidebar slot is provided and publishedAt is set, a default
+ * date + share sidebar is rendered automatically.
  *
- * Outer wrapper provides full-bleed cream background.
+ * Also sets the page body to the pink surface color — no need to do
+ * this manually on each page that uses this layout.
  */
 import '../../styles/article-layout.css';
 
 interface Props {
   class?: string;
+  publishedAt?: string;
 }
 
-const { class: className } = Astro.props;
+const { class: className, publishedAt } = Astro.props;
 const classes = ['article-layout', className].filter(Boolean).join(' ');
+
+const formattedDate = publishedAt
+  ? new Date(publishedAt).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
 ---
 
 <div class={classes} data-layout-block="edge">
   <div class="article-layout__grid">
     <aside class="article-layout__sidebar">
-      <slot name="sidebar" />
+      <slot name="sidebar">
+        {formattedDate && (
+          <time class="article-layout__date" datetime={publishedAt}>
+            <span class="article-layout__date-label">Publisert</span>
+            {formattedDate}
+          </time>
+        )}
+        <button class="article-layout__share ds-button" type="button" data-size="sm" data-variant="tertiary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Del
+        </button>
+      </slot>
     </aside>
     <slot />
   </div>
 </div>
+
+<style is:global>
+  body {
+    background-color: var(--ds-color-surface-active) !important;
+  }
+</style>

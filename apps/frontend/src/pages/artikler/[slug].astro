@@ -49,17 +49,7 @@ const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 
     <h1 class="ds-heading article-title" data-size="xl">{article.tittel}</h1>
   </section>
 
-  <ArticleLayout>
-    <Fragment slot="sidebar">
-      <time class="article-sidebar-date" datetime={article.publishedAt}>
-        <span class="article-sidebar-label">Publisert</span>
-        {formattedDate}
-      </time>
-      <button class="ds-button" type="button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        Del
-      </button>
-    </Fragment>
+  <ArticleLayout publishedAt={article.publishedAt}>
 
     {article.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
@@ -85,12 +75,6 @@ const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 
   )}
 </Layout>
 
-<style is:global>
-  body {
-    background-color: var(--ds-color-surface-active) !important;
-  }
-</style>
-
 <style>
   /* Hero / Artikkelhode */
   .article-hero {
@@ -98,9 +82,9 @@ const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 
     padding-bottom: 48px;
     display: grid;
     grid-template-columns:
+      var(--ds-size-30)
       1fr
-      200px
-      var(--ds-size-8)
+      var(--ds-size-30)
       minmax(0, 680px)
       1fr;
   }
@@ -129,40 +113,6 @@ const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 
     .article-ingress {
       font-size: 28px;
     }
-  }
-
-  /* Sidebar */
-  .article-sidebar-date {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-size: 14px;
-  }
-
-  .article-sidebar-label {
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .article-sidebar-share {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border: 1px solid var(--ds-color-border-default);
-    border-radius: 100px;
-    background: transparent;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ds-color-text-default);
-    cursor: pointer;
-    transition: background-color 0.15s;
-  }
-
-  .article-sidebar-share:hover {
-    background-color: var(--ds-color-surface-hover);
   }
 
   /* More articles */
