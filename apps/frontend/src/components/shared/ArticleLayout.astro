@@ -34,8 +34,8 @@ const formattedDate = publishedAt
     <aside class="article-layout__sidebar">
       <slot name="sidebar">
         {formattedDate && (
-          <time class="article-layout__date" datetime={publishedAt}>
-            <span class="article-layout__date-label">Publisert</span>
+          <time class="article-layout__metadata ds-paragraph" data-size="sm" datetime={publishedAt}>
+            <span class="article-layout__metadata-label">Publisert</span>
             {formattedDate}
           </time>
         )}
