@@ -92,7 +92,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
 
   return (
     <header className={cl('header', isHamburger && 'header--hamburger')} ref={headerRef}>
-      <div className="header-container">
+      <div className="header-container" data-layout-block="content">
         <Link href="/" className="logo-link" aria-label="KI Norge">
           <Logo className="logo-icon" />
         </Link>
