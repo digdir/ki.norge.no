@@ -1,7 +1,7 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getArtikler, getArtiklerOversikt, getPlainText, type Artikkel } from '../../lib/umbraco';
+import { getArtikler, getArtiklerOversikt, getPlainText, getMediaUrl, type Artikkel } from '../../lib/umbraco';
 
 let articles: Artikkel[] = [];
 let oversikt = null;
@@ -33,7 +33,10 @@ const bottomFeatured = rest[8];
 const remaining = rest.slice(9);
 
 function getImageUrl(article: Artikkel) {
-  return article.artikkelBilde?.url || undefined;
+  // Bruk getMediaUrl slik at media-URLen blir absolutt mot CMS-hosten.
+  // Ra artikkelBilde.url er relativ (/media/...) og ville blitt hentet fra
+  // frontend-domenet, ikke CMS, og gitt 404.
+  return getMediaUrl(article.artikkelBilde);
 }
 
 function getTag(article: Artikkel) {
