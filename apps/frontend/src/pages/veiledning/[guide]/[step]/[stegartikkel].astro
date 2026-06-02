@@ -53,9 +53,8 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
   ogType="article"
   publishedAt={article.publishedAt}
   ogImage={seoImage}
+  bodyColor="brand1"
 >
-  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   <div class="article-page" data-layout-block="content">
     <section class={`article-hero ${isLightBlueBg ? 'article-hero--bg-lyseblaa' : ''}`}>
       {isLightBlueBg ? (
@@ -89,6 +88,8 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
 
     <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
   </div>
+  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 </Layout>
 
 <style>

@@ -6,10 +6,12 @@ import NextBar from '../../../components/guide/NextBar.astro';
 import { getVeiledningGuide, getVeiledningSteg } from '../../../lib/umbraco';
 
 const { guide: guideSlug, step: stepSlug } = Astro.params;
-const guideData = await getVeiledningGuide(guideSlug!);
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+
+const guideData = await getVeiledningGuide(guideSlug!, { preview: isPreview });
 if (!guideData) return Astro.redirect('/veiledning');
 
-const allSteps = await getVeiledningSteg(guideSlug!);
+const allSteps = await getVeiledningSteg(guideSlug!, { preview: isPreview });
 const currentStep = allSteps.find(s => s.slug === stepSlug);
 if (!currentStep) return Astro.redirect(`/veiledning/${guideSlug}`);
 
@@ -20,57 +22,91 @@ const substepPills = sameStepSubsteps.map(s => ({
   active: s.slug === stepSlug,
 }));
 
-const stepGroupTitles: Record<number, string> = {
-  1: 'Finn ut hvilke data du trenger',
-  2: 'Samle inn data',
-  3: 'Forberede data til bruk',
-  4: 'Gjøre data tilgjengelig for KI-systemet',
-  5: 'Slette data',
-};
+const stepGroupTitles: Record<number, string> = {};
+(guideData.stegGruppeTittler || '').split('\n').forEach((line: string, i: number) => {
+  const trimmed = line.trim();
+  if (trimmed) stepGroupTitles[i + 1] = trimmed;
+});
+const stepGroupTitle = stepGroupTitles[currentStep.steg] || `Steg ${currentStep.steg}`;
 
 const currentIndex = allSteps.findIndex(s => s.slug === stepSlug);
 const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1] : null;
 ---
-<Layout title={`${currentStep.tittel} | ${guideData.tittel}`}>
-  <div class="step-page grid" data-layout-block="content">
-    <div class="col-center-6">
-      <SubStepPills
-        substeps={substepPills}
-        guideSlug={guideSlug!}
-        stepNumber={currentStep.steg}
-        stepTitle={stepGroupTitles[currentStep.steg] || `Steg ${currentStep.steg}`}
-      />
+<Layout title={`${currentStep.tittel} | ${guideData.tittel}`} bodyColor="brand1">
+  <div class="step-page" data-layout-block="content">
+    <div class="step-content">
 
-      <h1 class="ds-heading step-title" data-size="lg">{currentStep.tittel}</h1>
+      <a class="step-back" href={`/veiledning/${guideSlug}`}>
+        <span aria-hidden="true">&larr;</span>{guideData.tittel}
+      </a>
+
+      <h1 class="step-group-title">{currentStep.steg}. {stepGroupTitle}</h1>
+
+      <SubStepPills substeps={substepPills} guideSlug={guideSlug!} />
+
+      <h2 class="step-substep-title">{currentStep.tittel}</h2>
+
       {currentStep.ingress && <p class="step-ingress">{currentStep.ingress}</p>}
-    </div>
 
-    <VeiledningBlocksRenderer blocks={currentStep.innholdBlokker} />
+      <VeiledningBlocksRenderer blocks={currentStep.innholdBlokker} />
 
-    {nextStep && (
-      <div class="col-center-6">
+      {nextStep && (
         <NextBar
           title={nextStep.tittel}
           href={`/veiledning/${guideSlug}/${nextStep.slug}`}
         />
-      </div>
-    )}
+      )}
+
+    </div>
   </div>
 </Layout>
 
 <style>
   .step-page {
-    padding-block: var(--ds-size-8);
-    padding-inline: var(--ds-size-4);
-    row-gap: var(--ds-size-6);
+    padding-block: var(--ds-size-14);
   }
-  .step-title {
-    margin: 0 0 var(--ds-size-4);
+
+  .step-content {
+    max-width: 680px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-6);
   }
+
+  .step-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    color: var(--ds-color-text-default);
+    text-decoration: none;
+    font-size: var(--ds-body-sm-font-size);
+    font-weight: 500;
+  }
+
+  .step-back:hover {
+    text-decoration: underline;
+  }
+
+  .step-group-title {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .step-substep-title {
+    font-size: var(--ds-heading-sm-font-size, 1.375rem);
+    font-weight: 600;
+    margin: 0;
+    padding-bottom: var(--ds-size-4);
+    border-bottom: 1px solid var(--ds-color-border-default);
+  }
+
   .step-ingress {
     margin: 0;
     font-size: var(--ds-body-lg-font-size);
     line-height: var(--ds-body-lg-line-height);
-    color: var(--ds-color-neutral-text-subtle);
+    color: var(--ds-color-text-subtle);
   }
 </style>

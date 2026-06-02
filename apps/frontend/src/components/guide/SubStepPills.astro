@@ -7,68 +7,41 @@ interface SubStep {
 interface Props {
   substeps: SubStep[];
   guideSlug: string;
-  stepNumber: number;
-  stepTitle: string;
 }
-const { substeps, guideSlug, stepNumber, stepTitle } = Astro.props;
+const { substeps, guideSlug } = Astro.props;
 ---
-<div class="substep-nav">
-  <h2 class="substep-heading">{stepNumber}. {stepTitle}</h2>
-  <nav class="substep-pills">
-    {substeps.map((sub, i) => (
-      <>
-        {sub.active ? (
-          <a class="substep-pill substep-pill--active ds-focus--inset" href={`/veiledning/${guideSlug}/${substeps[i].slug}`} aria-current="page">{sub.title}</a>
-        ) : (
-          <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="substep-pill ds-focus--inset">{sub.title}</a>
-        )}
-        {i < substeps.length - 1 && (
-          <span class="substep-arrow" aria-hidden="true">&rarr;</span>
-        )}
-      </>
+<nav aria-label="Del-steg i dette steget">
+  <ol class="substep-pills">
+    {substeps.map((sub) => (
+      <li class="substep-pill-item">
+        <a
+          href={`/veiledning/${guideSlug}/${sub.slug}`}
+          class="substep-pill ds-button ds-focus--inset"
+          data-variant={sub.active ? 'primary' : 'secondary'}
+          aria-current={sub.active ? 'page' : undefined}
+        >{sub.title}</a>
+      </li>
     ))}
-  </nav>
-</div>
+  </ol>
+</nav>
+
 <style>
-  .substep-nav {
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .substep-heading {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 16px;
-  }
   .substep-pills {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    overflow-x: auto;
+    gap: var(--ds-size-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
+
+  .substep-pill-item {
+    display: contents;
+  }
+
   .substep-pill {
-    display: inline-flex;
-    padding: 6px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    color: #000;
+    border-radius: var(--ds-border-radius-full) !important;
     text-decoration: none;
-    background: white;
-    white-space: nowrap;
-    transition: border-color 0.15s;
-  }
-  .substep-pill:hover {
-    border-color: #7c3aed;
-  }
-  .substep-pill--active {
-    background: #7c3aed;
-    color: white;
-    border-color: #7c3aed;
-  }
-  .substep-arrow {
-    color: #94a3b8;
-    font-size: 0.875rem;
   }
 </style>
