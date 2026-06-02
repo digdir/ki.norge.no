@@ -27,29 +27,26 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
 ---
 <Layout title={`${currentStep.tittel} | ${guideData.tittel}`} bodyColor="brand1">
   <div class="step-page" data-layout-block="content">
+    <ds-breadcrumbs
+      class="ds-breadcrumbs"
+      aria-label="Brødsmulesti"
+    >
+      <a class="step-back ds-link" href={`/veiledning/${guideSlug}`} aria-label={`Tilbake til ${guideData.tittel}`}>
+        {guideData.tittel}
+      </a>
+    </ds-breadcrumbs>
+    <h1 class="step-substep-title ds-heading" data-size="lg">{currentStep.tittel}</h1>
+    <SubStepPills substeps={substepPills} guideSlug={guideSlug!} />
+
     <div class="step-content">
-      <ds-breadcrumbs
-        class="ds-breadcrumbs"
-        aria-label="Brødsmulesti"
-      >
-        <a class="step-back ds-link" href={`/veiledning/${guideSlug}`} aria-label={`Tilbake til ${guideData.tittel}`}>
-          {guideData.tittel}
-        </a>
-      </ds-breadcrumbs>
-      <h1 class="step-substep-title ds-heading">{currentStep.tittel}</h1>
-      <SubStepPills substeps={substepPills} guideSlug={guideSlug!} />
-
       {currentStep.ingress && <p class="step-ingress">{currentStep.ingress}</p>}
-
       <VeiledningBlocksRenderer blocks={currentStep.innholdBlokker} />
-
       {nextStep && (
         <NextBar
           title={nextStep.tittel}
           href={`/veiledning/${guideSlug}/${nextStep.slug}`}
         />
       )}
-
     </div>
   </div>
 </Layout>
@@ -58,10 +55,7 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
   .ds-breadcrumbs {
     --dsc-breadcrumbs-icon-url: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2215%22%20viewBox%3D%220%200%2014%2015%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M13.707%208.071a1%201%200%200%200%200-1.414L7.343.293A1%201%200%200%200%205.93%201.707l5.657%205.657-5.657%205.657a1%201%200%201%200%201.414%201.414zM0%207.364v1h13v-2H0z%22%20fill%3D%22%2386567a%22%2F%3E%3C%2Fsvg%3E);
     --dsc-breadcrumbs-icon-size: var(--ds-size-3);
-  }
-
-  .step-page {
-    padding-block: var(--ds-size-14);
+    margin-block-end: var(--ds-size-6);
   }
 
   .step-content {

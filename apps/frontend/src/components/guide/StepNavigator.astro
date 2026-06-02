@@ -18,7 +18,7 @@ const { steps, guideSlug } = Astro.props;
   <ol class="step-navigator">
     {steps.map(step => (
       <li class="step-group">
-        <h3 class="step-heading">{step.title}</h3>
+        <h3 class="step-heading ds-heading">{step.title}</h3>
         <ol class="step-pills" aria-label={`Understeg for ${step.title}`}>
           {step.substeps.map((sub) => (
             <li class="step-pill-item">
@@ -47,22 +47,22 @@ const { steps, guideSlug } = Astro.props;
 
   .step-heading {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--ds-size-2);
-    font-size: var(--ds-heading-md-font-size);
-    font-weight: 700;
     margin: 0 0 var(--ds-size-4);
     color: var(--ds-color-text-default);
+    font-family: var(--ds-font-family);
   }
 
   .step-heading::before {
     color: var(--ds-color-base-default);
     font-family: var(--ds-font-family);
     content: counter(step-counter) ".";
-    font-size: var(--ds-heading-lg-font-size);
     font-weight: 900;
     line-height: 1;
     flex-shrink: 0;
+    margin-block: auto;
+    font-size: var(--ds-heading-lg-font-size);
   }
 
   .step-pills {
