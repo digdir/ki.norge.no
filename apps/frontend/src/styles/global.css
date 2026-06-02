@@ -25,7 +25,7 @@
 }
 
 html {
-  font-family: var(--ds-font-family);
+  font-family: "Instrument Sans";
   scrollbar-gutter: stable;
 }
 
