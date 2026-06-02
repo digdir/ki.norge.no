@@ -79,6 +79,16 @@ npm run cms:dev               # http://localhost:5000/umbraco
 npm run frontend:dev:prod
 ```
 
+### Deploy frontend
+
+```bash
+# Cloudflare tt02
+pnpm run frontend:deploy:tt02
+
+# Cloudflare prod
+pnpm run frontend:deploy:prod
+```
+
 On first CMS run, the SQLite database is created, `ContentTypeComposer` creates
 all content types, and `ContentSeeder` populates demo content. Admin user is
 created via unattended install env vars.
