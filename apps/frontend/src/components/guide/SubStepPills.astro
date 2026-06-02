@@ -43,6 +43,15 @@ const { substeps, guideSlug } = Astro.props;
   .substep-pill {
     border-radius: var(--ds-border-radius-full) !important;
     text-decoration: none;
+
+    &[aria-current="page"] {
+      background-color: var(--ds-color-base-active);
+      color: var(--ds-color-base-contrast-default);
+
+      &:hover {
+        background-color: var(--ds-color-base-hover);
+      }
+    }
   }
 
   .substep-pill-item:not(:last-child)::after {

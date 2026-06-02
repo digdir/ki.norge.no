@@ -28,19 +28,16 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
 <Layout title={`${currentStep.tittel} | ${guideData.tittel}`} bodyColor="brand1">
   <div class="step-page" data-layout-block="content">
     <div class="step-content">
-
-<ds-breadcrumbs
-  class="ds-breadcrumbs"
-  aria-label="Brødsmulesti"
->
-  <a class="step-back ds-link" href={`/veiledning/${guideSlug}`} aria-label={`Tilbake til ${guideData.tittel}`}>
-    {guideData.tittel}
-  </a>
-</ds-breadcrumbs>
-
+      <ds-breadcrumbs
+        class="ds-breadcrumbs"
+        aria-label="Brødsmulesti"
+      >
+        <a class="step-back ds-link" href={`/veiledning/${guideSlug}`} aria-label={`Tilbake til ${guideData.tittel}`}>
+          {guideData.tittel}
+        </a>
+      </ds-breadcrumbs>
+      <h1 class="step-substep-title ds-heading">{currentStep.tittel}</h1>
       <SubStepPills substeps={substepPills} guideSlug={guideSlug!} />
-
-      <h1 class="step-substep-title">{currentStep.tittel}</h1>
 
       {currentStep.ingress && <p class="step-ingress">{currentStep.ingress}</p>}
 
@@ -85,11 +82,7 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
   }
 
   .step-substep-title {
-    font-size: var(--ds-heading-sm-font-size, 1.375rem);
-    font-weight: 600;
-    margin: 0;
-    padding-bottom: var(--ds-size-4);
-    border-bottom: 1px solid var(--ds-color-border-default);
+    margin-block-end: var(--ds-size-4);
   }
 
   .step-ingress {
