@@ -2,8 +2,8 @@
  * ArticleLayout — CSS Grid with gutter columns for centering + bleed.
  *
  * 5-column grid:
- *   | gutter | sidebar | gap | content | right |
- *   | dynamic | 1fr | ds-30 | min(0,680px) | 1fr |
+ *   | gutter  | sidebar | gap   | content       | gutter  |
+ *   | dynamic | 1fr     | ds-30 | min(0, 680px) | dynamic |
  *
  * Col 1 (gutter) uses a dynamic calc() so the sidebar always aligns with
  * the left content edge of the page header at every viewport width.
@@ -20,12 +20,13 @@
   --article-layout-sidebar-width: 200px;
   --article-layout-gap: var(--ds-size-30);
   --article-layout-content-max-width: 680px;
+  --article-layout-gutter: calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2));
   --article-layout-columns:
-    calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2))
+    var(--article-layout-gutter)
     1fr
     var(--article-layout-gap)
     minmax(0, var(--article-layout-content-max-width))
-    1fr;
+    var(--article-layout-gutter);
 }
 
 .article-layout {
@@ -68,8 +69,9 @@
 
 /* ── Article hero ── */
 .article-hero {
-  padding-top: var(--ds-size-30);
-  padding-bottom: 48px;
+  padding-block-start: var(--ds-size-30);
+  padding-block-end: var(--ds-size-8);
+  padding-inline: 0;
   display: grid;
   grid-template-columns: var(--article-layout-columns);
 }
@@ -84,6 +86,7 @@
 @media (max-width: 1024px) {
   .article-hero {
     grid-template-columns: 1fr;
+    padding-inline: var(--ds-size-4);
   }
 
   .article-title {
@@ -103,6 +106,7 @@
     grid-column: 1;
     flex-wrap: wrap;
     gap: var(--ds-size-3);
+    margin-block-end: var(--ds-size-6);
   }
 
   .article-layout__grid > :not(.article-layout__sidebar) {
