@@ -9,8 +9,8 @@
  * styles/article-blocks.css (also imported here, so any page using this
  * component picks up the styles for free).
  *
- * Each block is a top-level grid child positioned via col-* utility classes.
- * Caller wraps this in a parent .grid container.
+ * Caller is responsible for constraining width (e.g. via data-layout-article
+ * or a wrapper with max-width).
  */
 import type { UmbracoBlock } from '../../lib/umbraco';
 import { getMediaUrl } from '../../lib/umbraco';
@@ -90,7 +90,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
 {renderItems.map((item) => {
   if (item.kind === 'accordionGroup') {
     return (
-      <section class="article-accordion-group col-center-6">
+      <section class="article-accordion-group">
         {item.tittel && <h2 class="article-accordion-group-title">{item.tittel}</h2>}
         <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
@@ -115,7 +115,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     const parts = [c.navn, c.stilling, c.virksomhet ? `i ${c.virksomhet}` : ''].filter(Boolean).join(' ');
     if (!parts && !formatted) return null;
     return (
-      <div class="article-byline col-center-6">
+      <div class="article-byline">
         {parts && <span class="article-byline-author">{parts}</span>}
         {parts && formatted && <span class="article-byline-sep">·</span>}
         {formatted && <time class="article-byline-date" datetime={date}>{formatted}</time>}
@@ -128,7 +128,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     const date = c.dato || defaultDate;
     const formatted = formatDate(date);
     return (
-      <aside class="article-innhold-fra col-center-6">
+      <aside class="article-innhold-fra">
         {c.virksomhet && (
           <>
             <span class="article-innhold-fra-label">Innhold fra</span>
@@ -144,7 +144,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelKontaktkort') {
     const c = block.content;
     return (
-      <aside class="article-kontaktkort col-center-6">
+      <aside class="article-kontaktkort">
         {c.tittel && <h3 class="article-kontaktkort-title">{c.tittel}</h3>}
         <p class="article-kontaktkort-name">{c.navn}</p>
         {c.stilling && <p class="article-kontaktkort-row">{c.stilling}</p>}
@@ -157,7 +157,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelProsessteg') {
     const c = block.content;
     return (
-      <section class="article-prosessteg col-center-6">
+      <section class="article-prosessteg">
         {c.tittel && <h2 class="article-prosessteg-title">{c.tittel}</h2>}
         <ol class="article-prosessteg-list">
           {c.steg.map((s, i) => (
@@ -177,7 +177,6 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     const c = block.content;
     const classes = [
       'article-fremheving',
-      'col-center-6',
       c.visBakgrunn ? 'article-fremheving--bg' : '',
       c.visAnforselstegn ? 'article-fremheving--quote' : '',
       c.bilde?.url ? 'article-fremheving--with-image' : '',
@@ -211,7 +210,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   }
   if (block.contentType === 'artikkelInfoBoks') {
     return (
-      <div class="article-info-box col-center-6">
+      <div class="article-info-box">
         {block.content.tittel && <h3 class="info-box-title">{block.content.tittel}</h3>}
         <div class="info-box-body" set:html={block.content.innhold} />
       </div>
@@ -219,7 +218,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   }
   if (block.contentType === 'artikkelHero') {
     return (
-      <div class="article-info-box col-center-6">
+      <div class="article-info-box">
         {block.content.tittel && <h3 class="info-box-title">{block.content.tittel}</h3>}
         {block.content.tekst && <div class="info-box-body" set:html={block.content.tekst} />}
       </div>
@@ -230,7 +229,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   // fallback if a non-grouped trekkspill ever shows up).
   if (block.contentType === 'artikkelSitat') {
     return (
-      <blockquote class="article-quote col-center-6">
+      <blockquote class="article-quote">
         <p class="article-quote-text">{block.content.sitat}</p>
         {block.content.kilde && (
           <footer class="article-quote-source">
@@ -243,7 +242,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelCallout') {
     const variant = block.content.variant || 'info';
     return (
-      <div class={`article-callout article-callout--${variant} col-center-6`} role={variant === 'advarsel' ? 'alert' : 'note'}>
+      <div class={`article-callout article-callout--${variant}`} role={variant === 'advarsel' ? 'alert' : 'note'}>
         {block.content.tittel && <p class="article-callout-title">{block.content.tittel}</p>}
         <div class="article-callout-body" set:html={block.content.innhold} />
       </div>
@@ -251,7 +250,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   }
   if (block.contentType === 'artikkelBildeSeksjon') {
     return (
-      <figure class="article-image-section col-center-6">
+      <figure class="article-image-section">
         {block.content.bilde?.url ? (
           <img src={getMediaUrl(block.content.bilde)} alt={block.content.bildeAlt || ''} class="stub-img" loading="lazy" decoding="async" />
         ) : (
@@ -262,7 +261,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     );
   }
   return (
-    <div class="article-text-block col-center-6" set:html={block.content.innhold} />
+    <div class="article-text-block" set:html={block.content.innhold} />
   );
   })();
 })}

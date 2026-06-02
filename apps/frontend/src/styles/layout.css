@@ -62,3 +62,48 @@
   padding-inline: var(--layout-content-padding);
   box-sizing: border-box;
 }
+
+/* ── Article block ───────────────────────────────────
+ * Prose container: constrains width for readability and
+ * sets spacing between headings and paragraphs.
+ * Use inside a content block to wrap article body text.
+ */
+[data-layout-article] {
+  max-width: 60ch;
+  font-size: 21px;
+  line-height: 1.7;
+  color: var(--ds-color-text-default);
+  letter-spacing: 0.005em;
+}
+
+[data-layout-article] h2 {
+  font-size: 36px;
+  font-weight: 500;
+  margin: 48px 0 24px;
+}
+
+[data-layout-article] h3 {
+  font-size: 24px;
+  font-weight: 500;
+  margin: 32px 0 16px;
+}
+
+[data-layout-article] h4 {
+  font-size: 21px;
+  font-weight: 600;
+  margin: 24px 0 12px;
+}
+
+[data-layout-article] p {
+  margin: 0 0 16px;
+}
+
+[data-layout-article] ul,
+[data-layout-article] ol {
+  margin: 8px 0 16px;
+  padding-left: 24px;
+}
+
+[data-layout-article] > *:first-child {
+  margin-top: 0;
+}

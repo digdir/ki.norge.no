@@ -125,7 +125,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' https://survey.skyra.no",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://altinncdn.no https://survey.skyra.no",
-        "font-src 'self' https://fonts.gstatic.com https://altinncdn.no data:",
+        "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://altinncdn.no data:",
         "img-src 'self' data: https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no https://survey.skyra.no",
         "connect-src 'self' https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no",
         // Allow CMS to embed the frontend in the preview iframe. Both the prod CMS

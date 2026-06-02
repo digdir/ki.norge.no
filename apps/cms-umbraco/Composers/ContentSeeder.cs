@@ -68,6 +68,7 @@ public class ContentSeeder : IAsyncComponent
         BackfillBrukDataRettStegtitler();
         DeleteLegacySideNodes();
         EnsureSandkasseExistsForDev();
+        SeedDemoContentForDev();
     }
 
     private const string SideBlocklistMigratedKey = "ki:migrated-side-blocklist";
@@ -704,5 +705,343 @@ public class ContentSeeder : IAsyncComponent
 
     private (string, Dictionary<string, object>) Trekkspill(string tittel, string innhold) =>
         ("artikkelTrekkspill", new Dictionary<string, object> { ["tittel"] = tittel, ["innhold"] = innhold });
+
+    // ── Demo block helpers (dev seeding only) ──────────────────────────
+    // Boolean (TrueFalse) blocks store "1"/"0"; richtext stores HTML; dates ISO.
+
+    private (string, Dictionary<string, object>) Fremheving(string tittel, string tekstHtml, bool bakgrunn, bool sitat, string kilde = "") =>
+        ("artikkelFremheving", new Dictionary<string, object>
+        {
+            ["tittel"] = tittel,
+            ["tekst"] = tekstHtml,
+            ["visBakgrunn"] = bakgrunn ? "1" : "0",
+            ["visAnforselstegn"] = sitat ? "1" : "0",
+            ["kilde"] = kilde,
+        });
+
+    private (string, Dictionary<string, object>) Byline(string navn, string stilling, string virksomhet, string dato = "") =>
+        ("artikkelByline", new Dictionary<string, object>
+        {
+            ["navn"] = navn, ["stilling"] = stilling, ["virksomhet"] = virksomhet, ["dato"] = dato,
+        });
+
+    private (string, Dictionary<string, object>) InnholdFra(string virksomhet, string dato = "") =>
+        ("artikkelInnholdFra", new Dictionary<string, object> { ["virksomhet"] = virksomhet, ["dato"] = dato });
+
+    private (string, Dictionary<string, object>) Kontaktkort(string tittel, string navn, string stilling, string virksomhet, string epost, string telefon = "") =>
+        ("artikkelKontaktkort", new Dictionary<string, object>
+        {
+            ["tittel"] = tittel, ["navn"] = navn, ["stilling"] = stilling,
+            ["virksomhet"] = virksomhet, ["epost"] = epost, ["telefon"] = telefon,
+        });
+
+    private (string, Dictionary<string, object>) VTekst(string html) =>
+        ("veiledningTekst", new Dictionary<string, object> { ["innhold"] = html });
+
+    private (string, Dictionary<string, object>) VInfo(string tittel, string html, string lesMerTittel = "", string lesMerUrl = "") =>
+        ("veiledningInfo", new Dictionary<string, object>
+        {
+            ["tittel"] = tittel, ["innhold"] = html, ["lesMerTittel"] = lesMerTittel, ["lesMerUrl"] = lesMerUrl,
+        });
+
+    private (string, Dictionary<string, object>) VEksempel(string tittel, string html) =>
+        ("veiledningEksempel", new Dictionary<string, object> { ["tittel"] = tittel, ["innhold"] = html });
+
+    private (string, Dictionary<string, object>) VObs(string tittel, string html) =>
+        ("veiledningObs", new Dictionary<string, object> { ["tittel"] = tittel, ["tekst"] = html });
+
+    private (string, Dictionary<string, object>) VTrekkspill(string tittel, string html) =>
+        ("veiledningTrekkspill", new Dictionary<string, object> { ["tittel"] = tittel, ["innhold"] = html });
+
+    // ── Demo content seeding (dev only, one-shot, idempotent) ──────────
+
+    private const string DemoContentSeededKey = "ki:seeded-demo-content-v1";
+
+    /// <summary>
+    /// Local-dev convenience: seeds a broad set of demo content covering content types and
+    /// every current block, including editor edge cases (very long titles, empty optional
+    /// fields, special chars/emoji, deep nesting, single- and many-item lists). Lets frontend
+    /// devs work without a populated CMS. Skipped on prod (LAUNCH_MODE=production). One-shot
+    /// via a key-value flag so it never fights editor deletions or re-creates on restart.
+    /// Covers text/richtext modules across articles, examples, guidance and the calendar.
+    /// Image blocks and the eksempler overview picker sections are seeded in a follow-up
+    /// change (they require media upload and cross-references between nodes).
+    /// </summary>
+    private void SeedDemoContentForDev()
+    {
+        if (Environment.GetEnvironmentVariable("LAUNCH_MODE")?.ToLowerInvariant() == "production") return;
+        if (!string.IsNullOrEmpty(_keyValueService.GetValue(DemoContentSeededKey))) return;
+
+        try
+        {
+            var artiklerId = EnsureRootContainer("artikler", "Aktuelt");
+            var eksemplerId = EnsureRootContainer("eksempler", "Eksempler");
+            var kalenderId = EnsureRootContainer("kalender", "Kalender");
+            var veiledningerId = EnsureRootContainer("veiledninger", "Veiledning");
+
+            if (artiklerId > 0) SeedDemoArtikler(artiklerId);
+            if (eksemplerId > 0) SeedDemoEksempler(eksemplerId);
+            if (kalenderId > 0) SeedDemoKalender(kalenderId);
+            if (veiledningerId > 0) SeedDemoVeiledning(veiledningerId);
+
+            _keyValueService.SetValue(DemoContentSeededKey, DateTime.UtcNow.ToString("O"));
+            Console.WriteLine("ContentSeeder: Seeded demo content (text modules, dev only)");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ContentSeeder SeedDemoContentForDev: {ex.Message}");
+        }
+    }
+
+    /// <summary>Find-or-create a root-level container node by content type alias. Returns its id, or -1 if the type is missing.</summary>
+    private int EnsureRootContainer(string alias, string name)
+    {
+        var existing = _contentService.GetRootContent().FirstOrDefault(c => c.ContentType.Alias == alias);
+        if (existing != null) return existing.Id;
+
+        var ct = _contentTypeService.Get(alias);
+        if (ct == null) return -1;
+
+        var node = _contentService.Create(name, -1, alias);
+        var ingressTekst = $"(Plassholder) Oversiktsside for {name.ToLowerInvariant()}. Bytt ut med endelig tekst.";
+        // Container types differ in field names: eksempler/artikler use heroTittel,
+        // kalender uses tittel/ingress (mandatory). Set both variants; SetIfEmpty skips
+        // properties the type does not have.
+        SetIfEmpty(node, "tittel", name);
+        SetIfEmpty(node, "heroTittel", name);
+        SetIfEmpty(node, "ingress", ingressTekst);
+        SetIfEmpty(node, "heroIngress", ingressTekst);
+        _contentService.Save(node);
+        var r = _contentService.Publish(node, new[] { "*" });
+        if (!r.Success)
+            Console.WriteLine($"ContentSeeder: WARNING — could not publish demo container '{alias}': {r.Result}");
+        return node.Id;
+    }
+
+    /// <summary>Create an artikkel-like leaf (artikkel/eksempel) with the shared head + block-list body, then publish.</summary>
+    private void CreateArticleLike(string alias, int parentId, string name, string tittel, string slug, string ingress, string blockListJson)
+    {
+        var node = _contentService.Create(name, parentId, alias);
+        node.SetValue("tittel", tittel);
+        node.SetValue("slug", slug);
+        if (!string.IsNullOrEmpty(ingress)) node.SetValue("ingress", ingress);
+        node.SetValue("innhold", blockListJson);
+        node.SetValue("seoTittel", tittel.Length > 60 ? tittel.Substring(0, 60) : tittel);
+        node.SetValue("seoBeskrivelse", string.IsNullOrEmpty(ingress) ? tittel : ingress);
+        _contentService.Save(node);
+        var result = _contentService.Publish(node, new[] { "*" });
+        if (!result.Success)
+            Console.WriteLine($"ContentSeeder: WARNING — could not publish demo {alias} '{name}': {result.Result}");
+    }
+
+    private void SeedDemoArtikler(int parentId)
+    {
+        // 1. Realistic, normal article exercising the common blocks.
+        CreateArticleLike("artikkel", parentId,
+            "Slik kom NAV i gang med KI", "Slik kom NAV i gang med kunstig intelligens", "slik-kom-nav-i-gang-med-ki",
+            "NAV har tatt i bruk KI for å sortere henvendelser raskere. Her er erfaringene deres.",
+            BuildArticleBlockList(
+                TextBlock("<h2>Bakgrunn</h2><p>NAV mottar millioner av henvendelser i året. Med <strong>maskinlæring</strong> kan de rutes raskere til riktig saksbehandler.</p><ul><li>Mindre manuell sortering</li><li>Raskere svar</li><li>Bedre datagrunnlag</li></ul>"),
+                Fremheving("Kort fortalt", "<p>KI-modellen sorterer henvendelser med over 90 prosent treffsikkerhet.</p>", true, false),
+                Prosessteg("Slik gikk de frem",
+                    ("Steg", "<p>Kartla de vanligste henvendelsestypene.</p>"),
+                    ("Steg", "<p>Trente en modell på historiske, anonymiserte data.</p>"),
+                    ("Steg", "<p>Testet i en kontrollert pilot før full utrulling.</p>")),
+                Fremheving("", "<p>Vi var redde for at KI skulle ta over jobben. I praksis ga den oss mer tid til de vanskelige sakene.</p>", false, true, "Avdelingsleder, NAV"),
+                Byline("Kari Nordmann", "Seniorrådgiver", "Digitaliseringsdirektoratet", "2026-05-12T00:00:00")));
+
+        // 2. Edge: very long title, emoji + special chars, NO ingress, heavy richtext, many trekkspill.
+        CreateArticleLike("artikkel", parentId,
+            "Lang tittel-edge-case", "Dette er en bevisst veldig lang artikkeltittel som tester hvordan frontend håndterer overflyt, linjebryting og «typografiske» tegn i overskrifter — pluss emoji 🤖 og &-tegn",
+            "lang-tittel-edge-case", "Ingress med spesialtegn: æøå, «anførsel», – tankestrek og emoji ✨. Tester også en ganske lang ingress som strekker seg over flere linjer for å se hvordan kortvisning og toppen av artikkelen takler det.",
+            BuildArticleBlockList(
+                TextBlock("<h2>Overskrift med æøå & <spesialtegn></h2><h3>Underoverskrift</h3><p>Tekst med <strong>fet</strong>, <em>kursiv</em>, <a href=\"https://www.digdir.no\">lenke</a> og emoji 🚀. Sjekk «anførselstegn» og – tankestrek.</p><ol><li>Punkt én</li><li>Punkt to</li></ol><blockquote>Et innfelt sitat i brødteksten.</blockquote>"),
+                Trekkspill("Første spørsmål?", "<p>Svar med <strong>formatering</strong>.</p>"),
+                Trekkspill("Andre spørsmål med en ganske lang tittel som også kan brytes over flere linjer?", "<p>Et lengre svar her.</p>"),
+                Trekkspill("Tredje?", "<p>Kort.</p>"),
+                Kontaktkort("Spørsmål?", "Ola Nordmann", "Fagdirektør", "Digitaliseringsdirektoratet", "ola@digdir.no", "+47 90000000")));
+
+        // 3. Edge: minimal article — only one text block, short slug.
+        CreateArticleLike("artikkel", parentId,
+            "Minimal", "Minimal artikkel", "minimal",
+            "En artikkel med så lite innhold som mulig.",
+            BuildArticleBlockList(
+                TextBlock("<p>Bare ett avsnitt.</p>")));
+
+        // 4. Edge: "innhold fra" ekstern virksomhet + faktaboks + prosessteg med ett steg.
+        CreateArticleLike("artikkel", parentId,
+            "Bidrag fra ekstern virksomhet", "Bidrag fra en ekstern virksomhet", "bidrag-ekstern",
+            "Denne artikkelen er levert av en samarbeidspartner.",
+            BuildArticleBlockList(
+                TextBlock("<p>Innholdet under er skrevet av en ekstern virksomhet.</p>"),
+                Prosessteg("Én-stegs prosess", ("Fase", "<p>Eneste steg, for å teste lister med ett element.</p>")),
+                InnholdFra("Eksempelbedriften AS", "2026-04-01T00:00:00")));
+
+        // 5. Stress: a stack of many block types in one article.
+        CreateArticleLike("artikkel", parentId,
+            "Alle moduler stablet", "Alle artikkelmoduler stablet i én artikkel", "alle-moduler",
+            "Tester rendering når alle blokktyper opptrer etter hverandre.",
+            BuildArticleBlockList(
+                TextBlock("<h2>Tekst</h2><p>Et avsnitt.</p>"),
+                Fremheving("Faktaboks", "<p>Med bakgrunn.</p>", true, false),
+                Fremheving("Sitat", "<p>Uten bakgrunn, med anførselstegn.</p>", false, true, "En kilde"),
+                Fremheving("Ren fremheving", "<p>Uten bakgrunn og uten anførselstegn.</p>", false, false),
+                Prosessteg("Prosess",
+                    ("Steg", "<p>Ett.</p>"), ("Steg", "<p>To.</p>"), ("Steg", "<p>Tre.</p>"),
+                    ("Steg", "<p>Fire.</p>"), ("Steg", "<p>Fem.</p>")),
+                Trekkspill("Et trekkspill", "<p>Innhold.</p>"),
+                Byline("Av redaksjonen", "", "Digitaliseringsdirektoratet", ""),
+                Kontaktkort("", "Per Hansen", "", "Digitaliseringsdirektoratet", "per@digdir.no", "")));
+    }
+
+    private void SeedDemoEksempler(int parentId)
+    {
+        // Eksempel uses the same block catalogue as artikkel. Cover the spread + an edge case.
+        CreateArticleLike("eksempel", parentId,
+            "Chatbot i kommunen", "KI-chatbot svarer innbyggere i kommunen", "chatbot-i-kommunen",
+            "En mellomstor kommune tok i bruk en chatbot for å svare på vanlige spørsmål.",
+            BuildArticleBlockList(
+                TextBlock("<h2>Utfordringen</h2><p>Servicetorget fikk de samme spørsmålene om og om igjen.</p>"),
+                Fremheving("Resultat", "<p>40 prosent av henvendelsene løses nå automatisk.</p>", true, false),
+                Prosessteg("Gjennomføring",
+                    ("Steg", "<p>Samlet de vanligste spørsmålene.</p>"),
+                    ("Steg", "<p>Bygde svarbasen.</p>"),
+                    ("Steg", "<p>Lanserte og forbedret løpende.</p>")),
+                Kontaktkort("Kontakt", "Linda Berg", "Digitaliseringssjef", "Eksempelkommune", "linda@eksempel.kommune.no", "")));
+
+        CreateArticleLike("eksempel", parentId,
+            "Dokumentanalyse", "Automatisk analyse av saksdokumenter", "dokumentanalyse",
+            "Et direktorat bruker KI til å hente nøkkelinformasjon ut av lange dokumenter.",
+            BuildArticleBlockList(
+                TextBlock("<p>Saksbehandlere brukte mye tid på å lese gjennom lange PDF-er.</p>"),
+                Fremheving("", "<p>KI sparer oss for timer hver uke.</p>", false, true, "Saksbehandler"),
+                Trekkspill("Hvordan er personvernet ivaretatt?", "<p>All data behandles innenfor EU og slettes etter bruk.</p>")));
+
+        // Edge: emoji + special chars in eksempel, no ingress, single block.
+        CreateArticleLike("eksempel", parentId,
+            "Eksempel med rare tegn", "Eksempel med æøå, & og emoji 📄", "eksempel-rare-tegn", "Kort ingress med rare tegn: <, >, &amp;, «...» og 📄.",
+            BuildArticleBlockList(
+                TextBlock("<p>Tester spesialtegn i et eksempel: «sitat», – tankestrek, &amp;-tegn.</p>")));
+
+        CreateArticleLike("eksempel", parentId,
+            "Prediksjon av etterspørsel", "Prediksjon av etterspørsel i helsetjenesten", "prediksjon-etterspoersel",
+            "Et helseforetak forutsier pasientstrømmer for bedre bemanning.",
+            BuildArticleBlockList(
+                TextBlock("<h2>Bakgrunn</h2><p>Bemanningen var vanskelig å planlegge.</p>"),
+                Prosessteg("Slik jobbet de", ("Steg", "<p>Analyserte historiske data.</p>"), ("Steg", "<p>Bygde prognosemodell.</p>")),
+                Byline("Anne Lie", "Prosjektleder", "Eksempel helseforetak", "")));
+
+        CreateArticleLike("eksempel", parentId,
+            "Minimalt eksempel", "Minimalt eksempel", "minimalt-eksempel",
+            "Kortest mulig eksempel.",
+            BuildArticleBlockList(TextBlock("<p>Ett avsnitt.</p>")));
+    }
+
+    private void SeedDemoVeiledning(int parentId)
+    {
+        var guide = _contentService.Create("Kom i gang med KI", parentId, "veiledningGuide");
+        guide.SetValue("tittel", "Kom i gang med kunstig intelligens");
+        guide.SetValue("slug", "kom-i-gang-med-ki");
+        guide.SetValue("ingress", "En praktisk veiledning for virksomheter som vil ta i bruk KI ansvarlig.");
+        guide.SetValue("stegGruppeTittler", "Forberedelse\nGjennomføring\nOppfølging");
+        guide.SetValue("innholdBlokker", BuildArticleBlockList(
+            VTekst("<h2>Om veiledningen</h2><p>Denne veiledningen tar deg gjennom de viktigste stegene, fra idé til drift.</p><ul><li>Forberedelse</li><li>Gjennomføring</li><li>Oppfølging</li></ul>"),
+            VObs("Viktig", "<p>Vurder personvern og juss tidlig i prosessen.</p>"),
+            VTrekkspill("Hvem er veiledningen for?", "<p>Ledere og fagfolk i offentlig sektor.</p>")));
+        _contentService.Save(guide);
+        var gr = _contentService.Publish(guide, new[] { "*" });
+        if (!gr.Success)
+        {
+            Console.WriteLine($"ContentSeeder: WARNING — could not publish demo veiledningGuide: {gr.Result}");
+            return;
+        }
+
+        SeedSteg(guide.Id, "kom-i-gang-med-ki", "Kartlegg behovet", "kartlegg-behovet", 1,
+            "Start med å forstå hvilket problem du faktisk vil løse.",
+            BuildArticleBlockList(
+                VTekst("<h2>Hva vil du oppnå?</h2><p>Beskriv problemet før du velger teknologi.</p>"),
+                VInfo("Tips", "<p>Snakk med dem som skal bruke løsningen.</p>", "Les mer hos Digdir", "https://www.digdir.no"),
+                VEksempel("Eksempel fra praksis", "<p>En kommune startet med å kartlegge de vanligste henvendelsene.</p>")));
+
+        SeedSteg(guide.Id, "kom-i-gang-med-ki", "Vurder data og personvern", "vurder-data-personvern", 2,
+            "Sjekk at du har lov til å bruke dataene, og at de holder kvalitet.",
+            BuildArticleBlockList(
+                VTekst("<p>Data er grunnlaget for all KI.</p>"),
+                VObs("Personvern", "<p>Gjør en vurdering etter personvernforordningen (GDPR) før du starter.</p>"),
+                VTrekkspill("Hva med DPIA?", "<p>En personvernkonsekvensvurdering kan være påkrevd ved høy risiko.</p>")));
+
+        SeedSteg(guide.Id, "kom-i-gang-med-ki", "Test i liten skala", "test-i-liten-skala", 3,
+            "Kjør en pilot før full utrulling.",
+            BuildArticleBlockList(
+                VTekst("<p>En pilot avdekker problemer billig.</p>"),
+                VEksempel("Pilot", "<p>Test på en avgrenset gruppe først, og mål effekten.</p>")));
+    }
+
+    private void SeedSteg(int guideId, string guideSlug, string name, string slug, int stegNr, string ingress, string blockListJson)
+    {
+        var s = _contentService.Create(name, guideId, "veiledningSteg");
+        s.SetValue("tittel", name);
+        s.SetValue("slug", slug);
+        s.SetValue("guideSlug", guideSlug);
+        s.SetValue("ingress", ingress);
+        s.SetValue("steg", stegNr);
+        s.SetValue("understeg", 1);
+        s.SetValue("innholdBlokker", blockListJson);
+        _contentService.Save(s);
+        var r = _contentService.Publish(s, new[] { "*" });
+        if (!r.Success)
+            Console.WriteLine($"ContentSeeder: WARNING — could not publish demo veiledningSteg '{name}': {r.Result}");
+    }
+
+    private void SeedDemoKalender(int parentId)
+    {
+        var now = DateTime.Now;
+        // Future single-day
+        SeedKalenderhendelse(parentId, "Frokostseminar om KI", "frokostseminar-ki", "Frokostseminar",
+            "Bli med på et uformelt frokostseminar om KI i offentlig sektor.",
+            "<p>Vi serverer kaffe og inspirasjon, og deler konkrete erfaringer.</p>",
+            now.AddDays(14), null, "08:30-10:00", "Digitaliseringsdirektoratet, Oslo", "https://example.no/paamelding", "KI, frokost");
+        // Future multi-day
+        SeedKalenderhendelse(parentId, "KI-konferansen 2026", "ki-konferansen-2026", "Konferanse",
+            "Årets store KI-konferanse over to dager.",
+            "<p>To dager med foredrag og workshops om kunstig intelligens i forvaltningen.</p>",
+            now.AddDays(40), now.AddDays(41), "09:00-16:00", "Trondheim", "https://example.no/konf", "konferanse, KI, nettverk");
+        // Today, digital, hele dagen
+        SeedKalenderhendelse(parentId, "Webinar i dag", "webinar-i-dag", "Webinar",
+            "Et digitalt webinar du kan følge hjemmefra.", "<p>Lenke sendes til påmeldte.</p>",
+            now, null, "Hele dagen", "Digitalt", "", "");
+        // Past
+        SeedKalenderhendelse(parentId, "Workshop som var", "workshop-som-var", "Workshop",
+            "Et arrangement som allerede har vært.", "<p>Takk til alle som deltok.</p>",
+            now.AddDays(-30), null, "13:00-15:00", "Bergen", "", "workshop");
+        // Minimal (only mandatory + lite)
+        SeedKalenderhendelse(parentId, "Enkel hendelse", "enkel-hendelse", "",
+            "Minimal hendelse med bare det nødvendige.", "", now.AddDays(7), null, "", "", "", "");
+        // Edge: emoji + special chars + long tag
+        SeedKalenderhendelse(parentId, "Hendelse med rare tegn 🎉", "hendelse-rare-tegn", "Møte",
+            "Tester spesialtegn æøå, & og «...» i kalenderen.",
+            "<p>Detaljer med <strong>formatering</strong> og en <a href=\"https://www.digdir.no\">lenke</a>.</p>",
+            now.AddDays(21), now.AddDays(21), "10:00-11:00", "Digitalt & fysisk", "", "tag1, tag2, en-ganske-lang-tagg-som-tester-bryting");
+    }
+
+    private void SeedKalenderhendelse(int parentId, string name, string slug, string type, string ingress, string detaljertHtml, DateTime start, DateTime? slutt, string tid, string sted, string lenke, string tagger)
+    {
+        var n = _contentService.Create(name, parentId, "kalenderhendelse");
+        n.SetValue("tittel", name);
+        n.SetValue("slug", slug);
+        n.SetValue("startDato", start);
+        if (!string.IsNullOrEmpty(type)) n.SetValue("type", type);
+        if (!string.IsNullOrEmpty(ingress)) n.SetValue("ingress", ingress);
+        if (!string.IsNullOrEmpty(detaljertHtml)) n.SetValue("detaljertBeskrivelse", detaljertHtml);
+        if (slutt.HasValue) n.SetValue("sluttDato", slutt.Value);
+        if (!string.IsNullOrEmpty(tid)) n.SetValue("tid", tid);
+        if (!string.IsNullOrEmpty(sted)) n.SetValue("sted", sted);
+        if (!string.IsNullOrEmpty(lenke)) n.SetValue("lenke", lenke);
+        if (!string.IsNullOrEmpty(tagger)) n.SetValue("tagger", tagger);
+        _contentService.Save(n);
+        var r = _contentService.Publish(n, new[] { "*" });
+        if (!r.Success)
+            Console.WriteLine($"ContentSeeder: WARNING — could not publish demo kalenderhendelse '{name}': {r.Result}");
+    }
 
 }

@@ -3,9 +3,10 @@ import { parseHTML } from 'linkedom';
 
 const RULES: Record<string, string> = {
   'ul, ol':                  'ds-list',
-  // 'a':                    'ds-link',
+  'a':                    'ds-link',
+  'p':                   'ds-paragraph',
   // 'table':                'ds-table',
-  // 'h1, h2, h3, h4, h5, h6': 'ds-heading',
+  'h1, h2, h3, h4, h5, h6': 'ds-heading',
   // 'hr':                   'ds-divider',
 };
 
