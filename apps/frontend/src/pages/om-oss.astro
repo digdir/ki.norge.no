@@ -1,16 +1,15 @@
 ---
 import Layout from '../components/layout/Layout.astro';
+import ArticleLayout from '../components/shared/ArticleLayout.astro';
 import BlocksRenderer from '../components/shared/BlocksRenderer.astro';
-import PartnersSection from '../components/shared/PartnersSection.astro';
-import { getOmOss, getOmOssSeksjoner, getArtikler, getMediaUrl, getPlainText } from '../lib/umbraco';
+import NewsCard from '../components/shared/NewsCard.astro';
+import { getOmOss, getOmOssSeksjoner, getArtikler, getPlainText } from '../lib/umbraco';
 
 let omOss: any = null;
 let seksjoner: any[] = [];
 let latestArticles: any[] = [];
 try {
   omOss = await getOmOss();
-  // Prefer the new flat structure: seksjoner as Block List on omOss itself.
-  // Fall back to the legacy standalone omOssSeksjon child content if blocks aren't populated yet.
   if (omOss?.seksjoner && Array.isArray(omOss.seksjoner) && omOss.seksjoner.length > 0) {
     seksjoner = omOss.seksjoner;
   } else {
@@ -30,308 +29,114 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
 ---
 
 <Layout title={seoTitle} description={seoDesc} headerTheme="dark">
-    <!-- Hero -->
-    <section class="om-oss-hero" data-layout-block="content">
-      <h1 class="om-oss-hero-title">{heroTittel}</h1>
-      <p class="om-oss-hero-subtitle">{heroUndertittel}</p>
-    </section>
+  <!-- Hero: title sits on the pink background, aligned to content column -->
+  <section class="article-hero" data-layout-block="edge">
+    <h1 class="ds-heading article-title" data-size="xl">{heroTittel}</h1>
+  </section>
 
-    <!-- Intro -->
-    {omOss?.introTekst ? (
-      <section class="om-oss-intro" data-layout-block="content">
-        <div class="om-oss-intro-inner">
-          <BlocksRenderer blocks={omOss.introTekst} class="om-oss-intro-text" />
-        </div>
-      </section>
-    ) : (
-      <section class="om-oss-intro" data-layout-block="content">
-        <div class="om-oss-intro-inner">
-          <p class="om-oss-intro-text">KI Norge er en nasjonal satsing under Digitaliseringsdirektoratet (Digdir). Formålet er å gjøre det enklere for norske virksomheter å ta i bruk KI på en måte som er trygg, lovlig og verdiskapende, enten du driver en liten privat bedrift eller jobber i en offentlig virksomhet.</p>
-        </div>
-      </section>
+  <!-- Cream card with sidebar and main content -->
+  <ArticleLayout publishedAt={omOss?.publishedAt}>
+
+    <!-- Ingress -->
+    <p class="article-ingress ds-paragraph" data-size="lg">{heroUndertittel}</p>
+
+    <!-- Intro text blocks -->
+    {omOss?.introTekst && (
+      <div class="om-oss-intro">
+        <BlocksRenderer blocks={omOss.introTekst} />
+      </div>
     )}
 
-    <!-- Alternating stubs -->
-    <div class="om-oss-seksjoner" data-layout-block="content">
-      {seksjoner.map((seksjon, index) => {
-        // New blocks: tekst is HTML string. Legacy seksjoner: tekst is RichText blocks.
-        const isHtmlString = typeof seksjon.tekst === 'string';
-        return (
-          <section class:list={['om-oss-stub', index % 2 === 0 ? 'stub--image-left' : 'stub--image-right']}>
-            <div class="stub-image" aria-hidden="true">
-              {seksjon.bilde ? (
-                <img src={getMediaUrl(seksjon.bilde)} alt={seksjon.bildeAlt || seksjon.bilde.alternativeText || ''} loading="lazy" class="stub-img" />
-              ) : (
-                <div class="stub-image-placeholder"></div>
-              )}
-            </div>
-            <div class="stub-content">
-              <h2 class="stub-title">{seksjon.tittel}</h2>
-              <div class="stub-text">
-                {isHtmlString ? (
-                  <div set:html={seksjon.tekst} />
-                ) : (
-                  <BlocksRenderer blocks={seksjon.tekst} />
-                )}
-              </div>
-            </div>
-          </section>
-        );
-      })}
-    </div>
-
-    <!-- Mission banner -->
-    <section class="om-oss-mission" data-layout-block="edge">
-      <div data-layout-block="content">
-        {omOss?.misjonTekst ? (
-          <BlocksRenderer blocks={omOss.misjonTekst} class="om-oss-mission-text" />
-        ) : (
-          <p class="om-oss-mission-text">KI Norge kobler virksomheter på tvers av offentlig sektor, næringsliv, akademia og forskning. Vi samler kunnskap gjennom kartlegginger, og gir den tilgjengelig for deg som trenger et solid grunnlag for å ta gode beslutninger.</p>
-        )}
-      </div>
-    </section>
-
-    <!-- Partners -->
-    <PartnersSection />
-
-    <!-- Aktuelt -->
-    <section class="om-oss-aktuelt" data-layout-block="content">
-      <div class="om-oss-aktuelt-inner">
-        <h2 class="om-oss-aktuelt-heading">Aktuelt</h2>
-        <div class="om-oss-aktuelt-grid">
-          {latestArticles.map(article => (
-            <a href={`/artikler/${article.slug}`} class="om-oss-aktuelt-card">
-              <div class="om-oss-aktuelt-text">
-                <h3 class="om-oss-aktuelt-title">{article.tittel}</h3>
-                <span class="om-oss-aktuelt-date">
-                  {new Date(article.publishedAt).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-                <p class="om-oss-aktuelt-lead">{getPlainText(article.innhold, 80)}</p>
-              </div>
-              <div class="om-oss-aktuelt-image"></div>
-            </a>
-          ))}
+    <!-- Sections (text-only, no images) -->
+    {seksjoner.map((seksjon: any) => (
+      <section class="om-oss-seksjon">
+        <h2 class="ds-heading om-oss-seksjon-tittel" data-size="sm">{seksjon.tittel}</h2>
+        <div class="om-oss-seksjon-tekst">
+          {typeof seksjon.tekst === 'string'
+            ? <div set:html={seksjon.tekst} />
+            : <BlocksRenderer blocks={seksjon.tekst} />
+          }
         </div>
+      </section>
+    ))}
+  </ArticleLayout>
+
+  <!-- Aktuelt -->
+  {latestArticles.length > 0 && (
+    <section class="om-oss-aktuelt" data-layout-block="content">
+      <h2 class="om-oss-aktuelt-heading">Aktuelt</h2>
+      <div class="om-oss-aktuelt-grid">
+        {latestArticles.map(article => (
+          <NewsCard
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            date={article.publishedAt}
+            lead={getPlainText(article.innhold, 80)}
+          />
+        ))}
       </div>
     </section>
+  )}
 </Layout>
 
 <style>
-
-  /* Hero */
-  .om-oss-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    text-align: center;
-  }
-
-  .om-oss-hero-title {
-    font-size: 3rem;
-    font-weight: 700;
+  /* Ingress */
+  .article-ingress {
+    font-family: 'PT Serif';
     margin: 0;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
-
-  @media (min-width: 640px) {
-    .om-oss-hero-title {
-      font-size: 6rem;
-    }
-  }
-
-  .om-oss-hero-subtitle {
-    font-size: 1.125rem;
-    font-weight: 500;
-    margin: 48px 0 0;
-    max-width: 600px;
-    line-height: 1.4;
-  }
-
-  @media (min-width: 640px) {
-    .om-oss-hero-subtitle {
-      font-size: 1.25rem;
-    }
-  }
-
-  /* Intro */
-  .om-oss-intro {
-    padding: 54px 24px;
-  }
-
-  .om-oss-intro-inner {
-    margin: 0 auto;
-  }
-
-  .om-oss-intro-text {
-    font-size: 1.5rem;
-    line-height: 1.7;
-    color: #000;
-    text-align: center;
-    letter-spacing: 0.005em;
-    margin: 0;
-  }
-
-  /* Alternating stubs */
-  .om-oss-seksjoner {
-    display: flex;
-    flex-direction: column;
-    gap: 54px;
-    max-width: 930px;
-    margin: 0 auto;
-    padding: 0 24px 54px;
-  }
-
-  .om-oss-stub {
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-    align-items: center;
   }
 
   @media (min-width: 1024px) {
-    .om-oss-stub {
-      flex-direction: row;
-      gap: 99px;
-    }
-
-    .stub--image-right {
-      flex-direction: row-reverse;
+    .article-ingress {
+      font-size: 28px;
     }
   }
 
-  .stub-image {
-    flex: 1;
-    min-width: 0;
+  /* Sections */
+  .om-oss-intro {
+    margin: 0;
   }
 
-  .stub-img {
-    width: 100%;
-    height: auto;
-    max-height: 487px;
-    object-fit: cover;
-    border-radius: 4px;
-    display: block;
-  }
-
-  .stub-image-placeholder {
-    width: 100%;
-    height: 487px;
-    background-color: var(--image-fallback-bg, #D9D9D9);
-    border-radius: 4px;
-  }
-
-  .stub-content {
-    flex: 1;
-    min-width: 0;
+  .om-oss-seksjon {
     display: flex;
     flex-direction: column;
-    gap: 32px;
-    justify-content: center;
+    gap: var(--ds-size-3);
   }
-
-  .stub-title {
-    font-size: 2rem;
-    font-weight: 400;
-    color: #000;
-    margin: 0;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
-
-  @media (min-width: 640px) {
-    .stub-title {
-      font-size: 3rem;
-    }
-  }
-
-  .stub-text {
-    font-size: 1.125rem;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.75);
-    line-height: 1.3;
-    letter-spacing: -0.0025em;
-    margin: 0;
-  }
-
-  /* Mission banner */
-  .om-oss-mission {
-    background-color: var(--ds-color-surface-tinted);
-  }
-
 
   /* Aktuelt */
-  .om-oss-aktuelt-inner {
-    margin: 0 auto;
+  .om-oss-aktuelt {
+    padding-block: var(--ds-size-12);
   }
 
   .om-oss-aktuelt-heading {
-    font-size: 40px;
+    font-size: 32px;
     font-weight: 700;
-    color: #000;
-    margin: 0 0 32px;
+    margin: 0 0 var(--ds-size-6);
     line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  @media (min-width: 1024px) {
+    .om-oss-aktuelt-heading {
+      font-size: 40px;
+    }
   }
 
   .om-oss-aktuelt-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: var(--ds-size-6);
+  }
+
+  @media (min-width: 768px) {
+    .om-oss-aktuelt-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (min-width: 1024px) {
     .om-oss-aktuelt-grid {
       grid-template-columns: repeat(3, 1fr);
     }
-  }
-
-  .om-oss-aktuelt-card {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    padding: 24px;
-    height: 384px;
-    overflow: hidden;
-  }
-
-  .om-oss-aktuelt-text {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .om-oss-aktuelt-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #000;
-    margin: 0;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  .om-oss-aktuelt-date {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    line-height: 1.45;
-  }
-
-  .om-oss-aktuelt-lead {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.55);
-    margin: 0;
-    line-height: 1.45;
-  }
-
-  .om-oss-aktuelt-image {
-    flex: 1;
-    background: var(--image-fallback-bg, #D9D9D9);
-    border-radius: 24px;
-    min-height: 120px;
   }
 </style>

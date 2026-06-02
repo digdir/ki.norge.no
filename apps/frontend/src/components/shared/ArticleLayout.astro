@@ -1,0 +1,56 @@
+---
+/**
+ * ArticleLayout — two-column grid: sidebar + content.
+ *
+ * Uses CSS Grid. All default-slot children become direct grid children.
+ *   - By default they sit in the content column (col 2).
+ *   - data-layout-block="edge" makes them span both columns (full width).
+ *
+ * The sidebar slot is placed in column 1, row 1.
+ * If no sidebar slot is provided and publishedAt is set, a default
+ * date + share sidebar is rendered automatically.
+ *
+ * Also sets the page body to the pink surface color — no need to do
+ * this manually on each page that uses this layout.
+ */
+import '../../styles/article-layout.css';
+import AkselIcon from './AkselIcon.astro';
+
+interface Props {
+  class?: string;
+  publishedAt?: string;
+}
+
+const { class: className, publishedAt } = Astro.props;
+const classes = ['article-layout', className].filter(Boolean).join(' ');
+
+const formattedDate = publishedAt
+  ? new Date(publishedAt).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
+---
+
+<div class={classes} data-layout-block="edge">
+  <div class="article-layout__grid">
+    <aside class="article-layout__sidebar">
+      <slot name="sidebar">
+        {formattedDate && (
+          <time class="article-layout__metadata ds-paragraph" data-size="sm" datetime={publishedAt}>
+            <span class="article-layout__metadata-label">Publisert</span>
+            {formattedDate}
+          </time>
+        )}
+        <button class="article-layout__share ds-button" type="button" data-size="sm" data-variant="tertiary">
+            <AkselIcon name="ArrowForward" size={24} />
+            Del
+        </button>
+      </slot>
+    </aside>
+    <slot />
+  </div>
+</div>
+
+<style is:global>
+  body {
+    background-color: var(--ds-color-surface-active) !important;
+  }
+</style>

@@ -27,7 +27,6 @@
 }
 
 .header-container {
-  max-width: var(--layout-content-max-width);
   height: 100%;
   margin: 0 auto;
   padding-inline: var(--layout-content-padding);
@@ -94,11 +93,12 @@
   }
 
   &:hover {
-    border-bottom: 2px solid var(--ds-color-border-subtle);
+    text-decoration: underline;
   }
 
   &.active {
-    border-bottom: 2px solid var(--ds-color-border-default);
+    color: var(--ds-color-base-hover);
+    text-decoration: underline;
   }
 }
 
@@ -147,6 +147,7 @@
   &::backdrop {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
+    pointer-events: none;
   }
 
   &:popover-open {

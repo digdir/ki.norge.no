@@ -144,13 +144,15 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelKontaktkort') {
     const c = block.content;
     return (
-      <aside class="article-kontaktkort">
-        {c.tittel && <h3 class="article-kontaktkort-title">{c.tittel}</h3>}
-        <p class="article-kontaktkort-name">{c.navn}</p>
-        {c.stilling && <p class="article-kontaktkort-row">{c.stilling}</p>}
-        {c.virksomhet && <p class="article-kontaktkort-row">{c.virksomhet}</p>}
-        {c.epost && <p class="article-kontaktkort-row"><a href={`mailto:${c.epost}`}>{c.epost}</a></p>}
-        {c.telefon && <p class="article-kontaktkort-row"><a href={`tel:${c.telefon.replace(/\s/g, '')}`}>{c.telefon}</a></p>}
+      <aside class="article-kontaktkort" data-layout-block="edge">
+        <div data-layout-block="content">
+          {c.tittel && <h3 class="article-kontaktkort-title">{c.tittel}</h3>}
+          <p class="article-kontaktkort-name">{c.navn}</p>
+          {c.stilling && <p class="article-kontaktkort-row">{c.stilling}</p>}
+          {c.virksomhet && <p class="article-kontaktkort-row">{c.virksomhet}</p>}
+          {c.epost && <p class="article-kontaktkort-row"><a class="ds-link" href={`mailto:${c.epost}`}>{c.epost}</a></p>}
+          {c.telefon && <p class="article-kontaktkort-row"><a class="ds-link" href={`tel:${c.telefon.replace(/\s/g, '')}`}>{c.telefon}</a></p>}
+        </div>
       </aside>
     );
   }
