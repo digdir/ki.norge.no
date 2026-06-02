@@ -76,29 +76,6 @@ const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 
 </Layout>
 
 <style>
-  /* Hero / Artikkelhode */
-  .article-hero {
-    padding-top: var(--ds-size-30);
-    padding-bottom: 48px;
-    display: grid;
-    grid-template-columns: var(--article-layout-columns);
-  }
-
-  .article-title {
-    grid-column: 4;
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
-
-  @media (max-width: 768px) {
-    .article-hero {
-      grid-template-columns: 1fr;
-    }
-    .article-title {
-      grid-column: 1;
-    }
-  }
-
   .article-ingress {
     font-family: 'PT Serif';
     margin: 0;

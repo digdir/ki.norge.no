@@ -1,16 +1,19 @@
 /**
  * ArticleLayout — CSS Grid with gutter columns for centering + bleed.
  *
- * 5-column grid (--article-layout-columns):
- *   | gutter | sidebar | gap | content | gutter |
- *   | ds-30  | 200px   | ds-30 | min(0,680px) | 1fr |
+ * 5-column grid:
+ *   | gutter | sidebar | gap | content | right |
+ *   | dynamic | 1fr | ds-30 | min(0,680px) | 1fr |
+ *
+ * Col 1 (gutter) uses a dynamic calc() so the sidebar always aligns with
+ * the left content edge of the page header at every viewport width.
  *
  * Normal content → col 4 (content column)
  * Sidebar → col 2
- * Edge blocks → col 1 / -1 (all 5 columns, full bleed)
+ * Edge blocks → col 1 / -1 (all 5 columns, full bleed to article bg edges)
  *
- * Defined on :root so hero sections (siblings of ArticleLayout) can also
- * reference --article-layout-columns and stay pixel-perfect aligned.
+ * --article-layout-columns is kept on :root so hero sections (siblings of
+ * ArticleLayout) can use a matching column template for the article title.
  */
 
 :root {
@@ -18,7 +21,7 @@
   --article-layout-gap: var(--ds-size-30);
   --article-layout-content-max-width: 680px;
   --article-layout-columns:
-    var(--ds-size-30)
+    calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2))
     1fr
     var(--article-layout-gap)
     minmax(0, var(--article-layout-content-max-width))
@@ -63,8 +66,30 @@
   padding-block: var(--ds-size-6);
 }
 
+/* ── Article hero ── */
+.article-hero {
+  padding-top: var(--ds-size-30);
+  padding-bottom: 48px;
+  display: grid;
+  grid-template-columns: var(--article-layout-columns);
+}
+
+.article-title {
+  grid-column: 4;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* ── Responsive: single column on smaller screens ── */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .article-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .article-title {
+    grid-column: 1;
+  }
+
   .article-layout {
     padding-inline: var(--ds-size-4);
   }
