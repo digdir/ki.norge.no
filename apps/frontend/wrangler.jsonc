@@ -5,12 +5,27 @@
 		"global_fetch_strictly_public"
 	],
 	"name": "ki-norge-frontend",
+	"account_id": "4c4f444ed739a1c06fe2f2aa5195a8a8",
 	"main": "@astrojs/cloudflare/entrypoints/server",
 	"assets": {
 		"directory": "./dist",
-		"binding": "ASSETS"
+		"binding": "ASSETS",
 	},
 	"observability": {
-		"enabled": true
-	}
+		"enabled": true,
+	},
+	"env": {
+		"tt02": {
+			"vars": {
+				"UMBRACO_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
+				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
+			},
+		},
+		"prod": {
+			"vars": {
+				"UMBRACO_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
+				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
+			},
+		},
+	},
 }

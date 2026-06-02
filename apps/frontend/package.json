@@ -5,8 +5,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:tt02": "CLOUDFLARE_ENV=tt02 astro build",
+    "build:prod": "CLOUDFLARE_ENV=prod astro build",
     "preview": "astro build && wrangler dev",
     "deploy": "astro build && wrangler deploy",
+    "deploy:tt02": "CLOUDFLARE_ENV=tt02 astro build && wrangler deploy --env tt02",
+    "deploy:prod": "CLOUDFLARE_ENV=prod astro build && wrangler deploy --env prod",
     "start": "node dist/server/entry.mjs",
     "test:unit": "vitest run",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
