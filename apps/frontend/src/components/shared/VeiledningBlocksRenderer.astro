@@ -13,6 +13,8 @@ type RenderItem =
   | { kind: 'block'; block: UmbracoBlock }
   | { kind: 'trekkspillGruppe'; blocks: UmbracoBlock[] };
 
+type TrekkspillItem = { tittel: string; innhold: string };
+
 function groupBlocks(input: UmbracoBlock[]): RenderItem[] {
   const out: RenderItem[] = [];
   for (const block of input) {
@@ -42,15 +44,13 @@ const moduleIcons: Record<string, string> = {
 {renderItems.map((item) => {
   if (item.kind === 'trekkspillGruppe') {
     return (
-      <div class="veiledning-trekkspill-gruppe">
-        <div class="ds-card" data-variant="tinted">
-          {item.blocks.map((block) => (
-            <details class="ds-details">
-              <summary>{block.content.tittel}</summary>
-              <div set:html={block.content.innhold} />
-            </details>
-          ))}
-        </div>
+      <div class="ds-card" data-variant="tinted">
+        {item.blocks.map((block) => (
+          <details class="ds-details">
+            <summary>{block.content.tittel}</summary>
+            <div set:html={block.content.innhold} />
+          </details>
+        ))}
       </div>
     );
   }
@@ -67,14 +67,14 @@ const moduleIcons: Record<string, string> = {
     const c = block.content;
     const tekst = block.contentType === 'veiledningObs' ? c.tekst : c.innhold;
     const ikon = moduleIcons[block.contentType];
-    const trekkspill = block.contentType === 'veiledningInfo' ? c.trekkspill : undefined;
-    const lesMerTittel = block.contentType === 'veiledningInfo' ? c.lesMerTittel : undefined;
-    const lesMerUrl = block.contentType === 'veiledningInfo' ? c.lesMerUrl : undefined;
+    const trekkspill = block.contentType === 'veiledningInfo' ? c.trekkspill as TrekkspillItem[] | undefined : undefined;
+    const lesMerTittel = block.contentType === 'veiledningInfo' ? c.lesMerTittel as string | undefined : undefined;
+    const lesMerUrl = block.contentType === 'veiledningInfo' ? c.lesMerUrl as string | undefined : undefined;
     return (
       <div class="ds-card veiledning-modul" data-variant="tinted">
         <div class="veiledning-modul-head">
           <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
-          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="2xs">{c.tittel}</h3>}
+          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{c.tittel}</h3>}
         </div>
         <div class="veiledning-modul-body" set:html={tekst} />
         {trekkspill && trekkspill.length > 0 && (
@@ -146,10 +146,6 @@ const moduleIcons: Record<string, string> = {
   }
   .veiledning-modul-body :global(p:last-child) {
     margin-bottom: 0;
-  }
-
-  .veiledning-trekkspill-gruppe {
-    display: block;
   }
 
   .veiledning-modul-trekkspill {

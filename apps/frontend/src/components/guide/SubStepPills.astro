@@ -7,68 +7,64 @@ interface SubStep {
 interface Props {
   substeps: SubStep[];
   guideSlug: string;
-  stepNumber: number;
-  stepTitle: string;
 }
-const { substeps, guideSlug, stepNumber, stepTitle } = Astro.props;
+const { substeps, guideSlug } = Astro.props;
 ---
-<div class="substep-nav">
-  <h2 class="substep-heading">{stepNumber}. {stepTitle}</h2>
-  <nav class="substep-pills">
-    {substeps.map((sub, i) => (
-      <>
-        {sub.active ? (
-          <a class="substep-pill substep-pill--active ds-focus--inset" href={`/veiledning/${guideSlug}/${substeps[i].slug}`} aria-current="page">{sub.title}</a>
-        ) : (
-          <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="substep-pill ds-focus--inset">{sub.title}</a>
-        )}
-        {i < substeps.length - 1 && (
-          <span class="substep-arrow" aria-hidden="true">&rarr;</span>
-        )}
-      </>
+<nav aria-label="Del-steg i dette steget">
+  <ol class="substep-pills">
+    {substeps.map((sub) => (
+      <li class="substep-pill-item">
+        <a
+          href={`/veiledning/${guideSlug}/${sub.slug}`}
+          class="substep-pill ds-chip ds-focus--inset"
+          data-variant={sub.active ? 'primary' : 'secondary'}
+          aria-current={sub.active ? 'page' : undefined}
+        >{sub.title}</a>
+      </li>
     ))}
-  </nav>
-</div>
+  </ol>
+</nav>
+
 <style>
-  .substep-nav {
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .substep-heading {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 16px;
-  }
   .substep-pills {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    overflow-x: auto;
+    gap: var(--ds-size-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
+
+  .substep-pill-item {
+    display: contents;
+  }
+
   .substep-pill {
-    display: inline-flex;
-    padding: 6px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    color: #000;
+    border-radius: var(--ds-border-radius-full) !important;
     text-decoration: none;
-    background: white;
-    white-space: nowrap;
-    transition: border-color 0.15s;
+
+    &[aria-current="page"] {
+      background-color: var(--ds-color-base-active);
+      color: var(--ds-color-base-contrast-default);
+
+      &:hover {
+        background-color: var(--ds-color-base-hover);
+      }
+    }
   }
-  .substep-pill:hover {
-    border-color: #7c3aed;
-  }
-  .substep-pill--active {
-    background: #7c3aed;
-    color: white;
-    border-color: #7c3aed;
-  }
-  .substep-arrow {
-    color: #94a3b8;
-    font-size: 0.875rem;
+
+  .substep-pill-item:not(:last-child)::after {
+    content: '';
+    display: inline-block;
+    width: var(--ds-size-4);
+    height: var(--ds-size-4);
+    vertical-align: middle;
+    background-color: var(--ds-color-text-subtle);
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2215%22%20viewBox%3D%220%200%2014%2015%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M13.707%208.071a1%201%200%200%200%200-1.414L7.343.293A1%201%200%200%200%205.93%201.707l5.657%205.657-5.657%205.657a1%201%200%201%200%201.414%201.414zM0%207.364v1h13v-2H0z%22%20fill%3D%22%2386567a%22%2F%3E%3C%2Fsvg%3E");
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    flex-shrink: 0;
   }
 </style>

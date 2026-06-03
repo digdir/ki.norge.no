@@ -24,7 +24,6 @@ let enkelCtx: {
   seoDesc: string;
   seoImage?: string;
   heroImage?: ReturnType<typeof getMediaUrl> | undefined;
-  isLightBlueBg: boolean;
   articleJsonLd: unknown;
   breadcrumbJsonLd: unknown;
 } | null = null;
@@ -39,7 +38,6 @@ if (enkel) {
     seoDesc,
     seoImage,
     heroImage: heroImage?.url ? getMediaUrl(heroImage) : undefined,
-    isLightBlueBg: (enkel.bakgrunn || 'hvit') === 'lyseblaa',
     articleJsonLd: articleSchema({
       headline: seoTitle,
       description: seoDesc,
@@ -96,36 +94,21 @@ if (guideData) {
     ogType="article"
     publishedAt={enkel.publishedAt}
     ogImage={enkelCtx.seoImage}
+    bodyColor="brand1"
   >
-    <div class="article-page grid" data-layout-block="content">
-      <section class={`article-hero ${enkelCtx.isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
-        {enkelCtx.isLightBlueBg ? (
-          <div class="grid article-hero-bg-grid">
-            <div class="article-hero-inner col-center-10">
-              <div class="article-hero-text">
-                <h1 class="article-title">{enkel.tittel}</h1>
-                {enkel.ingress && <p class="article-ingress">{enkel.ingress}</p>}
-              </div>
-              {enkelCtx.heroImage && (
-                <div class="article-hero-image">
-                  <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-                </div>
-              )}
-            </div>
+    <div class="article-page" data-layout-block="content">
+      <section class="article-hero">
+        <div class="article-hero-inner">
+          <div class="article-hero-text">
+            <h1 class="article-title">{enkel.tittel}</h1>
+            {enkel.ingress && <p class="article-ingress">{enkel.ingress}</p>}
           </div>
-        ) : (
-          <div class="article-hero-inner">
-            <div class="article-hero-text">
-              <h1 class="article-title">{enkel.tittel}</h1>
-              {enkel.ingress && <p class="article-ingress">{enkel.ingress}</p>}
+          {enkelCtx.heroImage && (
+            <div class="article-hero-image">
+              <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
             </div>
-            {enkelCtx.heroImage && (
-              <div class="article-hero-image">
-                <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} />
@@ -134,16 +117,18 @@ if (guideData) {
     <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   </Layout>
 ) : guideData && guideCtx ? (
-  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc}>
-    <div class="guide-overview grid" data-layout-block="content">
-      <header class="guide-header">
+  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} bodyColor="brand1">
+    <div data-layout-block="content">
+      <div class="guide-header">
         <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
         {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
-      </header>
+      </div>
 
-      <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
+      <div class="veildedning-content">
+        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
+      </div>
 
-      <div class="col-center-6">
+      <div class="guide-steps">
         <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
       </div>
     </div>
@@ -151,40 +136,33 @@ if (guideData) {
 ) : null }
 
 <style>
-  .guide-overview {
-    padding-block: var(--ds-size-8);
-    padding-inline: var(--ds-size-4);
-    row-gap: var(--ds-size-6);
-  }
+
   .guide-header {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-3);
+    margin-block-end: var(--ds-size-8);
   }
+
   .guide-ingress {
     margin: 0;
     font-size: var(--ds-body-lg-font-size);
     line-height: var(--ds-body-lg-line-height);
-    color: var(--ds-color-neutral-text-subtle);
+  }
+
+  .guide-steps {
+    max-width: 680px;
   }
 
   .article-page {
     padding-top: 0;
-    row-gap: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
   }
 
   .article-hero {
     padding: 100px 0;
-  }
-
-  .article-hero--bg-lyseblaa {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-top: calc(-1 * var(--header-height, 72px));
-    padding-top: calc(140px + var(--header-height, 72px));
-    padding-bottom: 80px;
-    padding-left: 0;
-    padding-right: 0;
   }
 
   .article-hero-inner {
@@ -213,14 +191,12 @@ if (guideData) {
     font-weight: 700;
     line-height: 1.15;
     margin: 0;
-    color: var(--ds-color-text-default, #000);
   }
 
   .article-ingress {
     font-size: 1.25rem;
     line-height: 1.5;
     margin: 0;
-    color: var(--ds-color-text-default, #000);
   }
 
   .article-hero-image {
@@ -239,5 +215,16 @@ if (guideData) {
     height: auto;
     border-radius: 12px;
     display: block;
+  }
+
+  .veildedning-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    margin-block-end: var(--ds-size-8);
+
+    & :global(h2) {
+      font-size: var(--ds-heading-sm-font-size);
+    }
   }
 </style>
