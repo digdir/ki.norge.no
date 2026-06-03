@@ -1,0 +1,120 @@
+---
+/**
+ * SimpleArticleLayout — single-column centered article layout.
+ *
+ * Used for:
+ *   - Enkel veiledning (single-step guides)
+ *   - Diversinfo pages on veiledning step pages
+ *   - Personvernerklæring, tilgjengelighet, etc.
+ *
+ * Same block modules as the rich layout (ArticleBlocksRenderer), but:
+ *   - No sidebar — byline/author sits inline below ingress
+ *   - Single centered column (same max-width as rich layout content)
+ *
+ * Sets the page body to the pink surface color, same as ArticleLayout.
+ */
+import '../../styles/article-layout.css';
+
+interface Props {
+  class?: string;
+  title: string;
+  ingress?: string;
+  publishedAt?: string;
+  byline?: { navn?: string; stilling?: string; virksomhet?: string; dato?: string } | null;
+}
+
+const { class: className, title, ingress, publishedAt, byline } = Astro.props;
+const classes = ['simple-article-layout', className].filter(Boolean).join(' ');
+
+const publisertDate = byline?.dato || publishedAt;
+const formattedDate = publisertDate
+  ? new Date(publisertDate).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
+const bylineAuthor = byline
+  ? [byline.navn, byline.stilling, byline.virksomhet ? `i ${byline.virksomhet}` : ''].filter(Boolean).join(' ')
+  : '';
+---
+
+<article class={classes} data-layout-block="edge">
+  <div class="simple-article-layout__content u-rich-text">
+    <h1 class="simple-article-layout__title">{title}</h1>
+
+    {ingress && (
+      <p class="simple-article-layout__ingress">{ingress}</p>
+    )}
+
+    {(formattedDate || bylineAuthor) && (
+      <div class="simple-article-layout__meta">
+        {bylineAuthor && <span class="simple-article-layout__author">{bylineAuthor}</span>}
+        {bylineAuthor && formattedDate && <span class="simple-article-layout__meta-sep">·</span>}
+        {formattedDate && (
+          <time datetime={publisertDate}>{formattedDate}</time>
+        )}
+      </div>
+    )}
+
+    <slot />
+  </div>
+</article>
+
+<style is:global>
+  body {
+    background-color: var(--ds-color-surface-active) !important;
+  }
+</style>
+
+<style>
+  .simple-article-layout {
+    background-color: var(--ds-color-background-default);
+    padding-block: var(--ds-size-12);
+    padding-inline: 0;
+  }
+
+  .simple-article-layout__content {
+    max-width: var(--article-layout-content-max-width);
+    margin-inline: auto;
+    padding-inline: var(--layout-content-padding);
+  }
+
+  .simple-article-layout__title {
+    font-family: 'PT Serif', serif;
+    font-style: italic;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0 0 var(--ds-size-6);
+    color: var(--ds-color-text-default);
+    text-wrap: balance;
+  }
+
+  .simple-article-layout__ingress {
+    font-family: 'PT Serif', serif;
+    font-size: 20px;
+    line-height: 1.5;
+    margin: 0 0 var(--ds-size-6);
+    color: var(--ds-color-text-default);
+  }
+
+  .simple-article-layout__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    font-size: 14px;
+    color: var(--ds-color-text-subtle);
+    margin-bottom: var(--ds-size-10);
+  }
+
+  .simple-article-layout__author {
+    font-weight: 500;
+  }
+
+  .simple-article-layout__meta-sep {
+    user-select: none;
+  }
+
+  @media (max-width: 1024px) {
+    .simple-article-layout {
+      padding-inline: var(--ds-size-4);
+    }
+  }
+</style>
