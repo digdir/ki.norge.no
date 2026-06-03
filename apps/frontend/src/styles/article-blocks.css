@@ -277,18 +277,16 @@
 
 /* Plain text block */
 .article-text-block {
-  font-size: 21px;
   line-height: 1.7;
   color: var(--ds-color-text-default);
-  letter-spacing: 0.005em;
 }
 .article-text-block h2 {
-  font-size: 36px;
+  font-size: var(--ds-font-size-7);
   font-weight: 500;
   margin: 48px 0 24px;
 }
 .article-text-block h3 {
-  font-size: 24px;
+  font-size: var(--ds-font-size-6);
   font-weight: 500;
   margin: 32px 0 16px;
 }

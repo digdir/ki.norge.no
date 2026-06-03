@@ -1,0 +1,198 @@
+@layer site.rich-text {
+  .u-rich-text,
+  .u-rich-text .ds-card__block {
+    & > *:first-child {
+      margin-top: 0;
+    }
+
+    & > *:last-child {
+      margin-bottom: 0;
+    }
+
+    > * {
+      max-width: var(--short-content-width);
+    }
+
+    :where(div:not([class]), img, section, figure, table, iframe, [data-iframe-video], .u-long-content, .dodont-row, [data-wide-content]) {
+      max-width: var(--long-content-width);
+    }
+
+    :where(.u-short-content, [data-short-content]) {
+      max-width: var(--short-content-width);
+    }
+
+    > hr {
+      margin-inline: 0;
+    }
+
+    & > p {
+      font-size: 18px;
+      line-height: 1.7;
+      margin-bottom: var(--ds-size-6);
+      text-wrap: pretty;
+
+      & > strong {
+        margin: 0 !important;
+      }
+    }
+
+    /* reset non-direct child targets in stories */
+    [data-live] p {
+      margin-bottom: initial;
+    }
+
+    & > h2,
+    & > h3,
+    & > h4,
+    & > h5,
+    & > h6 {
+      scroll-margin-top: calc(var(--header-height) + 1lh);
+    }
+
+    & > h2 {
+      font-family: 'PT Serif', serif;
+      font-style: italic;
+      font-size: 24px;
+      font-weight: 400;
+      margin-top: var(--ds-size-10);
+      margin-bottom: var(--ds-size-4);
+    }
+
+    & > h3 {
+      font-family: var(--ds-font-family);
+      font-size: 20px;
+      font-weight: 400;
+      margin-top: var(--ds-size-9);
+      margin-bottom: var(--ds-size-3);
+    }
+
+    & > h4,
+    & > h5,
+    & > h6 {
+      font-family: var(--ds-font-family);
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: var(--ds-size-8);
+      margin-bottom: var(--ds-size-3);
+    }
+
+    & > :where(div, table, section):not(.article-text-block) {
+      margin-block: var(--ds-size-8);
+    }
+
+    & > ul,
+    & > ol {
+      padding-left: var(--ds-size-5);
+      box-sizing: border-box;
+      margin-bottom: var(--ds-size-5);
+      margin-top: calc(var(--ds-size-2) * -1);
+    }
+
+    & > ul > li,
+    & > ol > li {
+      line-height: 1.9em;
+      word-break: break-word;
+      text-wrap: pretty;
+
+      & > p {
+        line-height: var(--ds-body-md-line-height);
+      }
+    }
+
+    & > ul > li > ol,
+    & > ol > li > ul {
+      margin-top: var(--ds-size-1);
+    }
+
+    & > p > a:hover,
+    & > ul > li a:hover,
+    & > ol > li a:hover {
+      text-decoration-thickness: 2px;
+    }
+
+    /* A <p> tag that comes directly after <h1> will be treated as an ingress */
+    & > h1 + p {
+      font-family: 'PT Serif', serif;
+      font-size: 30px;
+      line-height: 1.5;
+      margin-top: 0;
+      margin-bottom: var(--ds-size-8);
+    }
+
+    & > iframe {
+      box-shadow: var(--ds-shadow-md);
+      margin: var(--ds-size-5);
+      border-radius: var(--ds-border-radius-md);
+    }
+
+    & > table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    & > img,
+    & > video {
+      width: 100%;
+      margin: var(--ds-size-2) 0;
+      border-radius: var(--ds-border-radius-md);
+      box-shadow: var(--ds-shadow-md);
+    }
+
+    & code:not(pre > code) {
+      padding: 2px 5px;
+      font-size: 0.9em;
+      line-height: 1;
+      white-space: break-spaces;
+      background-color: var(--ds-color-neutral-background-tinted);
+      border-radius: var(--ds-border-radius-md);
+      display: inline;
+      border: 1px solid var(--ds-color-neutral-border-subtle);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+
+    kbd {
+      font-family:
+        ui-monospace, Menlo, Monaco, 'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro', 'Droid Sans Mono', 'Courier New', monospace;
+      background: var(--ds-color-neutral-surface-tinted);
+      padding: var(--ds-size-1);
+      border-radius: var(--ds-border-radius-md);
+      border: solid 1px var(--ds-color-neutral-border-subtle);
+      position: relative;
+      bottom: 2px;
+      box-shadow: 0.5px 1px 0 0 var(--ds-color-neutral-border-strong);
+      font-size: round(down, 0.8em, 1px);
+    }
+
+    & > .ds-alert {
+      margin: var(--ds-size-8) 0;
+
+      & :first-child {
+        margin-top: 0 !important;
+      }
+
+      & :last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+
+    & > .ds-divider {
+      margin-top: var(--ds-size-10);
+    }
+
+    /* Headings determine margin for stuff under them */
+    & > :is(h2, h3, h4, h5, h6) + * {
+      margin-top: 0;
+    }
+
+    /* Headings determine margin for stuff above them */
+    *:not(:where(h2, h3, h4, h5, h6)):has(+ h2, + h3, + h4, + h5, + h6) {
+      margin-bottom: 0;
+    }
+
+    /* Text above these elements dont need margin */
+    :where(p, ul, ol):has(+ div, + section, + table, + figure) {
+      margin-bottom: 0;
+    }
+  }
+}

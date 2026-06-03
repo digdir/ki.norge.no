@@ -44,7 +44,6 @@ var(--article-layout-gutter);
 .article-layout__grid {
   display: grid;
   grid-template-columns: var(--article-layout-columns);
-  row-gap: var(--ds-size-6);
   box-sizing: border-box;
 }
 
@@ -107,7 +106,6 @@ var(--article-layout-gutter);
 
   .article-layout__grid {
     grid-template-columns: 1fr;
-    row-gap: var(--ds-size-4);
   }
 
   .article-layout__sidebar {
