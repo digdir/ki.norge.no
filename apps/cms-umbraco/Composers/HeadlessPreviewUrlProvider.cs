@@ -26,7 +26,8 @@ public class KiNorgePreviewService : IDocumentPreviewService
 
     public Task<DocumentPreviewUrlInfo> PreviewUrlInfoAsync(IContent content, string? culture, string? segment)
     {
-        var frontendUrl = _config["HeadlessPreview:FrontendUrl"] ?? "http://localhost:4321";
+        var frontendUrl = _config["HeadlessPreview:FrontendUrl"];
+        if (string.IsNullOrWhiteSpace(frontendUrl)) frontendUrl = "http://localhost:4321";
         var previewSecret = _config["HeadlessPreview:PreviewSecret"] ?? "";
         var contentType = content.ContentType.Alias;
         var slug = content.GetValue<string>("slug") ?? "";
@@ -37,15 +38,20 @@ public class KiNorgePreviewService : IDocumentPreviewService
             "artikkel" => $"/artikler/{slug}",
             "eksempel" => $"/eksempler/{slug}",
             "side" => $"/{slug}",
-            "faq" => "/faq",
             "forside" => "/",
             "omOss" => "/om-oss",
-            "omOssSeksjon" => "/om-oss",
             "sandkasse" => "/sandkasse",
-            "veiledningOversikt" => "/veiledning",
             "veiledningGuide" => $"/veiledning/{slug}",
+            "enkelVeiledning" => $"/veiledning/{slug}",
             "veiledningSteg" => $"/veiledning/{guideSlug}/{slug}",
-            "kiOrdbok" => "/ki-ordbok",
+            // Oversikts-/landingssider (redigerbare)
+            "artikler" => "/artikler",
+            "eksempler" => "/eksempler",
+            "kalender" => "/kalender",
+            "veiledninger" => "/veiledning",
+            // kalenderhendelse har ingen egen detaljrute, vis i oversikten
+            "kalenderhendelse" => "/kalender",
+            // stegartikkel trenger forelder-traversering, egen oppfølging
             _ => null
         };
 
