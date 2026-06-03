@@ -27,9 +27,7 @@ const {
 const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
 
 const formattedDate = date
-  ? variant === 'small'
-    ? new Date(date).toLocaleDateString('nb-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
-    : new Date(date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })
+  ? new Date(date).toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: '2-digit' })
   : undefined;
 ---
 
@@ -69,6 +67,7 @@ const formattedDate = date
     {variant === 'featured' && lead && <p class="news-card-lead">{lead}</p>}
     {formattedDate && (
       <span class="news-card-meta">
+        <AkselIcon name="OpenBook" size={24} />
         {formattedDate}
       </span>
     )}
@@ -200,13 +199,14 @@ const formattedDate = date
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.2em;
-    height: 1.2em;
+    width: 1em;
+    height: 1em;
     margin-left: 0.25em;
     border-radius: 50%;
-    background-color: var(--ds-color-surface-active);
+    background-color: var(--ds-color-surface-tinted);
     color: var(--ds-color-brand1-text-default);
     vertical-align: middle;
+    translate: 0 -0.125em;
     flex-shrink: 0;
   }
 
