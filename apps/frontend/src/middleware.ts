@@ -126,11 +126,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
         "script-src 'self' 'unsafe-inline' https://survey.skyra.no https://siteimproveanalytics.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://altinncdn.no https://survey.skyra.no",
         "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://altinncdn.no data:",
-        "img-src 'self' data: https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no https://survey.skyra.no",
-        "connect-src 'self' https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
-        // Allow CMS to embed the frontend in the preview iframe. Both the prod CMS
-        // origin and the localhost CMS dev origin are listed so preview works in dev too.
-        "frame-ancestors 'self' https://cms.ki.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.tt02.dis-core.altinn.cloud https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io http://localhost:5000 https://localhost:44391",
+        // CMS-hoster (union av alle reelle origins). Frontend henter media fra CMS,
+        // sa img-src/connect-src ma tillate dem ellers blokkeres bildene. Den dode
+        // Container Apps-hosten er fjernet.
+        "img-src 'self' data: https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no",
+        "connect-src 'self' https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
+        // Allow CMS to embed the frontend in the preview iframe. Prod og tt02 CMS
+        // (dis-core + workers.dev) pluss localhost CMS dev-origin slik at preview
+        // virker i dev ogsa.
+        "frame-ancestors 'self' https://cms.ki.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
         "base-uri 'self'",
         "form-action 'self'",
       ].join('; '),
