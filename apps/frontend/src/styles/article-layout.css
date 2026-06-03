@@ -31,7 +31,8 @@
 
 .article-layout {
   background-color: var(--ds-color-background-default);
-  padding-block: var(--ds-size-12);
+  padding-block-start: var(--ds-size-12);
+  padding-block-end: 0;
   padding-inline: 0;
 }
 
@@ -65,6 +66,7 @@
   grid-column: 1 / -1;
   padding-inline: var(--ds-size-6);
   padding-block: var(--ds-size-6);
+  margin-inline: 0;
 }
 
 /* ── Article hero ── */

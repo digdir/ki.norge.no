@@ -144,14 +144,14 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelKontaktkort') {
     const c = block.content;
     return (
-      <aside class="article-kontaktkort" data-layout-block="edge">
-        <div data-layout-block="content">
-          {c.tittel && <h3 class="article-kontaktkort-title">{c.tittel}</h3>}
-          <p class="article-kontaktkort-name">{c.navn}</p>
-          {c.stilling && <p class="article-kontaktkort-row">{c.stilling}</p>}
-          {c.virksomhet && <p class="article-kontaktkort-row">{c.virksomhet}</p>}
-          {c.epost && <p class="article-kontaktkort-row"><a class="ds-link" href={`mailto:${c.epost}`}>{c.epost}</a></p>}
-          {c.telefon && <p class="article-kontaktkort-row"><a class="ds-link" href={`tel:${c.telefon.replace(/\s/g, '')}`}>{c.telefon}</a></p>}
+      <aside class="article-kontaktkort article-layout__grid" data-layout-block="edge">
+        <div>
+          {c.tittel && <h2 class="article-kontaktkort-title">{c.tittel}</h2>}
+          <p class="ds-paragraph" data-size="lg">{c.navn}</p>
+          {c.stilling && <p class="ds-paragraph" data-size="lg">{c.stilling}</p>}
+          {c.virksomhet && <p class="ds-paragraph" data-size="lg">{c.virksomhet}</p>}
+          {c.epost && <p class="ds-paragraph" data-size="lg"><a class="ds-link" href={`mailto:${c.epost}`}>{c.epost}</a></p>}
+          {c.telefon && <p class="ds-paragraph" data-size="lg"><a class="ds-link" href={`tel:${c.telefon.replace(/\s/g, '')}`}>{c.telefon}</a></p>}
         </div>
       </aside>
     );
@@ -159,20 +159,20 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelProsessteg') {
     const c = block.content;
     return (
-      <section class="article-prosessteg">
-        {c.tittel && <h2 class="article-prosessteg-title">{c.tittel}</h2>}
-        <ol class="article-prosessteg-list">
+      <div class="article-prosessteg" data-layout-block="edge">
+        {c.tittel && <h2 class="article-prosessteg-title ds-heading" data-size="sm">{c.tittel}</h2>}
+        <ol class="article-prosessteg-list" role="list">
           {c.steg.map((s, i) => (
             <li class="article-prosessteg-item">
-              <div class="article-prosessteg-header">
-                <span class="article-prosessteg-number">{i + 1}</span>
-                {s.tittel && <span class="article-prosessteg-label">{s.tittel}</span>}
+              <span class="article-prosessteg-number" aria-hidden="true">{i + 1}</span>
+              <div class="article-prosessteg-text">
+                {s.tittel && <p class="ds-paragraph" data-size="lg">{s.tittel}</p>}
+                <div class="article-prosessteg-body" set:html={s.beskrivelse} />
               </div>
-              <div class="article-prosessteg-body" set:html={s.beskrivelse} />
             </li>
           ))}
         </ol>
-      </section>
+      </div>
     );
   }
   if (block.contentType === 'artikkelFremheving') {
