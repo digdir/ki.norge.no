@@ -55,6 +55,16 @@
   }
 }
 
+.hide-header-logo .logo-link {
+  visibility: hidden;
+}
+
+@media (max-width: 768px) {
+  .hide-header-logo .logo-link {
+    visibility: visible;
+  }
+}
+
 .nav-list {
   display: flex;
   flex-wrap: wrap;

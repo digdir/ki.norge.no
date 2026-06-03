@@ -5,6 +5,7 @@
 <section class="hero" data-layout-block="content">
   <div class="hero-grid">
     <div class="hero-text">
+      <img src="/logo.svg" alt="KI Norge" class="hero-logo" width="205" height="32" />
       <p class="hero-tagline">Felleskap for KI — innovativ og ansvarlig bruk av kunstig intelligens</p>
       <p class="hero-cta">
         Kom i gang: <a class="hero-cta-link ds-focus" href="/veiledning/hva-er-ki">Hva er KI og hva kan du bruke det til?
@@ -24,6 +25,17 @@
 <style>
   .hero {
     padding-block-end: var(--ds-size-10);
+  }
+
+  .hero-logo {
+    width: 205px;
+    height: auto;
+  }
+
+  @media (max-width: 768px) {
+    .hero-logo {
+      display: none;
+    }
   }
 
   .hero-grid {

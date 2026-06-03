@@ -16,6 +16,7 @@ interface Props {
   ogImage?: string;
   publishedAt?: string;
   headerTheme?: 'light' | 'dark';
+  hideLogo?: boolean;
 }
 
 const {
@@ -25,6 +26,7 @@ const {
   ogImage,
   publishedAt,
   headerTheme = 'light',
+  hideLogo = false,
 } = Astro.props;
 
 const isPreview = Astro.url.searchParams.has('preview') || Astro.cookies.has('preview');
@@ -79,7 +81,7 @@ const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
   </head>
-  <body data-color-scheme="light" data-color="accent">
+  <body data-color-scheme="light" data-color="accent" class:list={[hideLogo && 'hide-header-logo']}>
     <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>
     <CookieNotice />
     <Header client:load currentPath={currentPath} />

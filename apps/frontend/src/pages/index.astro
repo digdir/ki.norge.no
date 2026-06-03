@@ -8,7 +8,7 @@ import ArrowLink from '../components/shared/ArrowLink.astro';
 import ExampleLinkCards from '../components/shared/ExampleLinkCards.astro';
 import TextWithImage from '../components/shared/TextWithImage.astro';
 import { websiteSchema } from '../lib/seo';
-import { getForside, getArtikler, getPlainText } from '../lib/umbraco';
+import { getForside, getArtikler } from '../lib/umbraco';
 
 let forside = null;
 let latestArticles: any[] = [];
@@ -27,7 +27,7 @@ const websiteJsonLd = websiteSchema(seoDescription);
 const featuredArticle = latestArticles[0];
 ---
 
-<Layout title={title} description={seoDescription}>
+<Layout title={title} description={seoDescription} hideLogo>
   <Hero />
   <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
 
