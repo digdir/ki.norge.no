@@ -197,14 +197,16 @@
 .article-fremheving {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  /* 16px (not the house 8px) per the fremheving design — the soft card reads
-     too sharp at 8px. Justified deviation; see border-radius note at top. */
+  gap: var(--ds-size-6);
   border-radius: var(--ds-border-radius-md);
-  padding: var(--ds-size-5);
-  margin: 16px 0;
+  margin: var(--ds-size-4) 0;
 }
-.article-fremheving--bg { background: var(--ds-color-surface-tinted); }
+
+.article-fremheving--bg {
+  background: var(--ds-color-surface-tinted);
+  padding: var(--ds-size-5);
+}
+
 @media (min-width: 768px) {
   .article-fremheving--with-image {
     flex-direction: row;
