@@ -90,7 +90,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
 {renderItems.map((item) => {
   if (item.kind === 'accordionGroup') {
     return (
-      <section class="article-accordion-group">
+      <div class="article-accordion-group">
         {item.tittel && <h2 class="article-accordion-group-title">{item.tittel}</h2>}
         <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
@@ -102,7 +102,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
             </details>
           ))}
         </div>
-      </section>
+      </div>
     );
   }
   const block = item.block;

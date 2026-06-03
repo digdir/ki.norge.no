@@ -174,7 +174,7 @@
   .article-prosessteg {
     grid-template-columns: 1fr;
   }
-  section.article-prosessteg[data-layout-block="edge"] {
+  .article-prosessteg[data-layout-block="edge"] {
     padding-inline: var(--ds-size-4);
   }
   .article-prosessteg-title,
@@ -191,6 +191,9 @@
     position: static;
     transform: none;
     margin-right: 0;
+    width: var(--ds-size-12);
+    height: var(--ds-size-12);
+    font-size: var(--ds-font-size-7);
   }
 }
 
@@ -314,4 +317,8 @@
 .article-text-block ul, .article-text-block ol {
   margin: 8px 0 16px;
   padding-left: 24px;
+}
+
+.article-accordion-group .ds-details {
+  --dsc-details-background: var(--ds-color-surface-default);
 }
