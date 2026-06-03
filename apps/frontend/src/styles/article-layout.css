@@ -1,34 +1,35 @@
 /**
- * ArticleLayout — CSS Grid with gutter columns for centering + bleed.
- *
- * 5-column grid:
- *   | gutter  | sidebar | gap   | content       | gutter  |
- *   | dynamic | 1fr     | ds-30 | min(0, 680px) | dynamic |
- *
- * Col 1 (gutter) uses a dynamic calc() so the sidebar always aligns with
- * the left content edge of the page header at every viewport width.
- *
- * Normal content → col 4 (content column)
- * Sidebar → col 2
- * Edge blocks → col 1 / -1 (all 5 columns, full bleed to article bg edges)
- *
- * --article-layout-columns is kept on :root so hero sections (siblings of
- * ArticleLayout) can use a matching column template for the article title.
- */
+* ArticleLayout — CSS Grid with gutter columns for centering + bleed.
+*
+* 5-column grid:
+*   | gutter  | sidebar | gap   | content       | gutter  |
+*   | dynamic | 1fr     | ds-30 | min(0, 680px) | dynamic |
+*
+* Col 1 (gutter) uses a dynamic calc() so the sidebar always aligns with
+* the left content edge of the page header at every viewport width.
+*
+* Normal content → col 4 (content column)
+* Sidebar → col 2
+* Edge blocks → col 1 / -1 (all 5 columns, full bleed to article bg edges)
+*
+* --article-layout-columns is kept on :root so hero sections (siblings of
+* ArticleLayout) can use a matching column template for the article title.
+*/
 
 :root {
-  --article-layout-sidebar-width: 200px;
-  --article-layout-gap: var(--ds-size-30);
-  --article-layout-content-max-width: 680px;
-  --article-layout-gutter: calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2));
-  --article-layout-columns:
-    var(--article-layout-gutter)
-    1fr
-    var(--article-layout-gap)
-    minmax(0, var(--article-layout-content-max-width))
-    0.5fr
-    var(--article-layout-gutter);
+--article-layout-sidebar-width: 200px;
+--article-layout-gap: var(--ds-size-30);
+--article-layout-content-max-width: 680px;
+--article-layout-gutter: calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2));
+--article-layout-columns:
+var(--article-layout-gutter)
+1fr
+var(--article-layout-gap)
+minmax(0, var(--article-layout-content-max-width))
+0.5fr
+var(--article-layout-gutter);
 }
+@layer article-layout {
 
 .article-layout {
   background-color: var(--ds-color-background-default);
@@ -145,4 +146,6 @@
     --dsc-button-color: var(--ds-color-text-default);
     border-radius: var(--ds-border-radius-full);
     width: fit-content;
+}
+
 }

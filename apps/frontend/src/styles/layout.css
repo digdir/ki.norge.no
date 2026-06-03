@@ -1,4 +1,5 @@
-/*
+@layer layout {
+  /*
  * KI Norge Layout System
  *
  * Architecture:
@@ -106,4 +107,6 @@
 
 [data-layout-article] > *:first-child {
   margin-top: 0;
+}
+
 }

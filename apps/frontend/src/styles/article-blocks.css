@@ -92,11 +92,15 @@
   background: var(--ds-color-base-active);
   color: var(--ds-color-background-default);
   margin-inline: 0;
+  padding-block: var(--ds-size-12);
 }
 .article-kontaktkort a {
   --dsc-link-color: var(--ds-color-base-contrast-default);
   --dsc-link-color--hover: var(--ds-color-base-contrast-subtle);
   --dsc-link-color--active: var(--ds-color-base-contrast-default);
+}
+.article-kontaktkort h2 {
+  margin-block-end: var(--ds-size-5);
 }
 
 /* Prosessteg */

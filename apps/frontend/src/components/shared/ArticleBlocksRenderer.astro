@@ -144,9 +144,9 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelKontaktkort') {
     const c = block.content;
     return (
-      <aside class="article-kontaktkort article-layout__grid" data-layout-block="edge">
+      <aside class="article-layout__grid article-kontaktkort" data-layout-block="edge">
         <div>
-          {c.tittel && <h2 class="article-kontaktkort-title">{c.tittel}</h2>}
+          {c.tittel && <h2 class="ds-heading" data-size="sm">{c.tittel}</h2>}
           <p class="ds-paragraph" data-size="lg">{c.navn}</p>
           {c.stilling && <p class="ds-paragraph" data-size="lg">{c.stilling}</p>}
           {c.virksomhet && <p class="ds-paragraph" data-size="lg">{c.virksomhet}</p>}
