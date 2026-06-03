@@ -136,9 +136,4 @@ main a:has(> img)::after {
     max-width: 100% !important;
     page-break-inside: avoid;
   }
-
-  /* Avoid breaking blocks across pages */
-  .article-fremheving, .article-prosessteg-item, .article-info-box {
-    page-break-inside: avoid;
-  }
 }

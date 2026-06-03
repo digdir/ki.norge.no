@@ -254,30 +254,10 @@
 .article-fremheving-quote-mark--open { margin-right: 0.15em; }
 .article-fremheving-quote-mark--close { margin-left: 0.15em; }
 .article-fremheving-source {
-  margin-top: 12px;
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.55);
+  margin-top: var(--ds-size-3);
+  font-size: var(--ds-font-size-4);
 }
 .article-fremheving-source cite { font-style: normal; }
-
-/* Legacy info box */
-.article-info-box {
-  background: #e5f2f7;
-  border-radius: 8px;
-  padding: 48px;
-  margin: 32px 0;
-}
-.info-box-title {
-  font-size: 21px;
-  font-weight: 500;
-  color: #1a2a6d;
-  margin: 0 0 16px;
-}
-.info-box-body {
-  font-size: 21px;
-  line-height: 1.7;
-  color: rgba(0,0,0,0.75);
-}
 
 /* Image section */
 .article-image-section { margin: 32px 0; }

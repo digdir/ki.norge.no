@@ -213,14 +213,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
       </div>
     );
   }
-  if (block.contentType === 'artikkelHero') {
-    return (
-      <div class="article-info-box">
-        {block.content.tittel && <h3 class="info-box-title">{block.content.tittel}</h3>}
-        {block.content.tekst && <div class="info-box-body" set:html={block.content.tekst} />}
-      </div>
-    );
-  }
+
   // artikkelTrekkspill is handled above by the accordion-group wrapper —
   // the per-block branch never fires now. Keeping for safety (defensive
   // fallback if a non-grouped trekkspill ever shows up).
