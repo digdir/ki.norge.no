@@ -39,6 +39,12 @@ const breadcrumbJsonLd = breadcrumbSchema([
 // Fetch other articles for "Flere artikler" section
 const allArticlesRes = await getArtikler(10);
 const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 3);
+
+// Byline moves to the sidebar — pull it out of the block flow so it isn't
+// also rendered inline in the content column.
+const allBlocks = article.innhold ?? [];
+const bylineBlock = allBlocks.find(b => b.contentType === 'artikkelByline');
+const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage}>
@@ -49,13 +55,13 @@ const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 
     <h1 class="ds-heading article-title" data-size="xl">{article.tittel}</h1>
   </section>
 
-  <ArticleLayout publishedAt={article.publishedAt}>
+  <ArticleLayout publishedAt={article.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
 
     {article.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
     )}
 
-    <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
+    <ArticleBlocksRenderer blocks={contentBlocks} defaultDate={article.publishedAt} />
   </ArticleLayout>
 
   {otherArticles.length > 0 && (

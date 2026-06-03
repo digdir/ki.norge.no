@@ -1,0 +1,37 @@
+---
+/**
+ * Article byline (author + date).
+ * Rendered inline in the block flow (ArticleBlocksRenderer) on pages without a
+ * sidebar, and stacked in the sidebar (ArticleLayout) on the article page.
+ * Styles live in styles/article-blocks.css (.article-byline*).
+ */
+interface Props {
+  navn?: string;
+  stilling?: string;
+  virksomhet?: string;
+  dato?: string;
+  defaultDate?: string;
+  stacked?: boolean;
+}
+const { navn, stilling, virksomhet, dato, defaultDate, stacked = false } = Astro.props;
+
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+const date = dato || defaultDate;
+const formatted = formatDate(date);
+const parts = [navn, stilling, virksomhet ? `i ${virksomhet}` : ''].filter(Boolean).join(' ');
+---
+{(parts || formatted) && (
+  <div class:list={['article-byline', { 'article-byline--stacked': stacked }]}>
+    {parts && <span class="article-byline-author">{parts}</span>}
+    {parts && formatted && !stacked && <span class="article-byline-sep" aria-hidden="true">·</span>}
+    {formatted && <time class="article-byline-date" datetime={date}>{formatted}</time>}
+  </div>
+)}

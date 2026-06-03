@@ -19,14 +19,20 @@ import AkselIcon from './AkselIcon.astro';
 interface Props {
   class?: string;
   publishedAt?: string;
+  byline?: { navn?: string; stilling?: string; virksomhet?: string; dato?: string } | null;
 }
 
-const { class: className, publishedAt } = Astro.props;
+const { class: className, publishedAt, byline } = Astro.props;
 const classes = ['article-layout', className].filter(Boolean).join(' ');
 
-const formattedDate = publishedAt
-  ? new Date(publishedAt).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })
+// Byline date (editor-set) takes precedence over the CMS publish timestamp.
+const publisertDate = byline?.dato || publishedAt;
+const formattedDate = publisertDate
+  ? new Date(publisertDate).toLocaleDateString('nb-NO', { year: 'numeric', month: 'long', day: 'numeric' })
   : null;
+const bylineAuthor = byline
+  ? [byline.navn, byline.stilling, byline.virksomhet ? `i ${byline.virksomhet}` : ''].filter(Boolean).join(' ')
+  : '';
 ---
 
 <div class={classes} data-layout-block="edge">
@@ -34,10 +40,16 @@ const formattedDate = publishedAt
     <aside class="article-layout__sidebar">
       <slot name="sidebar">
         {formattedDate && (
-          <time class="article-layout__metadata ds-paragraph" data-size="sm" datetime={publishedAt}>
+          <time class="article-layout__metadata ds-paragraph" data-size="sm" datetime={publisertDate}>
             <span class="article-layout__metadata-label">Publisert</span>
             {formattedDate}
           </time>
+        )}
+        {bylineAuthor && (
+          <div class="article-layout__metadata ds-paragraph" data-size="sm">
+            <span class="article-layout__metadata-label">Av</span>
+            {bylineAuthor}
+          </div>
         )}
         <button class="article-layout__share ds-button" type="button" data-size="sm" data-variant="tertiary">
             <AkselIcon name="ArrowForward" size={24} />

@@ -110,7 +110,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   return (() => {
   if (block.contentType === 'artikkelByline') {
     const c = block.content;
-    const date = c.dato || defaultDate;
+    const date = (c.dato as string | undefined) || defaultDate;
     const formatted = formatDate(date);
     const parts = [c.navn, c.stilling, c.virksomhet ? `i ${c.virksomhet}` : ''].filter(Boolean).join(' ');
     if (!parts && !formatted) return null;

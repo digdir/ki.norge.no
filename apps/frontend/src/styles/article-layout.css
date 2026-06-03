@@ -26,14 +26,18 @@
     1fr
     var(--article-layout-gap)
     minmax(0, var(--article-layout-content-max-width))
+    0.5fr
     var(--article-layout-gutter);
 }
 
 .article-layout {
   background-color: var(--ds-color-background-default);
-  padding-block-start: var(--ds-size-12);
-  padding-block-end: 0;
+  padding-block: var(--ds-size-12);
   padding-inline: 0;
+}
+
+.article-layout:has(.article-layout__grid:last-child:is([data-layout-block="edge"])) {
+    padding-block-end: 0;
 }
 
 .article-layout__grid {
