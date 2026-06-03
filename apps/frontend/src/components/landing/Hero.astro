@@ -1,19 +1,15 @@
 ---
 // Hero — tagline with illustration, "Kom i gang" CTA
+import AkselIcon from '../shared/AkselIcon.astro';
 ---
 
 <section class="hero" data-layout-block="content">
   <div class="hero-grid">
     <div class="hero-text">
-      <img src="/logo.svg" alt="KI Norge" class="hero-logo" width="205" height="32" />
-      <p class="hero-tagline">Felleskap for KI — innovativ og ansvarlig bruk av kunstig intelligens</p>
+      <img src="/logo.svg" alt="KI Norge" class="hero-logo" />
+      <p class="hero-tagline ds-heading" data-size="xl"><strong>Felleskap for KI</strong> — innovativ og ansvarlig bruk av kunstig intelligens</p>
       <p class="hero-cta">
-        Kom i gang: <a class="hero-cta-link ds-focus" href="/veiledning/hva-er-ki">Hva er KI og hva kan du bruke det til?
-          <svg class="hero-cta-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="11" fill="currentColor"/>
-            <path d="M10 8l4 4-4 4" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
+        Kom i gang: <a class="hero-cta-link ds-focus" href="/veiledning/hva-er-ki">Hva er KI og hva kan du bruke det til? <span class="hero-cta-arrow"><AkselIcon name="ArrowRight" size={24} /></span></a>
       </p>
     </div>
     <div class="hero-illustration">
@@ -28,7 +24,7 @@
   }
 
   .hero-logo {
-    width: 205px;
+    max-width: 300px;
     height: auto;
   }
 
@@ -54,15 +50,13 @@
   .hero-text {
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-8);
+    gap: var(--ds-size-18);
   }
 
   .hero-tagline {
-    font-size: var(--ds-heading-lg-font-size);
-    font-weight: 300;
-    line-height: 1.3;
+    font-weight: 400;
+    line-height: 1.4;
     margin: 0;
-    max-width: 520px;
     text-wrap: balance;
   }
 
@@ -73,19 +67,13 @@
   }
 
   .hero-cta {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-size-3);
     font-size: var(--ds-heading-sm-font-size);
     color: var(--ds-color-text-default);
     margin: 0;
-    flex-wrap: wrap;
+    line-height: 1.4;
   }
 
   .hero-cta-link {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ds-size-3);
     text-decoration: underline;
     text-underline-offset: 3px;
     color: inherit;
@@ -96,8 +84,16 @@
   }
 
   .hero-cta-arrow {
-    flex-shrink: 0;
-    color: var(--ds-color-base-default);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    width: var(--ds-size-8);
+    height: var(--ds-size-8);
+    border-radius: var(--ds-border-radius-full);
+    background-color: var(--ds-color-base-active);
+    color: var(--ds-color-base-contrast-default);
+    margin-inline-start: var(--ds-size-3);
     text-decoration: none;
   }
 

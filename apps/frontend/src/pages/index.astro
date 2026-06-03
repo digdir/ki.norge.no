@@ -16,7 +16,7 @@ try {
   forside = await getForside();
   const artiklerRes = await getArtikler(4);
   latestArticles = artiklerRes.data;
-} catch (e) {
+  } catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
 }
 
@@ -29,6 +29,7 @@ const featuredArticle = latestArticles[0];
 
 <Layout title={title} description={seoDescription} hideLogo>
   <Hero />
+  <h1 class="ds-sr-only">ki.norge.no - {title}</h1>
   <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
 
   <!-- Aktuelt -->
