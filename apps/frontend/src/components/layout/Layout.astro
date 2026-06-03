@@ -3,6 +3,7 @@ import Header from './Header.tsx';
 import Footer from './Footer.astro';
 import PreviewBanner from '../shared/PreviewBanner.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
+import { toAbsoluteMediaUrl } from '../../lib/umbraco';
 import '../../styles/global.css';
 import '../../styles/layout.css';
 import '../../styles/search-dialog.css';
@@ -34,7 +35,13 @@ const siteUrl = Astro.site?.href.replace(/\/$/, '') || 'https://ki.norge.no';
 const canonicalUrl = `${siteUrl}${currentPath}`;
 const fullTitle = `${title} | KI Norge`;
 const DEFAULT_OG_IMAGE = '/og-image.png';
-const ogImageUrl = `${siteUrl}${ogImage || DEFAULT_OG_IMAGE}`;
+// CMS-media (/media/...) gjores absolutt mot CMS-hosten; ellers prefikses
+// site-hosten. Uten dette ble og:image til ki.norge.no/media/... (feil host),
+// som ga utdatert/odelagt delingsbilde.
+const resolvedOg = toAbsoluteMediaUrl(ogImage);
+const ogImageUrl = resolvedOg
+  ? (resolvedOg.startsWith('http') ? resolvedOg : `${siteUrl}${resolvedOg}`)
+  : `${siteUrl}${DEFAULT_OG_IMAGE}`;
 ---
 
 <!doctype html>

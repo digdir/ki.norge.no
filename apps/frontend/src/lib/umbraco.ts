@@ -517,6 +517,16 @@ interface RichTextNode {
   elements?: RichTextNode[];
 }
 
+// Embeddede media-URLer i RichText (bilder, fil-lenker) kommer relativt som
+// /media/... og ville blitt hentet fra frontend-domenet (404 pa Cloudflare).
+// Prefiks CMS-hosten. Allerede-absolutte URLer (http) treffes ikke av regexen.
+export function absolutizeMediaUrls(html: string): string {
+  return html.replace(
+    /\b(src|href)="(\/media\/[^"]*)"/g,
+    (_m, attr, value) => `${attr}="${UMBRACO_PUBLIC_URL}${value}"`,
+  );
+}
+
 function richTextToHtml(node: RichTextNode): string {
   // Text node
   if (node.tag === '#text') {
@@ -529,7 +539,7 @@ function richTextToHtml(node: RichTextNode): string {
   // RichText field, not recursively per node.
   if (node.tag === '#root') {
     const inner = (node.elements || []).map(richTextToHtml).join('');
-    return applyDsClasses(inner);
+    return absolutizeMediaUrls(applyDsClasses(inner));
   }
 
   // Comment node
@@ -1347,11 +1357,18 @@ function parseJsonArray(value: string | undefined): string[] {
   }
 }
 
+// Gjor en relativ Umbraco media-URL (/media/...) absolutt mot CMS-hosten.
+// Passerer allerede-absolutte (http) og ikke-media-URLer uendret.
+export function toAbsoluteMediaUrl(url?: string): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('/media')) return `${UMBRACO_PUBLIC_URL}${url}`;
+  return url;
+}
+
 // Helper to get full media URL
 export function getMediaUrl(media?: UmbracoMedia): string | undefined {
-  if (!media?.url) return undefined;
-  if (media.url.startsWith('http')) return media.url;
-  return `${UMBRACO_PUBLIC_URL}${media.url}`;
+  return toAbsoluteMediaUrl(media?.url);
 }
 
 /**
