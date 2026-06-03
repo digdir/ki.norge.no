@@ -125,20 +125,15 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelInnholdFra') {
     const c = block.content;
     if (!c.virksomhet && !c.dato) return null;
-    const date = c.dato || defaultDate;
-    const formatted = formatDate(date);
     return (
-      <aside class="article-innhold-fra">
+      <div class="article-innhold-fra">
         {c.virksomhet && (
           <>
-            <span class="article-innhold-fra-label">Innhold fra</span>
-            <strong class="article-innhold-fra-org">{c.virksomhet}</strong>
+            <p class="ds-paragraph">Innhold fra</p>
+            <p class="ds-paragraph">{c.virksomhet}</p>
           </>
         )}
-        {formatted && (
-          <span class="article-innhold-fra-date">Sist oppdatert {formatted}</span>
-        )}
-      </aside>
+      </div>
     );
   }
   if (block.contentType === 'artikkelKontaktkort') {

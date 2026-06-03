@@ -87,6 +87,7 @@ var(--article-layout-gutter);
   grid-column: 4;
   overflow-wrap: break-word;
   word-break: break-word;
+  text-wrap: balance;
 }
 
 /* ── Responsive: single column on smaller screens ── */

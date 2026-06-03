@@ -70,23 +70,6 @@ h1, h2, h3, h4, h5, h6 {
 
 /* TODO: sok.astro still uses Material Symbols — migrate to Aksel icons when /sok is prioritized */
 
-/* ── External links: visual indicator (issue #145) ──────────────────
- * Marks links to other domains with a subtle ↗ icon after the link text.
- * Triggered by: <a> with href starting with http/https AND not pointing to
- * our own domain. Editor doesn't need to do anything — pure CSS.
- */
-main a[href^="http://"]:not([href*="ki.norge.no"]):not([href*="greentree-c9e56a64"])::after,
-main a[href^="https://"]:not([href*="ki.norge.no"]):not([href*="greentree-c9e56a64"])::after {
-  content: "↗";
-  display: inline-block;
-  margin-left: 0.2em;
-  font-size: 0.85em;
-  vertical-align: baseline;
-  color: currentColor;
-  opacity: 0.7;
-  text-decoration: none;
-}
-
 /* Don't add the indicator to image-wrapping links */
 main a:has(> img)::after {
   content: none;

@@ -74,24 +74,13 @@
 
 /* Innhold fra organisasjon */
 .article-innhold-fra {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 24px 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-block: var(--ds-size-6);
 }
-/* Label, org, and date all match in size — they're meta-info that should
-   read as one visual unit (not a heading + caption). Org keeps weight 600
-   to retain emphasis without size mismatch. */
-.article-innhold-fra-label { font-size: 14px; color: rgba(0, 0, 0, 0.55); }
-.article-innhold-fra-org { font-size: 14px; font-weight: 600; color: #000; }
-.article-innhold-fra-date { font-size: 14px; color: rgba(0, 0, 0, 0.55); }
 
 /* Kontaktkort */
 .article-kontaktkort {
   background: var(--ds-color-base-active);
   color: var(--ds-color-background-default);
-  margin-inline: 0;
   padding-block: var(--ds-size-12);
 }
 .article-kontaktkort a {
@@ -101,6 +90,10 @@
 }
 .article-kontaktkort h2 {
   margin-block-end: var(--ds-size-5);
+}
+
+.article-kontaktkort p {
+  line-height: 1.7;
 }
 
 /* Prosessteg */
@@ -208,7 +201,8 @@
 
 .article-fremheving--bg {
   background: var(--ds-color-surface-tinted);
-  padding: var(--ds-size-5);
+  padding-block: var(--ds-size-5);
+  padding-inline: var(--ds-size-7);
 }
 
 @media (min-width: 768px) {
