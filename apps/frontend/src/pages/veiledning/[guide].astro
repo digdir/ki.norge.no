@@ -124,12 +124,12 @@ if (guideData) {
         {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
       </div>
 
-      <div class="veildedning-content">
-        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
-      </div>
-
       <div class="guide-steps">
         <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
+      </div>
+
+      <div class="veildedning-content">
+        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
       </div>
     </div>
   </Layout>
@@ -221,7 +221,7 @@ if (guideData) {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-4);
-    margin-block-end: var(--ds-size-8);
+    margin-block-start: var(--ds-size-14);
 
     & :global(h2) {
       font-size: var(--ds-heading-sm-font-size);

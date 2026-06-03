@@ -22,7 +22,7 @@ const { steps, guideSlug } = Astro.props;
         <ol class="step-pills" aria-label={`Understeg for ${step.title}`}>
           {step.substeps.map((sub) => (
             <li class="step-pill-item">
-              <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="step-pill ds-chip" data-variant="secondary">{sub.title}</a>
+              <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="step-pill ds-chip" data-variant="secondary" data-size="lg">{sub.title}</a>
             </li>
           ))}
         </ol>
