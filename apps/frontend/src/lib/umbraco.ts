@@ -255,6 +255,12 @@ export interface EksemplerSeksjon {
   navn?: string;
   epost?: string;
   stilling?: string;
+  // Redaksjonelle felt fra Figma-kommentarer. CMS-feltene finnes ikke ennå,
+  // så disse er undefined i dag og frontend faller tilbake på defaults.
+  ingress?: string;                              // Featured: manuell ingress
+  kortTag?: string;                              // Gruppe: tag på hvert kort (default "Eksempel")
+  kortFarger?: Array<'dark' | 'light' | undefined>; // Gruppe: per-kort farge, justert mot eksempelIds
+  relatertTags?: Array<string | undefined>;      // Relatert: per-kort tag, justert mot relatertIds
 }
 
 export interface EksemplerOversikt {
@@ -1276,25 +1282,37 @@ function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
     const id = content.id || '';
 
     if (ct === 'eksempelFeatured') {
-      return { contentType: ct, id, eksempelId: pickerId(props.eksempel) };
+      return { contentType: ct, id, eksempelId: pickerId(props.eksempel), ingress: (props.ingress as string) || undefined };
     }
     if (ct === 'eksempelGruppe') {
-      const eksempelIds = [props.eksempel1, props.eksempel2, props.eksempel3, props.eksempel4, props.eksempel5, props.eksempel6]
-        .map(pickerId)
-        .filter((id): id is string => !!id);
+      // Per-kort farge (fargeN) er et planlagt redaksjonelt felt — finnes ikke i CMS ennå.
+      const refs = [1, 2, 3, 4, 5, 6]
+        .map((n) => ({ id: pickerId(props[`eksempel${n}`]), farge: props[`farge${n}`] }))
+        .filter((r): r is { id: string; farge: unknown } => !!r.id);
+      const normaliserFarge = (f: unknown): 'dark' | 'light' | undefined =>
+        f === 'lys' || f === 'light' ? 'light' : f === 'mork' || f === 'dark' ? 'dark' : undefined;
       return {
         contentType: ct,
         id,
         tittel: props.tittel || undefined,
         antallKolonner: Number(props.antallKolonner) || 3,
-        eksempelIds,
+        eksempelIds: refs.map((r) => r.id),
+        kortTag: (props.kortTag as string) || undefined,
+        kortFarger: refs.map((r) => normaliserFarge(r.farge)),
       };
     }
     if (ct === 'eksempelRelatert') {
-      const relatertIds = [props.relatert1, props.relatert2, props.relatert3]
-        .map(pickerId)
-        .filter((id): id is string => !!id);
-      return { contentType: ct, id, tittel: props.tittel || undefined, relatertIds };
+      // Per-kort tag (relatertTagN) er et planlagt redaksjonelt felt — finnes ikke i CMS ennå.
+      const refs = [1, 2, 3]
+        .map((n) => ({ id: pickerId(props[`relatert${n}`]), tag: props[`relatertTag${n}`] }))
+        .filter((r): r is { id: string; tag: unknown } => !!r.id);
+      return {
+        contentType: ct,
+        id,
+        tittel: props.tittel || undefined,
+        relatertIds: refs.map((r) => r.id),
+        relatertTags: refs.map((r) => (typeof r.tag === 'string' && r.tag ? r.tag : undefined)),
+      };
     }
     if (ct === 'eksempelKontakt') {
       return {

@@ -1,5 +1,9 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.astro';
+import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
+import ExampleLinkCard from '../../components/shared/ExampleLinkCard.astro';
+import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
 import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, type Eksempel, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
 
 let eksempler: Eksempel[] = [];
@@ -36,29 +40,19 @@ const seksjoner = oversikt?.seksjoner || [];
 
 <Layout title={seoTitle} description={seoDesc}>
   <div class="eksempler-page" data-layout-block="content">
-    <div class="eksempler-title-bar">
-      <h1 class="eksempler-title">{heroTittel}</h1>
-      <p class="eksempler-lead">{heroIngress}</p>
-    </div>
+    <header class="eksempler-header">
+      <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>
+      {heroIngress && <p class="eksempler-lead">{heroIngress}</p>}
+    </header>
 
     {seksjoner.length === 0 && eksempler.length > 0 && (
-      <div class="eksempler-grid" data-cols="3">
-        {eksempler.map(e => (
-          <a href={`/eksempler/${e.slug}`} class="eksempel-card">
-            <div class="eksempel-card-image">
-              {e.artikkelBilde ? (
-                <img src={getMediaUrl(e.artikkelBilde)} alt={e.bildeAlt || ''} loading="lazy" />
-              ) : (
-                <div class="eksempel-card-placeholder"></div>
-              )}
-            </div>
-            <div class="eksempel-card-text">
-              <h2 class="eksempel-card-title">{e.tittel}</h2>
-              {e.ingress && <p class="eksempel-card-lead">{e.ingress}</p>}
-            </div>
-          </a>
-        ))}
-      </div>
+      <section class="eksempler-section">
+        <div class="eksempler-fallback-grid">
+          {eksempler.map((e, i) => (
+            <ExampleLinkCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={i % 2 === 0 ? 'dark' : 'light'} />
+          ))}
+        </div>
+      </section>
     )}
 
     {seksjoner.map(s => {
@@ -66,47 +60,30 @@ const seksjoner = oversikt?.seksjoner || [];
         const e = eksempelById.get(s.eksempelId);
         if (!e) return null;
         return (
-          <section class="eksempler-featured">
-            <a href={`/eksempler/${e.slug}`} class="eksempel-featured-card">
-              {e.artikkelBilde && (
-                <div class="eksempel-featured-image">
-                  <img src={getMediaUrl(e.artikkelBilde)} alt={e.bildeAlt || ''} loading="eager" />
-                </div>
-              )}
-              <div class="eksempel-featured-text">
-                <span class="ds-tag" data-color="accent">Eksempel</span>
-                <h2 class="eksempel-featured-title">{e.tittel}</h2>
-                {e.ingress && <p class="eksempel-featured-lead">{e.ingress}</p>}
-              </div>
-            </a>
+          <section class="eksempler-section">
+            <ArticleCardFeatured
+              href={`/eksempler/${e.slug}`}
+              title={e.tittel}
+              lead={s.ingress || e.ingress}
+              image={e.artikkelBilde ? getMediaUrl(e.artikkelBilde) : undefined}
+              imageAlt={e.bildeAlt || ''}
+            />
           </section>
         );
       }
 
       if (s.contentType === 'eksempelGruppe') {
-        const cols = s.antallKolonner || 3;
         const items = (s.eksempelIds || []).map(id => eksempelById.get(id)).filter((e): e is Eksempel => !!e);
         if (items.length === 0) return null;
         return (
-          <section class="eksempler-gruppe">
-            {s.tittel && <h2 class="eksempler-gruppe-tittel">{s.tittel}</h2>}
-            <div class="eksempler-grid" data-cols={String(cols)}>
-              {items.map(e => (
-                <a href={`/eksempler/${e.slug}`} class="eksempel-card">
-                  <div class="eksempel-card-image">
-                    {e.artikkelBilde ? (
-                      <img src={getMediaUrl(e.artikkelBilde)} alt={e.bildeAlt || ''} loading="lazy" />
-                    ) : (
-                      <div class="eksempel-card-placeholder"></div>
-                    )}
-                  </div>
-                  <div class="eksempel-card-text">
-                    <h3 class="eksempel-card-title">{e.tittel}</h3>
-                    {e.ingress && <p class="eksempel-card-lead">{e.ingress}</p>}
-                  </div>
-                </a>
-              ))}
-            </div>
+          <section class="eksempler-section">
+            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
+            <ExampleLinkCards cards={items.map((e, i) => ({
+              href: `/eksempler/${e.slug}`,
+              title: e.tittel,
+              tag: s.kortTag || 'Eksempel',
+              variant: s.kortFarger?.[i],
+            }))} />
           </section>
         );
       }
@@ -115,19 +92,12 @@ const seksjoner = oversikt?.seksjoner || [];
         const items = (s.relatertIds || []).map(id => relatertById.get(id)).filter((x): x is Artikkel | VeiledningGuide => !!x);
         if (items.length === 0) return null;
         return (
-          <section class="eksempler-relatert">
-            {s.tittel && <h2 class="eksempler-relatert-tittel">{s.tittel}</h2>}
+          <section class="eksempler-section eksempler-relatert">
+            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
             <div class="eksempler-relatert-grid">
-              {items.map((item: any) => {
-                const url = artikler.find(a => a.id === item.id)
-                  ? `/artikler/${item.slug}`
-                  : `/veiledning/${item.slug}`;
-                return (
-                  <a href={url} class="eksempel-relatert-card">
-                    <h3>{item.tittel}</h3>
-                    {item.ingress && <p>{item.ingress}</p>}
-                  </a>
-                );
+              {items.map((item, i) => {
+                const href = artikler.some(a => a.id === item.id) ? `/artikler/${item.slug}` : `/veiledning/${item.slug}`;
+                return <ArticleCardCompact href={href} title={item.tittel} date={item.publishedAt} tag={s.relatertTags?.[i]} tagColor="accent" />;
               })}
             </div>
           </section>
@@ -135,16 +105,15 @@ const seksjoner = oversikt?.seksjoner || [];
       }
 
       if (s.contentType === 'eksempelKontakt') {
+        if (!s.tittel && !s.navn && !s.epost && !s.stilling) return null;
         return (
           <section class="eksempler-kontakt">
-            <h2 class="eksempler-kontakt-tittel">{s.tittel || ''}</h2>
-            {(s.navn || s.epost || s.stilling) && (
-              <div class="eksempler-kontakt-info">
-                {s.navn && <p class="eksempler-kontakt-navn">{s.navn}</p>}
-                {s.stilling && <p class="eksempler-kontakt-stilling">{s.stilling}</p>}
-                {s.epost && <a href={`mailto:${s.epost}`} class="eksempler-kontakt-epost">{s.epost}</a>}
-              </div>
-            )}
+            {s.tittel && <h2 class="eksempler-kontakt-tittel">{s.tittel}</h2>}
+            <div class="eksempler-kontakt-info">
+              {s.navn && <p class="eksempler-kontakt-navn">{s.navn}</p>}
+              {s.epost && <a href={`mailto:${s.epost}`} class="eksempler-kontakt-epost">{s.epost}</a>}
+              {s.stilling && <p class="eksempler-kontakt-stilling">{s.stilling}</p>}
+            </div>
           </section>
         );
       }
@@ -162,171 +131,61 @@ const seksjoner = oversikt?.seksjoner || [];
   .eksempler-page {
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-6);
-    padding-block: var(--ds-size-8);
+    gap: var(--ds-size-16);
+    padding-block: var(--ds-size-10) var(--ds-size-22);
   }
 
-  .eksempler-title {
-    font-size: 40px;
-    font-weight: 700;
-    line-height: 1.2;
-    margin: 0 0 16px;
-    letter-spacing: -0.02em;
-  }
-  .eksempler-lead {
-    font-size: 21px;
-    color: rgba(0, 0, 0, 0.75);
-    line-height: 1.7;
-    margin: 0;
-  }
-
-  .eksempler-grid {
-    display: grid;
-    gap: var(--ds-size-4);
-    grid-template-columns: 1fr;
-  }
-  @media (min-width: 768px) {
-    .eksempler-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
-    .eksempler-grid[data-cols="3"] { grid-template-columns: repeat(2, 1fr); }
-    .eksempler-grid[data-cols="4"] { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (min-width: 1024px) {
-    .eksempler-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); }
-    .eksempler-grid[data-cols="3"] { grid-template-columns: repeat(3, 1fr); }
-    .eksempler-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); }
-  }
-  .eksempler-grid[data-cols="1"] { grid-template-columns: 1fr; }
-
-  .eksempel-card {
+  .eksempler-header {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 16px;
-    padding: 24px;
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow 0.15s;
+    gap: var(--ds-size-4);
   }
-  .eksempel-card:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-  .eksempel-card-image {
-    aspect-ratio: 16 / 9;
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--image-fallback-bg, #D9D9D9);
-  }
-  .eksempel-card-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .eksempel-card-title {
-    font-size: 21px;
-    font-weight: 600;
-    margin: 0 0 8px;
-    line-height: 1.3;
-  }
-  .eksempel-card-lead {
-    font-size: 16px;
-    color: rgba(0, 0, 0, 0.7);
+  .eksempler-title {
     margin: 0;
-    line-height: 1.5;
   }
-
-  .eksempler-featured {
-    margin-block: var(--ds-size-6);
-  }
-  .eksempel-featured-card {
-    display: grid;
-    gap: var(--ds-size-6);
-    background: var(--ds-color-accent-surface-tinted, #e5f2f7);
-    border-radius: var(--ds-border-radius-lg, 16px);
-    padding: var(--ds-size-6);
-    text-decoration: none;
-    color: inherit;
-  }
-  @media (min-width: 768px) {
-    .eksempel-featured-card { grid-template-columns: 1fr 1fr; align-items: center; }
-  }
-  .eksempel-featured-image {
-    aspect-ratio: 16 / 10;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .eksempel-featured-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .eksempel-featured-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin: var(--ds-size-2) 0;
-    line-height: 1.2;
-  }
-  .eksempel-featured-lead {
-    font-size: 18px;
+  .eksempler-lead {
+    font-size: var(--ds-body-lg-font-size);
+    line-height: var(--ds-body-lg-line-height);
+    color: var(--ds-color-neutral-text-subtle);
     margin: 0;
-    color: rgba(0, 0, 0, 0.7);
+    max-width: 60ch;
   }
 
-  .eksempler-gruppe {
-    margin-block: var(--ds-size-6);
-  }
-  .eksempler-gruppe-tittel {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 var(--ds-size-4);
+  .section-heading {
+    margin: 0 0 var(--ds-size-8);
   }
 
-  .eksempler-relatert {
-    margin-block: var(--ds-size-6);
-  }
-  .eksempler-relatert-tittel {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0 0 var(--ds-size-4);
-  }
+  /* Relatert: themed links with a colored top rule (alternating accent shades) */
   .eksempler-relatert-grid {
     display: grid;
-    gap: var(--ds-size-4);
     grid-template-columns: 1fr;
+    gap: var(--ds-size-6);
   }
   @media (min-width: 768px) {
-    .eksempler-relatert-grid { grid-template-columns: repeat(3, 1fr); }
+    .eksempler-relatert-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
-  .eksempel-relatert-card {
-    display: block;
-    padding: var(--ds-size-4);
-    background: rgba(0, 0, 0, 0.04);
-    border-radius: 12px;
-    text-decoration: none;
-    color: inherit;
+  .eksempler-relatert-grid > :global(.compact-card) {
+    border-top: 2px solid var(--ds-color-base-default);
+    border-radius: 0;
+    padding-inline: 0;
+    padding-top: var(--ds-size-4);
   }
-  .eksempel-relatert-card h3 {
-    margin: 0 0 var(--ds-size-2);
-    font-size: 18px;
-  }
-  .eksempel-relatert-card p {
-    margin: 0;
-    color: rgba(0, 0, 0, 0.7);
-    font-size: 14px;
+  .eksempler-relatert-grid > :global(.compact-card:nth-child(even)) {
+    border-top-color: var(--ds-color-surface-hover);
   }
 
+  /* Kontakt: full-width burgundy band */
   .eksempler-kontakt {
-    background: var(--ds-color-accent-base-default);
-    color: var(--ds-color-accent-base-contrast-default);
-    border-radius: 16px;
-    padding: var(--ds-size-8);
-    margin-block: var(--ds-size-6);
+    background: var(--ds-color-base-active);
+    color: var(--ds-color-base-contrast-default);
+    padding: var(--ds-size-12);
   }
   .eksempler-kontakt-tittel {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 var(--ds-size-4);
+    font-size: var(--ds-heading-md-font-size);
+    font-weight: 600;
+    margin: 0 0 var(--ds-size-6);
   }
   .eksempler-kontakt-info {
     display: flex;
@@ -340,10 +199,22 @@ const seksjoner = oversikt?.seksjoner || [];
   }
   .eksempler-kontakt-epost {
     text-decoration: underline;
+    width: fit-content;
+  }
+
+  .eksempler-fallback-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-size-4);
+  }
+  @media (min-width: 768px) {
+    .eksempler-fallback-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 
   .empty-state {
-    color: rgba(0, 0, 0, 0.55);
+    color: var(--ds-color-neutral-text-subtle);
     text-align: center;
   }
 </style>

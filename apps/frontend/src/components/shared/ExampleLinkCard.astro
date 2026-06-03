@@ -48,7 +48,7 @@ const id = `example-link-card-${crypto.randomUUID().slice(0, 8)}`;
     }
 
     & .ds-tag {
-        --dsc-tag-background-color: var(--ds-color-surface-default);
+        --dsc-tag-background-color: var(--ds-color-background-default);
     }
   }
 
@@ -65,7 +65,7 @@ const id = `example-link-card-${crypto.randomUUID().slice(0, 8)}`;
 
   /* ── Light variant ─────────────────────────────── */
   .example-link-card[data-variant='light'] {
-    background-color: var(--ds-color-surface-tinted);
+    background-color: var(--ds-color-surface-hover);
     color: var(--ds-color-text-default);
 
     .example-link-card-arrow {
