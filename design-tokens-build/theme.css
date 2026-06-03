@@ -1,7 +1,7 @@
 @charset "UTF-8";
 /*
-build: v1.14.0
-design-tokens: v1.14.0
+build: v1.15.0
+design-tokens: v1.15.0
 */
 
 @layer ds.theme.size-mode {
@@ -572,7 +572,7 @@ design-tokens: v1.14.0
 
 @layer ds.theme.semantic {
 :root {
-  --ds-border-radius-base: 0;
+  --ds-border-radius-base: 0.25rem;
   --ds-border-radius-scale: 0.25rem;
   --ds-border-radius-sm: min(var(--ds-border-radius-base)*0.5,var(--ds-border-radius-scale));
   --ds-border-radius-md: min(var(--ds-border-radius-base),var(--ds-border-radius-scale)*2);

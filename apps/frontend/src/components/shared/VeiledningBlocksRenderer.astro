@@ -44,15 +44,13 @@ const moduleIcons: Record<string, string> = {
 {renderItems.map((item) => {
   if (item.kind === 'trekkspillGruppe') {
     return (
-      <div class="veiledning-trekkspill-gruppe">
-        <div class="ds-card" data-variant="tinted">
-          {item.blocks.map((block) => (
-            <details class="ds-details">
-              <summary>{block.content.tittel}</summary>
-              <div set:html={block.content.innhold} />
-            </details>
-          ))}
-        </div>
+      <div class="ds-card" data-variant="tinted">
+        {item.blocks.map((block) => (
+          <details class="ds-details">
+            <summary>{block.content.tittel}</summary>
+            <div set:html={block.content.innhold} />
+          </details>
+        ))}
       </div>
     );
   }
@@ -76,7 +74,7 @@ const moduleIcons: Record<string, string> = {
       <div class="ds-card veiledning-modul" data-variant="tinted">
         <div class="veiledning-modul-head">
           <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
-          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="2xs">{c.tittel}</h3>}
+          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{c.tittel}</h3>}
         </div>
         <div class="veiledning-modul-body" set:html={tekst} />
         {trekkspill && trekkspill.length > 0 && (
@@ -148,10 +146,6 @@ const moduleIcons: Record<string, string> = {
   }
   .veiledning-modul-body :global(p:last-child) {
     margin-bottom: 0;
-  }
-
-  .veiledning-trekkspill-gruppe {
-    display: block;
   }
 
   .veiledning-modul-trekkspill {

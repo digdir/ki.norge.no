@@ -124,7 +124,9 @@ if (guideData) {
         {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
       </div>
 
-      <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
+      <div class="veildedning-content">
+        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
+      </div>
 
       <div class="guide-steps">
         <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
@@ -146,7 +148,6 @@ if (guideData) {
     margin: 0;
     font-size: var(--ds-body-lg-font-size);
     line-height: var(--ds-body-lg-line-height);
-    color: var(--ds-color-text-subtle);
   }
 
   .guide-steps {
@@ -214,5 +215,16 @@ if (guideData) {
     height: auto;
     border-radius: 12px;
     display: block;
+  }
+
+  .veildedning-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    margin-block-end: var(--ds-size-8);
+
+    & :global(h2) {
+      font-size: var(--ds-heading-sm-font-size);
+    }
   }
 </style>
