@@ -5,6 +5,8 @@ interface CardItem {
   href: string;
   title: string;
   tag?: string;
+  // Optional editorial override; defaults to the dark/light alternation.
+  variant?: 'dark' | 'light';
 }
 
 interface Props {
@@ -23,7 +25,7 @@ const count = cards.length;
       href={card.href}
       title={card.title}
       tag={card.tag}
-      variant={variants[i % 2]}
+      variant={card.variant ?? variants[i % 2]}
     />
   ))}
 </div>
