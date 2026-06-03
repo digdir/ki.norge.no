@@ -39,6 +39,28 @@
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// ── Azure Key Vault config (prod/tt02 on dis-core) ──
+// dis-core provisions an Azure Key Vault per environment and gives the pod a workload
+// identity (AZURE_* env + federated token) with access to it, plus the vault URI as
+// KeyVault:AkvUri. Pull secrets into configuration so secret values (e.g.
+// Umbraco:CMS:DeliveryApi:ApiKey) live in the vault, not in git. Secret names use "--"
+// as the section separator (Foo--Bar -> Foo:Bar). Skipped locally where AkvUri is empty.
+var akvUri = builder.Configuration["KeyVault:AkvUri"];
+if (!string.IsNullOrWhiteSpace(akvUri))
+{
+    try
+    {
+        builder.Configuration.AddAzureKeyVault(new Uri(akvUri), new Azure.Identity.DefaultAzureCredential());
+    }
+    catch (Exception ex)
+    {
+        // A vault problem must never take down the CMS. Log and continue without it:
+        // secret config (e.g. the Delivery API preview key) just won't load until the
+        // vault is reachable again, but published content keeps serving.
+        Console.Error.WriteLine($"[KeyVault] Kunne ikke laste fra {akvUri}: {ex.Message}. Fortsetter uten.");
+    }
+}
+
 builder.CreateUmbracoBuilder()
     .AddBackOffice()
     .AddWebsite()
