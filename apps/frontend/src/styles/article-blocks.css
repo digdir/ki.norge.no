@@ -87,9 +87,7 @@
 .article-innhold-fra-org { font-size: 14px; font-weight: 600; color: #000; }
 .article-innhold-fra-date { font-size: 14px; color: rgba(0, 0, 0, 0.55); }
 
-/* Kontaktkort. Background is neutral gray (was light blue) — kontaktkort
-   is a secondary card, not a hero element, so it shouldn't compete with
-   accent-colored fremheving/info blocks. */
+/* Kontaktkort */
 .article-kontaktkort {
   background: var(--ds-color-base-active);
   color: var(--ds-color-background-default);
@@ -101,9 +99,7 @@
   --dsc-link-color--active: var(--ds-color-base-contrast-default);
 }
 
-/* Prosessteg — full-bleed burgundy block (bleeds like .article-kontaktkort).
-   Heading and step text align to the article content column above; the number
-   circles hang out into the gutter to its left. */
+/* Prosessteg */
 .article-prosessteg {
   background: var(--ds-color-base-hover);
   color: var(--ds-color-base-contrast-default);
@@ -202,33 +198,37 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  border-radius: 8px;
-  padding: 32px;
+  /* 16px (not the house 8px) per the fremheving design — the soft card reads
+     too sharp at 8px. Justified deviation; see border-radius note at top. */
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-size-5);
   margin: 16px 0;
 }
-.article-fremheving--bg { background: #e5f2f7; }
+.article-fremheving--bg { background: var(--ds-color-surface-tinted); }
 @media (min-width: 768px) {
   .article-fremheving--with-image {
     flex-direction: row;
     align-items: flex-start;
+    gap: 32px;
   }
-  .article-fremheving-image { flex-shrink: 0; width: 35%; }
+  .article-fremheving-image { flex-shrink: 0; width: 40%; }
 }
 .article-fremheving-image img { width: 100%; height: auto; display: block; border-radius: 8px; }
 .article-fremheving-content { flex: 1; min-width: 0; }
 .article-fremheving-title {
-  font-size: 21px;
   font-weight: 500;
-  color: #1a2a6d;
+  color: var(--ds-color-text-default);
   margin: 0 0 16px;
 }
 .article-fremheving-text {
-  font-size: 18px;
   line-height: 1.7;
-  color: rgba(0, 0, 0, 0.8);
+  color: var(--ds-color-text-default);
 }
 .article-fremheving-text p { margin: 0 0 12px; }
-.article-fremheving-text p:last-child { margin-bottom: 0; }
+.article-fremheving-text ul,
+.article-fremheving-text ol { margin: 0 0 12px; padding-left: 1.5em; }
+.article-fremheving-text li { margin-bottom: 8px; }
+.article-fremheving-text > :last-child { margin-bottom: 0; }
 
 /* Quote variant: « and » sit INLINE with the body text on the same
    baseline. The renderer puts the marks in <span> siblings of a wrapping
@@ -237,11 +237,10 @@
    collapses onto one running line of text and the marks naturally flow
    with the words. Italic body, 24px (= ds font size 6). */
 .article-fremheving-text--quote {
+  font-family: 'PT Serif', serif;
   font-style: italic;
   margin: 0;
-  font-size: var(--ds-font-size-6, 24px);
-  line-height: 1.5;
-  text-align: center;
+  font-size: var(--ds-font-size-6);
 }
 .article-fremheving-text--quote > div,
 .article-fremheving-text--quote > div > p {

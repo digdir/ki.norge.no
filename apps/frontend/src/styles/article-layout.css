@@ -118,6 +118,7 @@
   .article-layout__grid > [data-layout-block="edge"] {
     grid-column: 1;
     margin-inline: calc(-1 * var(--ds-size-4));
+    padding-inline: var(--ds-size-4);
   }
 }
 
