@@ -70,8 +70,9 @@ const moduleIcons: Record<string, string> = {
     const trekkspill = block.contentType === 'veiledningInfo' ? c.trekkspill as TrekkspillItem[] | undefined : undefined;
     const lesMerTittel = block.contentType === 'veiledningInfo' ? c.lesMerTittel as string | undefined : undefined;
     const lesMerUrl = block.contentType === 'veiledningInfo' ? c.lesMerUrl as string | undefined : undefined;
+    const variantType = block.contentType.replace('veiledning', '').toLowerCase();
     return (
-      <div class="ds-card veiledning-modul" data-variant="tinted">
+      <div class="ds-card veiledning-modul" data-variant="tinted" data-type={variantType}>
         <div class="veiledning-modul-head">
           <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
           {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{c.tittel}</h3>}
@@ -88,7 +89,7 @@ const moduleIcons: Record<string, string> = {
           </div>
         )}
         {lesMerTittel && lesMerUrl && (
-          <a class="veiledning-modul-lesmer" href={lesMerUrl}>
+          <a class="ds-link" href={lesMerUrl}>
             <AkselIcon name="QuestionmarkCircle" size={20} />
             <span>{lesMerTittel}</span>
           </a>
@@ -121,11 +122,23 @@ const moduleIcons: Record<string, string> = {
   }
 
   .veiledning-modul {
-    padding: var(--ds-size-6) var(--ds-size-8);
+    padding-inline: var(--ds-size-5);
+    padding-block: var(--ds-size-6);
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-3);
+    border: none;
   }
+
+  .veiledning-modul[data-type="eksempel"] {
+    background-color: #EEFAEF;
+  }
+
+
+  .veiledning-modul[data-type="obs"] {
+    background-color: #FFFDE1;
+  }
+
   .veiledning-modul-head {
     display: flex;
     align-items: center;
