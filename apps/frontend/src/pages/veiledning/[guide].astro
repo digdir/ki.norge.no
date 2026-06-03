@@ -118,7 +118,7 @@ if (guideData) {
   </Layout>
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} bodyColor="brand1">
-    <div data-layout-block="content">
+    <div class="article-page" data-layout-block="content">
       <div class="guide-header">
         <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
         {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
@@ -155,10 +155,7 @@ if (guideData) {
   }
 
   .article-page {
-    padding-top: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
+    max-width: 1000px;
   }
 
   .article-hero {
