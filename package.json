@@ -8,6 +8,8 @@
     "cms:build": "cd apps/cms-umbraco && dotnet build -c Release",
     "cms:restore": "cd apps/cms-umbraco && dotnet restore",
     "frontend:dev": "cd apps/frontend && pnpm run dev",
+    "frontend:dev:mock": "node apps/frontend/tools/mock-cms/dev.mjs",
+    "mock-cms": "node apps/frontend/tools/mock-cms/server.mjs",
     "frontend:dev:prod": "cross-env UMBRACO_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io UMBRACO_PUBLIC_URL=https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io pnpm --dir apps/frontend run dev",
     "frontend:build": "cd apps/frontend && pnpm run build",
     "frontend:build:tt02": "cd apps/frontend && pnpm run build:tt02",
