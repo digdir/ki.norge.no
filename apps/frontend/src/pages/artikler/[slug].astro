@@ -66,7 +66,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 
   {otherArticles.length > 0 && (
     <section class="more-articles" data-layout-block="content">
-      <h2 class="more-articles-heading">Flere artikler</h2>
+      <h2 class="more-articles-heading ds-heading" data-size="md">Artikler</h2>
       <div class="more-articles-grid">
         {otherArticles.map(a => (
           <NewsCard
@@ -74,6 +74,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={a.tittel}
             date={a.publishedAt}
             lead={getPlainText(a.innhold, 80)}
+            variant="image"
           />
         ))}
       </div>
@@ -99,19 +100,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   }
 
   .more-articles-heading {
-    font-size: 32px;
-    font-weight: 700;
-    color: #000;
-    margin: 0 0 24px;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  @media (min-width: 1024px) {
-    .more-articles-heading {
-      font-size: 40px;
-      margin-bottom: 32px;
-    }
+    margin-block-end: var(--ds-size-8);
   }
 
   .more-articles-grid {
