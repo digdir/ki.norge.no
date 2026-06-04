@@ -48,3 +48,5 @@ test-results/
 # Design files
 design/
 .venv/
+apps/cms-kinorgeportal/worker-configuration.d.ts
+apps/cms-kinorgeportal/.wrangler/tmp/

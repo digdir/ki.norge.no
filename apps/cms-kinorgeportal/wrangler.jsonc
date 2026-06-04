@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cms-kinorgeportal",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "env": {
+    "tt02": {
+      "name": "cms-kinorgeportal-tt02",
+      "vars": {
+        "ORIGIN": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
+      },
+    },
+    "prod": {
+      "name": "cms-kinorgeportal-prod",
+      "vars": {
+        "ORIGIN": "https://kinorgeportal.prod.dis-core.altinn.cloud",
+      },
+    },
+  },
+}

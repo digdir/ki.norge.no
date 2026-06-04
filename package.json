@@ -25,5 +25,8 @@
   "devDependencies": {
     "@digdir/designsystemet": "^1.15.0",
     "cross-env": "^10.1.0"
+  },
+  "dependencies": {
+    "wrangler": "^4.95.0"
   }
 }

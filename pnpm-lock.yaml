@@ -11,6 +11,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      wrangler:
+        specifier: ^4.95.0
+        version: 4.95.0
     devDependencies:
       '@digdir/designsystemet':
         specifier: ^1.15.0
