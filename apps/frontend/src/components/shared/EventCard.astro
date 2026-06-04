@@ -33,7 +33,7 @@ const isLink = !!href;
 
 <div class:list={["event-card", { "event-card--clickable": isLink }]} data-clickdelegatefor={id}>
   <div class="event-card-date">
-    <span class="event-card-day">{day}.<br />{month}</span>
+    <span class="event-card-day">{day}. {month}</span>
     <span class="event-card-year">{year}</span>
   </div>
   <div class="event-card-body">
@@ -75,6 +75,7 @@ const isLink = !!href;
     grid-template-columns: 140px 1fr;
     gap: 0;
     background-color: #FFF; /* TODO: this does not have a proper DS color */
+    color: var(--ds-color-text-default);
     overflow: hidden;
   }
 
@@ -167,7 +168,6 @@ const isLink = !!href;
     flex-direction: column;
     gap: var(--ds-size-4);
     font-size: var(--ds-body-sm-font-size);
-    border-left: 1px solid var(--ds-color-surface-active);
     padding-inline-start: var(--ds-size-6);
   }
 
@@ -192,6 +192,11 @@ const isLink = !!href;
       gap: var(--ds-size-2);
       padding: var(--ds-size-4) var(--ds-size-6);
       min-width: unset;
+
+    }
+
+    .event-card-day, .event-card-year {
+      font-size: var(--ds-heading-sm-font-size);
     }
 
     .event-card-body {
