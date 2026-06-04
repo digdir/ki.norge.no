@@ -5,27 +5,29 @@ interface Props {
   href: string;
   title: string;
   tag?: string;
-  variant?: 'brand1' | 'brand2' | 'brand3';
+  variant?: 'dark' | 'medium' | 'light';
 }
 
 const {
   href,
   title,
   tag = 'Eksempel',
-  variant = 'brand1',
+  variant = 'dark',
 } = Astro.props;
 
 const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
 ---
 
-<article class:list={['example-card', `example-card--${variant}`]} data-clickdelegatefor={id}>
-  {tag && <span class="example-card-tag">{tag}</span>}
+<article class="example-card" data-variant={variant} data-clickdelegatefor={id}>
+  {tag && <span class="ds-tag" data-size="sm">{tag}</span>}
   <h3 class="ds-heading example-card-title" data-size="sm">
-    <a id={id} href={href}>{title}</a>
+    <a id={id} href={href}>
+      {title}
+      <span class="example-card-arrow" aria-hidden="true">
+        <AkselIcon name="ArrowRight" size={20} />
+      </span>
+    </a>
   </h3>
-  <span class="example-card-arrow" aria-hidden="true">
-    <AkselIcon name="ArrowRight" size={16} />
-  </span>
 </article>
 
 <style>
@@ -58,12 +60,7 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
     }
   }
 
-  .example-card-tag {
-    font-size: var(--ds-font-size-1);
-    border: 1px solid currentColor;
-    border-radius: var(--ds-border-radius-sm);
-    padding: var(--ds-size-1) var(--ds-size-2);
-    width: fit-content;
+  .ds-tag {
     margin-bottom: var(--ds-size-4);
   }
 
@@ -76,44 +73,35 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    align-self: flex-end;
-    margin-top: var(--ds-size-4);
-    flex-shrink: 0;
+    background-color: var(--ds-color-base-contrast-default);
+    color: var(--ds-color-base-default);
+    vertical-align: middle;
+    margin-left: 0.35em;
   }
 
-  /* ── Brand1: dark red background ── */
-  .example-card--brand1 {
-    background-color: var(--ds-color-brand1-surface-default);
-    color: var(--ds-color-brand1-text-on);
+  .example-card[data-variant='light'] .example-card-arrow {
+    background-color: var(--ds-color-text-default);
+    color: var(--ds-color-surface-hover);
   }
 
-  .example-card--brand1 .example-card-arrow {
-    background-color: var(--ds-color-brand1-contrast-default);
-    color: var(--ds-color-brand1-surface-default);
+  /* ── Dark variant (base-default) ── */
+  .example-card[data-variant='dark'] {
+    background-color: var(--ds-color-base-default);
+    color: var(--ds-color-base-contrast-default);
   }
 
-  /* ── Brand2: light pink background ── */
-  .example-card--brand2 {
-    background-color: var(--ds-color-brand1-surface-active);
-    color: var(--ds-color-brand1-text-default);
+  /* ── Medium variant (base-hover) ── */
+  .example-card[data-variant='medium'] {
+    background-color: var(--ds-color-base-hover);
+    color: var(--ds-color-base-contrast-default);
   }
 
-  .example-card--brand2 .example-card-arrow {
-    background-color: var(--ds-color-brand1-contrast-default);
-    color: var(--ds-color-brand1-surface-default);
-  }
-
-  /* ── Brand3: darker red background ── */
-  .example-card--brand3 {
-    background-color: var(--ds-color-brand1-contrast-default);
-    color: var(--ds-color-brand1-text-on);
-  }
-
-  .example-card--brand3 .example-card-arrow {
-    background-color: var(--ds-color-brand1-surface-active);
-    color: var(--ds-color-brand1-text-default);
+  /* ── Light variant (surface-hover) ── */
+  .example-card[data-variant='light'] {
+    background-color: var(--ds-color-surface-hover);
+    color: var(--ds-color-text-default);
   }
 </style>

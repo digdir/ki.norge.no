@@ -1,12 +1,12 @@
 ---
-import ExampleLinkCard from './ExampleLinkCard.astro';
+import ExampleCard from './ExampleCard.astro';
 
 interface CardItem {
   href: string;
   title: string;
   tag?: string;
-  // Optional editorial override; defaults to the dark/light alternation.
-  variant?: 'dark' | 'light';
+  // Optional editorial override; defaults to the dark/medium/light alternation.
+  variant?: 'dark' | 'medium' | 'light';
 }
 
 interface Props {
@@ -15,13 +15,13 @@ interface Props {
 
 const { cards } = Astro.props;
 
-const variants: Array<'dark' | 'light'> = ['dark', 'light'];
+const variants: Array<'dark' | 'medium' | 'light'> = ['dark', 'medium', 'light'];
 const count = cards.length;
 ---
 
 <div class="example-link-cards" data-count={count}>
   {cards.map((card, i) => (
-    <ExampleLinkCard
+    <ExampleCard
       href={card.href}
       title={card.title}
       tag={card.tag}

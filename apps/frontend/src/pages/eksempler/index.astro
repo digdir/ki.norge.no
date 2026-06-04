@@ -2,7 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.astro';
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
-import ExampleLinkCard from '../../components/shared/ExampleLinkCard.astro';
+import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
 import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, type Eksempel, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
 
@@ -49,7 +49,7 @@ const seksjoner = oversikt?.seksjoner || [];
       <section class="eksempler-section">
         <div class="eksempler-fallback-grid">
           {eksempler.map((e, i) => (
-            <ExampleLinkCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={i % 2 === 0 ? 'dark' : 'light'} />
+            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={(['dark', 'medium', 'light'] as const)[i % 3]} />
           ))}
         </div>
       </section>
