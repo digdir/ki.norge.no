@@ -873,7 +873,7 @@ public class ContentTypeComponent : IAsyncComponent
             IsElement = true,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri. Tom tittel vises som \"Obs\" på siden."), "innhold");
         ct.AddPropertyType(Prop("tekst", "Tekst", _richTextDt, mandatory: true), "innhold");
         _contentTypeService.Save(ct);
         return ct;
@@ -883,10 +883,26 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("veiledningObs");
         if (ct == null) return;
-        if (!ct.PropertyTypes.Any(p => p.Alias == "variant")) return;
-        ct.RemovePropertyType("variant");
-        _contentTypeService.Save(ct);
-        Console.WriteLine("ContentTypeComposer: Removed variant property from veiledningObs");
+
+        bool changed = false;
+
+        if (ct.PropertyTypes.Any(p => p.Alias == "variant"))
+        {
+            ct.RemovePropertyType("variant");
+            changed = true;
+            Console.WriteLine("ContentTypeComposer: Removed variant property from veiledningObs");
+        }
+
+        // Tittel er valgfri (Dorte): tom tittel vises som "Obs" i frontend. Relax eksisterende noder.
+        var tittel = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "tittel");
+        if (tittel != null && tittel.Mandatory)
+        {
+            tittel.Mandatory = false;
+            changed = true;
+        }
+
+        if (changed)
+            _contentTypeService.Save(ct);
     }
 
     private IContentType CreateVeiledningTrekkspillElement()
@@ -1091,6 +1107,25 @@ public class ContentTypeComponent : IAsyncComponent
         ["artikkelTrekkspill"] = "artikkelTrekkspillSettings",
     };
 
+    /// <summary>
+    /// Per-block label shown i Block List-oversikten, så redaktør ser et utdrag av hver
+    /// modul uten å åpne den (Dorte-ønske, Drupal-stil). Bruker Umbraco Flavored Markdown:
+    /// {umbValue: alias | filter}. Aliaser uten oppføring her får standard-label (modulnavn).
+    /// </summary>
+    private static readonly Dictionary<string, string> BlockLabelByContent = new()
+    {
+        ["artikkelTekst"]        = "{umbValue: innhold | stripHtml | wordLimit:12}",
+        ["artikkelInfoBoks"]     = "{umbValue: innhold | stripHtml | wordLimit:12}",
+        ["artikkelBildeSeksjon"] = "{umbValue: bildetekst | fallback:Bilde}",
+        ["artikkelFremheving"]   = "{umbValue: tekst | stripHtml | wordLimit:12}",
+        ["artikkelKontaktkort"]  = "{umbValue: navn | fallback:Kontaktkort}",
+        ["veiledningTekst"]      = "{umbValue: innhold | stripHtml | wordLimit:12}",
+        ["veiledningInfo"]       = "{umbValue: tittel | fallback:Info}",
+        ["veiledningEksempel"]   = "{umbValue: tittel | fallback:Eksempel}",
+        ["veiledningObs"]        = "{umbValue: tittel | fallback:Obs}",
+        ["veiledningTrekkspill"] = "{umbValue: tittel | fallback:Trekkspill}",
+    };
+
     private object? BuildBlockConfig(string alias, string contextName, string operation)
     {
         var elementType = _contentTypeService.Get(alias);
@@ -1114,6 +1149,10 @@ public class ContentTypeComponent : IAsyncComponent
             {
                 Console.WriteLine($"ContentTypeComposer: Settings element type '{settingsAlias}' for '{alias}' not found in block list '{contextName}' — skipping settings");
             }
+        }
+        if (BlockLabelByContent.TryGetValue(alias, out var label))
+        {
+            block["label"] = label;
         }
         return block;
     }
@@ -1536,7 +1575,16 @@ public class ContentTypeComponent : IAsyncComponent
 
         if (!ct.PropertyTypes.Any(p => p.Alias == "ingress"))
         {
-            ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+            ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Valgfri. Stegsider bruker brødtekst-modul i stedet (Dorte).", sortOrder: 2), "innhold");
+            changed = true;
+        }
+
+        // Ingress er ikke lenger påkrevd på stegsider (Dorte): innhold skal ligge i en
+        // brødtekst-modul slik at all tekst får lik størrelse. Relax eksisterende noder.
+        var ingressProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "ingress");
+        if (ingressProp != null && ingressProp.Mandatory)
+        {
+            ingressProp.Mandatory = false;
             changed = true;
         }
 
@@ -1948,7 +1996,7 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Valgfri. Stegsider bruker brødtekst-modul i stedet (Dorte).", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 3), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
