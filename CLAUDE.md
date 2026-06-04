@@ -62,7 +62,6 @@ Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres ti
 
 **Nøkkelfiler**
 - `Composers/ContentTypeComposer.cs` — oppretter alle document types og element types ved oppstart. Registrerer Block List data types.
-- `Composers/ContentSeeder.cs` — seeder demo-innhold ved første kjøring. Kjører etter ContentTypeComposer.
 - `Program.cs` — startup med instance guard (forhindrer dobbel-start som ødelegger SQLite)
 - `appsettings.Development.json` — lokal config med connection string, Delivery API key, preview secret
 - `appsettings.json` — prod config, tom connection string (overrides fra env vars i Azure)
@@ -70,9 +69,8 @@ Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres ti
 **Legge til en ny Block List-modul (element type)**
 1. I `ContentTypeComposer.cs`: lag en ny metode som oppretter element type med felter
 2. Registrer den i `InitializeAsync` og legg den til i riktig Block List data type
-3. I `ContentSeeder.cs`: seed eksempelinnhold om ønskelig
-4. I `umbraco.ts`: legg til interface, mapping i mapItem() eller mapArtikkelBlocks()
-5. I `BlocksRenderer.astro` eller artikkel-siden: legg til rendering for den nye contentType-verdien
+3. I `umbraco.ts`: legg til interface, mapping i mapItem() eller mapArtikkelBlocks()
+4. I `BlocksRenderer.astro` eller artikkel-siden: legg til rendering for den nye contentType-verdien
 
 **Eksisterende element types for artikler**
 - artikkelTekst (RichText)
@@ -86,7 +84,7 @@ Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres ti
 
 **Migrasjon til SQL Server planlagt**: SQLite + Litestream gir lock-contention på multi-editor-bruk. Plan i `docs/sql-server-migration-plan.md`. Tester forberedt i `tests/sql-migration/`. Avventer team-go-ahead.
 
-**Innholdsskriving fra kode = anti-pattern**: Se `docs/seeder-content-write-audit.md`. Strukturmigreringer (content types) er OK; å skrive content NODES fra startup-kode har gitt 2 prod-incidenter (Sandkasse, nesten Caser). Mål: pre-launch er all auto-content-skriving fjernet, demo/test-innhold lages via editor.
+**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) settes i kode via `ContentTypeComposer`, men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se `docs/seeder-content-write-audit.md`.
 
 ## Deploy
 
