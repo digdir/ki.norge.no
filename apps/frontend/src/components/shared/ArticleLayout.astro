@@ -51,7 +51,7 @@ const bylineAuthor = byline
             {bylineAuthor}
           </div>
         )}
-        <button class="article-layout__share ds-button" type="button" data-size="sm" data-variant="tertiary">
+        <button class="article-layout__share ds-button" type="button" data-size="sm" data-variant="tertiary" data-share-button>
             <AkselIcon name="ArrowForward" size={24} />
             Del
         </button>
@@ -66,3 +66,24 @@ const bylineAuthor = byline
     background-color: var(--ds-color-surface-active) !important;
   }
 </style>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('[data-share-button]');
+  btn?.addEventListener('click', async () => {
+    const shareData = {
+      title: document.title,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (e) {
+        // User cancelled or share failed silently
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      btn.textContent = 'Kopiert!';
+      setTimeout(() => { btn.textContent = 'Del'; }, 2000);
+    }
+  });
+</script>

@@ -65,12 +65,12 @@ const simpleLinks = cmsData?.verktoyKort
 const caseCards = cases.data.length > 0
   ? cases.data.slice(0, 2).map(c => ({
       title: c.tittel,
-      href: `/caser/${c.slug}`,
+      href: `/eksempel/${c.slug}`,
       tag: 'Eksempel',
     }))
   : [
-      { title: 'Raskere analyser av dokumenter med KI-chat i Digdir', href: '/caser/ki-chat-staten', tag: 'Eksempel' },
-      { title: 'Politiet - Fra tale til tekst på minutter', href: '/caser/politiet-tale-til-tekst', tag: 'Eksempel' },
+      { title: 'Raskere analyser av dokumenter med KI-chat i Digdir', href: '/eksempel/ki-chat-staten', tag: 'Eksempel' },
+      { title: 'Politiet - Fra tale til tekst på minutter', href: '/eksempel/politiet-tale-til-tekst', tag: 'Eksempel' },
     ];
 
 const seoTitle = cmsData?.seoTittel || 'Guider & veiledning';

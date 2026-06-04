@@ -27,7 +27,7 @@ const {
 const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
 
 const formattedDate = date
-  ? new Date(date).toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  ? new Date(date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
   : undefined;
 ---
 
@@ -53,7 +53,7 @@ const formattedDate = date
     </div>
   )}
   <div class="news-card-body">
-    {tag && <span class="ds-tag" data-variant="outline">{tag.toUpperCase()}</span>}
+    {tag && <span class="ds-tag" data-variant="outline" data-size="sm">{tag.toUpperCase()}</span>}
     <h3 class="ds-heading news-card-title" data-size={variant === 'featured' ? 'lg' : 'sm'}>
       <a id={id} href={href}>
         {title}
@@ -67,7 +67,6 @@ const formattedDate = date
     {variant === 'featured' && lead && <p class="news-card-lead">{lead}</p>}
     {formattedDate && (
       <span class="news-card-meta">
-        <AkselIcon name="OpenBook" size={24} />
         {formattedDate}
       </span>
     )}

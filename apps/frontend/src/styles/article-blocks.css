@@ -260,18 +260,15 @@
 .article-fremheving-source cite { font-style: normal; }
 
 /* Image section */
-.article-image-section { margin: 32px 0; }
-.article-image-section img { width: 100%; border-radius: 8px; display: block; }
+.article-image-section { margin: var(--ds-size-4) 0; }
+.article-image-section img { width: 100%; display: block; }
 .article-image-placeholder {
   width: 100%;
   height: 400px;
   background: var(--image-fallback-bg, #D9D9D9);
-  border-radius: 8px;
 }
 .article-image-section figcaption {
-  font-size: 14px;
-  margin-top: 8px;
-  text-align: center;
+  margin-top: var(--ds-size-2);
 }
 
 /* Plain text block */
