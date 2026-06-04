@@ -2,9 +2,9 @@
 import Layout from '../../components/layout/Layout.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
-import NewsCard from '../../components/shared/NewsCard.astro';
+import ExampleCard from '../../components/shared/ExampleCard.astro';
 
-import { getEksempel, getEksempler, getPlainText, getMediaUrl, type Eksempel } from '../../lib/umbraco';
+import { getEksempel, getEksempler, getPlainText, type Eksempel } from '../../lib/umbraco';
 import { eksempelSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
@@ -59,14 +59,12 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 
   {otherArticles.length > 0 && (
     <section class="more-articles" data-layout-block="content">
-      <h2 class="more-articles-heading">Flere eksempler</h2>
+      <h2 class="more-articles-heading ds-heading" data-size="md">Flere eksempler</h2>
       <div class="more-articles-grid">
-        {otherArticles.map(a => (
-          <NewsCard
+        {otherArticles.map((a, i) => (
+          <ExampleCard
             href={`/eksempler/${a.slug}`}
             title={a.tittel}
-            date={a.publishedAt}
-            lead={getPlainText(a.innhold, 80)}
           />
         ))}
       </div>
@@ -92,31 +90,17 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   }
 
   .more-articles-heading {
-    font-size: 32px;
-    font-weight: 700;
-    color: #000;
-    margin: 0 0 24px;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
-
-  @media (min-width: 1024px) {
-    .more-articles-heading {
-      font-size: 40px;
-      margin-bottom: 32px;
-    }
+    margin-block-end: var(--ds-size-8);
   }
 
   .more-articles-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 24px;
   }
 
   @media (min-width: 768px) {
     .more-articles-grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: 32px;
     }
   }
 

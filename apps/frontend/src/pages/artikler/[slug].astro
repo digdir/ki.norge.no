@@ -12,12 +12,6 @@ const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('
 const article = await getArtikkel(slug!, { preview: isPreview });
 if (!article) return Astro.redirect('/artikler');
 
-const formattedDate = new Date(article.publishedAt).toLocaleDateString('nb-NO', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
 const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;

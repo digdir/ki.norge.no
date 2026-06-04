@@ -1,0 +1,119 @@
+---
+import AkselIcon from './AkselIcon.astro';
+
+interface Props {
+  href: string;
+  title: string;
+  tag?: string;
+  variant?: 'brand1' | 'brand2' | 'brand3';
+}
+
+const {
+  href,
+  title,
+  tag = 'Eksempel',
+  variant = 'brand1',
+} = Astro.props;
+
+const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
+---
+
+<article class:list={['example-card', `example-card--${variant}`]} data-clickdelegatefor={id}>
+  {tag && <span class="example-card-tag">{tag}</span>}
+  <h3 class="ds-heading example-card-title" data-size="sm">
+    <a id={id} href={href}>{title}</a>
+  </h3>
+  <span class="example-card-arrow" aria-hidden="true">
+    <AkselIcon name="ArrowRight" size={16} />
+  </span>
+</article>
+
+<style>
+  .example-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--ds-size-6);
+    cursor: pointer;
+    position: relative;
+    min-height: 200px;
+
+    & a {
+      text-decoration: none;
+      color: inherit;
+
+      &.\:click-delegate-hover {
+        text-decoration: underline;
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: none;
+      }
+    }
+
+    &:focus-within {
+      box-shadow: var(--dsc-focus-boxShadow);
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+    }
+  }
+
+  .example-card-tag {
+    font-size: var(--ds-font-size-1);
+    border: 1px solid currentColor;
+    border-radius: var(--ds-border-radius-sm);
+    padding: var(--ds-size-1) var(--ds-size-2);
+    width: fit-content;
+    margin-bottom: var(--ds-size-4);
+  }
+
+  .example-card-title {
+    margin: 0;
+    flex: 1;
+  }
+
+  .example-card-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    align-self: flex-end;
+    margin-top: var(--ds-size-4);
+    flex-shrink: 0;
+  }
+
+  /* ── Brand1: dark red background ── */
+  .example-card--brand1 {
+    background-color: var(--ds-color-brand1-surface-default);
+    color: var(--ds-color-brand1-text-on);
+  }
+
+  .example-card--brand1 .example-card-arrow {
+    background-color: var(--ds-color-brand1-contrast-default);
+    color: var(--ds-color-brand1-surface-default);
+  }
+
+  /* ── Brand2: light pink background ── */
+  .example-card--brand2 {
+    background-color: var(--ds-color-brand1-surface-active);
+    color: var(--ds-color-brand1-text-default);
+  }
+
+  .example-card--brand2 .example-card-arrow {
+    background-color: var(--ds-color-brand1-contrast-default);
+    color: var(--ds-color-brand1-surface-default);
+  }
+
+  /* ── Brand3: darker red background ── */
+  .example-card--brand3 {
+    background-color: var(--ds-color-brand1-contrast-default);
+    color: var(--ds-color-brand1-text-on);
+  }
+
+  .example-card--brand3 .example-card-arrow {
+    background-color: var(--ds-color-brand1-surface-active);
+    color: var(--ds-color-brand1-text-default);
+  }
+</style>
