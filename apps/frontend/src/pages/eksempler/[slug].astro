@@ -65,6 +65,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
           <ExampleCard
             href={`/eksempler/${a.slug}`}
             title={a.tittel}
+            variant={(['medium', 'light'] as const)[i % 2]}
           />
         ))}
       </div>
