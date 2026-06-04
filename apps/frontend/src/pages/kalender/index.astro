@@ -1,5 +1,6 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import EventCard from '../../components/shared/EventCard.astro';
 import { getKalender, getKalenderhendelser, type Kalenderhendelse } from '../../lib/umbraco';
 
 let kalender = null;
@@ -13,13 +14,9 @@ try {
 }
 
 const tittel = kalender?.tittel || 'Kalender';
-const ingress = kalender?.ingress || 'Arrangementer om KI i offentlig sektor.';
+const ingress = kalender?.ingress || 'Her finner du arrangementer om KI fra private og offentlige aktører.';
 const seoTitle = kalender?.seoTittel || tittel;
 const seoDesc = kalender?.seoBeskrivelse || ingress;
-const featured = kalender?.featuredHendelse || null;
-// Den fremhevede hendelsen vises i hero-boksen. Filtrer den ut av listene
-// under så den ikke dukker opp dobbelt.
-const featuredId = featured?.id;
 
 const now = new Date();
 const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
@@ -29,20 +26,43 @@ const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
 // helt til siste dag er passert. Sortering bruker fortsatt startDato.
 const effectiveEnd = (h: Kalenderhendelse) => new Date(h.sluttDato || h.startDato);
 
-const kommende = hendelser
-  .filter(h => h.id !== featuredId)
+// Bruk CMS-felt hvis satt, ellers bruk første kommende hendelse som featured
+const allKommende = hendelser
   .filter(h => effectiveEnd(h) >= now)
   .sort(sortByStart);
+const featured = kalender?.featuredHendelse || allKommende[0] || null;
+const featuredId = featured?.id;
+
+const kommende = allKommende
+  .filter(h => h.id !== featuredId);
 const tidligere = hendelser
   .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
 
-const monthAbbrev = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'];
+const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
 const formatDate = (iso: string) => {
-  if (!iso) return { day: '', month: '' };
+  if (!iso) return { day: '', month: '', year: '' };
   const d = new Date(iso);
-  return { day: String(d.getDate()), month: monthAbbrev[d.getMonth()] };
+  return { day: String(d.getDate()), month: monthNames[d.getMonth()], year: String(d.getFullYear()) };
+};
+const formatDateRange = (startIso: string, endIso?: string) => {
+  const start = new Date(startIso);
+  const end = endIso ? new Date(endIso) : null;
+  const startDay = start.getDate();
+  const startMonth = monthNames[start.getMonth()];
+  const startYear = start.getFullYear();
+  if (!end || end.getTime() === start.getTime()) {
+    return { dateLabel: `${startDay}.`, month: startMonth, year: String(startYear) };
+  }
+  const endDay = end.getDate();
+  return { dateLabel: `${startDay}. — ${endDay}.`, month: startMonth, year: String(startYear) };
+};
+const isMultiDay = (startIso: string, endIso?: string) => {
+  if (!endIso) return false;
+  const s = new Date(startIso);
+  const e = new Date(endIso);
+  return e.getTime() > s.getTime() && e.toDateString() !== s.toDateString();
 };
 const parseTagger = (s?: string) =>
   (s || '').split(',').map(t => t.trim()).filter(Boolean);
@@ -53,116 +73,91 @@ const parseTagger = (s?: string) =>
     {ingress && <p class="kalender-ingress">{ingress}</p>}
   </header>
 
-  {featured && (
-    <section class="kalender-featured" data-layout-block="edge">
-      <div class="kalender-featured-inner" data-layout-block="content">
-        <div class="kalender-featured-text">
-          {featured.type && <p class="kalender-featured-type">{featured.type}</p>}
+  {featured && (() => {
+    const featuredDate = formatDate(featured.startDato);
+    const multiDay = isMultiDay(featured.startDato, featured.sluttDato);
+    const featuredRange = formatDateRange(featured.startDato, featured.sluttDato);
+    return (
+      <section class="kalender-featured" data-layout-block="edge">
+        <div class="kalender-featured-inner" data-layout-block="content">
           <h2 class="ds-heading" data-size="lg">{featured.tittel}</h2>
           {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
-          {featured.lenke && (
-            <a class="ds-button" data-color="neutral" data-variant="primary" href={featured.lenke}>
-              Les mer
-            </a>
-          )}
+          <EventCard
+            title={featured.type || ''}
+            tags={parseTagger(featured.tagger)}
+            day={featuredRange.dateLabel}
+            month={featuredRange.month}
+            year={featuredRange.year}
+            time={featured.tid || ''}
+            timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
+            location={featured.sted || ''}
+          />
         </div>
-        <div class="kalender-featured-date">
-          <time class="kalender-date-box" datetime={featured.startDato}>
-            <span class="kalender-date-day">{formatDate(featured.startDato).day}</span>
-            <span class="kalender-date-month">{formatDate(featured.startDato).month}</span>
-          </time>
-          {featured.tid && <p class="kalender-featured-time"><span class="kalender-meta-label">Tid:</span> {featured.tid}</p>}
-          {featured.sted && <p class="kalender-featured-place"><span class="kalender-meta-label">Sted:</span> {featured.sted}</p>}
-        </div>
-      </div>
-    </section>
-  )}
+      </section>
+    );
+  })()}
 
-  <div class="kalender-tabs" data-layout-block="content">
+  <section class="kalender-arrangementer" data-layout-block="content">
     <h2 class="ds-heading" data-size="md">Arrangementer</h2>
-    <div role="tablist" class="kalender-tablist">
-      <button type="button" role="tab" aria-selected="true" data-tab="kommende" class="kalender-tab kalender-tab--active">
-        Kommende arrangement
-      </button>
-      <button type="button" role="tab" aria-selected="false" data-tab="tidligere" class="kalender-tab">
-        Tidligere arrangement
-      </button>
-    </div>
 
-    <div role="tabpanel" data-panel="kommende" class="kalender-panel">
-      {kommende.length === 0 ? (
-        <p class="kalender-empty">Ingen kommende arrangement.</p>
-      ) : (
-        <ul class="kalender-list">
-          {kommende.map(h => (
-            <li class="kalender-card">
-              <time class="kalender-date-box" datetime={h.startDato}>
-                <span class="kalender-date-day">{formatDate(h.startDato).day}</span>
-                <span class="kalender-date-month">{formatDate(h.startDato).month}</span>
-              </time>
-              <div class="kalender-card-body">
-                {h.type && <p class="kalender-card-type">{h.type}</p>}
-                {parseTagger(h.tagger).length > 0 && (
-                  <ul class="kalender-card-tags">
-                    {parseTagger(h.tagger).map(t => <li>{t}</li>)}
-                  </ul>
-                )}
-                <h3 class="ds-heading" data-size="sm">{h.tittel}</h3>
-                {h.ingress && <p class="kalender-card-ingress">{h.ingress}</p>}
-                <p class="kalender-card-meta">
-                  {h.tid && <span aria-label={`Tid: ${h.tid}`}>{h.tid}</span>}
-                  {h.sted && <span aria-label={`Sted: ${h.sted}`}>{h.sted}</span>}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ds-tabs class="ds-tabs kalender-tabs">
+      <ds-tablist>
+        <ds-tab aria-controls="panel-kommende" data-value="kommende">Kommende arrangement</ds-tab>
+        <ds-tab aria-controls="panel-tidligere" data-value="tidligere">Tidligere arrangement</ds-tab>
+      </ds-tablist>
 
-    <div role="tabpanel" data-panel="tidligere" class="kalender-panel" hidden>
-      {tidligere.length === 0 ? (
-        <p class="kalender-empty">Ingen tidligere arrangement.</p>
-      ) : (
-        <ul class="kalender-list">
-          {tidligere.map(h => (
-            <li class="kalender-card">
-              <time class="kalender-date-box" datetime={h.startDato}>
-                <span class="kalender-date-day">{formatDate(h.startDato).day}</span>
-                <span class="kalender-date-month">{formatDate(h.startDato).month}</span>
-              </time>
-              <div class="kalender-card-body">
-                {h.type && <p class="kalender-card-type">{h.type}</p>}
-                <h3 class="ds-heading" data-size="sm">{h.tittel}</h3>
-                {h.ingress && <p class="kalender-card-ingress">{h.ingress}</p>}
-                <p class="kalender-card-meta">
-                  {h.tid && <span aria-label={`Tid: ${h.tid}`}>{h.tid}</span>}
-                  {h.sted && <span aria-label={`Sted: ${h.sted}`}>{h.sted}</span>}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  </div>
+      <ds-tabpanel id="panel-kommende">
+        {kommende.length === 0 ? (
+          <p class="kalender-empty">Ingen kommende arrangement.</p>
+        ) : (
+          <div class="kalender-list">
+            {kommende.map(h => {
+              const date = formatDate(h.startDato);
+              const multiDay = isMultiDay(h.startDato, h.sluttDato);
+              return (
+                <EventCard
+                  title={h.tittel}
+                  description={h.ingress || ''}
+                  tags={parseTagger(h.tagger)}
+                  day={date.day}
+                  month={date.month}
+                  year={date.year}
+                  time={h.tid || ''}
+                  timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
+                  location={h.sted || ''}
+                />
+              );
+            })}
+          </div>
+        )}
+      </ds-tabpanel>
+
+      <ds-tabpanel id="panel-tidligere">
+        {tidligere.length === 0 ? (
+          <p class="kalender-empty">Ingen tidligere arrangement.</p>
+        ) : (
+          <div class="kalender-list">
+            {tidligere.map(h => {
+              const date = formatDate(h.startDato);
+              return (
+                <EventCard
+                  title={h.tittel}
+                  description={h.ingress || ''}
+                  tags={parseTagger(h.tagger)}
+                  day={date.day}
+                  month={date.month}
+                  year={date.year}
+                  time={h.tid || ''}
+                  location={h.sted || ''}
+                />
+              );
+            })}
+          </div>
+        )}
+      </ds-tabpanel>
+    </ds-tabs>
+  </section>
 </Layout>
-
-<script>
-  document.querySelectorAll<HTMLButtonElement>('.kalender-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.tab;
-      document.querySelectorAll<HTMLButtonElement>('.kalender-tab').forEach(b => {
-        const active = b.dataset.tab === target;
-        b.classList.toggle('kalender-tab--active', active);
-        b.setAttribute('aria-selected', String(active));
-      });
-      document.querySelectorAll<HTMLElement>('.kalender-panel').forEach(p => {
-        p.hidden = p.dataset.panel !== target;
-      });
-    });
-  });
-</script>
 
 <style>
   .kalender-header {
@@ -171,173 +166,55 @@ const parseTagger = (s?: string) =>
     gap: var(--ds-size-3);
     padding-block: var(--ds-size-8);
   }
+
   .kalender-ingress {
     margin: 0;
     font-size: var(--ds-body-lg-font-size);
     line-height: var(--ds-body-lg-line-height);
-    color: var(--ds-color-neutral-text-subtle);
   }
 
+  /* ── Featured event ─────────────────────────────── */
   .kalender-featured {
-    background: var(--ds-color-accent-base-default);
-    color: var(--ds-color-accent-base-contrast-default);
-    border-radius: var(--ds-border-radius-lg, 16px);
+    background: var(--ds-color-base-active);
+    color: var(--ds-color-base-contrast-default);
+    padding-block: var(--ds-size-10);
   }
+
   .kalender-featured-inner {
-    display: grid;
-    gap: var(--ds-size-6);
-  }
-  @media (min-width: 768px) {
-    .kalender-featured-inner {
-      grid-template-columns: 2fr 1fr;
-      align-items: start;
-    }
-  }
-  .kalender-featured-text {
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-3);
+    gap: var(--ds-size-6);
   }
-  .kalender-featured-text .ds-heading {
+
+  .kalender-featured-inner .ds-heading {
     color: inherit;
   }
-  .kalender-featured-type {
-    margin: 0;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-size: 0.875rem;
-  }
+
   .kalender-featured-ingress {
     margin: 0;
   }
-  .kalender-featured-date {
+
+  /* ── Arrangementer section ──────────────────────── */
+  .kalender-arrangementer {
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-2);
-    align-items: flex-start;
-  }
-  .kalender-featured-time,
-  .kalender-featured-place {
-    margin: 0;
-  }
-
-  .kalender-date-box {
-    display: block;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: var(--ds-border-radius-md, 8px);
-    padding: var(--ds-size-2) var(--ds-size-3);
-    text-align: center;
-    min-width: 64px;
-  }
-  .kalender-meta-label {
-    font-weight: var(--ds-font-weight-semibold);
-  }
-  .kalender-date-day {
-    display: block;
-    font-size: 1.75rem;
-    font-weight: 700;
-    line-height: 1.1;
-  }
-  .kalender-date-month {
-    display: block;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    gap: var(--ds-size-6);
+    padding-block: var(--ds-size-10);
   }
 
   .kalender-tabs {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-4);
-    padding-block: var(--ds-size-8);
+    --dsc-tabs-content-padding: var(--ds-size-6) 0;
   }
-  .kalender-tablist {
-    display: flex;
-    gap: var(--ds-size-2);
-    border-bottom: 1px solid var(--ds-color-neutral-border-subtle, #e5e5e5);
-  }
-  .kalender-tab {
-    border: 0;
-    background: transparent;
-    padding: var(--ds-size-3) var(--ds-size-4);
-    font: inherit;
-    color: var(--ds-color-neutral-text-subtle);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-  }
-  .kalender-tab:focus-visible {
-    box-shadow: var(--dsc-focus-boxShadow);
-    outline: var(--dsc-focus-outline);
-    outline-offset: var(--ds-border-width-focus);
-  }
-  .kalender-tab--active {
-    color: var(--ds-color-text-default);
-    border-bottom-color: currentColor;
-    font-weight: var(--ds-font-weight-semibold);
-  }
-  .kalender-panel[hidden] {
-    display: none;
-  }
+
   .kalender-empty {
     margin: 0;
-    color: var(--ds-color-neutral-text-subtle);
-  }
-  .kalender-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-4);
-  }
-  .kalender-card {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--ds-size-4);
-    padding: var(--ds-size-4);
-    background: var(--ds-color-neutral-surface-default, #f7f7f7);
-    border-radius: var(--ds-border-radius-md, 8px);
-  }
-  .kalender-card .kalender-date-box {
-    background: var(--ds-color-neutral-surface-tinted, #ececec);
     color: var(--ds-color-text-default);
   }
-  .kalender-card-body {
+
+  /* ── Event list ─────────────────────────────────── */
+  .kalender-list {
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-2);
-  }
-  .kalender-card-type {
-    margin: 0;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-size: 0.875rem;
-    color: var(--ds-color-neutral-text-subtle);
-  }
-  .kalender-card-tags {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ds-size-2);
-  }
-  .kalender-card-tags li {
-    background: var(--ds-color-neutral-surface-tinted, #ececec);
-    padding: 2px var(--ds-size-2);
-    border-radius: 9999px;
-    font-size: 0.75rem;
-  }
-  .kalender-card-ingress {
-    margin: 0;
-  }
-  .kalender-card-meta {
-    display: flex;
-    gap: var(--ds-size-3);
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--ds-color-neutral-text-subtle);
+    gap: var(--ds-size-4);
   }
 </style>

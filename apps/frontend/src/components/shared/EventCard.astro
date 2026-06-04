@@ -2,9 +2,10 @@
 import AkselIcon from './AkselIcon.astro';
 
 interface Props {
-  href: string;
+  href?: string;
   title: string;
   description?: string;
+  tags?: string[];
   day: string;
   month: string;
   year: string;
@@ -17,6 +18,7 @@ const {
   href,
   title,
   description,
+  tags,
   day,
   month,
   year,
@@ -25,17 +27,27 @@ const {
   location,
 } = Astro.props;
 
-const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
+const id = href ? `event-card-${crypto.randomUUID().slice(0, 8)}` : undefined;
+const isLink = !!href;
 ---
 
-<div class="event-card" data-clickdelegatefor={id}>
+<div class:list={["event-card", { "event-card--clickable": isLink }]} data-clickdelegatefor={id}>
   <div class="event-card-date">
     <span class="event-card-day">{day}.<br />{month}</span>
     <span class="event-card-year">{year}</span>
   </div>
   <div class="event-card-body">
     <div class="event-card-info">
-      <h3 class="ds-heading event-card-title" data-size="sm"><a id={id} href={href}>{title}</a></h3>
+      {tags && tags.length > 0 && (
+        <div class="event-card-tags">
+          {tags.map(tag => <span class="ds-tag" data-size="sm">{tag}</span>)}
+        </div>
+      )}
+      {title && (
+        <h3 class="ds-heading event-card-title" data-size="sm">
+          {isLink ? <a id={id} href={href}>{title}</a> : title}
+        </h3>
+      )}
       {description && <p class="event-card-desc">{description}</p>}
     </div>
     {(time || location) && (
@@ -60,10 +72,13 @@ const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
 <style>
   .event-card {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 140px 1fr;
     gap: 0;
     background-color: #FFF; /* TODO: this does not have a proper DS color */
     overflow: hidden;
+  }
+
+  .event-card--clickable {
     cursor: pointer;
 
     &:focus-within {
@@ -76,19 +91,35 @@ const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
 
   .event-card-title {
     font-family: var(--ds-font-family);
+    margin: 0;
 
-      & a {
-        text-decoration: none;
-        color: inherit;
-        &.\:click-delegate-hover {
-          text-decoration: underline;
-        }
-        &:focus-visible {
-          outline: none;
-        }
+    & a {
+      text-decoration: none;
+      color: inherit;
+      &.\:click-delegate-hover {
+        text-decoration: underline;
+      }
+      &:focus-visible {
+        outline: none;
+      }
     }
   }
 
+  .event-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-2);
+  }
+
+  .event-card-tag {
+    display: inline-block;
+    font-size: var(--ds-body-xs-font-size);
+    font-weight: 600;
+    border: 1px solid var(--ds-color-accent-border-default);
+    color: var(--ds-color-accent-text-default);
+    border-radius: 9999px;
+    padding: 2px var(--ds-size-3);
+  }
 
 
   .event-card-date {
@@ -114,7 +145,7 @@ const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
 
   .event-card-body {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 350px;
     padding: var(--ds-size-6);
     align-items: center;
   }
@@ -123,10 +154,7 @@ const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-2);
-  }
-
-  .event-card-title {
-    margin: 0;
+    padding-inline-end: var(--ds-size-6);
   }
 
   .event-card-desc {
@@ -140,7 +168,7 @@ const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
     gap: var(--ds-size-4);
     font-size: var(--ds-body-sm-font-size);
     border-left: 1px solid var(--ds-color-surface-active);
-    padding-inline-start: var(--ds-size-12);
+    padding-inline-start: var(--ds-size-6);
   }
 
   .event-card-details span {
@@ -170,11 +198,16 @@ const id = `event-card-${crypto.randomUUID().slice(0, 8)}`;
       grid-template-columns: 1fr;
     }
 
+    .event-card-info {
+      padding-inline-end: 0;
+      padding-block-end: var(--ds-size-4);
+    }
+
     .event-card-details {
       border-left: none;
-      padding-left: 0;
+      padding-inline-start: 0;
       border-top: 1px solid var(--ds-color-border-subtle);
-      padding-top: var(--ds-size-4);
+      padding-block-start: var(--ds-size-4);
     }
   }
 
