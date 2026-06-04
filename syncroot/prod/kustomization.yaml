@@ -41,6 +41,11 @@ patches:
         value:
           name: Umbraco__Storage__AzureBlob__Media__ContainerName
           value: umbraco
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: HeadlessPreview__FrontendUrl
+          value: https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev
   - target:
       kind: HTTPRoute
       name: umbraco

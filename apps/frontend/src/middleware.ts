@@ -130,7 +130,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         "connect-src 'self' https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
         // Allow CMS to embed the frontend in the preview iframe. Both the prod CMS
         // origin and the localhost CMS dev origin are listed so preview works in dev too.
-        "frame-ancestors 'self' https://cms.ki.norge.no https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io http://localhost:5000 https://localhost:44391",
+        "frame-ancestors 'self' https://cms.ki.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.tt02.dis-core.altinn.cloud https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io http://localhost:5000 https://localhost:44391",
         "base-uri 'self'",
         "form-action 'self'",
       ].join('; '),
