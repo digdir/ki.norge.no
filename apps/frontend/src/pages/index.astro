@@ -60,7 +60,7 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
           title={featuredArticle.tittel}
           tagColor="brand1"
           lead={featuredArticle.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}
-          image="/article_placeholder.png"
+          image={featuredArticle.image}
           imageAlt=""
           variant="featured"
         />
@@ -73,7 +73,7 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
             href={`/artikler/${article.slug}`}
             title={article.tittel}
             variant="image"
-            image="/article_placeholder.png"
+            image={article.image}
             date={article.publishedAt}
           />
         ))}
