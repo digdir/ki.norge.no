@@ -19,12 +19,16 @@
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
 				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
+				// Holding page on ki.test.norge.no until launch. Flip to "live" to go public.
+				"LAUNCH_MODE": "coming-soon",
 			},
 		},
 		"prod": {
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
 				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
+				// Holding page on ki.norge.no until launch. Flip to "live" to go public.
+				"LAUNCH_MODE": "coming-soon",
 			},
 		},
 	},

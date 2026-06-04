@@ -17,6 +17,15 @@ import { defineMiddleware } from 'astro:middleware';
 const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache
 const STALE_WHILE_REVALIDATE = 60 * 60 * 24; // serve stale for up to 24h while revalidating
 
+// Public hostnames that sit behind the holding page until launch. The
+// *.workers.dev preview URLs and localhost are intentionally NOT listed, so
+// CMS preview and editor access stay open without a key.
+const GATED_HOSTS = new Set(['ki.norge.no', 'ki.test.norge.no']);
+
+// Launch switch. Gated hosts show the holding page UNLESS LAUNCH_MODE is "live".
+// Fail-safe: any other value (or unset) keeps them gated, so a misconfigured
+// deploy can never accidentally expose the site.
+// To go live: set LAUNCH_MODE=live for that env in wrangler.jsonc and deploy.
 const LAUNCH_MODE = process.env.LAUNCH_MODE || import.meta.env.LAUNCH_MODE || '';
 
 const COMING_SOON_HTML = `<!doctype html>
@@ -71,11 +80,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     });
   }
 
-  // Coming-soon wall for ki.norge.no only.
-  // The Azure URL remains open. Admin cookie bypasses.
-  // Remove this block entirely when ready to launch.
-  const isKiNorgeDomain = url.hostname === 'ki.norge.no';
-  const isComingSoon = isKiNorgeDomain || LAUNCH_MODE === 'coming-soon';
+  // Holding-page wall for the public domains (GATED_HOSTS). The admin cookie
+  // (see /admin-tilgang) bypasses it; workers.dev and localhost are never gated,
+  // so CMS preview stays open. Flip LAUNCH_MODE to "live" and deploy to launch.
+  const isComingSoon = LAUNCH_MODE !== 'live' && GATED_HOSTS.has(url.hostname);
 
   if (isComingSoon) {
     const isApiRoute = url.pathname.startsWith('/api/');
