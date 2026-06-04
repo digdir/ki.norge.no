@@ -146,4 +146,14 @@ var(--article-layout-gutter);
     border-radius: var(--ds-border-radius-full);
     width: fit-content;
 }
+
+/* ── Article ingress (shared) ── */
+.article-ingress {
+  font-family: 'PT Serif', serif;
+  font-size: var(--ds-font-size-7);
+  line-height: 1.5;
+  margin: 0;
+  margin-block-end: var(--ds-size-6);
+}
+
 }

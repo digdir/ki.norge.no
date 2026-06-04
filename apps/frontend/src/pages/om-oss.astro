@@ -72,6 +72,7 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
             title={article.tittel}
             date={article.publishedAt}
             lead={getPlainText(article.innhold, 80)}
+            variant="image"
           />
         ))}
       </div>
@@ -80,18 +81,6 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
 </Layout>
 
 <style>
-  /* Ingress */
-  .article-ingress {
-    font-family: 'PT Serif';
-    margin: 0;
-  }
-
-  @media (min-width: 1024px) {
-    .article-ingress {
-      font-size: 28px;
-    }
-  }
-
   /* Sections */
   .om-oss-intro {
     margin: 0;
