@@ -27,7 +27,7 @@ const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 const heroImage = article.artikkelBilde || article.seoBilde;
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
-const isLightBlueBg = (article.bakgrunn || 'hvit') === 'lyseblaa';
+const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
 
 const articleJsonLd = articleSchema({
   headline: seoTitle,
@@ -44,8 +44,6 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: currentStep.tittel, url: `/veiledning/${guideSlug}/${stepSlug}` },
   { name: article.tittel, url: `/veiledning/${guideSlug}/${stepSlug}/${stegartikkelSlug}` },
 ]);
-
-const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
 ---
 <Layout
   title={seoTitle}
@@ -53,38 +51,23 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
   ogType="article"
   publishedAt={article.publishedAt}
   ogImage={seoImage}
+  bodyColor="brand1"
 >
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   <div class="article-page" data-layout-block="content">
-    <section class={`article-hero ${isLightBlueBg ? 'article-hero--bg-lyseblaa' : ''}`}>
-      {isLightBlueBg ? (
-        <div class="article-hero-bg-grid" data-layout-block="content">
-          <div class="article-hero-inner">
-            <div class="article-hero-text">
-              <h1 class="article-title">{article.tittel}</h1>
-              {article.ingress && <p class="article-ingress">{article.ingress}</p>}
-            </div>
-            {heroImageUrl && (
-              <div class="article-hero-image">
-                <img src={heroImageUrl} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-              </div>
-            )}
-          </div>
+    <section class="article-hero">
+      <div class="article-hero-inner">
+        <div class="article-hero-text">
+          <h1 class="article-title">{article.tittel}</h1>
+          {article.ingress && <p class="article-ingress">{article.ingress}</p>}
         </div>
-      ) : (
-        <div class="article-hero-inner">
-          <div class="article-hero-text">
-            <h1 class="article-title">{article.tittel}</h1>
-            {article.ingress && <p class="article-ingress">{article.ingress}</p>}
+        {heroImageUrl && (
+          <div class="article-hero-image">
+            <img src={heroImageUrl} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
           </div>
-          {heroImageUrl && (
-            <div class="article-hero-image">
-              <img src={heroImageUrl} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </section>
 
     <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
@@ -101,17 +84,6 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
 
   .article-hero {
     padding: 100px 0;
-  }
-
-  .article-hero--bg-lyseblaa {
-    background: #e5f2f7;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-top: calc(-1 * var(--header-height, 72px));
-    padding-top: calc(140px + var(--header-height, 72px));
-    padding-bottom: 80px;
-    padding-left: 0;
-    padding-right: 0;
   }
 
   .article-hero-inner {
@@ -140,14 +112,14 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
     font-weight: 700;
     line-height: 1.15;
     margin: 0;
-    color: var(--ds-color-text-default, #000);
+    color: var(--ds-color-text-default);
   }
 
   .article-ingress {
     font-size: 1.25rem;
     line-height: 1.5;
     margin: 0;
-    color: var(--ds-color-text-default, #000);
+    color: var(--ds-color-text-default);
   }
 
   .article-hero-image {

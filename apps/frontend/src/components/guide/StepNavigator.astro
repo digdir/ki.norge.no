@@ -14,79 +14,88 @@ interface Props {
 }
 const { steps, guideSlug } = Astro.props;
 ---
-<div class="step-navigator">
-  {steps.map(step => (
-    <div class="step-group">
-      <div class="step-header">
-        <span class="step-number">{step.number}.</span>
-        <h3 class="step-title">{step.title}</h3>
-      </div>
-      <div class="step-pills">
-        <span class="step-pills-icon" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-        </span>
-        {step.substeps.map((sub, i) => (
-          <>
-            <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="step-pill">{sub.title}</a>
-            {i < step.substeps.length - 1 && (
-              <span class="step-pill-arrow" aria-hidden="true">&rarr;</span>
-            )}
-          </>
-        ))}
-      </div>
-    </div>
-  ))}
-</div>
+<nav aria-label="Steg i veiledningen">
+  <ol class="step-navigator">
+    {steps.map(step => (
+      <li class="step-group">
+        <h3 class="step-heading ds-heading">{step.title}</h3>
+        <ol class="step-pills" aria-label={`Understeg for ${step.title}`}>
+          {step.substeps.map((sub) => (
+            <li class="step-pill-item">
+              <a href={`/veiledning/${guideSlug}/${sub.slug}`} class="step-pill ds-chip" data-variant="secondary">{sub.title}</a>
+            </li>
+          ))}
+        </ol>
+      </li>
+    ))}
+  </ol>
+</nav>
 <style>
   .step-navigator {
     display: flex;
     flex-direction: column;
-    gap: 48px;
-  }
-  .step-header {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .step-number {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #7c3aed;
-  }
-  .step-title {
-    font-size: 1.25rem;
-    font-weight: 700;
+    gap: var(--ds-size-14);
+    list-style: none;
     margin: 0;
-    color: #000;
+    padding: 0;
+    counter-reset: step-counter;
   }
+
+  .step-group {
+    counter-increment: step-counter;
+  }
+
+  .step-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    margin: 0 0 var(--ds-size-4);
+    color: var(--ds-color-text-default);
+    font-family: var(--ds-font-family);
+  }
+
+  .step-heading::before {
+    color: var(--ds-color-base-default);
+    font-family: var(--ds-font-family);
+    content: counter(step-counter) ".";
+    font-weight: 900;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-block: auto;
+    font-size: var(--ds-heading-lg-font-size);
+  }
+
   .step-pills {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: var(--ds-size-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
-  .step-pills-icon {
-    color: #7c3aed;
-    display: flex;
-    align-items: center;
+
+  .step-pill-item {
+    display: contents;
   }
+
   .step-pill {
-    display: inline-flex;
-    padding: 6px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    color: #000;
+    border-radius: var(--ds-border-radius-full);
     text-decoration: none;
-    background: white;
-    transition: border-color 0.15s;
+    color: var(--ds-color-text-default);
   }
-  .step-pill:hover {
-    border-color: #7c3aed;
-  }
-  .step-pill-arrow {
-    color: #94a3b8;
-    font-size: 0.875rem;
+
+  .step-pill-item:not(:last-child)::after {
+    content: '';
+    display: inline-block;
+    width: var(--ds-size-4);
+    height: var(--ds-size-4);
+    vertical-align: middle;
+    background-color: var(--ds-color-text-subtle);
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2215%22%20viewBox%3D%220%200%2014%2015%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M13.707%208.071a1%201%200%200%200%200-1.414L7.343.293A1%201%200%200%200%205.93%201.707l5.657%205.657-5.657%205.657a1%201%200%201%200%201.414%201.414zM0%207.364v1h13v-2H0z%22%20fill%3D%22%2386567a%22%2F%3E%3C%2Fsvg%3E");
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    flex-shrink: 0;
   }
 </style>
