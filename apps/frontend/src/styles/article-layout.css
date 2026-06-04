@@ -132,7 +132,7 @@ var(--article-layout-gutter);
   flex-direction: column;
   gap: var(--ds-size-1);
   color: var(--ds-color-text-default);
-  font-family: 'PT Serif', serif;
+  font-family: var(--ki-heading-font);
 }
 
 .article-layout__metadata-label {
@@ -149,7 +149,7 @@ var(--article-layout-gutter);
 
 /* ── Article ingress (shared) ── */
 .article-ingress {
-  font-family: 'PT Serif', serif;
+  font-family: var(--ki-heading-font);
   font-size: var(--ds-font-size-7);
   line-height: 1.5;
   margin: 0;

@@ -15,8 +15,11 @@
 }
 
 :root {
-  /* Font family */
+  /* Font family — single source of truth for sidens to fonter.
+     Brødtekst: --ds-font-family. Overskrift: --ki-heading-font.
+     Alt annet (inkl. RichText) skal referere disse, ikke gjenta navnene. */
   --ds-font-family: "Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ki-heading-font: "PT Serif", serif;
 
   /* Site chrome dimensions. Used by Layout.astro for <main> top padding AND
      by full-bleed hero sections that need to extend up behind the absolute
@@ -26,7 +29,7 @@
 }
 
 html {
-  font-family: "Instrument Sans";
+  font-family: var(--ds-font-family);
   scrollbar-gutter: stable;
 }
 
@@ -41,7 +44,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: "PT Serif", serif;
+  font-family: var(--ki-heading-font);
 }
 
 /* Utility classes */
@@ -112,7 +115,7 @@ main a:has(> img)::after {
   h1, h2, h3, h4 {
     page-break-after: avoid;
     color: black !important;
-    font-family: "PT Serif", serif;
+    font-family: var(--ki-heading-font);
   }
 
   p, li {

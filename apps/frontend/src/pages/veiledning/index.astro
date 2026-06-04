@@ -36,17 +36,20 @@ const featuredHref = cmsData?.seksjon1Kort?.[0]?.url || '/veiledning/kom-i-gang'
 const featuredLabel = cmsData?.seksjon1Tittel || 'Kom i gang';
 const featuredImage = heroImageUrl || '/woman-speaking.svg';
 
-// Rich link list — "Steg for steg" (guides with descriptions)
-const richLinks = guides.data.length > 0
-  ? guides.data.map(g => ({
-      title: g.tittel,
-      desc: g.ingress || '',
-      href: `/veiledning/${g.slug}`,
-    }))
-  : (cmsData?.seksjon2Kort || []).map(k => ({
+// Rich link list — "Steg for steg"
+// Redaktørstyrt: når redaktøren har fylt seksjon2-kortene brukes deres egen
+// beskrivelse (tilpasset tekst). Ellers auto-utledes lista fra guidene, der
+// beskrivelsen blir guidens ingress (fallback).
+const richLinks = (cmsData?.seksjon2Kort?.length ?? 0) > 0
+  ? cmsData!.seksjon2Kort!.map(k => ({
       title: k.tittel,
       desc: k.beskrivelse || '',
       href: k.url || '#',
+    }))
+  : guides.data.map(g => ({
+      title: g.tittel,
+      desc: g.ingress || '',
+      href: `/veiledning/${g.slug}`,
     }));
 
 // Simple link list — "Forstå regelverket"
