@@ -66,6 +66,8 @@ const moduleIcons: Record<string, string> = {
     || block.contentType === 'veiledningObs') {
     const c = block.content;
     const tekst = block.contentType === 'veiledningObs' ? c.tekst : c.innhold;
+    // Obs-modulen har valgfri tittel: tom tittel vises som "Obs" (Dorte).
+    const tittel = block.contentType === 'veiledningObs' ? (c.tittel || 'Obs') : c.tittel;
     const ikon = moduleIcons[block.contentType];
     const trekkspill = block.contentType === 'veiledningInfo' ? c.trekkspill as TrekkspillItem[] | undefined : undefined;
     const lesMerTittel = block.contentType === 'veiledningInfo' ? c.lesMerTittel as string | undefined : undefined;
@@ -75,7 +77,7 @@ const moduleIcons: Record<string, string> = {
       <div class="ds-card veiledning-modul" data-variant="tinted" data-type={variantType}>
         <div class="veiledning-modul-head">
           <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
-          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{c.tittel}</h3>}
+          {tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{tittel}</h3>}
         </div>
         <div class="veiledning-modul-body" set:html={tekst} />
         {trekkspill && trekkspill.length > 0 && (

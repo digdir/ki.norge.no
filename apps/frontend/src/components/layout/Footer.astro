@@ -1,23 +1,20 @@
 ---
-// Footer — CMS-editable via forside singleton
-// NOTE: This fetches getForside() independently. On the frontpage, index.astro also
-// fetches it — resulting in a double call. Astro SSR may deduplicate within a request.
-// Future optimization: pass footer data as props through Layout.
-import { getForside } from '../../lib/umbraco';
+// Footer — CMS-redigerbar via globaleInnstillinger. Faller tilbake til hardkodet default.
+import { getGlobaleInnstillinger } from '../../lib/umbraco';
 import Logo from './Logo';
-let forside = null;
-try { forside = await getForside(); } catch (e) {}
+let global = null;
+try { global = await getGlobaleInnstillinger(); } catch (e) {}
 
-const desc = forside?.footerBeskrivelse || 'Et tverrsektorielt samarbeid for å fremme ansvarlig og sikker bruk av kunstig intelligens i den norske forvaltningen.';
+const desc = global?.footerBeskrivelse || 'Et tverrsektorielt samarbeid for å fremme ansvarlig og sikker bruk av kunstig intelligens i den norske forvaltningen.';
 
 const navCol1 = [
-  { text: forside?.footerLenke1Tekst || 'post@ki.norge.no', url: forside?.footerLenke1Url || 'mailto:post@ki.norge.no' },
+  { text: global?.footerLenke2Tekst || 'post@ki.norge.no', url: global?.footerLenke2Url || 'mailto:post@ki.norge.no' },
 ];
 const navCol2 = [
-  { text: forside?.footerLenke1Tekst || 'Om KI Norge', url: forside?.footerLenke1Url || '/om-oss' },
-  { text: forside?.footerLenke3Tekst || 'Personvern og informasjonskapsler', url: forside?.footerLenke3Url || '/personvern' },
-  { text: forside?.footerLenke4Tekst || 'Tilgjengelighet', url: forside?.footerLenke4Url || '/tilgjengelighet' },
-  { text: forside?.footerLenke5Tekst || 'Endre samtykke for informasjonskapsler', url: forside?.footerLenke5Url || '' },
+  { text: global?.footerLenke1Tekst || 'Om KI Norge', url: global?.footerLenke1Url || '/om-oss' },
+  { text: global?.footerLenke3Tekst || 'Personvern og informasjonskapsler', url: global?.footerLenke3Url || '/personvern' },
+  { text: global?.footerLenke4Tekst || 'Tilgjengelighet', url: global?.footerLenke4Url || '/tilgjengelighet' },
+  { text: global?.footerLenke5Tekst || 'Endre samtykke for informasjonskapsler', url: global?.footerLenke5Url || '' },
 ];
 ---
 
@@ -71,8 +68,7 @@ const navCol2 = [
     max-width: 360px;
   }
   .footer-col {
-
-    & a, & button, &p {
+    & a, & button, & p {
       display: block;
       margin-block-end: var(--ds-size-2);
     }

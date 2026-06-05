@@ -328,51 +328,25 @@ export interface EventItem {
   eventUrl?: string;
 }
 
+// Én forside-modul (block i forside.seksjoner). Flat: alle mulige felt valgfrie.
+export interface ForsideSeksjon {
+  contentType: string;
+  id: string;
+  overskrift?: string;
+  komIGangTekst?: string;
+  label?: string;
+  tittel?: string;
+  ingress?: string;
+  lenketekst?: string;
+  lenkeUrl?: string;
+  illustrasjon?: UmbracoMedia;
+  tekstHtml?: string;
+}
+
 export interface Forside {
   id: string;
   documentId: string;
-  heroOverskrift?: string;
-  heroTekst?: UmbracoBlock[];
-  heroBilde?: UmbracoMedia;
-  veiledningOverskrift?: string;
-  veiledning1Tittel?: string;
-  veiledning1Beskrivelse?: string;
-  veiledning1Url?: string;
-  veiledning2Tittel?: string;
-  veiledning2Beskrivelse?: string;
-  veiledning2Url?: string;
-  aktueltOverskrift?: string;
-  aktueltLenkeTekst?: string;
-  aktueltLenkeUrl?: string;
-  raadTittel?: string;
-  tips?: TipItem[];
-  sandkasseTittel?: string;
-  sandkasseTekst?: UmbracoBlock[];
-  sandkasseUrl?: string;
-  arrangementOverskrift?: string;
-  arrangementKommendeTekst?: string;
-  arrangementAvholdteTekst?: string;
-  arrangementer?: EventItem[];
-  footerTittel?: string;
-  footerBeskrivelse?: string;
-  footerSosialInstagram?: string;
-  footerSosialLinkedin?: string;
-  footerSosialX?: string;
-  footerLenke1Tekst?: string;
-  footerLenke1Url?: string;
-  footerLenke2Tekst?: string;
-  footerLenke2Url?: string;
-  footerLenke3Tekst?: string;
-  footerLenke3Url?: string;
-  footerLenke4Tekst?: string;
-  footerLenke4Url?: string;
-  footerLenke5Tekst?: string;
-  footerLenke5Url?: string;
-  rekkefolgeVeiledning?: number;
-  rekkefolgeAktuelt?: number;
-  rekkefolgeTreRaad?: number;
-  rekkefolgeSandkasse?: number;
-  rekkefolgeArrangement?: number;
+  seksjoner?: ForsideSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -403,14 +377,17 @@ export interface OmOssSeksjonBlokk {
   bildeAlt?: string;
 }
 
+// Om Oss bruker rik artikkelmal (#362): samme artikkelhode + modul-blokkliste som artikkel.
 export interface OmOss {
   id: string;
   documentId: string;
-  heroTittel?: string;
-  heroUndertittel?: string;
-  introTekst?: UmbracoBlock[];
-  misjonTekst?: UmbracoBlock[];
-  seksjoner?: OmOssSeksjonBlokk[];
+  tittel: string;
+  slug: string;
+  ingress: string;
+  artikkelBilde?: UmbracoMedia;
+  bildeAlt?: string;
+  bakgrunn?: string;
+  innhold?: UmbracoBlock[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -489,6 +466,21 @@ export interface GlobaleInnstillinger {
   tittel503?: string;
   beskrivelse503?: string;
   vedlikeholdEpost?: string;
+  footerTittel?: string;
+  footerBeskrivelse?: string;
+  footerSosialInstagram?: string;
+  footerSosialLinkedin?: string;
+  footerSosialX?: string;
+  footerLenke1Tekst?: string;
+  footerLenke1Url?: string;
+  footerLenke2Tekst?: string;
+  footerLenke2Url?: string;
+  footerLenke3Tekst?: string;
+  footerLenke3Url?: string;
+  footerLenke4Tekst?: string;
+  footerLenke4Url?: string;
+  footerLenke5Tekst?: string;
+  footerLenke5Url?: string;
 }
 
 export interface UmbracoMedia {
@@ -824,48 +816,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'forside':
       return {
         ...base,
-        heroOverskrift: props.heroOverskrift as string || undefined,
-        heroTekst: mapRichText(props.heroTekst),
-        heroBilde: mapMedia(props.heroBilde),
-        veiledningOverskrift: props.veiledningOverskrift as string || undefined,
-        veiledning1Tittel: props.veiledning1Tittel as string || undefined,
-        veiledning1Beskrivelse: props.veiledning1Beskrivelse as string || undefined,
-        veiledning1Url: props.veiledning1Url as string || undefined,
-        veiledning2Tittel: props.veiledning2Tittel as string || undefined,
-        veiledning2Beskrivelse: props.veiledning2Beskrivelse as string || undefined,
-        veiledning2Url: props.veiledning2Url as string || undefined,
-        aktueltOverskrift: props.aktueltOverskrift as string || undefined,
-        aktueltLenkeTekst: props.aktueltLenkeTekst as string || undefined,
-        aktueltLenkeUrl: props.aktueltLenkeUrl as string || undefined,
-        raadTittel: props.raadTittel as string || undefined,
-        tips: mapTipItems(props.tips),
-        sandkasseTittel: props.sandkasseTittel as string || undefined,
-        sandkasseTekst: mapRichText(props.sandkasseTekst),
-        sandkasseUrl: props.sandkasseUrl as string || undefined,
-        arrangementOverskrift: props.arrangementOverskrift as string || undefined,
-        arrangementKommendeTekst: props.arrangementKommendeTekst as string || undefined,
-        arrangementAvholdteTekst: props.arrangementAvholdteTekst as string || undefined,
-        arrangementer: mapEventItems(props.arrangementer),
-        footerTittel: props.footerTittel as string || undefined,
-        footerBeskrivelse: props.footerBeskrivelse as string || undefined,
-        footerSosialInstagram: props.footerSosialInstagram as string || undefined,
-        footerSosialLinkedin: props.footerSosialLinkedin as string || undefined,
-        footerSosialX: props.footerSosialX as string || undefined,
-        footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
-        footerLenke1Url: props.footerLenke1Url as string || undefined,
-        footerLenke2Tekst: props.footerLenke2Tekst as string || undefined,
-        footerLenke2Url: props.footerLenke2Url as string || undefined,
-        footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
-        footerLenke3Url: props.footerLenke3Url as string || undefined,
-        footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,
-        footerLenke4Url: props.footerLenke4Url as string || undefined,
-        footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
-        footerLenke5Url: props.footerLenke5Url as string || undefined,
-        rekkefolgeVeiledning: props.rekkefolgeVeiledning as number || undefined,
-        rekkefolgeAktuelt: props.rekkefolgeAktuelt as number || undefined,
-        rekkefolgeTreRaad: props.rekkefolgeTreRaad as number || undefined,
-        rekkefolgeSandkasse: props.rekkefolgeSandkasse as number || undefined,
-        rekkefolgeArrangement: props.rekkefolgeArrangement as number || undefined,
+        seksjoner: mapForsideSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
@@ -882,30 +833,18 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       } as T;
 
     case 'omOss':
-      // Map seksjoner Block List to OmOssSeksjonBlokk[]
-      const seksjonerItems = (props.seksjoner as any)?.items || [];
-      const seksjoner: OmOssSeksjonBlokk[] = seksjonerItems.map((block: any) => {
-        const content = block.content || block;
-        const blockProps = content.properties || content;
-        const tekst = blockProps.tekst?.tag === '#root'
-          ? richTextToHtml(blockProps.tekst)
-          : (typeof blockProps.tekst === 'string' ? blockProps.tekst : '');
-        return {
-          tittel: blockProps.tittel || '',
-          tekst,
-          bilde: mapMedia(blockProps.bilde),
-          bildeAlt: blockProps.bildeAlt || '',
-        };
-      });
+      // Rik artikkelmal (#362): artikkelhode + innhold-blokkliste, som artikkel/sandkasse.
       return {
         ...base,
-        heroTittel: props.heroTittel as string || '',
-        heroUndertittel: props.heroUndertittel as string || '',
-        introTekst: mapRichText(props.introTekst),
-        misjonTekst: mapRichText(props.misjonTekst),
-        seksjoner,
-        seoTittel: props.seoTittel as string || '',
-        seoBeskrivelse: props.seoBeskrivelse as string || '',
+        tittel: props.tittel as string || item.name,
+        slug: props.slug as string || 'om-oss',
+        ingress: props.ingress as string || '',
+        artikkelBilde: mapMedia(props.artikkelBilde),
+        bildeAlt: props.bildeAlt as string || '',
+        bakgrunn: (props.bakgrunn as string) || 'ingen',
+        innhold: mapArtikkelBlocks(props.innhold),
+        seoTittel: props.seoTittel as string || undefined,
+        seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
@@ -958,6 +897,21 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel503: props.tittel503 as string || '',
         beskrivelse503: props.beskrivelse503 as string || '',
         vedlikeholdEpost: props.vedlikeholdEpost as string || '',
+        footerTittel: props.footerTittel as string || undefined,
+        footerBeskrivelse: props.footerBeskrivelse as string || undefined,
+        footerSosialInstagram: props.footerSosialInstagram as string || undefined,
+        footerSosialLinkedin: props.footerSosialLinkedin as string || undefined,
+        footerSosialX: props.footerSosialX as string || undefined,
+        footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
+        footerLenke1Url: props.footerLenke1Url as string || undefined,
+        footerLenke2Tekst: props.footerLenke2Tekst as string || undefined,
+        footerLenke2Url: props.footerLenke2Url as string || undefined,
+        footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
+        footerLenke3Url: props.footerLenke3Url as string || undefined,
+        footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,
+        footerLenke4Url: props.footerLenke4Url as string || undefined,
+        footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
+        footerLenke5Url: props.footerLenke5Url as string || undefined,
       } as T;
 
     default:
@@ -1283,6 +1237,30 @@ function pickerIds(value: unknown): string[] {
   return arr.map((item: any) => item?.id).filter((id): id is string => !!id);
 }
 
+function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any): ForsideSeksjon => {
+    const content = block.content || block;
+    const props = content.properties || {};
+    const tekst = props.tekst as any;
+    return {
+      contentType: content.contentType,
+      id: content.id || '',
+      overskrift: (props.overskrift as string) || undefined,
+      komIGangTekst: (props.komIGangTekst as string) || undefined,
+      label: (props.label as string) || undefined,
+      tittel: (props.tittel as string) || undefined,
+      ingress: (props.ingress as string) || undefined,
+      lenketekst: (props.lenketekst as string) || undefined,
+      lenkeUrl: (props.lenkeUrl as string) || undefined,
+      illustrasjon: mapMedia(props.illustrasjon),
+      tekstHtml: tekst?.tag === '#root' ? richTextToHtml(tekst) : (typeof tekst === 'string' ? tekst : undefined),
+    };
+  });
+}
+
 function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
   const items = (value as any)?.items;
   if (!Array.isArray(items)) return undefined;
@@ -1389,6 +1367,19 @@ export function toAbsoluteMediaUrl(url?: string): string | undefined {
 // Helper to get full media URL
 export function getMediaUrl(media?: UmbracoMedia): string | undefined {
   return toAbsoluteMediaUrl(media?.url);
+}
+
+/**
+ * Redaksjonell bakgrunnsfarge (#360) -> brand surface CSS-variabel for artikkelhodet.
+ * brand1/2/3 gir brand-flate; 'ingen'/ukjent/tom gir ingen brand-bakgrunn (undefined).
+ */
+export function bakgrunnSurface(bakgrunn?: string): string | undefined {
+  switch (bakgrunn) {
+    case 'brand1': return 'var(--ds-color-brand1-surface-default)';
+    case 'brand2': return 'var(--ds-color-brand2-surface-default)';
+    case 'brand3': return 'var(--ds-color-brand3-surface-default)';
+    default: return undefined;
+  }
 }
 
 /**

@@ -10,7 +10,8 @@ export const GET: APIRoute = ({ url }) => {
   const isProd = PROD_HOSTS.has(url.hostname);
 
   const body = isProd
-    ? `User-agent: *
+    ? `# Allows Siteimprove only (todo: allow at launch)
+User-agent: SiteimproveBot
 Allow: /
 Disallow: /admin-tilgang
 Disallow: /preview-tilgang
@@ -18,12 +19,16 @@ Disallow: /status
 Disallow: /api/
 Disallow: /503
 
+User-agent: *
+Disallow: /
+
 Sitemap: https://ki.norge.no/sitemap-index.xml
 
 # Human/LLM-readable route expectations for automated testing:
 # See /llm.txt
 `
-    : `# Non-production environment — block all crawlers.
+    : `# Non-production environment — disallow all (crawling on test would give bad content for Search Engines and give false results for Siteimprove)
+
 User-agent: *
 Disallow: /
 `;

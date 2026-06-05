@@ -1,19 +1,34 @@
 ---
-// Hero — tagline with illustration, "Kom i gang" CTA
+// Hero — tagline with illustration, "Kom i gang" CTA. Feltene er redaksjonelle
+// (forsideHero-modulen); defaults under brukes når feltet er tomt.
 import AkselIcon from '../shared/AkselIcon.astro';
+interface Props {
+  overskrift?: string;
+  komIGangTekst?: string;
+  lenketekst?: string;
+  lenkeUrl?: string;
+  illustrasjon?: string;
+}
+const {
+  overskrift = 'Ansvarlig bruk av kunstig intelligens. For norske virksomheter, på norske premisser.',
+  komIGangTekst = 'Kom i gang',
+  lenketekst = 'Hva er KI og hva kan du bruke det til?',
+  lenkeUrl = '/veiledning/hva-er-ki',
+  illustrasjon = '/frontpage.svg',
+} = Astro.props;
 ---
 
 <section class="hero" data-layout-block="content">
   <div class="hero-grid">
     <div class="hero-text">
       <img src="/logo.svg" alt="KI Norge" class="hero-logo" />
-      <p class="hero-tagline ds-heading" data-size="xl"><strong>Felleskap for KI</strong> — innovativ og ansvarlig bruk av kunstig intelligens</p>
+      <p class="hero-tagline ds-heading" data-size="xl">{overskrift}</p>
       <p class="hero-cta">
-        Kom i gang: <a class="hero-cta-link ds-focus" href="/veiledning/hva-er-ki">Hva er KI og hva kan du bruke det til? <span class="hero-cta-arrow"><AkselIcon name="ArrowRight" size={24} /></span></a>
+        {komIGangTekst}: <a class="hero-cta-link ds-focus" href={lenkeUrl}>{lenketekst} <span class="hero-cta-arrow"><AkselIcon name="ArrowRight" size={24} /></span></a>
       </p>
     </div>
     <div class="hero-illustration">
-      <img src="/frontpage.svg" alt="" width="400" height="300" fetchpriority="high" />
+      <img src={illustrasjon} alt="" width="400" height="300" fetchpriority="high" />
     </div>
   </div>
 </section>
