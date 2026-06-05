@@ -238,6 +238,10 @@ public class ContentTypeComponent : IAsyncComponent
             else
                 MigrateSandkasse();
 
+            // Farge (bakgrunn) kun på rik artikkelmal (artikkel + eksempel), Lars 2026-06-05.
+            // Sikrer feltet der og fjerner det fra de enkle sidetypene.
+            EnforceBakgrunnScope();
+
             // Create container types if missing
             if (_contentTypeService.Get("artikler") == null)
                 CreateArtiklerOversikt();
@@ -329,9 +333,19 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType CreateOrGetBakgrunnDropdown()
     {
+        // Redaksjonell farge for artikkelen (brand1/2/3). "ingen" = ingen brand-farge (standard).
+        // Items asserts hver oppstart slik at en eksisterende datatype også oppdateres.
+        var items = new[] { "ingen", "brand1", "brand2", "brand3" };
         var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
             .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunn");
-        if (existing != null) return existing;
+        if (existing != null)
+        {
+            var cfg = existing.ConfigurationData ?? new Dictionary<string, object>();
+            cfg["items"] = items;
+            existing.ConfigurationData = cfg;
+            _dataTypeService.Save(existing);
+            return existing;
+        }
 
         var editor = _propertyEditors[Constants.PropertyEditors.Aliases.DropDownListFlexible]
             ?? throw new InvalidOperationException("DropDownListFlexible editor not found");
@@ -343,7 +357,7 @@ public class ContentTypeComponent : IAsyncComponent
             EditorUiAlias = "Umb.PropertyEditorUi.Dropdown",
             ConfigurationData = new Dictionary<string, object>
             {
-                ["items"] = new[] { "hvit", "lyseblaa" },
+                ["items"] = items,
             },
         };
         _dataTypeService.Save(dt);
@@ -1481,12 +1495,6 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere.", sortOrder: 4), "innhold");
             changed = true;
         }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
-        {
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Bakgrunnsfarge for artikkelhodet.", sortOrder: 2), "innstillinger");
-            changed = true;
-        }
-
         var innholdProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "innhold");
         if (innholdProp != null && innholdProp.DataTypeId != _blockListArtikkelDt.Id)
         {
@@ -1500,10 +1508,10 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
-            ("slug", 1), ("bakgrunn", 2))) changed = true;
+            ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
@@ -1610,7 +1618,39 @@ public class ContentTypeComponent : IAsyncComponent
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
-        ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit.", sortOrder: 2), "innstillinger");
+        // Bakgrunnsfarge er IKKE en del av det delte hodet lenger — farge kun på artikkel (se MigrateArtikkelType).
+    }
+
+    /// <summary>
+    /// Farge (bakgrunn) skal kun kunne velges på rik artikkelmal (Lars + designere 2026-06-05):
+    /// artikkel, eksempel, enkelVeiledning, sandkasse. De enkle malene (side, stegartikkel) skal ikke
+    /// ha farge. Andre farger (kort, seksjoner) baserer seg på dette valget i frontend. Sikrer feltet på
+    /// de rike typene og fjerner det fra de enkle. Fjerning er destruktiv: dropper hvit/lyseblaa-verdier.
+    /// NB: omOss regnes også som rik mal av designerne, men har en egen struktur (ikke artikkelhode) —
+    /// holdt utenfor her, egen avklaring (se TODO/CMS-sidemal-audit.md).
+    /// </summary>
+    private void EnforceBakgrunnScope()
+    {
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            if (ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
+            if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
+                ct.AddPropertyGroup("innstillinger", "Innstillinger");
+            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Redaksjonell farge for artikkelen (brand1/2/3, eller ingen). Vises på artikkelhodet og arves av kort som lenker hit.", sortOrder: 2), "innstillinger");
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rik artikkelmal)");
+        }
+        foreach (var alias in new[] { "side", "stegartikkel" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
+            ct.RemovePropertyType("bakgrunn");
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: Removed bakgrunn from '{alias}' (farge kun på rik artikkelmal)");
+        }
     }
 
     private static readonly Dictionary<string, int> StandardGroupSortOrders = new()
@@ -1705,16 +1745,11 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt."), "innhold");
             changed = true;
         }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
-        {
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit."), "innhold");
-            changed = true;
-        }
-
-        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        // bakgrunn (farge) eies av EnforceBakgrunnScope() — gjelder rik artikkelmal (artikkel + eksempel).
+        if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
-            ("slug", 1), ("bakgrunn", 2))) changed = true;
+            ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
@@ -2239,7 +2274,7 @@ public class ContentTypeComponent : IAsyncComponent
         }
 
         // Add Artikkelhode fields if missing
-        var hodeFields = new[] { "tittel", "slug", "ingress", "artikkelBilde", "bildeAlt", "bakgrunn" };
+        var hodeFields = new[] { "tittel", "slug", "ingress", "artikkelBilde", "bildeAlt" };
         if (hodeFields.Any(f => !ct.PropertyTypeExists(f)))
         {
             // Ensure the "innhold" group exists before adding to it
