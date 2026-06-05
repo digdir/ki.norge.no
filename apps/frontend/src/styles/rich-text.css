@@ -50,7 +50,7 @@
     }
 
     & > h2 {
-      font-family: 'PT Serif', serif;
+      font-family: var(--ki-heading-font);
       font-style: italic;
       font-size: 24px;
       font-weight: 400;
@@ -112,7 +112,7 @@
 
     /* A <p> tag that comes directly after <h1> will be treated as an ingress */
     & > h1 + p {
-      font-family: 'PT Serif', serif;
+      font-family: var(--ki-heading-font);
       font-size: 30px;
       line-height: 1.5;
       margin-top: 0;

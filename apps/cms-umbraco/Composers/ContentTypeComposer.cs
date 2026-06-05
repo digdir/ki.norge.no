@@ -1299,11 +1299,13 @@ public class ContentTypeComponent : IAsyncComponent
     // Restricted: for highlight blocks (Fremheving) and process step descriptions.
     // No headings (block is itself a highlight, no nested sections), no source editor,
     // no alignment, no blockquote (handled by visAnforselstegn toggle).
+    // ClearFormatting ("fjern formatering") is included here too — ALL RichText
+    // editors must have a wash button so editors can strip pasted-in marks/styles.
     private static readonly List<List<List<string>>> RestrictedToolbar = new()
     {
         new()
         {
-            new() { "Umb.Tiptap.Toolbar.Bold", "Umb.Tiptap.Toolbar.Italic" },
+            new() { "Umb.Tiptap.Toolbar.Bold", "Umb.Tiptap.Toolbar.Italic", "Umb.Tiptap.Toolbar.ClearFormatting" },
             new() { "Umb.Tiptap.Toolbar.BulletList", "Umb.Tiptap.Toolbar.OrderedList" },
             new() { "Umb.Tiptap.Toolbar.Link", "Umb.Tiptap.Toolbar.Unlink" },
         }
@@ -2629,21 +2631,40 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("heroBilde", "Hero-bilde", _mediaPickerDt), "hero");
             changed = true;
         }
-        // Seksjon 1
+        // Seksjon 1 (vises som "Fremhevet veiledning og artikler" i backoffice)
         if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon1"))
         {
-            ct.AddPropertyGroup("seksjon1", "Seksjon 1");
-            ct.AddPropertyType(Prop("seksjon1Tittel", "Seksjon 1 tittel", _textStringDt), "seksjon1");
-            ct.AddPropertyType(Prop("seksjon1Kort", "Seksjon 1 kort", _blockListVeiledningKortDt), "seksjon1");
+            ct.AddPropertyGroup("seksjon1", "Fremhevet veiledning og artikler");
+            ct.AddPropertyType(Prop("seksjon1Tittel", "Tittel", _textStringDt), "seksjon1");
+            ct.AddPropertyType(Prop("seksjon1Kort", "Kort", _blockListVeiledningKortDt), "seksjon1");
             changed = true;
         }
-        // Seksjon 2
+        // Seksjon 2 (vises som "Rik liste" i backoffice)
         if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon2"))
         {
-            ct.AddPropertyGroup("seksjon2", "Seksjon 2");
-            ct.AddPropertyType(Prop("seksjon2Tittel", "Seksjon 2 tittel", _textStringDt), "seksjon2");
-            ct.AddPropertyType(Prop("seksjon2Kort", "Seksjon 2 kort", _blockListVeiledningKortDt), "seksjon2");
+            ct.AddPropertyGroup("seksjon2", "Rik liste");
+            ct.AddPropertyType(Prop("seksjon2Tittel", "Tittel", _textStringDt), "seksjon2");
+            ct.AddPropertyType(Prop("seksjon2Kort", "Kort", _blockListVeiledningKortDt), "seksjon2");
             changed = true;
+        }
+        // Re-label til beskrivende modulnavn (Dorte, Figma-tavle 2026-06-04). Aliasene
+        // beholdes, så ingen data flyttes. Kjorer hver oppstart slik at noder opprettet
+        // med de gamle "Seksjon 1/2"-navnene ogsaa oppdateres.
+        // TODO: "Enkel liste" (seksjon 3) mangler fortsatt — egen oppgave, henger sammen
+        // med planlagt sidetre-/modulkatalog-restrukturering.
+        foreach (var (alias, name) in new[] { ("seksjon1", "Fremhevet veiledning og artikler"), ("seksjon2", "Rik liste") })
+        {
+            var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == alias);
+            if (grp != null && grp.Name != name) { grp.Name = name; changed = true; }
+        }
+        foreach (var (alias, name) in new[]
+        {
+            ("seksjon1Tittel", "Tittel"), ("seksjon1Kort", "Kort"),
+            ("seksjon2Tittel", "Tittel"), ("seksjon2Kort", "Kort"),
+        })
+        {
+            var pt = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+            if (pt != null && pt.Name != name) { pt.Name = name; changed = true; }
         }
         // Verktøy-seksjonen er borte fra Figma — fjern fra eksisterende noder
         foreach (var alias in new[] { "verktoyTittel", "verktoyKort" })
