@@ -45,11 +45,17 @@ public class ContentSlugHandler : INotificationHandler<ContentSavingNotification
 
             if (string.IsNullOrWhiteSpace(source)) continue;
 
-            var cleaned = _shortStringHelper.CleanStringForUrlSegment(source);
+            var cleaned = _shortStringHelper.CleanStringForUrlSegment(Transliterate(source));
             if (!string.IsNullOrWhiteSpace(cleaned) && cleaned != current)
             {
                 content.SetValue("slug", cleaned);
             }
         }
     }
+
+    /// <summary>Norsk translitterasjon for slug: ø-&gt;o, å-&gt;a, æ-&gt;e (avviker fra Umbracos oe/aa/ae).</summary>
+    private static string Transliterate(string s) => s
+        .Replace("Æ", "E").Replace("æ", "e")
+        .Replace("Ø", "O").Replace("ø", "o")
+        .Replace("Å", "A").Replace("å", "a");
 }
