@@ -30,6 +30,11 @@ Sitemap: https://ki.norge.no/sitemap-index.xml
     : `# Non-production environment — allow only SiteimproveBot.
 User-agent: SiteimproveBot
 Allow: /
+Disallow: /admin-tilgang
+Disallow: /preview-tilgang
+Disallow: /status
+Disallow: /api/
+Disallow: /503
 
 User-agent: *
 Disallow: /
