@@ -36,10 +36,13 @@ const websiteJsonLd = websiteSchema(seoDescription);
 
 const featuredArticle = latestArticles[0];
 
-const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
 const formatEventDate = (iso: string) => {
   const d = new Date(iso);
-  return { day: String(d.getDate()), month: monthNames[d.getMonth()], year: String(d.getFullYear()) };
+  return {
+    day: String(d.getDate()),
+    month: d.toLocaleDateString('nb-NO', { month: 'long' }),
+    year: String(d.getFullYear()),
+  };
 };
 const nextEvent = upcomingEvents[0] || null;
 const nextEventDate = nextEvent ? formatEventDate(nextEvent.startDato) : null;

@@ -1,4 +1,4 @@
-@layer ds, layout, article-layout;
+@layer ds, layout, site, article-layout;
 
 @import '@digdir/designsystemet-css';
 @import '../../../../design-tokens-build/theme.css';
