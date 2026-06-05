@@ -71,7 +71,7 @@ const påmeldingUrl = hendelse.lenke || '#';
   <section class="article-hero" data-layout-block="edge">
     <h1 class="ds-heading article-title" data-size="xl">{hendelse.tittel}</h1>
     <p class="event-datetime">
-      <time datetime={hendelse.startDato}>{dateDisplay}</time>
+      <time datetime={hendelse.startDato}><strong>{dateDisplay}</strong></time>
       {timeDisplay && <span class="event-time">{timeDisplay}</span>}
     </p>
   </section>
@@ -83,7 +83,7 @@ const påmeldingUrl = hendelse.lenke || '#';
         <div><span class="event-meta-label">Sted:</span> <strong>{hendelse.sted || 'Ikke oppgitt'}</strong></div>
       </div>
       <div class="event-meta-item">
-        <AkselIcon name="House" size={24} />
+        <AkselIcon name="HouseHeart" size={24} />
         <div><span class="event-meta-label">Arrangør:</span> <strong>{arrangør}</strong></div>
       </div>
       <div class="event-meta-item">
@@ -128,11 +128,11 @@ const påmeldingUrl = hendelse.lenke || '#';
   .event-datetime {
     grid-column: 2 / -1;
     font-size: var(--ds-font-size-5);
-    font-weight: 600;
     margin: 0;
     display: flex;
     gap: var(--ds-size-4);
     color: var(--ds-color-text-default);
+    margin-block-start: var(--ds-size-6);
   }
 
   @media (max-width: 1024px) {

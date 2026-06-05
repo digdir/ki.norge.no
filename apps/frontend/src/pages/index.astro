@@ -7,6 +7,7 @@ import EventCard from '../components/shared/EventCard.astro';
 import ArrowLink from '../components/shared/ArrowLink.astro';
 import ExampleLinkCards from '../components/shared/ExampleLinkCards.astro';
 import TextWithImage from '../components/shared/TextWithImage.astro';
+import AkselIcon from '../components/shared/AkselIcon.astro';
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getKalenderhendelser, getEksempler, type Kalenderhendelse, type Eksempel } from '../lib/umbraco';
 
@@ -129,12 +130,20 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
   </section>
 
   <!-- Den regulatoriske sandkassen -->
-  <section class="sandkasse-section" data-layout-block="edge">
-    <div data-layout-block="content">
-      <h2 class="sandkasse-title">
-        Den regulatoriske sandkassen
-      </h2>
-      <p class="sandkasse-desc">Juridisk veiledning for deg som ønsker å utvikle et risikofylt KI-prosjekt.</p>
+  <section class="sandkasse-section" data-layout-block="content">
+    <div class="sandkasse-card" data-clickdelegatefor="sandkasse-link">
+      <div class="sandkasse-card-image">
+        <img src="/placeholder.png" alt="Illustrasjon av to personer i samtale" loading="lazy" decoding="async" />
+      </div>
+      <div class="sandkasse-card-text">
+        <h2 class="sandkasse-title">
+          <a id="sandkasse-link" href="/sandkasse">
+            Den regulatoriske sandkassen
+            <span class="sandkasse-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span>
+          </a>
+        </h2>
+        <p class="sandkasse-desc ds-paragraph" data-size="lg">Juridisk veiledning for deg som ønsker å utføre et risikofylt KI-prosjekt.</p>
+      </div>
     </div>
   </section>
 </Layout>
@@ -222,24 +231,100 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
 
   /* ── Sandkassen ──────────────────────────────────────── */
   .sandkasse-section {
-    background-color: var(--ds-color-base-active);
-    color: var(--ds-color-base-contrast-default);
-    padding-block: var(--ds-size-22);
+    padding-block: var(--ds-size-12);
+
+    @media (max-width: 768px) {
+      padding-block: var(--ds-size-8);
+    }
+  }
+  
+  
+  .sandkasse-card {
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    border: 6px solid var(--ds-color-border-subtle);
+    background-color: var(--ds-color-brand2-background-default);
+
+    &:focus-within {
+      box-shadow: var(--dsc-focus-boxShadow);
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+    }
+
+    &:has(.\:click-delegate-hover) a {
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+  .sandkasse-card-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ds-size-8);
+
+    @media (max-width: 768px) {
+      padding: var(--ds-size-4);
+    }
+  }
+
+  .sandkasse-card-image img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .sandkasse-card-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--ds-size-3);
+    padding: var(--ds-size-10);
+
+    @media (max-width: 768px) {
+      padding: var(--ds-size-4);
+    }
   }
 
   .sandkasse-title {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-size-3);
     font-size: var(--ds-heading-lg-font-size);
-    font-weight: 600;
-    margin: 0 0 var(--ds-size-3);
+    margin: 0;
+    line-height: 1.3;
+
+    & a {
+      color: inherit;
+      text-decoration: none;
+
+      &.:global(click-delegate-hover) {
+        text-decoration: underline;
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  .sandkasse-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1em;
+    height: 1em;
+    border-radius: var(--ds-border-radius-full);
+    background-color: var(--ds-color-surface-tinted);
+    vertical-align: middle;
+    margin-left: var(--ds-size-2);
   }
 
   .sandkasse-desc {
-    font-size: var(--ds-body-md-font-size);
     margin: 0;
-    opacity: 0.85;
-    max-width: 500px;
+    max-width: 400px;
   }
 </style>
