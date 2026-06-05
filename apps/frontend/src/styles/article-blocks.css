@@ -141,7 +141,7 @@
   border-radius: var(--ds-border-radius-full);
   background: var(--ds-color-text-default);
   color: var(--ds-color-surface-hover);
-  font-family: 'PT Serif', serif;
+  font-family: var(--ki-heading-font);
   font-size: var(--ds-font-size-8);
   line-height: 1;
 }
@@ -233,7 +233,7 @@
    collapses onto one running line of text and the marks naturally flow
    with the words. Italic body, 24px (= ds font size 6). */
 .article-fremheving-text--quote {
-  font-family: 'PT Serif', serif;
+  font-family: var(--ki-heading-font);
   font-style: italic;
   margin: 0;
   font-size: var(--ds-font-size-6);

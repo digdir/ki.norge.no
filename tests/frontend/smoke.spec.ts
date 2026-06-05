@@ -32,7 +32,7 @@ test('Artikkel detail page renders for first article', async ({ page, request })
   const apiKey = 'ki-norge-delivery-key-2025';
   const cms = process.env.TARGET === 'local'
     ? 'http://localhost:5000'
-    : 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+    : 'https://kinorgeportal.prod.dis-core.altinn.cloud';
 
   const res = await request.get(`${cms}/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1`, {
     headers: { 'Api-Key': apiKey },
@@ -50,7 +50,7 @@ test('Eksempel detail page renders for first eksempel', async ({ page, request }
   const apiKey = 'ki-norge-delivery-key-2025';
   const cms = process.env.TARGET === 'local'
     ? 'http://localhost:5000'
-    : 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+    : 'https://kinorgeportal.prod.dis-core.altinn.cloud';
 
   const res = await request.get(`${cms}/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1`, {
     headers: { 'Api-Key': apiKey },

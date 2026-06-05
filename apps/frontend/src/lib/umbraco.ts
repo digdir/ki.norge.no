@@ -642,6 +642,8 @@ async function fetchCollection<T>(
 
   if (options.preview && API_KEY) {
     headers['Api-Key'] = API_KEY;
+    // Umbraco Delivery API leverer kladd kun med Preview-header (ikke ?preview-query).
+    headers['Preview'] = 'true';
   }
 
   const params = new URLSearchParams();
@@ -1572,6 +1574,8 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
   const headers: HeadersInit = { 'Accept': 'application/json' };
   if (options.preview && API_KEY) {
     headers['Api-Key'] = API_KEY;
+    // Umbraco Delivery API leverer kladd kun med Preview-header (ikke ?preview-query).
+    headers['Preview'] = 'true';
   }
 
   const params = new URLSearchParams();

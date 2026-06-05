@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro';
 const PROD_HOSTS = new Set([
   'ki.norge.no',
   'www.ki.norge.no',
-  'ki-norge-frontend.greentree-c9e56a64.norwayeast.azurecontainerapps.io',
+  'ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev',
 ]);
 
 export const GET: APIRoute = ({ url }) => {

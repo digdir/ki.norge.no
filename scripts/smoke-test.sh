@@ -14,8 +14,8 @@ if [ "$MODE" = "--local" ]; then
   FRONTEND="http://localhost:4321"
   CMS="http://localhost:5000"
 else
-  FRONTEND="https://ki-norge-frontend.greentree-c9e56a64.norwayeast.azurecontainerapps.io"
-  CMS="https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io"
+  FRONTEND="https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev"
+  CMS="https://kinorgeportal.prod.dis-core.altinn.cloud"
 fi
 
 API_KEY="ki-norge-delivery-key-2025"

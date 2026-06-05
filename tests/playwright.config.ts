@@ -14,11 +14,11 @@ const TARGET = process.env.TARGET || 'prod';
 
 const FRONTEND = TARGET === 'local'
   ? 'http://localhost:4321'
-  : 'https://ki-norge-frontend.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+  : 'https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev';
 
 const CMS = TARGET === 'local'
   ? 'http://localhost:5000'
-  : 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+  : 'https://kinorgeportal.prod.dis-core.altinn.cloud';
 
 export default defineConfig({
   testDir: '.',
