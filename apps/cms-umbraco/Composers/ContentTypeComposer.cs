@@ -238,6 +238,10 @@ public class ContentTypeComponent : IAsyncComponent
             else
                 MigrateSandkasse();
 
+            // Farge (bakgrunn) kun på rik artikkelmal (artikkel + eksempel), Lars 2026-06-05.
+            // Sikrer feltet der og fjerner det fra de enkle sidetypene.
+            EnforceBakgrunnScope();
+
             // Create container types if missing
             if (_contentTypeService.Get("artikler") == null)
                 CreateArtiklerOversikt();
@@ -329,9 +333,19 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType CreateOrGetBakgrunnDropdown()
     {
+        // Redaksjonell farge for artikkelen (brand1/2/3). "accent" = accent brand-farge (standard).
+        // Items asserts hver oppstart slik at en eksisterende datatype også oppdateres.
+        var items = new[] { "accent", "brand1", "brand2", "brand3" };
         var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
             .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunn");
-        if (existing != null) return existing;
+        if (existing != null)
+        {
+            var cfg = existing.ConfigurationData ?? new Dictionary<string, object>();
+            cfg["items"] = items;
+            existing.ConfigurationData = cfg;
+            _dataTypeService.Save(existing);
+            return existing;
+        }
 
         var editor = _propertyEditors[Constants.PropertyEditors.Aliases.DropDownListFlexible]
             ?? throw new InvalidOperationException("DropDownListFlexible editor not found");
@@ -343,7 +357,7 @@ public class ContentTypeComponent : IAsyncComponent
             EditorUiAlias = "Umb.PropertyEditorUi.Dropdown",
             ConfigurationData = new Dictionary<string, object>
             {
-                ["items"] = new[] { "hvit", "lyseblaa" },
+                ["items"] = items,
             },
         };
         _dataTypeService.Save(dt);
@@ -1483,12 +1497,6 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere.", sortOrder: 4), "innhold");
             changed = true;
         }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
-        {
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Bakgrunnsfarge for artikkelhodet.", sortOrder: 2), "innstillinger");
-            changed = true;
-        }
-
         var innholdProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "innhold");
         if (innholdProp != null && innholdProp.DataTypeId != _blockListArtikkelDt.Id)
         {
@@ -1502,10 +1510,10 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
-            ("slug", 1), ("bakgrunn", 2))) changed = true;
+            ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
@@ -1555,6 +1563,15 @@ public class ContentTypeComponent : IAsyncComponent
                 ct.RemovePropertyType(alias);
                 changed = true;
             }
+        }
+
+        // guideSlug settes automatisk fra guiden (VeiledningStegGuideSlugHandler), så det er ikke lenger
+        // påkrevd. Relax eksisterende noder.
+        var guideSlugProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "guideSlug");
+        if (guideSlugProp != null && guideSlugProp.Mandatory)
+        {
+            guideSlugProp.Mandatory = false;
+            changed = true;
         }
 
         if (EnsureInnstillingerGroup(ct, "slug", "guideSlug", "steg", "understeg")) changed = true;
@@ -1612,7 +1629,37 @@ public class ContentTypeComponent : IAsyncComponent
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
-        ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit.", sortOrder: 2), "innstillinger");
+        // Bakgrunnsfarge er IKKE en del av det delte hodet lenger — farge kun på artikkel (se MigrateArtikkelType).
+    }
+
+    /// <summary>
+    /// Farge (bakgrunn) skal kun kunne velges på rik artikkelmal (Lars + designere 2026-06-05):
+    /// artikkel, eksempel, enkelVeiledning, sandkasse, omOss. De enkle malene (side, stegartikkel) skal
+    /// ikke ha farge. Andre farger (kort, seksjoner) baserer seg på dette valget i frontend. Sikrer feltet
+    /// på de rike typene og fjerner det fra de enkle. Fjerning er destruktiv: dropper hvit/lyseblaa-verdier.
+    /// </summary>
+    private void EnforceBakgrunnScope()
+    {
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            if (ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
+            if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
+                ct.AddPropertyGroup("innstillinger", "Innstillinger");
+            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Redaksjonell farge for artikkelen (brand1/2/3, eller accent). Vises på artikkelhodet og arves av kort som lenker hit.", sortOrder: 2), "innstillinger");
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rik artikkelmal)");
+        }
+        foreach (var alias in new[] { "side", "stegartikkel" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
+            ct.RemovePropertyType("bakgrunn");
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: Removed bakgrunn from '{alias}' (farge kun på rik artikkelmal)");
+        }
     }
 
     private static readonly Dictionary<string, int> StandardGroupSortOrders = new()
@@ -1707,16 +1754,11 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt."), "innhold");
             changed = true;
         }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
-        {
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit."), "innhold");
-            changed = true;
-        }
-
-        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        // bakgrunn (farge) eies av EnforceBakgrunnScope() — gjelder rik artikkelmal (artikkel + eksempel).
+        if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
-            ("slug", 1), ("bakgrunn", 2))) changed = true;
+            ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
@@ -1955,7 +1997,7 @@ public class ContentTypeComponent : IAsyncComponent
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
-        ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, mandatory: true, description: "Slug til overordnet guide", sortOrder: 2), "innstillinger");
+        ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, description: "Settes automatisk fra guiden ved lagring. Trenger ikke fylles ut.", sortOrder: 2), "innstillinger");
         ct.AddPropertyType(Prop("steg", "Steg", _numericDt, mandatory: true, description: "Stegnummer (1, 2, 3...)", sortOrder: 3), "innstillinger");
         ct.AddPropertyType(Prop("understeg", "Understeg", _numericDt, mandatory: true, description: "Understeg-nummer (1, 2, 3...)", sortOrder: 4), "innstillinger");
         SetStandardGroupSortOrders(ct);
@@ -2145,21 +2187,21 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = false,  // lives under Sider container
         };
 
+        // Om Oss bruker rik artikkelmal: samme artikkelhode og samme modul-blokkliste som artikkel
+        // (Lars + designere 2026-06-05). Farge legges på av EnforceBakgrunnScope.
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("heroTittel", "Hero-tittel", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("heroUndertittel", "Hero-undertittel", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt), "innhold");
-        ct.AddPropertyType(Prop("misjonTekst", "Misjonstekst", _richTextDt, description: "Tekst i den blå misjonsbanneren"), "innhold");
-        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListOmOssDt, description: "Drag og slipp for å endre rekkefølge på seksjoner."), "innhold");
+        AddArtikkelhodeFields(ct);
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
 
-        // No allowed children — sections live as blocks on the page itself
+        // No allowed children — innholdet ligger som moduler på siden
         ct.AllowedContentTypes = Array.Empty<ContentTypeSort>();
 
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2171,26 +2213,42 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
-        // Add misjonTekst if missing (legacy migration)
-        if (!ct.PropertyTypeExists("misjonTekst"))
+        // Bygg om Om Oss til rik artikkelmal (Lars + designere 2026-06-05): samme artikkelhode og
+        // samme modul-blokkliste som artikkel. Farge legges på av EnforceBakgrunnScope.
+        if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
         {
-            ct.AddPropertyType(Prop("misjonTekst", "Misjonstekst", _richTextDt, description: "Tekst i den blå misjonsbanneren"), "innhold");
+            ct.AddPropertyGroup("innhold", "Innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("tittel"))
+        {
+            AddArtikkelhodeFields(ct);
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("innhold"))
+        {
+            ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
             changed = true;
         }
 
-        // Add seksjoner Block List if missing (Om Oss flatten)
-        if (!ct.PropertyTypeExists("seksjoner"))
+        // Fjern gamle Om Oss-spesifikke felt. Destruktivt: gammelt innhold (hero/intro/misjon/seksjoner)
+        // må flyttes til modulene av redaktør.
+        foreach (var alias in new[] { "heroTittel", "heroUndertittel", "introTekst", "misjonTekst", "seksjoner" })
         {
-            ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListOmOssDt, description: "Drag og slipp for å endre rekkefølge på seksjoner."), "innhold");
-            changed = true;
+            if (ct.PropertyTypeExists(alias))
+            {
+                ct.RemovePropertyType(alias);
+                changed = true;
+            }
         }
 
-        // Remove omOssSeksjon from allowed children (sections move to blocks)
         if (ct.AllowedContentTypes != null && ct.AllowedContentTypes.Any())
         {
             ct.AllowedContentTypes = Array.Empty<ContentTypeSort>();
             changed = true;
         }
+
+        if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
             _contentTypeService.Save(ct);
@@ -2241,7 +2299,7 @@ public class ContentTypeComponent : IAsyncComponent
         }
 
         // Add Artikkelhode fields if missing
-        var hodeFields = new[] { "tittel", "slug", "ingress", "artikkelBilde", "bildeAlt", "bakgrunn" };
+        var hodeFields = new[] { "tittel", "slug", "ingress", "artikkelBilde", "bildeAlt" };
         if (hodeFields.Any(f => !ct.PropertyTypeExists(f)))
         {
             // Ensure the "innhold" group exists before adding to it

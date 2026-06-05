@@ -146,10 +146,11 @@ Eller bruk /az-auth skillen.
 
 ## Produksjon
 
-- Frontend: https://ki-norge-frontend.greentree-c9e56a64.norwayeast.azurecontainerapps.io
-- CMS: https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io/umbraco
+- Frontend (prod): https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev (Cloudflare Workers)
+- CMS (prod): https://kinorgeportal.prod.dis-core.altinn.cloud/umbraco (Altinn dis-core)
+- CMS (tt02): https://kinorgeportal.tt02.dis-core.altinn.cloud/umbraco
 - Status: /status (krever ki_admin cookie)
-- Domene: ki.norge.no (DNS opprettet, Azure custom domain venter på TXT-record)
+- Domene: ki.norge.no (Cloudflare Partial-zone på norge.no, DNS ikke satt opp ennå)
 
 ## Teamet
 
