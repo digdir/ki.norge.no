@@ -1,7 +1,7 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
-import { getSandkasse, getMediaUrl, getPlainText } from '../../lib/umbraco';
+import { getSandkasse, getMediaUrl, getPlainText, bakgrunnSurface } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -21,40 +21,23 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: sandkasse.tittel, url: '/sandkasse' },
 ]);
 
-const bakgrunn = sandkasse.bakgrunn || 'hvit';
-const isLightBlueBg = bakgrunn === 'lyseblaa';
+const heroBg = bakgrunnSurface(sandkasse.bakgrunn);
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
   <div class="article-page grid" data-layout-block="content">
-    <section class={`article-hero ${isLightBlueBg ? 'col-all article-hero--bg-lyseblaa' : 'col-center-10'}`}>
-      {isLightBlueBg ? (
-        <div class={`grid article-hero-bg-grid`}>
-          <div class="article-hero-inner col-center-10">
-            <div class="article-hero-text">
-              <h1 class="article-title">{sandkasse.tittel}</h1>
-              {sandkasse.ingress && <p class="article-ingress">{sandkasse.ingress}</p>}
-            </div>
-            {heroImage?.url && (
-              <div class="article-hero-image">
-                <img src={getMediaUrl(heroImage)} alt={sandkasse.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-              </div>
-            )}
-          </div>
+    <section class="article-hero col-center-10" style={heroBg ? `background-color: ${heroBg}` : undefined}>
+      <div class="article-hero-inner">
+        <div class="article-hero-text">
+          <h1 class="article-title">{sandkasse.tittel}</h1>
+          {sandkasse.ingress && <p class="article-ingress">{sandkasse.ingress}</p>}
         </div>
-      ) : (
-        <div class="article-hero-inner">
-          <div class="article-hero-text">
-            <h1 class="article-title">{sandkasse.tittel}</h1>
-            {sandkasse.ingress && <p class="article-ingress">{sandkasse.ingress}</p>}
+        {heroImage?.url && (
+          <div class="article-hero-image">
+            <img src={getMediaUrl(heroImage)} alt={sandkasse.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
           </div>
-          {heroImage?.url && (
-            <div class="article-hero-image">
-              <img src={getMediaUrl(heroImage)} alt={sandkasse.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </section>
     
     <ArticleBlocksRenderer blocks={sandkasse.innhold} />

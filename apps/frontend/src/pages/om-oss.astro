@@ -1,67 +1,63 @@
 ---
 import Layout from '../components/layout/Layout.astro';
 import ArticleLayout from '../components/shared/ArticleLayout.astro';
-import BlocksRenderer from '../components/shared/BlocksRenderer.astro';
+import ArticleBlocksRenderer from '../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../components/shared/NewsCard.astro';
-import { getOmOss, getOmOssSeksjoner, getArtikler, getPlainText } from '../lib/umbraco';
+import { getOmOss, getArtikler, getPlainText, getMediaUrl, bakgrunnSurface } from '../lib/umbraco';
+import { breadcrumbSchema } from '../lib/seo';
 
-let omOss: any = null;
-let seksjoner: any[] = [];
+// Om Oss er rik artikkelmal (#362): artikkelhode (tittel/ingress/hovedbilde) + innhold-blokkliste.
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+const omOss = await getOmOss({ preview: isPreview });
+
 let latestArticles: any[] = [];
 try {
-  omOss = await getOmOss();
-  if (omOss?.seksjoner && Array.isArray(omOss.seksjoner) && omOss.seksjoner.length > 0) {
-    seksjoner = omOss.seksjoner;
-  } else {
-    const seksjonerRes = await getOmOssSeksjoner();
-    seksjoner = seksjonerRes.data;
-  }
   const artiklerRes = await getArtikler(3);
   latestArticles = artiklerRes.data;
 } catch (e) {
-  console.error('Failed to fetch om-oss CMS data:', e);
+  console.error('Failed to fetch om-oss articles:', e);
 }
 
-const heroTittel = omOss?.heroTittel || 'Om KI Norge';
-const heroUndertittel = omOss?.heroUndertittel || 'Mange virksomheter vil ta i bruk kunstig intelligens, men vet ikke helt hvor de skal begynne, eller om de gjør det riktig.';
+const tittel = omOss?.tittel || 'Om KI Norge';
 const seoTitle = omOss?.seoTittel || 'Om oss';
-const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing for ansvarlig bruk av kunstig intelligens.';
+const seoDesc = omOss?.seoBeskrivelse || omOss?.ingress || 'Om KI Norge – en nasjonal satsing for ansvarlig bruk av kunstig intelligens.';
+const seoImage = omOss?.seoBilde?.url || omOss?.artikkelBilde?.url;
+const heroImage = omOss?.artikkelBilde || omOss?.seoBilde;
+const heroBg = bakgrunnSurface(omOss?.bakgrunn);
+
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: 'Forside', url: '/' },
+  { name: tittel, url: '/om-oss' },
+]);
+
+const allBlocks = omOss?.innhold ?? [];
+const bylineBlock = allBlocks.find(b => b.contentType === 'artikkelByline');
+const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 ---
 
-<Layout title={seoTitle} description={seoDesc}>
-  <!-- Hero: title sits on the pink background, aligned to content column -->
-  <section class="article-hero" data-layout-block="edge">
-    <h1 class="ds-heading article-title" data-size="xl">{heroTittel}</h1>
+<Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+
+  <section class="article-hero" data-layout-block="edge" style={heroBg ? `background-color: ${heroBg}` : undefined}>
+    <div class="article-hero-inner">
+      <div class="article-hero-text">
+        <h1 class="ds-heading article-title" data-size="xl">{tittel}</h1>
+      </div>
+      {heroImage?.url && (
+        <div class="article-hero-image">
+          <img src={getMediaUrl(heroImage)} alt={omOss?.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+        </div>
+      )}
+    </div>
   </section>
 
-  <!-- Cream card with sidebar and main content -->
-  <ArticleLayout publishedAt={omOss?.publishedAt}>
-
-    <!-- Ingress -->
-    <p class="article-ingress ds-paragraph" data-size="lg">{heroUndertittel}</p>
-
-    <!-- Intro text blocks -->
-    {omOss?.introTekst && (
-      <div class="om-oss-intro">
-        <BlocksRenderer blocks={omOss.introTekst} />
-      </div>
+  <ArticleLayout publishedAt={omOss?.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
+    {omOss?.ingress && (
+      <p class="article-ingress ds-paragraph" data-size="lg">{omOss.ingress}</p>
     )}
-
-    <!-- Sections (text-only, no images) -->
-    {seksjoner.map((seksjon: any) => (
-      <section class="om-oss-seksjon">
-        <h2 class="ds-heading om-oss-seksjon-tittel" data-size="sm">{seksjon.tittel}</h2>
-        <div class="om-oss-seksjon-tekst">
-          {typeof seksjon.tekst === 'string'
-            ? <div set:html={seksjon.tekst} />
-            : <BlocksRenderer blocks={seksjon.tekst} />
-          }
-        </div>
-      </section>
-    ))}
+    <ArticleBlocksRenderer blocks={contentBlocks} defaultDate={omOss?.publishedAt} />
   </ArticleLayout>
 
-  <!-- Aktuelt -->
   {latestArticles.length > 0 && (
     <section class="om-oss-aktuelt" data-layout-block="content">
       <h2 class="om-oss-aktuelt-heading">Aktuelt</h2>
@@ -81,15 +77,38 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
 </Layout>
 
 <style>
-  /* Sections */
-  .om-oss-intro {
-    margin: 0;
-  }
-
-  .om-oss-seksjon {
+  /* Hero: tittel + hovedbilde ved siden av hverandre (under pa mobil) */
+  .article-hero-inner {
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-3);
+    gap: 32px;
+  }
+
+  @media (min-width: 1024px) {
+    .article-hero-inner {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  .article-hero-text { flex: 1; min-width: 0; }
+
+  .article-hero-image { flex-shrink: 0; width: 100%; }
+
+  @media (min-width: 1024px) {
+    .article-hero-image { width: 407px; }
+  }
+
+  .article-hero-img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    object-fit: cover;
+  }
+
+  @media (min-width: 1024px) {
+    .article-hero-img { height: 331px; }
   }
 
   /* Aktuelt */
@@ -106,9 +125,7 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
   }
 
   @media (min-width: 1024px) {
-    .om-oss-aktuelt-heading {
-      font-size: 40px;
-    }
+    .om-oss-aktuelt-heading { font-size: 40px; }
   }
 
   .om-oss-aktuelt-grid {
@@ -118,14 +135,10 @@ const seoDesc = omOss?.seoBeskrivelse || 'Om KI Norge – en nasjonal satsing fo
   }
 
   @media (min-width: 768px) {
-    .om-oss-aktuelt-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    .om-oss-aktuelt-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (min-width: 1024px) {
-    .om-oss-aktuelt-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+    .om-oss-aktuelt-grid { grid-template-columns: repeat(3, 1fr); }
   }
 </style>

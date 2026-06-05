@@ -403,14 +403,17 @@ export interface OmOssSeksjonBlokk {
   bildeAlt?: string;
 }
 
+// Om Oss bruker rik artikkelmal (#362): samme artikkelhode + modul-blokkliste som artikkel.
 export interface OmOss {
   id: string;
   documentId: string;
-  heroTittel?: string;
-  heroUndertittel?: string;
-  introTekst?: UmbracoBlock[];
-  misjonTekst?: UmbracoBlock[];
-  seksjoner?: OmOssSeksjonBlokk[];
+  tittel: string;
+  slug: string;
+  ingress: string;
+  artikkelBilde?: UmbracoMedia;
+  bildeAlt?: string;
+  bakgrunn?: string;
+  innhold?: UmbracoBlock[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -882,30 +885,18 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       } as T;
 
     case 'omOss':
-      // Map seksjoner Block List to OmOssSeksjonBlokk[]
-      const seksjonerItems = (props.seksjoner as any)?.items || [];
-      const seksjoner: OmOssSeksjonBlokk[] = seksjonerItems.map((block: any) => {
-        const content = block.content || block;
-        const blockProps = content.properties || content;
-        const tekst = blockProps.tekst?.tag === '#root'
-          ? richTextToHtml(blockProps.tekst)
-          : (typeof blockProps.tekst === 'string' ? blockProps.tekst : '');
-        return {
-          tittel: blockProps.tittel || '',
-          tekst,
-          bilde: mapMedia(blockProps.bilde),
-          bildeAlt: blockProps.bildeAlt || '',
-        };
-      });
+      // Rik artikkelmal (#362): artikkelhode + innhold-blokkliste, som artikkel/sandkasse.
       return {
         ...base,
-        heroTittel: props.heroTittel as string || '',
-        heroUndertittel: props.heroUndertittel as string || '',
-        introTekst: mapRichText(props.introTekst),
-        misjonTekst: mapRichText(props.misjonTekst),
-        seksjoner,
-        seoTittel: props.seoTittel as string || '',
-        seoBeskrivelse: props.seoBeskrivelse as string || '',
+        tittel: props.tittel as string || item.name,
+        slug: props.slug as string || 'om-oss',
+        ingress: props.ingress as string || '',
+        artikkelBilde: mapMedia(props.artikkelBilde),
+        bildeAlt: props.bildeAlt as string || '',
+        bakgrunn: (props.bakgrunn as string) || 'ingen',
+        innhold: mapArtikkelBlocks(props.innhold),
+        seoTittel: props.seoTittel as string || undefined,
+        seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
@@ -1389,6 +1380,19 @@ export function toAbsoluteMediaUrl(url?: string): string | undefined {
 // Helper to get full media URL
 export function getMediaUrl(media?: UmbracoMedia): string | undefined {
   return toAbsoluteMediaUrl(media?.url);
+}
+
+/**
+ * Redaksjonell bakgrunnsfarge (#360) -> brand surface CSS-variabel for artikkelhodet.
+ * brand1/2/3 gir brand-flate; 'ingen'/ukjent/tom gir ingen brand-bakgrunn (undefined).
+ */
+export function bakgrunnSurface(bakgrunn?: string): string | undefined {
+  switch (bakgrunn) {
+    case 'brand1': return 'var(--ds-color-brand1-surface-default)';
+    case 'brand2': return 'var(--ds-color-brand2-surface-default)';
+    case 'brand3': return 'var(--ds-color-brand3-surface-default)';
+    default: return undefined;
+  }
 }
 
 /**
