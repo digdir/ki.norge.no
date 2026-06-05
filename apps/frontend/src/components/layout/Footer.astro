@@ -8,16 +8,13 @@ import Logo from './Logo';
 let forside = null;
 try { forside = await getForside(); } catch (e) {}
 
-const brand = forside?.footerTittel || 'KI Norge';
 const desc = forside?.footerBeskrivelse || 'Et tverrsektorielt samarbeid for å fremme ansvarlig og sikker bruk av kunstig intelligens i den norske forvaltningen.';
-const igUrl = forside?.footerSosialInstagram || '#';
-const liUrl = forside?.footerSosialLinkedin || '#';
-const xUrl = forside?.footerSosialX || '#';
 
 const navCol1 = [
-  { text: forside?.footerLenke1Tekst || 'Om KI Norge', url: forside?.footerLenke1Url || '/om-oss' },
+  { text: forside?.footerLenke1Tekst || 'post@ki.norge.no', url: forside?.footerLenke1Url || 'mailto:post@ki.norge.no' },
 ];
 const navCol2 = [
+  { text: forside?.footerLenke1Tekst || 'Om KI Norge', url: forside?.footerLenke1Url || '/om-oss' },
   { text: forside?.footerLenke3Tekst || 'Personvern og informasjonskapsler', url: forside?.footerLenke3Url || '/personvern' },
   { text: forside?.footerLenke4Tekst || 'Tilgjengelighet', url: forside?.footerLenke4Url || '/tilgjengelighet' },
   { text: forside?.footerLenke5Tekst || 'Endre samtykke for informasjonskapsler', url: forside?.footerLenke5Url || '' },
@@ -25,38 +22,24 @@ const navCol2 = [
 ---
 
 <footer class="footer" data-layout-block="content">
-  <div class="footer-inner">
-    <div class="footer-left">
-      <p class="footer-brand"><Logo /></p>
-      <p class="footer-description">{desc}</p>
-      <div class="footer-social">
-        <a href={igUrl} class="footer-social-icon ds-focus" aria-label="Instagram">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/Instagram.svg" aria-hidden="true" /></div>
-        </a>
-        <a href={liUrl} class="footer-social-icon ds-focus" aria-label="LinkedIn">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/LinkenIn.svg" aria-hidden="true" /></div>
-        </a>
-        <a href={xUrl} class="footer-social-icon ds-focus" aria-label="X">
-          <div class="social-circle"><img loading="lazy" decoding="async" class="social-icon" src="/socials/X.svg" aria-hidden="true" /></div>
-        </a>
-      </div>
-    </div>
-    <div class="footer-right">
-      <div class="footer-nav-col">
-        {navCol1.map(link => (
-          link.url
-            ? <a href={link.url} class="ds-link">{link.text}</a>
-            : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
-        ))}
-      </div>
-      <div class="footer-nav-col">
-        {navCol2.map(link => (
-          link.url
-            ? <a href={link.url} class="ds-link">{link.text}</a>
-            : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
-        ))}
-      </div>
-    </div>
+  <div class="footer-left">
+    <p class="footer-brand"><Logo /></p>
+    <p class="footer-description ds-paragraph">{desc}</p>
+  </div>
+  <div class="footer-col">
+    <p class="ds-paragraph">Kontakt oss:</p>
+    {navCol1.map(link => (
+      link.url
+        ? <a href={link.url} class="ds-link">{link.text}</a>
+        : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
+    ))}
+  </div>
+  <div class="footer-col">
+    {navCol2.map(link => (
+      link.url
+        ? <a href={link.url} class="ds-link">{link.text}</a>
+        : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
+    ))}
   </div>
 </footer>
 
@@ -64,86 +47,34 @@ const navCol2 = [
   .footer {
     margin-top: auto;
     width: 100%;
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    gap: var(--ds-size-8);
+    padding-block-end: var(--ds-size-22);
   }
-
-  .footer-inner {
-    margin: 0 auto;
-    padding-block: var(--ds-size-22);
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
-  }
-
-  @media (min-width: 1024px) {
-    .footer-inner {
-      flex-direction: row;
-      gap: 120px;
+  @media (max-width: 1024px) {
+    .footer {
+      grid-template-rows: auto;
+      grid-template-columns: none;
+      gap: var(--ds-size-6);
     }
-  }
-
-  .footer-left {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    flex: 1;
   }
 
   .footer-brand {
     font-size: 24px;
-    font-weight: 600;
     margin: 0;
   }
 
   .footer-description {
-    font-size: 16px;
-    font-weight: 500;
     margin: 0;
-    line-height: 1.6;
     max-width: 360px;
   }
+  .footer-col {
 
-  .footer-social {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-  }
-
-  .social-circle {
-    width: var(--ds-size-10);
-    aspect-ratio: 1 / 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--ds-border-radius-md);
-  }
-
-  .social-circle:hover {
-    background-color: var(--ds-color-surface-hover);
-    transition: background-color 0.2s ease;
-  }
-
-  .social-icon {
-    width: 24px;
-    height: 24px;
-    margin: 6px;
-  }
-
-  .footer-right {
-    display: flex;
-    gap: 48px;
-    flex-wrap: wrap;
-  }
-
-  @media (min-width: 1024px) {
-    .footer-right {
-      gap: 64px;
+    & a, & button, &p {
+      display: block;
+      margin-block-end: var(--ds-size-2);
     }
-  }
-
-  .footer-nav-col {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
   }
 
   .footer-nav-button {
