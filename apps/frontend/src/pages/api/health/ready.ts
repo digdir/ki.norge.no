@@ -6,7 +6,7 @@ import type { APIRoute } from 'astro';
  * Returns 503 if CMS Delivery API isn't reachable.
  */
 
-const CMS_URL = import.meta.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_URL || 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+const CMS_URL = import.meta.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_URL || 'https://kinorgeportal.prod.dis-core.altinn.cloud';
 
 export const GET: APIRoute = async () => {
   const ts = new Date().toISOString();

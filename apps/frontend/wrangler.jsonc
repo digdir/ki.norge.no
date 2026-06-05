@@ -26,7 +26,9 @@
 		"prod": {
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
-				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
+				// Media-URLer hentes av nettleseren, så de må peke på en offentlig host.
+				// Dis-core-hosten krever Altinn-nett; proxy-workeren (#350) er offentlig nåbar.
+				"UMBRACO_PUBLIC_URL": "https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev",
 				// Holding page on ki.norge.no until launch. Flip to "live" to go public.
 				"LAUNCH_MODE": "coming-soon",
 			},

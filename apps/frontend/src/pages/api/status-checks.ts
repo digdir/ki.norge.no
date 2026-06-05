@@ -6,8 +6,8 @@
  */
 import type { APIRoute } from 'astro';
 
-const FRONTEND_URL = 'https://ki-norge-frontend.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
-const CMS_URL = 'https://ki-norge-cms.greentree-c9e56a64.norwayeast.azurecontainerapps.io';
+const FRONTEND_URL = 'https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev';
+const CMS_URL = 'https://kinorgeportal.prod.dis-core.altinn.cloud';
 
 interface CheckResult {
   name: string;
