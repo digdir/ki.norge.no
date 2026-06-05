@@ -13,11 +13,25 @@ export const GET: APIRoute = ({ url }) => {
     ? `# Pre-launch: allow Siteimprove only
 User-agent: SiteimproveBot
 Allow: /
+Disallow: /admin-tilgang
+Disallow: /preview-tilgang
+Disallow: /status
+Disallow: /api/
+Disallow: /503
 
 User-agent: *
 Disallow: /
+
+Sitemap: https://ki.norge.no/sitemap-index.xml
+
+# Human/LLM-readable route expectations for automated testing:
+# See /llm.txt
 `
-    : `User-agent: *
+    : `# Non-production environment — allow only SiteimproveBot.
+User-agent: SiteimproveBot
+Allow: /
+
+User-agent: *
 Disallow: /
 `;
 
