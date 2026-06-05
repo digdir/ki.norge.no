@@ -258,6 +258,9 @@ public class ContentTypeComponent : IAsyncComponent
             // Sikrer feltet der og fjerner det fra de enkle sidetypene.
             EnforceBakgrunnScope();
 
+            // Slug ikke-obligatorisk på rike maler (auto fra tittel ved lagring, ContentSlugHandler).
+            EnsureSlugOptional();
+
             // Create container types if missing
             if (_contentTypeService.Get("artikler") == null)
                 CreateArtiklerOversikt();
@@ -1706,7 +1709,8 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt.", sortOrder: 4), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
+        // Ikke-obligatorisk: tom slug auto-genereres fra tittel ved lagring (ContentSlugHandler).
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
         // Bakgrunnsfarge er IKKE en del av det delte hodet lenger — farge kun på artikkel (se MigrateArtikkelType).
     }
 
@@ -1737,6 +1741,26 @@ public class ContentTypeComponent : IAsyncComponent
             ct.RemovePropertyType("bakgrunn");
             _contentTypeService.Save(ct);
             Console.WriteLine($"ContentTypeComposer: Removed bakgrunn from '{alias}' (farge kun på rik artikkelmal)");
+        }
+    }
+
+    /// <summary>
+    /// Slug kan stå tom og auto-genereres fra tittel ved lagring (ContentSlugHandler), jf.
+    /// feltbeskrivelsen. Gjør slug ikke-obligatorisk på de rike malene og relax eksisterende noder.
+    /// </summary>
+    private void EnsureSlugOptional()
+    {
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss", "side", "stegartikkel" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            var slug = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "slug");
+            if (slug != null && slug.Mandatory)
+            {
+                slug.Mandatory = false;
+                _contentTypeService.Save(ct);
+                Console.WriteLine($"ContentTypeComposer: slug satt ikke-obligatorisk på '{alias}'");
+            }
         }
     }
 
