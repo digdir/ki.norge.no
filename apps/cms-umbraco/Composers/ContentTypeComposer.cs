@@ -1623,15 +1623,13 @@ public class ContentTypeComponent : IAsyncComponent
 
     /// <summary>
     /// Farge (bakgrunn) skal kun kunne velges på rik artikkelmal (Lars + designere 2026-06-05):
-    /// artikkel, eksempel, enkelVeiledning, sandkasse. De enkle malene (side, stegartikkel) skal ikke
-    /// ha farge. Andre farger (kort, seksjoner) baserer seg på dette valget i frontend. Sikrer feltet på
-    /// de rike typene og fjerner det fra de enkle. Fjerning er destruktiv: dropper hvit/lyseblaa-verdier.
-    /// NB: omOss regnes også som rik mal av designerne, men har en egen struktur (ikke artikkelhode) —
-    /// holdt utenfor her, egen avklaring (se TODO/CMS-sidemal-audit.md).
+    /// artikkel, eksempel, enkelVeiledning, sandkasse, omOss. De enkle malene (side, stegartikkel) skal
+    /// ikke ha farge. Andre farger (kort, seksjoner) baserer seg på dette valget i frontend. Sikrer feltet
+    /// på de rike typene og fjerner det fra de enkle. Fjerning er destruktiv: dropper hvit/lyseblaa-verdier.
     /// </summary>
     private void EnforceBakgrunnScope()
     {
-        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse" })
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss" })
         {
             var ct = _contentTypeService.Get(alias);
             if (ct == null) continue;
@@ -2178,21 +2176,21 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = false,  // lives under Sider container
         };
 
+        // Om Oss bruker rik artikkelmal: samme artikkelhode og samme modul-blokkliste som artikkel
+        // (Lars + designere 2026-06-05). Farge legges på av EnforceBakgrunnScope.
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("heroTittel", "Hero-tittel", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("heroUndertittel", "Hero-undertittel", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt), "innhold");
-        ct.AddPropertyType(Prop("misjonTekst", "Misjonstekst", _richTextDt, description: "Tekst i den blå misjonsbanneren"), "innhold");
-        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListOmOssDt, description: "Drag og slipp for å endre rekkefølge på seksjoner."), "innhold");
+        AddArtikkelhodeFields(ct);
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
 
-        // No allowed children — sections live as blocks on the page itself
+        // No allowed children — innholdet ligger som moduler på siden
         ct.AllowedContentTypes = Array.Empty<ContentTypeSort>();
 
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2204,26 +2202,42 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
-        // Add misjonTekst if missing (legacy migration)
-        if (!ct.PropertyTypeExists("misjonTekst"))
+        // Bygg om Om Oss til rik artikkelmal (Lars + designere 2026-06-05): samme artikkelhode og
+        // samme modul-blokkliste som artikkel. Farge legges på av EnforceBakgrunnScope.
+        if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
         {
-            ct.AddPropertyType(Prop("misjonTekst", "Misjonstekst", _richTextDt, description: "Tekst i den blå misjonsbanneren"), "innhold");
+            ct.AddPropertyGroup("innhold", "Innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("tittel"))
+        {
+            AddArtikkelhodeFields(ct);
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("innhold"))
+        {
+            ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
             changed = true;
         }
 
-        // Add seksjoner Block List if missing (Om Oss flatten)
-        if (!ct.PropertyTypeExists("seksjoner"))
+        // Fjern gamle Om Oss-spesifikke felt. Destruktivt: gammelt innhold (hero/intro/misjon/seksjoner)
+        // må flyttes til modulene av redaktør.
+        foreach (var alias in new[] { "heroTittel", "heroUndertittel", "introTekst", "misjonTekst", "seksjoner" })
         {
-            ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListOmOssDt, description: "Drag og slipp for å endre rekkefølge på seksjoner."), "innhold");
-            changed = true;
+            if (ct.PropertyTypeExists(alias))
+            {
+                ct.RemovePropertyType(alias);
+                changed = true;
+            }
         }
 
-        // Remove omOssSeksjon from allowed children (sections move to blocks)
         if (ct.AllowedContentTypes != null && ct.AllowedContentTypes.Any())
         {
             ct.AllowedContentTypes = Array.Empty<ContentTypeSort>();
             changed = true;
         }
+
+        if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
             _contentTypeService.Save(ct);
