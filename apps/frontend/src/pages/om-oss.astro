@@ -77,38 +77,24 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 </Layout>
 
 <style>
-  /* Hero: tittel + hovedbilde ved siden av hverandre (under pa mobil) */
+  /* Hero: tittel over fullbredde banner-bilde (2:1, object-fit cover) */
   .article-hero-inner {
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: var(--ds-size-6);
   }
 
-  @media (min-width: 1024px) {
-    .article-hero-inner {
-      flex-direction: row;
-      align-items: center;
-    }
-  }
+  .article-hero-text { min-width: 0; }
 
-  .article-hero-text { flex: 1; min-width: 0; }
-
-  .article-hero-image { flex-shrink: 0; width: 100%; }
-
-  @media (min-width: 1024px) {
-    .article-hero-image { width: 407px; }
-  }
+  .article-hero-image { width: 100%; }
 
   .article-hero-img {
     width: 100%;
-    height: auto;
+    aspect-ratio: 2 / 1;
+    max-height: 600px;
+    object-fit: cover;
     border-radius: 8px;
     display: block;
-    object-fit: cover;
-  }
-
-  @media (min-width: 1024px) {
-    .article-hero-img { height: 331px; }
   }
 
   /* Aktuelt */

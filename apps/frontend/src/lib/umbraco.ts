@@ -752,7 +752,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ingress: props.ingress as string || '',
         artikkelBilde: mapMedia(props.artikkelBilde),
         bildeAlt: props.bildeAlt as string || '',
-        bakgrunn: (props.bakgrunn as string) || 'hvit',
+        bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
         innhold: mapArtikkelBlocks(props.innhold),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -841,7 +841,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ingress: props.ingress as string || '',
         artikkelBilde: mapMedia(props.artikkelBilde),
         bildeAlt: props.bildeAlt as string || '',
-        bakgrunn: (props.bakgrunn as string) || 'ingen',
+        bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
         innhold: mapArtikkelBlocks(props.innhold),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
@@ -856,7 +856,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ingress: props.ingress as string || '',
         artikkelBilde: mapMedia(props.artikkelBilde),
         bildeAlt: props.bildeAlt as string || '',
-        bakgrunn: (props.bakgrunn as string) || 'hvit',
+        bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
         innhold: mapArtikkelBlocks(props.innhold),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
@@ -1370,15 +1370,32 @@ export function getMediaUrl(media?: UmbracoMedia): string | undefined {
 }
 
 /**
- * Redaksjonell bakgrunnsfarge (#360) -> brand surface CSS-variabel for artikkelhodet.
- * brand1/2/3 gir brand-flate; 'ingen'/ukjent/tom gir ingen brand-bakgrunn (undefined).
+ * Normaliser bakgrunn-verdien fra CMS til en nokkel.
+ * Dropdown gir en streng ("accent"); ColorPicker med labels gir { label, value }.
  */
-export function bakgrunnSurface(bakgrunn?: string): string | undefined {
-  switch (bakgrunn) {
-    case 'brand1': return 'var(--ds-color-brand1-surface-default)';
-    case 'brand2': return 'var(--ds-color-brand2-surface-default)';
-    case 'brand3': return 'var(--ds-color-brand3-surface-default)';
-    default: return undefined;
+export function bakgrunnKey(raw: any): string | undefined {
+  if (raw == null) return undefined;
+  if (typeof raw === 'string') return raw || undefined;
+  return (raw.label as string) || (raw.value as string) || undefined;
+}
+
+/**
+ * Redaksjonell bakgrunnsfarge for artikkelhodet -> DS surface CSS-variabel.
+ * Tre valg: accent (standard), brand1, brand2. Robust for label ("Accent"/"Brand 1"),
+ * nokkel ("accent") og hex ("e9c0c8"). Ukjent/tom -> accent.
+ */
+export function bakgrunnSurface(bakgrunn?: string): string {
+  switch ((bakgrunn || '').toLowerCase().replace(/[\s#]/g, '')) {
+    case 'brand1':
+    case 'dfc2d4':
+      return 'var(--ds-color-brand1-surface-active)';
+    case 'brand2':
+    case 'e2d8d2':
+      return 'var(--ds-color-brand2-surface-hover)';
+    case 'accent':
+    case 'e9c0c8':
+    default:
+      return 'var(--ds-color-accent-surface-active)';
   }
 }
 
