@@ -328,51 +328,25 @@ export interface EventItem {
   eventUrl?: string;
 }
 
+// Én forside-modul (block i forside.seksjoner). Flat: alle mulige felt valgfrie.
+export interface ForsideSeksjon {
+  contentType: string;
+  id: string;
+  overskrift?: string;
+  komIGangTekst?: string;
+  label?: string;
+  tittel?: string;
+  ingress?: string;
+  lenketekst?: string;
+  lenkeUrl?: string;
+  illustrasjon?: UmbracoMedia;
+  tekstHtml?: string;
+}
+
 export interface Forside {
   id: string;
   documentId: string;
-  heroOverskrift?: string;
-  heroTekst?: UmbracoBlock[];
-  heroBilde?: UmbracoMedia;
-  veiledningOverskrift?: string;
-  veiledning1Tittel?: string;
-  veiledning1Beskrivelse?: string;
-  veiledning1Url?: string;
-  veiledning2Tittel?: string;
-  veiledning2Beskrivelse?: string;
-  veiledning2Url?: string;
-  aktueltOverskrift?: string;
-  aktueltLenkeTekst?: string;
-  aktueltLenkeUrl?: string;
-  raadTittel?: string;
-  tips?: TipItem[];
-  sandkasseTittel?: string;
-  sandkasseTekst?: UmbracoBlock[];
-  sandkasseUrl?: string;
-  arrangementOverskrift?: string;
-  arrangementKommendeTekst?: string;
-  arrangementAvholdteTekst?: string;
-  arrangementer?: EventItem[];
-  footerTittel?: string;
-  footerBeskrivelse?: string;
-  footerSosialInstagram?: string;
-  footerSosialLinkedin?: string;
-  footerSosialX?: string;
-  footerLenke1Tekst?: string;
-  footerLenke1Url?: string;
-  footerLenke2Tekst?: string;
-  footerLenke2Url?: string;
-  footerLenke3Tekst?: string;
-  footerLenke3Url?: string;
-  footerLenke4Tekst?: string;
-  footerLenke4Url?: string;
-  footerLenke5Tekst?: string;
-  footerLenke5Url?: string;
-  rekkefolgeVeiledning?: number;
-  rekkefolgeAktuelt?: number;
-  rekkefolgeTreRaad?: number;
-  rekkefolgeSandkasse?: number;
-  rekkefolgeArrangement?: number;
+  seksjoner?: ForsideSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -842,48 +816,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'forside':
       return {
         ...base,
-        heroOverskrift: props.heroOverskrift as string || undefined,
-        heroTekst: mapRichText(props.heroTekst),
-        heroBilde: mapMedia(props.heroBilde),
-        veiledningOverskrift: props.veiledningOverskrift as string || undefined,
-        veiledning1Tittel: props.veiledning1Tittel as string || undefined,
-        veiledning1Beskrivelse: props.veiledning1Beskrivelse as string || undefined,
-        veiledning1Url: props.veiledning1Url as string || undefined,
-        veiledning2Tittel: props.veiledning2Tittel as string || undefined,
-        veiledning2Beskrivelse: props.veiledning2Beskrivelse as string || undefined,
-        veiledning2Url: props.veiledning2Url as string || undefined,
-        aktueltOverskrift: props.aktueltOverskrift as string || undefined,
-        aktueltLenkeTekst: props.aktueltLenkeTekst as string || undefined,
-        aktueltLenkeUrl: props.aktueltLenkeUrl as string || undefined,
-        raadTittel: props.raadTittel as string || undefined,
-        tips: mapTipItems(props.tips),
-        sandkasseTittel: props.sandkasseTittel as string || undefined,
-        sandkasseTekst: mapRichText(props.sandkasseTekst),
-        sandkasseUrl: props.sandkasseUrl as string || undefined,
-        arrangementOverskrift: props.arrangementOverskrift as string || undefined,
-        arrangementKommendeTekst: props.arrangementKommendeTekst as string || undefined,
-        arrangementAvholdteTekst: props.arrangementAvholdteTekst as string || undefined,
-        arrangementer: mapEventItems(props.arrangementer),
-        footerTittel: props.footerTittel as string || undefined,
-        footerBeskrivelse: props.footerBeskrivelse as string || undefined,
-        footerSosialInstagram: props.footerSosialInstagram as string || undefined,
-        footerSosialLinkedin: props.footerSosialLinkedin as string || undefined,
-        footerSosialX: props.footerSosialX as string || undefined,
-        footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
-        footerLenke1Url: props.footerLenke1Url as string || undefined,
-        footerLenke2Tekst: props.footerLenke2Tekst as string || undefined,
-        footerLenke2Url: props.footerLenke2Url as string || undefined,
-        footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
-        footerLenke3Url: props.footerLenke3Url as string || undefined,
-        footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,
-        footerLenke4Url: props.footerLenke4Url as string || undefined,
-        footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
-        footerLenke5Url: props.footerLenke5Url as string || undefined,
-        rekkefolgeVeiledning: props.rekkefolgeVeiledning as number || undefined,
-        rekkefolgeAktuelt: props.rekkefolgeAktuelt as number || undefined,
-        rekkefolgeTreRaad: props.rekkefolgeTreRaad as number || undefined,
-        rekkefolgeSandkasse: props.rekkefolgeSandkasse as number || undefined,
-        rekkefolgeArrangement: props.rekkefolgeArrangement as number || undefined,
+        seksjoner: mapForsideSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
@@ -1302,6 +1235,30 @@ function pickerIds(value: unknown): string[] {
   if (!value) return [];
   const arr = Array.isArray(value) ? value : [value];
   return arr.map((item: any) => item?.id).filter((id): id is string => !!id);
+}
+
+function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any): ForsideSeksjon => {
+    const content = block.content || block;
+    const props = content.properties || {};
+    const tekst = props.tekst as any;
+    return {
+      contentType: content.contentType,
+      id: content.id || '',
+      overskrift: (props.overskrift as string) || undefined,
+      komIGangTekst: (props.komIGangTekst as string) || undefined,
+      label: (props.label as string) || undefined,
+      tittel: (props.tittel as string) || undefined,
+      ingress: (props.ingress as string) || undefined,
+      lenketekst: (props.lenketekst as string) || undefined,
+      lenkeUrl: (props.lenkeUrl as string) || undefined,
+      illustrasjon: mapMedia(props.illustrasjon),
+      tekstHtml: tekst?.tag === '#root' ? richTextToHtml(tekst) : (typeof tekst === 'string' ? tekst : undefined),
+    };
+  });
 }
 
 function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {

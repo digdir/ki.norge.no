@@ -1,26 +1,23 @@
 ---
-// Footer — CMS-redigerbar via globaleInnstillinger (footer flyttet dit fra forside).
-// Leser globaleInnstillinger først, faller tilbake til forside (overgangsperiode til
-// forside-footer-feltene fjernes), så hardkodet default. Ingen footer-innhold går tapt.
-import { getGlobaleInnstillinger, getForside } from '../../lib/umbraco';
+// Footer — CMS-redigerbar via globaleInnstillinger. Faller tilbake til hardkodet default.
+import { getGlobaleInnstillinger } from '../../lib/umbraco';
 import Logo from './Logo';
 let global = null;
-let forside = null;
-try { [global, forside] = await Promise.all([getGlobaleInnstillinger(), getForside()]); } catch (e) {}
+try { global = await getGlobaleInnstillinger(); } catch (e) {}
 
-const brand = global?.footerTittel || forside?.footerTittel || 'KI Norge';
-const desc = global?.footerBeskrivelse || forside?.footerBeskrivelse || 'Et tverrsektorielt samarbeid for å fremme ansvarlig og sikker bruk av kunstig intelligens i den norske forvaltningen.';
-const igUrl = global?.footerSosialInstagram || forside?.footerSosialInstagram || '#';
-const liUrl = global?.footerSosialLinkedin || forside?.footerSosialLinkedin || '#';
-const xUrl = global?.footerSosialX || forside?.footerSosialX || '#';
+const brand = global?.footerTittel || 'KI Norge';
+const desc = global?.footerBeskrivelse || 'Et tverrsektorielt samarbeid for å fremme ansvarlig og sikker bruk av kunstig intelligens i den norske forvaltningen.';
+const igUrl = global?.footerSosialInstagram || '#';
+const liUrl = global?.footerSosialLinkedin || '#';
+const xUrl = global?.footerSosialX || '#';
 
 const navCol1 = [
-  { text: global?.footerLenke1Tekst || forside?.footerLenke1Tekst || 'Om KI Norge', url: global?.footerLenke1Url || forside?.footerLenke1Url || '/om-oss' },
+  { text: global?.footerLenke1Tekst || 'Om KI Norge', url: global?.footerLenke1Url || '/om-oss' },
 ];
 const navCol2 = [
-  { text: global?.footerLenke3Tekst || forside?.footerLenke3Tekst || 'Personvern og informasjonskapsler', url: global?.footerLenke3Url || forside?.footerLenke3Url || '/personvern' },
-  { text: global?.footerLenke4Tekst || forside?.footerLenke4Tekst || 'Tilgjengelighet', url: global?.footerLenke4Url || forside?.footerLenke4Url || '/tilgjengelighet' },
-  { text: global?.footerLenke5Tekst || forside?.footerLenke5Tekst || 'Endre samtykke for informasjonskapsler', url: global?.footerLenke5Url || forside?.footerLenke5Url || '' },
+  { text: global?.footerLenke3Tekst || 'Personvern og informasjonskapsler', url: global?.footerLenke3Url || '/personvern' },
+  { text: global?.footerLenke4Tekst || 'Tilgjengelighet', url: global?.footerLenke4Url || '/tilgjengelighet' },
+  { text: global?.footerLenke5Tekst || 'Endre samtykke for informasjonskapsler', url: global?.footerLenke5Url || '' },
 ];
 ---
 

@@ -1,18 +1,13 @@
 ---
 import Layout from '../components/layout/Layout.astro';
-import Hero from '../components/landing/Hero.astro';
-import NewsCard from '../components/shared/NewsCard.astro';
-import CardGrid from '../components/shared/CardGrid.astro';
-import EventCard from '../components/shared/EventCard.astro';
-import ArrowLink from '../components/shared/ArrowLink.astro';
-import ExampleLinkCards from '../components/shared/ExampleLinkCards.astro';
-import TextWithImage from '../components/shared/TextWithImage.astro';
+import ForsideSeksjonerRenderer from '../components/landing/ForsideSeksjonerRenderer.astro';
 import { websiteSchema } from '../lib/seo';
-import { getForside, getArtikler, getKalenderhendelser, type Kalenderhendelse } from '../lib/umbraco';
+import { getForside, getArtikler, getKalenderhendelser, getEksempler, type Kalenderhendelse } from '../lib/umbraco';
 
 let forside = null;
 let latestArticles: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
+let eksempelKort: { href: string; title: string; tag: string }[] = [];
 try {
   forside = await getForside();
   const artiklerRes = await getArtikler(4);
@@ -23,15 +18,19 @@ try {
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime())
     .slice(0, 1);
-  } catch (e) {
+  const eksemplerRes = await getEksempler();
+  eksempelKort = eksemplerRes.data.slice(0, 2).map((c: any) => ({
+    href: `/caser/${c.slug}`,
+    title: c.tittel,
+    tag: 'Eksempel',
+  }));
+} catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
 }
 
 const title = forside?.seoTittel || 'Hjem';
 const seoDescription = forside?.seoBeskrivelse || 'KI Norge - Norges nasjonale strategi for kunstig intelligens. Veiledning, regulatorisk sandkasse og gode eksempler for offentlig sektor.';
 const websiteJsonLd = websiteSchema(seoDescription);
-
-const featuredArticle = latestArticles[0];
 
 const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
 const formatEventDate = (iso: string) => {
@@ -44,194 +43,15 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
 ---
 
 <Layout title={title} description={seoDescription} hideLogo>
-  <Hero />
   <h1 class="ds-sr-only">ki.norge.no - {title}</h1>
   <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
 
-  <!-- Aktuelt -->
-  <section class="aktuelt" data-layout-block="edge">
-    <div data-layout-block="content">
-      <h2 class="ds-heading section-heading" data-size="lg">Aktuelt</h2>
-
-      <!-- Featured article -->
-      {featuredArticle && (
-        <NewsCard
-          href={`/artikler/${featuredArticle.slug}`}
-          title={featuredArticle.tittel}
-          tagColor="brand1"
-          lead={featuredArticle.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}
-          image={featuredArticle.image}
-          imageAlt=""
-          variant="featured"
-        />
-      )}
-
-      <!-- Image cards (3 across) -->
-      <CardGrid columns={3} divided>
-        {latestArticles.slice(1, 4).map(article => (
-          <NewsCard
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            variant="image"
-            image={article.image}
-            date={article.publishedAt}
-          />
-        ))}
-      </CardGrid>
-
-      <ArrowLink href="/artikler" text="Se alle artikler" />
-    </div>
-
-    <div class="arrangementer-section" data-layout-block="content">
-      <h2 class="ds-heading section-heading" data-size="lg">Kommende arrangementer</h2>
-      {nextEvent && nextEventDate && (
-        <EventCard
-          href={`/kalender/${nextEvent.slug}`}
-          title={nextEvent.tittel}
-          description={nextEvent.ingress || ''}
-          day={nextEventDate.day}
-          month={nextEventDate.month}
-          year={nextEventDate.year}
-          time={nextEvent.tid || ''}
-          timeNote={nextEventMultiDay ? 'Arrangement over flere dager' : undefined}
-          location={nextEvent.sted || ''}
-        />
-      )}
-      <ArrowLink href="/kalender" text="Se alle arrangementer" />
-    </div>
-  </section>
-
-  <!-- Veiledning -->
-  <section class="veiledning-section" data-layout-block="edge">
-    <div data-layout-block="content">
-      <TextWithImage title="Gjør dataene KI-klare" href="/veiledning" image="/woman-speaking.svg" imageAlt="Illustrasjon av kvinne som snakker" label="Veiledning">
-        <p slot="body">Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.</p>
-      </TextWithImage>
-    </div>
-  </section>
-
-  <!-- Lær av andre -->
-  <section data-layout-block="content" class="examples-section">
-    <h2 class="ds-heading section-heading" data-size="lg">Lær av andre</h2>
-    <ExampleLinkCards cards={[
-      { href: "/eksempler/ki-chat-staten", title: "KI-chat effektiviserer analysearbeid i staten", tag: "Eksempel" },
-      { href: "/eksempler/politiet-tale-til-tekst", title: "Politiet - Fra tale til tekst på minutter", tag: "Eksempel" },
-    ]} />
-    <ArrowLink href="/eksempler" text="Se alle eksempler" />
-  </section>
-
-  <!-- Den regulatoriske sandkassen -->
-  <section class="sandkasse-section" data-layout-block="edge">
-    <div data-layout-block="content">
-      <h2 class="sandkasse-title">
-        Den regulatoriske sandkassen
-      </h2>
-      <p class="sandkasse-desc">Juridisk veiledning for deg som ønsker å utvikle et risikofylt KI-prosjekt.</p>
-    </div>
-  </section>
+  <ForsideSeksjonerRenderer
+    seksjoner={forside?.seksjoner ?? []}
+    latestArticles={latestArticles}
+    nextEvent={nextEvent}
+    nextEventDate={nextEventDate}
+    nextEventMultiDay={nextEventMultiDay}
+    eksempelKort={eksempelKort}
+  />
 </Layout>
-
-<style>
-  /* Sections spacing */
-  :global(main) > * + * {
-    margin-top: var(--ds-size-6);
-  }
-
-  /* Section headings */
-  .section-heading {
-    margin: 0 0 var(--ds-size-8);
-  }
-
-  /* ── Aktuelt ─────────────────────────────────────────── */
-  .aktuelt {
-    background-color: var(--ds-color-brand2-surface-default);
-  }
-
-  .featured-article {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--ds-size-6);
-    text-decoration: none;
-    color: inherit;
-    margin-bottom: var(--ds-size-8);
-
-    @media (min-width: 768px) {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  .featured-article-image {
-    aspect-ratio: 4 / 3;
-    background-color: #d9d9d9;
-    border-radius: var(--ds-border-radius-lg);
-  }
-
-  .featured-article-text {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-4);
-    justify-content: center;
-  }
-
-  .featured-article-title {
-    font-size: var(--ds-heading-sm-font-size);
-    font-weight: 600;
-    margin: 0;
-    line-height: 1.3;
-  }
-
-  .aktuelt :global(.card-grid) {
-    margin-bottom: var(--ds-size-6);
-  }
-
-  .aktuelt :global(.news-card--featured) {
-    margin-bottom: var(--ds-size-8);
-  }
-
-  /* ── Kommende arrangementer ──────────────────────────── */
-  .arrangementer-section {
-    border-top: 1px solid var(--ds-color-border-subtle);
-    padding-top: var(--ds-size-22);
-    margin-top: var(--ds-size-22);
-  }
-
-  .arrangementer-section :global(.event-card) {
-    margin-bottom: var(--ds-size-6);
-  }
-
-  /* ── Veiledning ──────────────────────────────────────── */
-  .veiledning-section {
-    
-  }
-
-
-
-  .examples-section {
-    & :global(.arrow-link) {
-      margin-block-start: var(--ds-size-6);
-    }
-  }
-
-  /* ── Sandkassen ──────────────────────────────────────── */
-  .sandkasse-section {
-    background-color: var(--ds-color-base-active);
-    color: var(--ds-color-base-contrast-default);
-    padding-block: var(--ds-size-22);
-  }
-
-  .sandkasse-title {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-size-3);
-    font-size: var(--ds-heading-lg-font-size);
-    font-weight: 600;
-    margin: 0 0 var(--ds-size-3);
-  }
-
-  .sandkasse-desc {
-    font-size: var(--ds-body-md-font-size);
-    margin: 0;
-    opacity: 0.85;
-    max-width: 500px;
-  }
-</style>

@@ -1,0 +1,195 @@
+---
+// Rendrer forsidens modul-blokker (forside.seksjoner) i redaktørens rekkefølge.
+// Komponenten gjør INGEN fetch — auto-data (artikler/arrangement/eksempler) sendes inn.
+// Hver modul faller tilbake til dagens hardkodede verdier når feltet er tomt.
+import Hero from './Hero.astro';
+import NewsCard from '../shared/NewsCard.astro';
+import CardGrid from '../shared/CardGrid.astro';
+import EventCard from '../shared/EventCard.astro';
+import ArrowLink from '../shared/ArrowLink.astro';
+import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
+import TextWithImage from '../shared/TextWithImage.astro';
+import { getMediaUrl, type ForsideSeksjon, type Kalenderhendelse } from '../../lib/umbraco';
+
+interface Props {
+  seksjoner: ForsideSeksjon[];
+  latestArticles: any[];
+  nextEvent: Kalenderhendelse | null;
+  nextEventDate: { day: string; month: string; year: string } | null;
+  nextEventMultiDay?: boolean | string;
+  eksempelKort: { href: string; title: string; tag: string }[];
+}
+const { seksjoner, latestArticles, nextEvent, nextEventDate, nextEventMultiDay, eksempelKort } = Astro.props;
+const featuredArticle = latestArticles[0];
+---
+
+{seksjoner.map((block) => {
+  if (block.contentType === 'forsideHero') {
+    return (
+      <Hero
+        overskrift={block.overskrift}
+        komIGangTekst={block.komIGangTekst}
+        lenketekst={block.lenketekst}
+        lenkeUrl={block.lenkeUrl}
+        illustrasjon={block.illustrasjon ? getMediaUrl(block.illustrasjon) : undefined}
+      />
+    );
+  }
+
+  if (block.contentType === 'forsideAktuelt') {
+    return (
+      <section class="aktuelt" data-layout-block="edge">
+        <div data-layout-block="content">
+          <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Aktuelt'}</h2>
+          {featuredArticle && (
+            <NewsCard
+              href={`/artikler/${featuredArticle.slug}`}
+              title={featuredArticle.tittel}
+              tagColor="brand1"
+              lead={featuredArticle.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}
+              image={featuredArticle.image}
+              imageAlt=""
+              variant="featured"
+            />
+          )}
+          <CardGrid columns={3} divided>
+            {latestArticles.slice(1, 4).map((article) => (
+              <NewsCard
+                href={`/artikler/${article.slug}`}
+                title={article.tittel}
+                variant="image"
+                image={article.image}
+                date={article.publishedAt}
+              />
+            ))}
+          </CardGrid>
+          <ArrowLink href="/artikler" text="Se alle artikler" />
+        </div>
+      </section>
+    );
+  }
+
+  if (block.contentType === 'forsideArrangementer') {
+    return (
+      <section class="arrangementer-section" data-layout-block="content">
+        <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Kommende arrangementer'}</h2>
+        {nextEvent && nextEventDate && (
+          <EventCard
+            href={`/kalender/${nextEvent.slug}`}
+            title={nextEvent.tittel}
+            description={nextEvent.ingress || ''}
+            day={nextEventDate.day}
+            month={nextEventDate.month}
+            year={nextEventDate.year}
+            time={nextEvent.tid || ''}
+            timeNote={nextEventMultiDay ? 'Arrangement over flere dager' : undefined}
+            location={nextEvent.sted || ''}
+          />
+        )}
+        <ArrowLink href="/kalender" text="Se alle arrangementer" />
+      </section>
+    );
+  }
+
+  if (block.contentType === 'forsideVeiledning') {
+    return (
+      <section class="veiledning-section" data-layout-block="edge">
+        <div data-layout-block="content">
+          <TextWithImage
+            title={block.tittel || 'Gjør dataene KI-klare'}
+            href={block.lenkeUrl || '/veiledning'}
+            image={block.illustrasjon ? getMediaUrl(block.illustrasjon) : '/woman-speaking.svg'}
+            imageAlt="Illustrasjon"
+            label={block.label || 'Veiledning'}
+          >
+            <p slot="body">{block.ingress || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.'}</p>
+          </TextWithImage>
+        </div>
+      </section>
+    );
+  }
+
+  if (block.contentType === 'forsideLaerAvAndre') {
+    return (
+      <section data-layout-block="content" class="examples-section">
+        <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Lær av andre'}</h2>
+        <ExampleLinkCards cards={eksempelKort} />
+        <ArrowLink href="/eksempler" text="Se alle eksempler" />
+      </section>
+    );
+  }
+
+  if (block.contentType === 'forsideSandkasse') {
+    return (
+      <section class="sandkasse-section" data-layout-block="edge">
+        <div data-layout-block="content">
+          <h2 class="sandkasse-title">{block.overskrift || 'Den regulatoriske sandkassen'}</h2>
+          {block.tekstHtml
+            ? <div class="sandkasse-desc" set:html={block.tekstHtml} />
+            : <p class="sandkasse-desc">Juridisk veiledning for deg som ønsker å utvikle et risikofylt KI-prosjekt.</p>}
+          {block.lenkeUrl && <ArrowLink href={block.lenkeUrl} text={block.lenketekst || 'Les mer'} />}
+        </div>
+      </section>
+    );
+  }
+
+  return null;
+})}
+
+<style>
+  :global(main) > * + * {
+    margin-top: var(--ds-size-6);
+  }
+
+  .section-heading {
+    margin: 0 0 var(--ds-size-8);
+  }
+
+  /* ── Aktuelt ─────────────────────────────────────────── */
+  .aktuelt {
+    background-color: var(--ds-color-brand2-surface-default);
+  }
+
+  .aktuelt :global(.card-grid) {
+    margin-bottom: var(--ds-size-6);
+  }
+
+  .aktuelt :global(.news-card--featured) {
+    margin-bottom: var(--ds-size-8);
+  }
+
+  /* ── Kommende arrangementer (egen seksjon, uten rosa strek) ── */
+  .arrangementer-section :global(.event-card) {
+    margin-bottom: var(--ds-size-6);
+  }
+
+  /* ── Lær av andre ────────────────────────────────────── */
+  .examples-section {
+    & :global(.arrow-link) {
+      margin-block-start: var(--ds-size-6);
+    }
+  }
+
+  /* ── Sandkassen ──────────────────────────────────────── */
+  .sandkasse-section {
+    background-color: var(--ds-color-base-active);
+    color: var(--ds-color-base-contrast-default);
+    padding-block: var(--ds-size-22);
+  }
+
+  .sandkasse-title {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+    font-size: var(--ds-heading-lg-font-size);
+    font-weight: 600;
+    margin: 0 0 var(--ds-size-3);
+  }
+
+  .sandkasse-desc {
+    font-size: var(--ds-body-md-font-size);
+    margin: 0;
+    opacity: 0.85;
+    max-width: 500px;
+  }
+</style>

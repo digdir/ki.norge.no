@@ -54,6 +54,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _blockListOmOssDt = null!;
     private IDataType _blockListVeiledningStegDt = null!;
     private IDataType _blockListVeiledningGuideDt = null!;
+    private IDataType _blockListForsideDt = null!;
 
     public ContentTypeComponent(
         IContentTypeService contentTypeService,
@@ -170,6 +171,20 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("eksempelKontakt") == null)
                 CreateEksempelKontaktElement();
 
+            // Forside-moduler (block list)
+            if (_contentTypeService.Get("forsideHero") == null)
+                CreateForsideHeroElement();
+            if (_contentTypeService.Get("forsideAktuelt") == null)
+                CreateForsideAktueltElement();
+            if (_contentTypeService.Get("forsideArrangementer") == null)
+                CreateForsideArrangementerElement();
+            if (_contentTypeService.Get("forsideVeiledning") == null)
+                CreateForsideVeiledningElement();
+            if (_contentTypeService.Get("forsideLaerAvAndre") == null)
+                CreateForsideLaerAvAndreElement();
+            if (_contentTypeService.Get("forsideSandkasse") == null)
+                CreateForsideSandkasseElement();
+
             CreateBlockListDataTypes();
 
             MigrateVeiledningElementNames();
@@ -189,6 +204,7 @@ public class ContentTypeComponent : IAsyncComponent
 
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules);
             RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules);
+            RefreshMultiBlockListAllowedModules("Block List - Forside Seksjoner", ForsideModules);
 
             // One-shot removal of legacy CTs that are no longer part of the product
             // (FAQ, KI-ordbok, Merkelapper, veiledningOversikt). Runs early so containers
@@ -1066,6 +1082,9 @@ public class ContentTypeComponent : IAsyncComponent
         _blockListVeiledningGuideDt = CreateOrGetMultiBlockListDataType(
             "Block List - Veiledning Guide",
             VeiledningGuideModules);
+        _blockListForsideDt = CreateOrGetMultiBlockListDataType(
+            "Block List - Forside Seksjoner",
+            ForsideModules);
     }
 
     private IDataType CreateOrGetBlockListDataType(string name, string elementTypeAlias)
@@ -1266,6 +1285,17 @@ public class ContentTypeComponent : IAsyncComponent
         "veiledningTekst",
         "veiledningTrekkspill",
         "veiledningObs",
+    };
+
+    // Forside-moduler i Figma-rekkefølge (default når redaktør bygger siden).
+    private static readonly string[] ForsideModules =
+    {
+        "forsideHero",
+        "forsideAktuelt",
+        "forsideArrangementer",
+        "forsideVeiledning",
+        "forsideLaerAvAndre",
+        "forsideSandkasse",
     };
 
     // ── RichText configurations ────────────────────────────────────────
@@ -2423,70 +2453,9 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = true,
         };
 
-        // Tab: Hero
-        ct.AddPropertyGroup("hero", "Hero");
-        ct.AddPropertyType(Prop("heroOverskrift", "Overskrift", _textStringDt), "hero");
-        ct.AddPropertyType(Prop("heroTekst", "Tekst", _richTextDt), "hero");
-        ct.AddPropertyType(Prop("heroBilde", "Bilde", _mediaPickerDt), "hero");
-
-        // Tab: Tre råd
-        ct.AddPropertyGroup("treRaad", "Tre råd");
-        ct.AddPropertyType(Prop("raadTittel", "Tittel", _textStringDt), "treRaad");
-        ct.AddPropertyType(Prop("tips", "Tips", _blockListTipsDt), "treRaad");
-
-        // Tab: Sandkassen
-        ct.AddPropertyGroup("sandkassen", "Sandkassen");
-        ct.AddPropertyType(Prop("sandkasseTittel", "Tittel", _textStringDt), "sandkassen");
-        ct.AddPropertyType(Prop("sandkasseTekst", "Tekst", _richTextDt), "sandkassen");
-        ct.AddPropertyType(Prop("sandkasseUrl", "URL", _textStringDt), "sandkassen");
-
-        // Tab: Veiledning
-        ct.AddPropertyGroup("veiledning", "Veiledning");
-        ct.AddPropertyType(Prop("veiledningOverskrift", "Overskrift", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Tittel", "Veiledning 1 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Beskrivelse", "Veiledning 1 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Url", "Veiledning 1 URL", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Tittel", "Veiledning 2 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Beskrivelse", "Veiledning 2 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Url", "Veiledning 2 URL", _textStringDt), "veiledning");
-
-        // Tab: Aktuelt
-        ct.AddPropertyGroup("aktuelt", "Aktuelt");
-        ct.AddPropertyType(Prop("aktueltOverskrift", "Overskrift", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeTekst", "Lenketekst", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeUrl", "Lenke-URL", _textStringDt), "aktuelt");
-
-        // Tab: Arrangement
-        ct.AddPropertyGroup("arrangement", "Arrangement");
-        ct.AddPropertyType(Prop("arrangementOverskrift", "Overskrift", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementKommendeTekst", "Kommende tekst", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementAvholdteTekst", "Avholdte tekst", _textStringDt), "arrangement");
-
-        // Tab: Bunn (Footer)
-        ct.AddPropertyGroup("bunn", "Bunn (Footer)");
-        ct.AddPropertyType(Prop("footerTittel", "Merkenavn", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt), "bunn");
-        ct.AddPropertyType(Prop("footerSosialInstagram", "Instagram", _textStringDt, description: "URL til Instagram-profil"), "bunn");
-        ct.AddPropertyType(Prop("footerSosialLinkedin", "LinkedIn", _textStringDt, description: "URL til LinkedIn-profil"), "bunn");
-        ct.AddPropertyType(Prop("footerSosialX", "X", _textStringDt, description: "URL til X-profil"), "bunn");
-        ct.AddPropertyType(Prop("footerLenke1Tekst", "Lenke 1 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke1Url", "Lenke 1 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke2Tekst", "Lenke 2 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke2Url", "Lenke 2 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke3Tekst", "Lenke 3 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke3Url", "Lenke 3 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke4Tekst", "Lenke 4 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke4Url", "Lenke 4 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke5Tekst", "Lenke 5 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke5Url", "Lenke 5 URL", _textStringDt), "bunn");
-
-        // Tab: Rekkefølge (Order)
-        ct.AddPropertyGroup("rekkefolge", "Rekkefølge");
-        ct.AddPropertyType(Prop("rekkefolgeVeiledning", "Veiledning", _numericDt, description: "Rekkefølge for Veiledning-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeAktuelt", "Aktuelt", _numericDt, description: "Rekkefølge for Aktuelt-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeTreRaad", "Tre råd", _numericDt, description: "Rekkefølge for Tre råd-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeSandkasse", "Sandkasse", _numericDt, description: "Rekkefølge for Sandkasse-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeArrangement", "Arrangement", _numericDt, description: "Rekkefølge for Arrangement-seksjonen (1-5)"), "rekkefolge");
+        // Forsiden er modularisert: ett block-list-felt med moduler (reorderbart).
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListForsideDt, description: "Bygg opp forsiden ved å legge til moduler. Reorder ved drag og slipp."), "innhold");
 
         // Tab: SEO
         ct.AddPropertyGroup("seo", "SEO");
@@ -2494,6 +2463,81 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
 
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    // --- Forside-moduler (block list) ---
+
+    private IContentType CreateForsideHeroElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideHero", Name = "Forside Hero", Description = "Hero-seksjon øverst på forsiden", Icon = "icon-home", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("komIGangTekst", "Kom i gang-ledetekst", _textStringDt, description: "Liten ledetekst foran lenken, f.eks. \"Kom i gang\"."), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideAktueltElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideAktuelt", Name = "Forside Aktuelt", Description = "Seksjon med siste artikler (innhold hentes automatisk)", Icon = "icon-newspaper-alt", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideArrangementerElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideArrangementer", Name = "Forside Arrangementer", Description = "Seksjon med kommende arrangement (innhold hentes automatisk)", Icon = "icon-calendar", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideVeiledningElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideVeiledning", Name = "Forside Veiledning", Description = "Fremhevet veiledning på forsiden", Icon = "icon-book-alt", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("label", "Label", _textStringDt, description: "Liten etikett over tittelen, f.eks. \"Veiledning\"."), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideLaerAvAndreElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideLaerAvAndre", Name = "Forside Lær av andre", Description = "Seksjon med eksempler (innhold hentes automatisk)", Icon = "icon-light-bulb", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideSandkasseElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideSandkasse", Name = "Forside Sandkasse", Description = "Sandkasse-CTA på forsiden", Icon = "icon-box", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("tekst", "Tekst", _richTextDt), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2780,64 +2824,63 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("forside");
         if (ct == null) return;
-        if (ct.PropertyTypeExists("veiledningOverskrift")) return; // already migrated
+        // Ferdig migrert: har seksjoner-feltet og ingen gamle flate felt igjen.
+        if (ct.PropertyTypeExists("seksjoner") && !ct.PropertyTypeExists("heroOverskrift")) return;
 
-        // Tab: Veiledning
-        ct.AddPropertyGroup("veiledning", "Veiledning");
-        ct.AddPropertyType(Prop("veiledningOverskrift", "Overskrift", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Tittel", "Veiledning 1 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Beskrivelse", "Veiledning 1 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Url", "Veiledning 1 URL", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Tittel", "Veiledning 2 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Beskrivelse", "Veiledning 2 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Url", "Veiledning 2 URL", _textStringDt), "veiledning");
+        bool changed = false;
 
-        // Tab: Aktuelt
-        ct.AddPropertyGroup("aktuelt", "Aktuelt");
-        ct.AddPropertyType(Prop("aktueltOverskrift", "Overskrift", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeTekst", "Lenketekst", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeUrl", "Lenke-URL", _textStringDt), "aktuelt");
-
-        // Tab: Arrangement
-        ct.AddPropertyGroup("arrangement", "Arrangement");
-        ct.AddPropertyType(Prop("arrangementOverskrift", "Overskrift", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementKommendeTekst", "Kommende tekst", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementAvholdteTekst", "Avholdte tekst", _textStringDt), "arrangement");
-
-        _contentTypeService.Save(ct);
-
-        // Migrate footer fields
-        if (!ct.PropertyTypeExists("footerTittel"))
+        // Forsiden er modularisert (block list). Fjern alle gamle flate felt: Hero, Tre råd,
+        // Sandkasse, Veiledning, Aktuelt, Arrangement, Footer (flyttet til globaleInnstillinger),
+        // Rekkefølge (erstattet av drag-og-slipp i block lista). Ingen innhold går tapt.
+        var legacyFields = new[]
         {
-            ct.AddPropertyGroup("bunn", "Bunn (Footer)");
-            ct.AddPropertyType(Prop("footerTittel", "Merkenavn", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt), "bunn");
-            ct.AddPropertyType(Prop("footerSosialInstagram", "Instagram", _textStringDt, description: "URL til Instagram-profil"), "bunn");
-            ct.AddPropertyType(Prop("footerSosialLinkedin", "LinkedIn", _textStringDt, description: "URL til LinkedIn-profil"), "bunn");
-            ct.AddPropertyType(Prop("footerSosialX", "X", _textStringDt, description: "URL til X-profil"), "bunn");
-            ct.AddPropertyType(Prop("footerLenke1Tekst", "Lenke 1 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke1Url", "Lenke 1 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke2Tekst", "Lenke 2 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke2Url", "Lenke 2 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke3Tekst", "Lenke 3 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke3Url", "Lenke 3 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke4Tekst", "Lenke 4 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke4Url", "Lenke 4 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke5Tekst", "Lenke 5 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke5Url", "Lenke 5 URL", _textStringDt), "bunn");
-            _contentTypeService.Save(ct);
+            "heroOverskrift", "heroTekst", "heroBilde",
+            "raadTittel", "tips",
+            "sandkasseTittel", "sandkasseTekst", "sandkasseUrl",
+            "veiledningOverskrift",
+            "veiledning1Tittel", "veiledning1Beskrivelse", "veiledning1Url",
+            "veiledning2Tittel", "veiledning2Beskrivelse", "veiledning2Url",
+            "aktueltOverskrift", "aktueltLenkeTekst", "aktueltLenkeUrl",
+            "arrangementOverskrift", "arrangementKommendeTekst", "arrangementAvholdteTekst",
+            "footerTittel", "footerBeskrivelse", "footerSosialInstagram", "footerSosialLinkedin", "footerSosialX",
+            "footerLenke1Tekst", "footerLenke1Url", "footerLenke2Tekst", "footerLenke2Url",
+            "footerLenke3Tekst", "footerLenke3Url", "footerLenke4Tekst", "footerLenke4Url",
+            "footerLenke5Tekst", "footerLenke5Url",
+            "rekkefolgeVeiledning", "rekkefolgeAktuelt", "rekkefolgeTreRaad", "rekkefolgeSandkasse", "rekkefolgeArrangement",
+        };
+        foreach (var alias in legacyFields)
+        {
+            if (ct.PropertyTypeExists(alias))
+            {
+                ct.RemovePropertyType(alias);
+                changed = true;
+            }
         }
 
-        // Migrate reorder fields
-        if (!ct.PropertyTypeExists("rekkefolgeVeiledning"))
+        // Fjern de tomme gamle gruppene (samme mønster som MigrateGlobaleInnstillinger).
+        foreach (var groupAlias in new[] { "hero", "treRaad", "sandkassen", "veiledning", "aktuelt", "arrangement", "bunn", "rekkefolge" })
         {
-            ct.AddPropertyGroup("rekkefolge", "Rekkefølge");
-            ct.AddPropertyType(Prop("rekkefolgeVeiledning", "Veiledning", _numericDt, description: "Rekkefølge for Veiledning-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeAktuelt", "Aktuelt", _numericDt, description: "Rekkefølge for Aktuelt-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeTreRaad", "Tre råd", _numericDt, description: "Rekkefølge for Tre råd-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeSandkasse", "Sandkasse", _numericDt, description: "Rekkefølge for Sandkasse-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeArrangement", "Arrangement", _numericDt, description: "Rekkefølge for Arrangement-seksjonen (1-5)"), "rekkefolge");
+            var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == groupAlias);
+            if (grp != null && !grp.PropertyTypes.Any())
+            {
+                ct.PropertyGroups.Remove(groupAlias);
+                changed = true;
+            }
+        }
+
+        // Legg til block-list-feltet hvis det mangler.
+        if (!ct.PropertyTypeExists("seksjoner"))
+        {
+            if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
+                ct.AddPropertyGroup("innhold", "Innhold");
+            ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListForsideDt, description: "Bygg opp forsiden ved å legge til moduler. Reorder ved drag og slipp."), "innhold");
+            changed = true;
+        }
+
+        if (changed)
+        {
             _contentTypeService.Save(ct);
+            Console.WriteLine("ContentTypeComposer: Modulariserte forside (block list, fjernet gamle flate felt)");
         }
     }
 
