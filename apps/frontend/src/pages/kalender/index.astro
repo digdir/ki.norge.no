@@ -85,7 +85,7 @@ const parseTagger = (s?: string) =>
           <EventCard
             title={featured.type || ''}
             tags={parseTagger(featured.tagger)}
-            day={featuredRange.dateLabel}
+            day={featuredRange.dateLabel.charAt(featuredRange.dateLabel.length - 1) === '.' && !multiDay ? featuredRange.dateLabel.slice(0, -1) : featuredRange.dateLabel}
             month={featuredRange.month}
             year={featuredRange.year}
             time={featured.tid || ''}
@@ -178,6 +178,10 @@ const parseTagger = (s?: string) =>
     background: var(--ds-color-base-active);
     color: var(--ds-color-base-contrast-default);
     padding-block: var(--ds-size-10);
+
+    & :global(.event-card) {
+      grid-template-columns: 180px 1fr;
+    }
   }
 
   .kalender-featured-inner {

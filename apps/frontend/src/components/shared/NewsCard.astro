@@ -64,7 +64,7 @@ const formattedDate = date
         )}
       </a>
     </h3>
-    {variant === 'featured' && lead && <p class="news-card-lead">{lead}</p>}
+    {variant === 'featured' && lead && <p class="news-card-lead ds-paragraph" data-size="lg">{lead}</p>}
     {formattedDate && (
       <span class="news-card-meta">
         {formattedDate}
@@ -210,10 +210,7 @@ const formattedDate = date
   }
 
   .news-card--featured .news-card-lead {
-    font-size: var(--ds-font-size-3);
-    color: var(--ds-color-text-subtle);
     margin: 0;
-    line-height: 1.6;
   }
 
   /* ── Shared elements ──────────────────────────────── */

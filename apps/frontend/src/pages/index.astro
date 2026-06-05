@@ -8,11 +8,12 @@ import ArrowLink from '../components/shared/ArrowLink.astro';
 import ExampleLinkCards from '../components/shared/ExampleLinkCards.astro';
 import TextWithImage from '../components/shared/TextWithImage.astro';
 import { websiteSchema } from '../lib/seo';
-import { getForside, getArtikler, getKalenderhendelser, type Kalenderhendelse } from '../lib/umbraco';
+import { getForside, getArtikler, getKalenderhendelser, getEksempler, type Kalenderhendelse, type Eksempel } from '../lib/umbraco';
 
 let forside = null;
 let latestArticles: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
+let latestEksempler: Eksempel[] = [];
 try {
   forside = await getForside();
   const artiklerRes = await getArtikler(4);
@@ -23,7 +24,9 @@ try {
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime())
     .slice(0, 1);
-  } catch (e) {
+  const eksemplerRes = await getEksempler({ take: 2 });
+  latestEksempler = eksemplerRes.data;
+} catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
 }
 
@@ -113,10 +116,12 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
   <!-- Lær av andre -->
   <section data-layout-block="content" class="examples-section">
     <h2 class="ds-heading section-heading" data-size="lg">Lær av andre</h2>
-    <ExampleLinkCards cards={[
-      { href: "/eksempler/ki-chat-staten", title: "KI-chat effektiviserer analysearbeid i staten", tag: "Eksempel" },
-      { href: "/eksempler/politiet-tale-til-tekst", title: "Politiet - Fra tale til tekst på minutter", tag: "Eksempel" },
-    ]} />
+    <ExampleLinkCards cards={latestEksempler.map((e, i) => ({
+      href: `/eksempler/${e.slug}`,
+      title: e.tittel,
+      tag: 'Eksempel',
+      variant: i === 0 ? 'medium' : 'light'
+    }))} />
     <ArrowLink href="/eksempler" text="Se alle eksempler" />
   </section>
 

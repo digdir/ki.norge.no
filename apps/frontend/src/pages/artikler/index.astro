@@ -48,7 +48,7 @@ function getTag(article: Artikkel) {
 <Layout title={seoTitle} description={seoDesc}>
   <section data-layout-block="content" class="artikler-page">
     <header class="artikler-header">
-      <h1 class="artikler-title">{heroTittel}</h1>
+      <h1 class="ds-heading" data-size="xl">{heroTittel}</h1>
       {heroSubtittel && <p class="artikler-subtitle">{heroSubtittel}</p>}
     </header>
 
@@ -153,13 +153,6 @@ function getTag(article: Artikkel) {
     gap: var(--ds-size-3);
   }
 
-  .artikler-title {
-    font-size: var(--ds-heading-lg-font-size);
-    font-weight: 700;
-    margin: 0;
-    line-height: 1.2;
-  }
-
   .artikler-subtitle {
     margin: 0;
     font-size: var(--ds-body-lg-font-size);
@@ -170,9 +163,9 @@ function getTag(article: Artikkel) {
   .compact-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--ds-size-4);
-    border-top: 1px solid var(--ds-color-neutral-border-subtle);
-    padding-top: var(--ds-size-6);
+    gap: var(--ds-size-12);
+    border-block: 1px solid var(--ds-color-surface-active);
+    padding-block: var(--ds-size-9);
     rule: 1px solid var(--ds-color-surface-active);
 
     @media (min-width: 768px) {
@@ -183,7 +176,10 @@ function getTag(article: Artikkel) {
   .image-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--ds-size-6);
+    gap: var(--ds-size-12);
+    rule: 1px solid var(--ds-color-surface-active);
+    border-block-end: 1px solid var(--ds-color-surface-active);
+    padding-block-end: var(--ds-size-9);
 
     @media (min-width: 640px) {
       grid-template-columns: repeat(2, 1fr);
