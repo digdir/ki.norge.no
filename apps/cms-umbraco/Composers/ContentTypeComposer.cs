@@ -1555,6 +1555,15 @@ public class ContentTypeComponent : IAsyncComponent
             }
         }
 
+        // guideSlug settes automatisk fra guiden (VeiledningStegGuideSlugHandler), så det er ikke lenger
+        // påkrevd. Relax eksisterende noder.
+        var guideSlugProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "guideSlug");
+        if (guideSlugProp != null && guideSlugProp.Mandatory)
+        {
+            guideSlugProp.Mandatory = false;
+            changed = true;
+        }
+
         if (EnsureInnstillingerGroup(ct, "slug", "guideSlug", "steg", "understeg")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("innholdBlokker", 3),
@@ -1953,7 +1962,7 @@ public class ContentTypeComponent : IAsyncComponent
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
-        ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, mandatory: true, description: "Slug til overordnet guide", sortOrder: 2), "innstillinger");
+        ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, description: "Settes automatisk fra guiden ved lagring. Trenger ikke fylles ut.", sortOrder: 2), "innstillinger");
         ct.AddPropertyType(Prop("steg", "Steg", _numericDt, mandatory: true, description: "Stegnummer (1, 2, 3...)", sortOrder: 3), "innstillinger");
         ct.AddPropertyType(Prop("understeg", "Understeg", _numericDt, mandatory: true, description: "Understeg-nummer (1, 2, 3...)", sortOrder: 4), "innstillinger");
         SetStandardGroupSortOrders(ct);
