@@ -4,13 +4,16 @@ import ForsideSeksjonerRenderer from '../components/landing/ForsideSeksjonerRend
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getKalenderhendelser, getEksempler, type Kalenderhendelse } from '../lib/umbraco';
 
+// Preview: forsiden må be om kladd-innhold, ellers vises bare publisert (bug: manglet her).
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+
 let forside = null;
 let latestArticles: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
 let eksempelKort: { href: string; title: string; tag: string }[] = [];
 try {
-  forside = await getForside();
-  const artiklerRes = await getArtikler(4);
+  forside = await getForside({ preview: isPreview });
+  const artiklerRes = await getArtikler(4, { preview: isPreview });
   latestArticles = artiklerRes.data;
   const hendelserRes = await getKalenderhendelser();
   const now = new Date();
