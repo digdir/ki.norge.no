@@ -333,9 +333,9 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType CreateOrGetBakgrunnDropdown()
     {
-        // Redaksjonell farge for artikkelen (brand1/2/3). "ingen" = ingen brand-farge (standard).
+        // Redaksjonell farge for artikkelen (brand1/2/3). "accent" = accent brand-farge (standard).
         // Items asserts hver oppstart slik at en eksisterende datatype også oppdateres.
-        var items = new[] { "ingen", "brand1", "brand2", "brand3" };
+        var items = new[] { "accent", "brand1", "brand2", "brand3" };
         var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
             .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunn");
         if (existing != null)
@@ -1638,7 +1638,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
             if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
                 ct.AddPropertyGroup("innstillinger", "Innstillinger");
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Redaksjonell farge for artikkelen (brand1/2/3, eller ingen). Vises på artikkelhodet og arves av kort som lenker hit.", sortOrder: 2), "innstillinger");
+            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Redaksjonell farge for artikkelen (brand1/2/3, eller accent). Vises på artikkelhodet og arves av kort som lenker hit.", sortOrder: 2), "innstillinger");
             _contentTypeService.Save(ct);
             Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rik artikkelmal)");
         }
