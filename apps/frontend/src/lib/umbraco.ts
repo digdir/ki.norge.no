@@ -489,6 +489,21 @@ export interface GlobaleInnstillinger {
   tittel503?: string;
   beskrivelse503?: string;
   vedlikeholdEpost?: string;
+  footerTittel?: string;
+  footerBeskrivelse?: string;
+  footerSosialInstagram?: string;
+  footerSosialLinkedin?: string;
+  footerSosialX?: string;
+  footerLenke1Tekst?: string;
+  footerLenke1Url?: string;
+  footerLenke2Tekst?: string;
+  footerLenke2Url?: string;
+  footerLenke3Tekst?: string;
+  footerLenke3Url?: string;
+  footerLenke4Tekst?: string;
+  footerLenke4Url?: string;
+  footerLenke5Tekst?: string;
+  footerLenke5Url?: string;
 }
 
 export interface UmbracoMedia {
@@ -958,6 +973,21 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel503: props.tittel503 as string || '',
         beskrivelse503: props.beskrivelse503 as string || '',
         vedlikeholdEpost: props.vedlikeholdEpost as string || '',
+        footerTittel: props.footerTittel as string || undefined,
+        footerBeskrivelse: props.footerBeskrivelse as string || undefined,
+        footerSosialInstagram: props.footerSosialInstagram as string || undefined,
+        footerSosialLinkedin: props.footerSosialLinkedin as string || undefined,
+        footerSosialX: props.footerSosialX as string || undefined,
+        footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
+        footerLenke1Url: props.footerLenke1Url as string || undefined,
+        footerLenke2Tekst: props.footerLenke2Tekst as string || undefined,
+        footerLenke2Url: props.footerLenke2Url as string || undefined,
+        footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
+        footerLenke3Url: props.footerLenke3Url as string || undefined,
+        footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,
+        footerLenke4Url: props.footerLenke4Url as string || undefined,
+        footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
+        footerLenke5Url: props.footerLenke5Url as string || undefined,
       } as T;
 
     default:

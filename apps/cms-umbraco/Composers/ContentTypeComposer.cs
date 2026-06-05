@@ -2723,6 +2723,27 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
+    private void AddFooterFields(IContentType ct)
+    {
+        if (!ct.PropertyGroups.Any(g => g.Alias == "footer"))
+            ct.AddPropertyGroup("footer", "Footer");
+        ct.AddPropertyType(Prop("footerTittel", "Merkenavn", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt), "footer");
+        ct.AddPropertyType(Prop("footerSosialInstagram", "Instagram-URL", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerSosialLinkedin", "LinkedIn-URL", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerSosialX", "X-URL", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke1Tekst", "Lenke 1 tekst", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke1Url", "Lenke 1 URL", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke2Tekst", "Lenke 2 tekst", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke2Url", "Lenke 2 URL", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke3Tekst", "Lenke 3 tekst", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke3Url", "Lenke 3 URL", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke4Tekst", "Lenke 4 tekst", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke4Url", "Lenke 4 URL", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke5Tekst", "Lenke 5 tekst", _textStringDt), "footer");
+        ct.AddPropertyType(Prop("footerLenke5Url", "Lenke 5 URL", _textStringDt), "footer");
+    }
+
     private IContentType CreateGlobaleInnstillinger()
     {
         var ct = new ContentType(_shortStringHelper, -1)
@@ -2747,6 +2768,8 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tittel503", "503 tittel", _textStringDt, description: "Vises som overskrift på vedlikeholdssiden."), "feilsider");
         ct.AddPropertyType(Prop("beskrivelse503", "503 beskrivelse", _textAreaDt, description: "Forklarende tekst på vedlikeholdssiden."), "feilsider");
         ct.AddPropertyType(Prop("vedlikeholdEpost", "Vedlikehold-e-post", _textStringDt, description: "Kontakt-e-post for hjelp under vedlikehold."), "feilsider");
+
+        AddFooterFields(ct);
 
         _contentTypeService.Save(ct);
         return ct;
@@ -2803,9 +2826,16 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        if (ct.Description != "Globale tekster brukt på tvers av sidene (cookie-melding, feilsider). Ett node på rot.")
+        // Footer flyttet hit fra forside (global, ikke forside-spesifikk).
+        if (!ct.PropertyTypes.Any(p => p.Alias == "footerTittel"))
         {
-            ct.Description = "Globale tekster brukt på tvers av sidene (cookie-melding, feilsider). Ett node på rot.";
+            AddFooterFields(ct);
+            changed = true;
+        }
+
+        if (ct.Description != "Globale tekster brukt på tvers av sidene (cookie-melding, footer, feilsider). Ett node på rot.")
+        {
+            ct.Description = "Globale tekster brukt på tvers av sidene (cookie-melding, footer, feilsider). Ett node på rot.";
             changed = true;
         }
 
