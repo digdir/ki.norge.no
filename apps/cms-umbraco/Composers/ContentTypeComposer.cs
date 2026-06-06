@@ -174,6 +174,20 @@ public class ContentTypeComponent : IAsyncComponent
                 CreateEksempelKontaktElement();
 
             // Forside-moduler (block list)
+            // Kort-element-typene og deres block-list-datatyper MÅ opprettes/resolves FØR
+            // forside-seksjonene (forsideAktuelt/forsideLaerAvAndre) som refererer dem.
+            // Ellers er _blockListForside*Dt null når seksjonen bygges -> hele
+            // InitializeAsync krasjer med "Value cannot be null (Parameter 'dataType')"
+            // og 0 content types seedes (fresh install / CI).
+            if (_contentTypeService.Get("forsideArtikkelKort") == null)
+                CreateForsideArtikkelKortElement();
+            if (_contentTypeService.Get("forsideEksempelKort") == null)
+                CreateForsideEksempelKortElement();
+            _blockListForsideArtikkelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Artikkelkort", "forsideArtikkelKort");
+            _blockListForsideEksempelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Eksempelkort", "forsideEksempelKort");
+
             if (_contentTypeService.Get("forsideHero") == null)
                 CreateForsideHeroElement();
             if (_contentTypeService.Get("forsideAktuelt") == null)
@@ -186,18 +200,6 @@ public class ContentTypeComponent : IAsyncComponent
                 CreateForsideLaerAvAndreElement();
             if (_contentTypeService.Get("forsideSandkasse") == null)
                 CreateForsideSandkasseElement();
-
-            // Kort-element-typer for forside (redaktør kan velge artikler/eksempler per kort).
-            // Må opprettes før block-list-datatypene som refererer dem.
-            if (_contentTypeService.Get("forsideArtikkelKort") == null)
-                CreateForsideArtikkelKortElement();
-            if (_contentTypeService.Get("forsideEksempelKort") == null)
-                CreateForsideEksempelKortElement();
-
-            _blockListForsideArtikkelKortDt = CreateOrGetBlockListDataType(
-                "Block List - Forside Artikkelkort", "forsideArtikkelKort");
-            _blockListForsideEksempelKortDt = CreateOrGetBlockListDataType(
-                "Block List - Forside Eksempelkort", "forsideEksempelKort");
 
             CreateBlockListDataTypes();
 
