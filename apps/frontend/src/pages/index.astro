@@ -12,17 +12,19 @@ let eksempler: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
 let eksempelKort: { href: string; title: string; tag: string }[] = [];
 try {
+  // Preview gjelder kun forsidens egen kladd (struktur/overskrifter/pins). Kortene henter
+  // alltid PUBLISERT innhold, slik at preview matcher det publikum ser (ingen upubliserte lekker inn).
   forside = await getForside({ preview: isPreview });
   // Hent en stor pool slik at redaktørvalgte kort kan slås opp på id (ikke bare de 4 nyeste).
-  const artiklerRes = await getArtikler(60, { preview: isPreview });
+  const artiklerRes = await getArtikler(60);
   latestArticles = artiklerRes.data;
-  const hendelserRes = await getKalenderhendelser({ preview: isPreview });
+  const hendelserRes = await getKalenderhendelser();
   const now = new Date();
   upcomingEvents = hendelserRes.data
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime())
     .slice(0, 1);
-  const eksemplerRes = await getEksempler({ preview: isPreview });
+  const eksemplerRes = await getEksempler();
   eksempler = eksemplerRes.data;
   eksempelKort = eksempler.slice(0, 2).map((c: any) => ({
     href: `/caser/${c.slug}`,
