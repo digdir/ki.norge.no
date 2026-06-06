@@ -328,6 +328,13 @@ export interface EventItem {
   eventUrl?: string;
 }
 
+// Ett redaktørvalgt kort i forsideAktuelt/forsideLaerAvAndre.
+// id = node-id på valgt artikkel/eksempel. ingress = valgfri overstyring.
+export interface ForsideKort {
+  id?: string;
+  ingress?: string;
+}
+
 // Én forside-modul (block i forside.seksjoner). Flat: alle mulige felt valgfrie.
 export interface ForsideSeksjon {
   contentType: string;
@@ -341,6 +348,7 @@ export interface ForsideSeksjon {
   lenkeUrl?: string;
   illustrasjon?: UmbracoMedia;
   tekstHtml?: string;
+  kort?: ForsideKort[];
 }
 
 export interface Forside {
@@ -1257,8 +1265,29 @@ function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
       lenkeUrl: (props.lenkeUrl as string) || undefined,
       illustrasjon: mapMedia(props.illustrasjon),
       tekstHtml: tekst?.tag === '#root' ? richTextToHtml(tekst) : (typeof tekst === 'string' ? tekst : undefined),
+      kort: mapForsideKort(props.kort),
     };
   });
+}
+
+// Leser nested block list (forsideArtikkelKort/forsideEksempelKort) under en forside-modul.
+// Hvert kort har en content-picker (artikkel eller eksempel) + valgfri ingress-overstyring.
+function mapForsideKort(value: unknown): ForsideKort[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items) || items.length === 0) return undefined;
+
+  return items
+    .map((block: any): ForsideKort => {
+      const content = block.content || block;
+      const props = content.properties || {};
+      // Artikkelkort bruker "artikkel", eksempelkort bruker "eksempel".
+      const id = pickerId(props.artikkel) ?? pickerId(props.eksempel);
+      return {
+        id,
+        ingress: (props.ingress as string) || undefined,
+      };
+    })
+    .filter((k: ForsideKort) => !!k.id);
 }
 
 function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {

@@ -15,13 +15,43 @@ import { getMediaUrl, type ForsideSeksjon, type Kalenderhendelse } from '../../l
 interface Props {
   seksjoner: ForsideSeksjon[];
   latestArticles: any[];
+  eksempler?: any[];
   nextEvent: Kalenderhendelse | null;
   nextEventDate: { day: string; month: string; year: string } | null;
   nextEventMultiDay?: boolean | string;
   eksempelKort: { href: string; title: string; tag: string }[];
 }
-const { seksjoner, latestArticles, nextEvent, nextEventDate, nextEventMultiDay, eksempelKort } = Astro.props;
+const { seksjoner, latestArticles, eksempler = [], nextEvent, nextEventDate, nextEventMultiDay, eksempelKort } = Astro.props;
 const featuredArticle = latestArticles[0];
+
+// Normaliserer en pool-artikkel til kort-formen rendereren bruker (tittel/slug/lead/image).
+// Pool-artikler har ingress/artikkelBilde; vi mapper dem til lead/image.
+const artikkelTilKort = (a: any, ingressOverride?: string) => ({
+  tittel: a.tittel,
+  slug: a.slug,
+  lead: ingressOverride || a.lead || a.ingress,
+  image: a.image || getMediaUrl(a.artikkelBilde),
+  publishedAt: a.publishedAt,
+});
+
+// Slår opp redaktørvalgte kort i poolen og dropper de som ikke finnes.
+const resolveArtikkelKort = (kort: { id?: string; ingress?: string }[] | undefined) =>
+  (kort ?? [])
+    .map((k) => {
+      const article = latestArticles.find((a: any) => a.id === k.id);
+      return article ? artikkelTilKort(article, k.ingress) : null;
+    })
+    .filter((c): c is ReturnType<typeof artikkelTilKort> => c !== null);
+
+const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefined) =>
+  (kort ?? [])
+    .map((k) => {
+      const ex = eksempler.find((e: any) => e.id === k.id);
+      return ex
+        ? { href: `/caser/${ex.slug}`, title: ex.tittel, tag: 'Eksempel' as const, lead: k.ingress || ex.ingress }
+        : null;
+    })
+    .filter((c): c is { href: string; title: string; tag: 'Eksempel'; lead?: string } => c !== null);
 ---
 
 {seksjoner.map((block) => {
@@ -38,23 +68,28 @@ const featuredArticle = latestArticles[0];
   }
 
   if (block.contentType === 'forsideAktuelt') {
+    // Redaktørvalgte kort overstyrer auto-pool. Tomt → behold nåværende auto-oppførsel.
+    const valgte = block.kort?.length ? resolveArtikkelKort(block.kort) : [];
+    const useValgte = valgte.length > 0;
+    const featured = useValgte ? valgte[0] : (featuredArticle ? artikkelTilKort(featuredArticle) : null);
+    const smaa = useValgte ? valgte.slice(1) : latestArticles.slice(1, 4).map((a) => artikkelTilKort(a));
     return (
       <section class="aktuelt" data-layout-block="edge">
         <div data-layout-block="content">
           <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Aktuelt'}</h2>
-          {featuredArticle && (
+          {featured && (
             <NewsCard
-              href={`/artikler/${featuredArticle.slug}`}
-              title={featuredArticle.tittel}
+              href={`/artikler/${featured.slug}`}
+              title={featured.tittel}
               tagColor="brand1"
-              lead={featuredArticle.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}
-              image={featuredArticle.image}
+              lead={featured.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}
+              image={featured.image}
               imageAlt=""
               variant="featured"
             />
           )}
           <CardGrid columns={3} divided>
-            {latestArticles.slice(1, 4).map((article) => (
+            {smaa.map((article) => (
               <NewsCard
                 href={`/artikler/${article.slug}`}
                 title={article.tittel}
@@ -64,7 +99,7 @@ const featuredArticle = latestArticles[0];
               />
             ))}
           </CardGrid>
-          <ArrowLink href="/artikler" text="Se alle artikler" />
+          <ArrowLink href={block.lenkeUrl || '/artikler'} text={block.lenketekst || 'Se alle artikler'} />
         </div>
       </section>
     );
@@ -87,7 +122,7 @@ const featuredArticle = latestArticles[0];
             location={nextEvent.sted || ''}
           />
         )}
-        <ArrowLink href="/kalender" text="Se alle arrangementer" />
+        <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst || 'Se alle arrangementer'} />
       </section>
     );
   }
@@ -111,11 +146,14 @@ const featuredArticle = latestArticles[0];
   }
 
   if (block.contentType === 'forsideLaerAvAndre') {
+    // Redaktørvalgte eksempler overstyrer auto-pool. Tomt → behold nåværende oppførsel.
+    const valgte = block.kort?.length ? resolveEksempelKort(block.kort) : [];
+    const kort = valgte.length > 0 ? valgte : eksempelKort;
     return (
       <section data-layout-block="content" class="examples-section">
         <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Lær av andre'}</h2>
-        <ExampleLinkCards cards={eksempelKort.map((c, i) => ({ ...c, variant: i === 0 ? 'medium' : 'light' }))} />
-        <ArrowLink href="/eksempler" text="Se alle eksempler" />
+        <ExampleLinkCards cards={kort.map((c, i) => ({ ...c, variant: i === 0 ? 'medium' : 'light' }))} />
+        <ArrowLink href={block.lenkeUrl || '/eksempler'} text={block.lenketekst || 'Se alle eksempler'} />
       </section>
     );
   }

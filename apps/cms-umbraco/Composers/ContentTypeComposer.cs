@@ -55,6 +55,8 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _blockListVeiledningStegDt = null!;
     private IDataType _blockListVeiledningGuideDt = null!;
     private IDataType _blockListForsideDt = null!;
+    private IDataType _blockListForsideArtikkelKortDt = null!;
+    private IDataType _blockListForsideEksempelKortDt = null!;
 
     public ContentTypeComponent(
         IContentTypeService contentTypeService,
@@ -185,7 +187,23 @@ public class ContentTypeComponent : IAsyncComponent
             if (_contentTypeService.Get("forsideSandkasse") == null)
                 CreateForsideSandkasseElement();
 
+            // Kort-element-typer for forside (redaktør kan velge artikler/eksempler per kort).
+            // Må opprettes før block-list-datatypene som refererer dem.
+            if (_contentTypeService.Get("forsideArtikkelKort") == null)
+                CreateForsideArtikkelKortElement();
+            if (_contentTypeService.Get("forsideEksempelKort") == null)
+                CreateForsideEksempelKortElement();
+
+            _blockListForsideArtikkelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Artikkelkort", "forsideArtikkelKort");
+            _blockListForsideEksempelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Eksempelkort", "forsideEksempelKort");
+
             CreateBlockListDataTypes();
+
+            // Legg til kort/lenketekst/lenkeUrl på eksisterende forside-element-typer.
+            // Må kjøre etter at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er satt.
+            MigrateForsideKortFelter();
 
             MigrateVeiledningElementNames();
             MigrateVeiledningObsRemoveVariant();
@@ -2513,6 +2531,9 @@ public class ContentTypeComponent : IAsyncComponent
         { Alias = "forsideAktuelt", Name = "Forside Aktuelt", Description = "Seksjon med siste artikler (innhold hentes automatisk)", Icon = "icon-newspaper-alt", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("kort", "Kort", _blockListForsideArtikkelKortDt, description: "Velg artikler. La stå tom for å vise nyeste automatisk. Første kort vises stort."), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle artikler"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2523,6 +2544,8 @@ public class ContentTypeComponent : IAsyncComponent
         { Alias = "forsideArrangementer", Name = "Forside Arrangementer", Description = "Seksjon med kommende arrangement (innhold hentes automatisk)", Icon = "icon-calendar", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle arrangementer"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2548,6 +2571,31 @@ public class ContentTypeComponent : IAsyncComponent
         { Alias = "forsideLaerAvAndre", Name = "Forside Lær av andre", Description = "Seksjon med eksempler (innhold hentes automatisk)", Icon = "icon-light-bulb", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("kort", "Kort", _blockListForsideEksempelKortDt, description: "Velg eksempler. La stå tom for å vise nyeste automatisk."), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle eksempler"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideArtikkelKortElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideArtikkelKort", Name = "Forside Artikkelkort", Description = "Et kort som peker på en artikkel på forsiden", Icon = "icon-newspaper-alt", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("artikkel", "Artikkel", _contentPickerDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "La stå tom for å bruke artikkelens egen ingress."), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideEksempelKortElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideEksempelKort", Name = "Forside Eksempelkort", Description = "Et kort som peker på et eksempel på forsiden", Icon = "icon-light-bulb", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("eksempel", "Eksempel", _contentPickerDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "La stå tom for å bruke eksemplets egen ingress."), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2905,6 +2953,72 @@ public class ContentTypeComponent : IAsyncComponent
         {
             _contentTypeService.Save(ct);
             Console.WriteLine("ContentTypeComposer: Modulariserte forside (block list, fjernet gamle flate felt)");
+        }
+    }
+
+    // Additivt: legger til kort/lenketekst/lenkeUrl på eksisterende forside-element-typer.
+    // Krever at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er initialisert først.
+    private void MigrateForsideKortFelter()
+    {
+        var aktuelt = _contentTypeService.Get("forsideAktuelt");
+        if (aktuelt != null)
+        {
+            bool changed = false;
+            if (!aktuelt.PropertyTypeExists("kort"))
+            {
+                aktuelt.AddPropertyType(Prop("kort", "Kort", _blockListForsideArtikkelKortDt, description: "Velg artikler. La stå tom for å vise nyeste automatisk. Første kort vises stort."), "innhold");
+                changed = true;
+            }
+            if (!aktuelt.PropertyTypeExists("lenketekst"))
+            {
+                aktuelt.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle artikler"), "innhold");
+                changed = true;
+            }
+            if (!aktuelt.PropertyTypeExists("lenkeUrl"))
+            {
+                aktuelt.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+                changed = true;
+            }
+            if (changed) _contentTypeService.Save(aktuelt);
+        }
+
+        var laer = _contentTypeService.Get("forsideLaerAvAndre");
+        if (laer != null)
+        {
+            bool changed = false;
+            if (!laer.PropertyTypeExists("kort"))
+            {
+                laer.AddPropertyType(Prop("kort", "Kort", _blockListForsideEksempelKortDt, description: "Velg eksempler. La stå tom for å vise nyeste automatisk."), "innhold");
+                changed = true;
+            }
+            if (!laer.PropertyTypeExists("lenketekst"))
+            {
+                laer.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle eksempler"), "innhold");
+                changed = true;
+            }
+            if (!laer.PropertyTypeExists("lenkeUrl"))
+            {
+                laer.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+                changed = true;
+            }
+            if (changed) _contentTypeService.Save(laer);
+        }
+
+        var arr = _contentTypeService.Get("forsideArrangementer");
+        if (arr != null)
+        {
+            bool changed = false;
+            if (!arr.PropertyTypeExists("lenketekst"))
+            {
+                arr.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle arrangementer"), "innhold");
+                changed = true;
+            }
+            if (!arr.PropertyTypeExists("lenkeUrl"))
+            {
+                arr.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+                changed = true;
+            }
+            if (changed) _contentTypeService.Save(arr);
         }
     }
 
