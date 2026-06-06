@@ -1741,14 +1741,27 @@ public class ContentTypeComponent : IAsyncComponent
     /// </summary>
     private void EnforceBakgrunnScope()
     {
+        const string bakgrunnDesc = "Bakgrunnsfarge for artikkelhodet. Standard er Accent. Velg mellom Accent, Brand 1 og Brand 2. Arves av kort som lenker hit.";
         foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss" })
         {
             var ct = _contentTypeService.Get(alias);
             if (ct == null) continue;
-            if (ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
+            var bakgrunn = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "bakgrunn");
+            if (bakgrunn != null)
+            {
+                // Feltet finnes alt: oppdater beskrivelsen (AddPropertyType under kjorer ikke pa
+                // eksisterende felt, sa gammel tekst som "Standard er hvit" ble ellers liggende).
+                if (bakgrunn.Description != bakgrunnDesc)
+                {
+                    bakgrunn.Description = bakgrunnDesc;
+                    _contentTypeService.Save(ct);
+                    Console.WriteLine($"ContentTypeComposer: Oppdaterte bakgrunn-beskrivelse pa '{alias}'");
+                }
+                continue;
+            }
             if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
                 ct.AddPropertyGroup("innstillinger", "Innstillinger");
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Bakgrunnsfarge for artikkelhodet. Standard er Accent. Velg mellom Accent, Brand 1 og Brand 2. Arves av kort som lenker hit.", sortOrder: 2), "innstillinger");
+            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: bakgrunnDesc, sortOrder: 2), "innstillinger");
             _contentTypeService.Save(ct);
             Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rik artikkelmal)");
         }
