@@ -35,7 +35,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _mediaPickerDt = null!;
     private IDataType _contentPickerDt = null!;
     private IDataType _calloutVariantDt = null!;
-    private IDataType _bakgrunnDropdownDt = null!;    // Hvit / Lys blå dropdown for Artikkelhode
+    private IDataType _bakgrunnDropdownDt = null!;    // Fargevelger (ColorPicker) for Artikkelhode-bakgrunn
     private IDataType _kolonneDropdownDt = null!;     // 1/2/3/4 kolonner for eksempel-grupper
     private IDataType _blockListEksemplerSeksjonerDt = null!;
     private IDataType _trueFalseDt = null!;           // Boolean checkbox
@@ -350,7 +350,7 @@ public class ContentTypeComponent : IAsyncComponent
         _mediaPickerDt = FindDataType(Constants.PropertyEditors.Aliases.MediaPicker3);
         _contentPickerDt = FindDataType(Constants.PropertyEditors.Aliases.ContentPicker);
         _calloutVariantDt = CreateOrGetCalloutVariantDropdown();
-        _bakgrunnDropdownDt = CreateOrGetBakgrunnDropdown();
+        _bakgrunnDropdownDt = CreateOrGetBakgrunnFargevelger();
         _kolonneDropdownDt = CreateOrGetKolonneDropdown();
         _trueFalseDt = FindDataType(Constants.PropertyEditors.Aliases.Boolean);
         _datePickerDt = FindDataTypeByName(Constants.PropertyEditors.Aliases.DateTime, "Date Picker");
@@ -370,38 +370,49 @@ public class ContentTypeComponent : IAsyncComponent
             ?? throw new InvalidOperationException($"RichText data type '{name}' not found after EnsureRichTextDataTypes");
     }
 
-    private IDataType CreateOrGetBakgrunnDropdown()
+    private IDataType CreateOrGetBakgrunnFargevelger()
     {
-        // Tre redaksjonelle bakgrunnsfarger for artikkelhodet. Accent er standard (frontend
-        // defaulter til accent når feltet er tomt). Items asserts hver oppstart slik at en
-        // eksisterende datatype også oppdateres.
-        var items = new[] { "accent", "brand1", "brand2" };
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
-            .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunn");
+        // Fargevelger (ColorPicker) med labels: editor ser bade fargerute og navn, og slipper
+        // dropdownens tomme forste rad. Hex matcher DS surface-tokenene frontend bruker
+        // (bakgrunnSurface): Accent #e9c0c8, Brand 1 #dfc2d4, Brand 2 #e2d8d2.
+        // VIKTIG: ColorPicker-validatoren krever at "items" er JSON (ikke et CLR object[]),
+        // ellers feiler datatypen med InvalidConfiguration. Bygg derfor en JsonNode.
+        System.Text.Json.Nodes.JsonNode BuildItems() => System.Text.Json.Nodes.JsonNode.Parse(
+            System.Text.Json.JsonSerializer.Serialize(new[]
+            {
+                new { value = "e9c0c8", label = "Accent" },
+                new { value = "dfc2d4", label = "Brand 1" },
+                new { value = "e2d8d2", label = "Brand 2" },
+            }))!;
+
+        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.ColorPicker)
+            .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunnsfarge");
         if (existing != null)
         {
             var cfg = existing.ConfigurationData ?? new Dictionary<string, object>();
-            cfg["items"] = items;
+            cfg["items"] = BuildItems();
+            cfg["useLabel"] = true;
             existing.ConfigurationData = cfg;
-            _dataTypeService.Save(existing);
-            return existing;
+            var upd = _dataTypeService.UpdateAsync(existing, Constants.Security.SuperUserKey).GetAwaiter().GetResult();
+            return upd.Success ? upd.Result! : existing;
         }
 
-        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.DropDownListFlexible]
-            ?? throw new InvalidOperationException("DropDownListFlexible editor not found");
+        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.ColorPicker]
+            ?? throw new InvalidOperationException("ColorPicker editor not found");
 
         var dt = new DataType(editor, _configSerializer)
         {
-            Name = "Artikkelhode Bakgrunn",
+            Name = "Artikkelhode Bakgrunnsfarge",
             DatabaseType = ValueStorageType.Nvarchar,
-            EditorUiAlias = "Umb.PropertyEditorUi.Dropdown",
+            EditorUiAlias = "Umb.PropertyEditorUi.ColorPicker",
             ConfigurationData = new Dictionary<string, object>
             {
-                ["items"] = items,
+                ["useLabel"] = true,
+                ["items"] = BuildItems(),
             },
         };
-        _dataTypeService.Save(dt);
-        return dt;
+        var res = _dataTypeService.CreateAsync(dt, Constants.Security.SuperUserKey).GetAwaiter().GetResult();
+        return res.Success ? res.Result! : dt;
     }
 
     private IDataType CreateOrGetKolonneDropdown()
@@ -1743,7 +1754,7 @@ public class ContentTypeComponent : IAsyncComponent
     /// </summary>
     private void EnforceBakgrunnScope()
     {
-        const string bakgrunnDesc = "Bakgrunnsfarge for artikkelhodet. Standard er Accent. Velg mellom Accent, Brand 1 og Brand 2. Arves av kort som lenker hit.";
+        const string bakgrunnDesc = "Bakgrunnsfarge for artikkelhodet.";
         foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss" })
         {
             var ct = _contentTypeService.Get(alias);
@@ -1751,21 +1762,40 @@ public class ContentTypeComponent : IAsyncComponent
             var bakgrunn = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "bakgrunn");
             if (bakgrunn != null)
             {
-                // Feltet finnes alt: oppdater beskrivelsen (AddPropertyType under kjorer ikke pa
-                // eksisterende felt, sa gammel tekst som "Standard er hvit" ble ellers liggende).
-                if (bakgrunn.Description != bakgrunnDesc)
+                // Feltet finnes alt: migrer til fargevelgeren, gjor det obligatorisk (ingen tom
+                // rad) og oppdater beskrivelsen. AddPropertyType under kjorer ikke pa eksisterende
+                // felt, sa dette maa gjores eksplisitt.
+                bool changed = false;
+                if (bakgrunn.DataTypeKey != _bakgrunnDropdownDt.Key)
                 {
-                    bakgrunn.Description = bakgrunnDesc;
+                    bakgrunn.DataTypeId = _bakgrunnDropdownDt.Id;
+                    bakgrunn.DataTypeKey = _bakgrunnDropdownDt.Key;
+                    bakgrunn.PropertyEditorAlias = _bakgrunnDropdownDt.EditorAlias;
+                    changed = true;
+                }
+                if (!bakgrunn.Mandatory) { bakgrunn.Mandatory = true; changed = true; }
+                if (bakgrunn.Description != bakgrunnDesc) { bakgrunn.Description = bakgrunnDesc; changed = true; }
+                if (changed)
+                {
                     _contentTypeService.Save(ct);
-                    Console.WriteLine($"ContentTypeComposer: Oppdaterte bakgrunn-beskrivelse pa '{alias}'");
+                    Console.WriteLine($"ContentTypeComposer: Migrerte bakgrunn til fargevelger pa '{alias}'");
                 }
                 continue;
             }
             if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
                 ct.AddPropertyGroup("innstillinger", "Innstillinger");
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: bakgrunnDesc, sortOrder: 2), "innstillinger");
+            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, mandatory: true, description: bakgrunnDesc, sortOrder: 2), "innstillinger");
             _contentTypeService.Save(ct);
             Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rik artikkelmal)");
+        }
+        // Rydd vekk den gamle dropdown-datatypen (erstattet av fargevelgeren) nar ingen felt
+        // refererer den lenger. Fargevelgeren har samme navn men annen editor-alias.
+        foreach (var oldDropdown in _dataTypeService
+                     .GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
+                     .Where(dt => dt.Name == "Artikkelhode Bakgrunn").ToList())
+        {
+            _dataTypeService.Delete(oldDropdown);
+            Console.WriteLine("ContentTypeComposer: Slettet gammel dropdown-datatype 'Artikkelhode Bakgrunn'");
         }
         foreach (var alias in new[] { "side", "stegartikkel" })
         {
