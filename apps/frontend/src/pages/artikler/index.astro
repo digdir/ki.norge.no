@@ -1,17 +1,22 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getArtikler, getArtiklerOversikt, getPlainText, getMediaUrl, type Artikkel } from '../../lib/umbraco';
+import { getArtikler, getArtiklerOversikt, getVeiledningGuider, getPlainText, getMediaUrl, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
+
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
 let articles: Artikkel[] = [];
+let guider: VeiledningGuide[] = [];
 let oversikt = null;
 try {
-  const [artiklerRes, oversiktRes] = await Promise.all([
-    getArtikler(),
-    getArtiklerOversikt(),
+  const [artiklerRes, oversiktRes, guiderRes] = await Promise.all([
+    getArtikler(undefined, { preview: isPreview }),
+    getArtiklerOversikt({ preview: isPreview }),
+    getVeiledningGuider({ preview: isPreview }),
   ]);
   articles = artiklerRes.data;
   oversikt = oversiktRes;
+  guider = guiderRes.data;
 } catch (e) {
   console.error('Failed to fetch artikler:', e);
 }
@@ -21,6 +26,24 @@ const heroSubtittel = oversikt?.heroSubtittel || '';
 const seoTitle = oversikt?.seoTittel || heroTittel;
 const seoDesc = oversikt?.seoBeskrivelse || 'Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.';
 
+const seksjoner = oversikt?.seksjoner || [];
+
+const artikkelById = new Map(articles.map(a => [a.id, a]));
+const relatertById = new Map<string, Artikkel | VeiledningGuide>();
+articles.forEach(a => relatertById.set(a.id, a));
+guider.forEach(g => relatertById.set(g.id, g));
+
+function getImageUrl(article: Artikkel) {
+  // Bruk getMediaUrl slik at media-URLen blir absolutt mot CMS-hosten.
+  return getMediaUrl(article.artikkelBilde);
+}
+
+function getTag(article: Artikkel) {
+  if (article.bakgrunn === 'lyseblaa') return 'Offentlig sektor';
+  return 'KI-strategien';
+}
+
+// Auto-layout (fallback når redaktøren ikke har bygd seksjoner): featured + kort + bildegrid.
 const featuredOverride = oversikt?.featuredArtikkelId
   ? articles.find(a => a.id === oversikt!.featuredArtikkelId)
   : null;
@@ -31,18 +54,6 @@ const imageGridTop = rest.slice(3, 6);
 const imageGridBottom = rest.slice(6, 8);
 const bottomFeatured = rest[8];
 const remaining = rest.slice(9);
-
-function getImageUrl(article: Artikkel) {
-  // Bruk getMediaUrl slik at media-URLen blir absolutt mot CMS-hosten.
-  // Ra artikkelBilde.url er relativ (/media/...) og ville blitt hentet fra
-  // frontend-domenet, ikke CMS, og gitt 404.
-  return getMediaUrl(article.artikkelBilde);
-}
-
-function getTag(article: Artikkel) {
-  if (article.bakgrunn === 'lyseblaa') return 'Offentlig sektor';
-  return 'KI-strategien';
-}
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
@@ -52,85 +63,145 @@ function getTag(article: Artikkel) {
       {heroSubtittel && <p class="artikler-subtitle">{heroSubtittel}</p>}
     </header>
 
-    {featured && (
-      <NewsCard
-        variant="featured"
-        href={`/artikler/${featured.slug}`}
-        title={featured.tittel}
-        lead={featured.ingress || getPlainText(featured.innhold, 150)}
-        image={getImageUrl(featured)}
-        imageAlt={featured.bildeAlt}
-      />
-    )}
-
-    {compactCards.length > 0 && (
-      <div class="compact-grid">
-        {compactCards.map(article => (
+    {seksjoner.length > 0 ? seksjoner.map(s => {
+      if (s.contentType === 'artikkelFeatured' && s.artikkelId) {
+        const a = artikkelById.get(s.artikkelId);
+        if (!a) return null;
+        return (
           <NewsCard
-            variant="small"
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            tag={getTag(article)}
-            date={article.publishedAt}
+            variant="featured"
+            href={`/artikler/${a.slug}`}
+            title={a.tittel}
+            lead={s.ingress || a.ingress || getPlainText(a.innhold, 150)}
+            image={getImageUrl(a)}
+            imageAlt={a.bildeAlt}
           />
-        ))}
-      </div>
-    )}
+        );
+      }
 
-    {imageGridTop.length > 0 && (
-      <div class="image-grid">
-        {imageGridTop.map(article => (
+      if (s.contentType === 'artikkelGruppe') {
+        const items = (s.artikkelIds || []).map(id => artikkelById.get(id)).filter((a): a is Artikkel => !!a);
+        if (items.length === 0) return null;
+        const cols = s.antallKolonner || 3;
+        return (
+          <div class="artikler-gruppe">
+            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
+            <div class={`image-grid ${cols <= 2 ? 'image-grid--2col' : ''}`}>
+              {items.map(a => (
+                <NewsCard
+                  variant="image"
+                  href={`/artikler/${a.slug}`}
+                  title={a.tittel}
+                  date={a.publishedAt}
+                  image={getImageUrl(a)}
+                  imageAlt={a.bildeAlt}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      if (s.contentType === 'artikkelRelatert') {
+        const items = (s.relatertIds || []).map(id => relatertById.get(id)).filter((x): x is Artikkel | VeiledningGuide => !!x);
+        if (items.length === 0) return null;
+        return (
+          <div class="artikler-gruppe">
+            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
+            <div class="compact-grid">
+              {items.map((item, i) => {
+                const href = articles.some(a => a.id === item.id) ? `/artikler/${item.slug}` : `/veiledning/${item.slug}`;
+                return <NewsCard variant="small" href={href} title={item.tittel} tag={s.relatertTags?.[i]} date={item.publishedAt} />;
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      return null;
+    }) : (
+      <Fragment>
+        {featured && (
           <NewsCard
-            variant="image"
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            date={article.publishedAt}
-            image={getImageUrl(article)}
-            imageAlt={article.bildeAlt}
+            variant="featured"
+            href={`/artikler/${featured.slug}`}
+            title={featured.tittel}
+            lead={featured.ingress || getPlainText(featured.innhold, 150)}
+            image={getImageUrl(featured)}
+            imageAlt={featured.bildeAlt}
           />
-        ))}
-      </div>
-    )}
+        )}
 
-    {imageGridBottom.length > 0 && (
-      <div class="image-grid image-grid--2col">
-        {imageGridBottom.map(article => (
+        {compactCards.length > 0 && (
+          <div class="compact-grid">
+            {compactCards.map(article => (
+              <NewsCard
+                variant="small"
+                href={`/artikler/${article.slug}`}
+                title={article.tittel}
+                tag={getTag(article)}
+                date={article.publishedAt}
+              />
+            ))}
+          </div>
+        )}
+
+        {imageGridTop.length > 0 && (
+          <div class="image-grid">
+            {imageGridTop.map(article => (
+              <NewsCard
+                variant="image"
+                href={`/artikler/${article.slug}`}
+                title={article.tittel}
+                date={article.publishedAt}
+                image={getImageUrl(article)}
+                imageAlt={article.bildeAlt}
+              />
+            ))}
+          </div>
+        )}
+
+        {imageGridBottom.length > 0 && (
+          <div class="image-grid image-grid--2col">
+            {imageGridBottom.map(article => (
+              <NewsCard
+                variant="image"
+                href={`/artikler/${article.slug}`}
+                title={article.tittel}
+                date={article.publishedAt}
+                image={getImageUrl(article)}
+                imageAlt={article.bildeAlt}
+              />
+            ))}
+          </div>
+        )}
+
+        {bottomFeatured && (
           <NewsCard
-            variant="image"
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            date={article.publishedAt}
-            image={getImageUrl(article)}
-            imageAlt={article.bildeAlt}
+            variant="featured"
+            href={`/artikler/${bottomFeatured.slug}`}
+            title={bottomFeatured.tittel}
+            lead={bottomFeatured.ingress || getPlainText(bottomFeatured.innhold, 150)}
+            image={getImageUrl(bottomFeatured)}
+            imageAlt={bottomFeatured.bildeAlt}
           />
-        ))}
-      </div>
-    )}
+        )}
 
-    {bottomFeatured && (
-      <NewsCard
-        variant="featured"
-        href={`/artikler/${bottomFeatured.slug}`}
-        title={bottomFeatured.tittel}
-        lead={bottomFeatured.ingress || getPlainText(bottomFeatured.innhold, 150)}
-        image={getImageUrl(bottomFeatured)}
-        imageAlt={bottomFeatured.bildeAlt}
-      />
-    )}
-
-    {remaining.length > 0 && (
-      <div class="image-grid">
-        {remaining.map(article => (
-          <NewsCard
-            variant="image"
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            date={article.publishedAt}
-            image={getImageUrl(article)}
-            imageAlt={article.bildeAlt}
-          />
-        ))}
-      </div>
+        {remaining.length > 0 && (
+          <div class="image-grid">
+            {remaining.map(article => (
+              <NewsCard
+                variant="image"
+                href={`/artikler/${article.slug}`}
+                title={article.tittel}
+                date={article.publishedAt}
+                image={getImageUrl(article)}
+                imageAlt={article.bildeAlt}
+              />
+            ))}
+          </div>
+        )}
+      </Fragment>
     )}
 
     {articles.length === 0 && (
@@ -160,13 +231,22 @@ function getTag(article: Artikkel) {
     color: var(--ds-color-neutral-text-subtle);
   }
 
+  .artikler-gruppe {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-8);
+  }
+
+  .section-heading {
+    margin: 0;
+  }
+
   .compact-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--ds-size-12);
     border-block: 1px solid var(--ds-color-surface-active);
     padding-block: var(--ds-size-9);
-    rule: 1px solid var(--ds-color-surface-active);
 
     @media (min-width: 768px) {
       grid-template-columns: repeat(3, 1fr);
@@ -177,7 +257,6 @@ function getTag(article: Artikkel) {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--ds-size-12);
-    rule: 1px solid var(--ds-color-surface-active);
     border-block-end: 1px solid var(--ds-color-surface-active);
     padding-block-end: var(--ds-size-9);
 

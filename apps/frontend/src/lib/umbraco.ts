@@ -226,12 +226,28 @@ export interface Side extends Artikkel {}
 
 export interface Eksempel extends Artikkel {}
 
+export interface ArtiklerSeksjon {
+  contentType: 'artikkelFeatured' | 'artikkelGruppe' | 'artikkelRelatert';
+  id: string;
+  // Featured: én artikkel-referanse + valgfri ingress-overstyring
+  artikkelId?: string;
+  ingress?: string;
+  // Gruppe: tittel + kolonner + 1-6 artikkel-referanser
+  tittel?: string;
+  antallKolonner?: number;
+  artikkelIds?: string[];
+  // Relatert (kun merkelapp): tittel + 1-3 referanser + per-kort merkelapp
+  relatertIds?: string[];
+  relatertTags?: Array<string | undefined>;
+}
+
 export interface ArtiklerOversikt {
   id: string;
   documentId: string;
   heroTittel?: string;
   heroSubtittel?: string;
   featuredArtikkelId?: string;
+  seksjoner?: ArtiklerSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -267,7 +283,6 @@ export interface EksemplerOversikt {
   id: string;
   documentId: string;
   heroTittel?: string;
-  heroIngress?: string;
   seksjoner?: EksemplerSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
@@ -351,6 +366,8 @@ export interface ForsideSeksjon {
   tekst?: string;
   arrangementId?: string;
   veiledningId?: string;
+  fremhevetArtikkelId?: string;
+  forstaLenkeIds?: string[];
   kort?: ForsideKort[];
 }
 
@@ -725,7 +742,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       return {
         ...base,
         heroTittel: props.heroTittel as string || '',
-        heroIngress: props.heroIngress as string || '',
         seksjoner: mapEksemplerSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -740,6 +756,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         heroTittel: props.heroTittel as string || '',
         heroSubtittel: props.heroSubtittel as string || '',
         featuredArtikkelId: featuredNode?.id || undefined,
+        seksjoner: mapArtiklerSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
@@ -1264,9 +1281,21 @@ function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
       tekst: typeof tekst === 'string' ? (tekst || undefined) : (tekst?.tag === '#root' ? richTextToHtml(tekst) : undefined),
       arrangementId: pickerId(props.arrangement),
       veiledningId: pickerId(props.veiledning),
+      fremhevetArtikkelId: pickerId(props.fremhevetArtikkel),
+      forstaLenkeIds: mapForstaLenker(props.lenker),
       kort: mapForsideKort(props.kort),
     };
   });
+}
+
+// Leser nested block list (forsideForstaLenke) under "Forstå regelverket"-modulen.
+// Hvert element har en content-picker (lenke) til veiledning/artikkel.
+function mapForstaLenker(value: unknown): string[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items) || items.length === 0) return undefined;
+  return items
+    .map((block: any) => pickerId((block.content || block).properties?.lenke))
+    .filter((id: string | undefined): id is string => !!id);
 }
 
 // Leser nested block list (forsideArtikkelKort/forsideEksempelKort) under en forside-modul.
@@ -1340,6 +1369,45 @@ function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
         navn: props.navn || undefined,
         epost: props.epost || undefined,
         stilling: props.stilling || undefined,
+      };
+    }
+    return { contentType: ct, id };
+  });
+}
+
+function mapArtiklerSeksjoner(value: unknown): ArtiklerSeksjon[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any): ArtiklerSeksjon => {
+    const content = block.content || block;
+    const ct = content.contentType;
+    const props = content.properties || {};
+    const id = content.id || '';
+
+    if (ct === 'artikkelFeatured') {
+      return { contentType: ct, id, artikkelId: pickerId(props.artikkel), ingress: (props.ingress as string) || undefined };
+    }
+    if (ct === 'artikkelGruppe') {
+      const refs = [1, 2, 3, 4, 5, 6].map((n) => pickerId(props[`artikkel${n}`])).filter((x): x is string => !!x);
+      return {
+        contentType: ct,
+        id,
+        tittel: (props.tittel as string) || undefined,
+        antallKolonner: Number(props.antallKolonner) || 3,
+        artikkelIds: refs,
+      };
+    }
+    if (ct === 'artikkelRelatert') {
+      const refs = [1, 2, 3]
+        .map((n) => ({ id: pickerId(props[`relatert${n}`]), tag: props[`relatertTag${n}`] }))
+        .filter((r): r is { id: string; tag: unknown } => !!r.id);
+      return {
+        contentType: ct,
+        id,
+        tittel: (props.tittel as string) || undefined,
+        relatertIds: refs.map((r) => r.id),
+        relatertTags: refs.map((r) => (typeof r.tag === 'string' && r.tag ? r.tag : undefined)),
       };
     }
     return { contentType: ct, id };
