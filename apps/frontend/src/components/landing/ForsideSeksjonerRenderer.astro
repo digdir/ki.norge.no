@@ -73,11 +73,15 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   if (block.contentType === 'forsideAktuelt') {
-    // Redaktørvalgte kort overstyrer auto-pool. Tomt → behold nåværende auto-oppførsel.
+    // Fremhevet artikkel velges eksplisitt, ellers første valgte kort, ellers nyeste.
+    const fremhevet = block.fremhevetArtikkelId ? latestArticles.find((a: any) => a.id === block.fremhevetArtikkelId) : null;
     const valgte = block.kort?.length ? resolveArtikkelKort(block.kort) : [];
-    const useValgte = valgte.length > 0;
-    const featured = useValgte ? valgte[0] : (featuredArticle ? artikkelTilKort(featuredArticle) : null);
-    const smaa = useValgte ? valgte.slice(1) : latestArticles.slice(1, 4).map((a) => artikkelTilKort(a));
+    const featured = fremhevet ? artikkelTilKort(fremhevet)
+      : valgte.length > 0 ? valgte[0]
+      : featuredArticle ? artikkelTilKort(featuredArticle) : null;
+    // Små kort: valgte kort hvis satt, ellers nyeste. Den fremhevede tas ut.
+    const pool = valgte.length > 0 ? valgte : latestArticles.map((a) => artikkelTilKort(a));
+    const smaa = pool.filter((c) => c.slug !== featured?.slug).slice(0, 3);
     return (
       <section class="aktuelt" data-layout-block="edge">
         <div data-layout-block="content">
@@ -173,6 +177,34 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     );
   }
 
+  if (block.contentType === 'forsideForstaRegelverket') {
+    const lenker = (block.forstaLenkeIds ?? [])
+      .map((id) => {
+        const art = latestArticles.find((a: any) => a.id === id);
+        if (art) return { href: `/artikler/${art.slug}`, title: art.tittel };
+        const veil = veiledninger.find((v) => v.id === id);
+        if (veil) return { href: `/veiledning/${veil.slug}`, title: veil.tittel };
+        return null;
+      })
+      .filter((l): l is { href: string; title: string } => l !== null);
+    if (lenker.length === 0) return null;
+    return (
+      <section class="forsta-section" data-layout-block="content">
+        <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Forstå regelverket'}</h2>
+        <ul class="forsta-liste">
+          {lenker.map((l) => (
+            <li>
+              <a class="forsta-lenke" href={l.href}>
+                <span>{l.title}</span>
+                <span class="forsta-pil" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
   if (block.contentType === 'forsideSandkasse') {
     const sandkasseLinkId = `sandkasse-link-${block.id}`;
     return (
@@ -230,6 +262,47 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     & :global(.arrow-link) {
       margin-block-start: var(--ds-size-6);
     }
+  }
+
+  /* ── Forstå regelverket (enkel lenkeliste) ───────────── */
+  .forsta-liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  @media (min-width: 768px) {
+    .forsta-liste {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--ds-size-10);
+    }
+  }
+
+  .forsta-lenke {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-size-4);
+    padding-block: var(--ds-size-4);
+    border-block-end: 1px solid var(--ds-color-surface-active);
+    color: var(--ds-color-text-default);
+    text-decoration: none;
+    font-size: var(--ds-heading-xs-font-size);
+  }
+
+  .forsta-lenke:hover span:first-child {
+    text-decoration: underline;
+  }
+
+  .forsta-pil {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: var(--ds-color-base-default);
   }
 
   /* ── Sandkassen ──────────────────────────────────────── */

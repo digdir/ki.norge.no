@@ -6,16 +6,18 @@ import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
 import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, type Eksempel, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
 
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+
 let eksempler: Eksempel[] = [];
 let oversikt = null;
 let artikler: Artikkel[] = [];
 let guider: VeiledningGuide[] = [];
 try {
   const [oversiktData, eksemplerRes, artiklerRes, guiderRes] = await Promise.all([
-    getEksemplerOversikt(),
-    getEksempler(),
-    getArtikler(),
-    getVeiledningGuider(),
+    getEksemplerOversikt({ preview: isPreview }),
+    getEksempler({ preview: isPreview }),
+    getArtikler(undefined, { preview: isPreview }),
+    getVeiledningGuider({ preview: isPreview }),
   ]);
   oversikt = oversiktData;
   eksempler = eksemplerRes.data;
@@ -26,9 +28,8 @@ try {
 }
 
 const heroTittel = oversikt?.heroTittel || 'Eksempler';
-const heroIngress = oversikt?.heroIngress || 'Lær av andre offentlige virksomheters erfaringer med kunstig intelligens.';
 const seoTitle = oversikt?.seoTittel || heroTittel;
-const seoDesc = oversikt?.seoBeskrivelse || heroIngress;
+const seoDesc = oversikt?.seoBeskrivelse || 'Lær av andre offentlige virksomheters erfaringer med kunstig intelligens.';
 
 const eksempelById = new Map(eksempler.map(e => [e.id, e]));
 const relatertById = new Map<string, Artikkel | VeiledningGuide>();
@@ -42,7 +43,6 @@ const seksjoner = oversikt?.seksjoner || [];
   <div class="eksempler-page" data-layout-block="content">
     <header class="eksempler-header">
       <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>
-      {heroIngress && <p class="eksempler-lead">{heroIngress}</p>}
     </header>
 
     {seksjoner.length === 0 && eksempler.length > 0 && (
