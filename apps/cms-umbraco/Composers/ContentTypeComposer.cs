@@ -207,6 +207,9 @@ public class ContentTypeComponent : IAsyncComponent
             // Må kjøre etter at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er satt.
             MigrateForsideKortFelter();
 
+            // Relabel/retype/standard-tekster + arrangement/veiledning-pickere på eksisterende moduler.
+            MigrateForsideModuler();
+
             MigrateVeiledningElementNames();
             MigrateVeiledningObsRemoveVariant();
             MigrateVeiledningInfo();
@@ -2562,10 +2565,10 @@ public class ContentTypeComponent : IAsyncComponent
         var ct = new ContentType(_shortStringHelper, -1)
         { Alias = "forsideHero", Name = "Forside Hero", Description = "Hero-seksjon øverst på forsiden", Icon = "icon-home", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _richTextDtRestricted, mandatory: true, description: "Hovedteksten i hero-seksjonen. Bruk fet skrift for å fremheve ord."), "innhold");
         ct.AddPropertyType(Prop("komIGangTekst", "Kom i gang-ledetekst", _textStringDt, description: "Liten ledetekst foran lenken, f.eks. \"Kom i gang\"."), "innhold");
-        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Hva er KI og hva kan du bruke det til?"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /veiledning/hva-er-ki"), "innhold");
         ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
         _contentTypeService.Save(ct);
         return ct;
@@ -2578,8 +2581,8 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
         ct.AddPropertyType(Prop("kort", "Kort", _blockListForsideArtikkelKortDt, description: "Velg artikler. La stå tom for å vise nyeste automatisk. Første kort vises stort."), "innhold");
-        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle artikler"), "innhold");
-        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Se alle artikler"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /artikler"), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2590,8 +2593,9 @@ public class ContentTypeComponent : IAsyncComponent
         { Alias = "forsideArrangementer", Name = "Forside Arrangementer", Description = "Seksjon med kommende arrangement (innhold hentes automatisk)", Icon = "icon-calendar", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle arrangementer"), "innhold");
-        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("arrangement", "Fremhevet arrangement", _contentPickerDt, description: "Standard: neste kommende arrangement", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Se alle arrangementer"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /kalender"), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2601,12 +2605,12 @@ public class ContentTypeComponent : IAsyncComponent
         var ct = new ContentType(_shortStringHelper, -1)
         { Alias = "forsideVeiledning", Name = "Forside Veiledning", Description = "Fremhevet veiledning på forsiden", Icon = "icon-book-alt", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("label", "Label", _textStringDt, description: "Liten etikett over tittelen, f.eks. \"Veiledning\"."), "innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt), "innhold");
-        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
+        ct.AddPropertyType(Prop("veiledning", "Veiledning", _contentPickerDt, description: "Velg veiledningen kortet skal peke på. Gir standard tittel, ingress, bilde og lenke.", sortOrder: 0), "innhold");
+        ct.AddPropertyType(Prop("label", "Label", _textStringDt, description: "Liten etikett over tittelen, f.eks. \"Veiledning\".", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Lenketekst", _textStringDt, description: "Standard: tittelen til valgt veiledning.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Standard: ingressen til valgt veiledning.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: lenken til valgt veiledning (ellers /veiledning).", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt, description: "Standard: bildet til valgt veiledning.", sortOrder: 5), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2618,8 +2622,8 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
         ct.AddPropertyType(Prop("kort", "Kort", _blockListForsideEksempelKortDt, description: "Velg eksempler. La stå tom for å vise nyeste automatisk."), "innhold");
-        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle eksempler"), "innhold");
-        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Se alle eksempler"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /eksempler"), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2630,7 +2634,7 @@ public class ContentTypeComponent : IAsyncComponent
         { Alias = "forsideArtikkelKort", Name = "Forside Artikkelkort", Description = "Et kort som peker på en artikkel på forsiden", Icon = "icon-newspaper-alt", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("artikkel", "Artikkel", _contentPickerDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "La stå tom for å bruke artikkelens egen ingress."), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: artikkelens egen ingress. Skriv her for å overstyre."), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2641,7 +2645,7 @@ public class ContentTypeComponent : IAsyncComponent
         { Alias = "forsideEksempelKort", Name = "Forside Eksempelkort", Description = "Et kort som peker på et eksempel på forsiden", Icon = "icon-light-bulb", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("eksempel", "Eksempel", _contentPickerDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "La stå tom for å bruke eksemplets egen ingress."), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: eksemplets egen ingress. Skriv her for å overstyre."), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2651,10 +2655,9 @@ public class ContentTypeComponent : IAsyncComponent
         var ct = new ContentType(_shortStringHelper, -1)
         { Alias = "forsideSandkasse", Name = "Forside Sandkasse", Description = "Sandkasse-CTA på forsiden", Icon = "icon-box", IsElement = true };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("tekst", "Tekst", _richTextDt), "innhold");
-        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+        ct.AddPropertyType(Prop("overskrift", "Lenketekst", _textStringDt, mandatory: true, description: "Klikkbar overskrift på sandkasse-kortet."), "innhold");
+        ct.AddPropertyType(Prop("tekst", "Tekst", _textAreaDt, description: "Kort beskrivelse under overskriften."), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /sandkasse"), "innhold");
         ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
         _contentTypeService.Save(ct);
         return ct;
@@ -3068,25 +3071,240 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
+    // --- In-place migrering av forside-element-typer (relabel/retype/standard-tekster) ---
+    // AddPropertyType rorer ikke eksisterende felt, sa relabel/retype/beskrivelse maa settes
+    // eksplisitt pa eksisterende tt02/prod-DB. Hjelperne returnerer true ved endring.
+
+    private static bool SetPropDescription(IContentType ct, string alias, string description)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.Description == description) return false;
+        p.Description = description;
+        return true;
+    }
+
+    private static bool SetPropLabel(IContentType ct, string alias, string name)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.Name == name) return false;
+        p.Name = name;
+        return true;
+    }
+
+    private static bool SetPropMandatory(IContentType ct, string alias, bool mandatory)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.Mandatory == mandatory) return false;
+        p.Mandatory = mandatory;
+        return true;
+    }
+
+    private static bool RetypeProp(IContentType ct, string alias, IDataType dt)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.DataTypeKey == dt.Key) return false;
+        p.DataTypeId = dt.Id;
+        p.DataTypeKey = dt.Key;
+        p.PropertyEditorAlias = dt.EditorAlias;
+        return true;
+    }
+
+    private static bool RemoveProp(IContentType ct, string alias)
+    {
+        if (!ct.PropertyTypes.Any(x => x.Alias == alias)) return false;
+        ct.RemovePropertyType(alias);
+        return true;
+    }
+
+    private void MigrateForsideModuler()
+    {
+        // Hero: overskrift -> rik tekst (uthevbar), standard-tekster pa lenkefelt.
+        var hero = _contentTypeService.Get("forsideHero");
+        if (hero != null)
+        {
+            bool changed = false;
+            changed |= RetypeProp(hero, "overskrift", _richTextDtRestricted);
+            changed |= SetPropDescription(hero, "overskrift", "Hovedteksten i hero-seksjonen. Bruk fet skrift for å fremheve ord.");
+            changed |= SetPropDescription(hero, "lenketekst", "Standard: Hva er KI og hva kan du bruke det til?");
+            changed |= SetPropDescription(hero, "lenkeUrl", "Standard: /veiledning/hva-er-ki");
+            if (changed) _contentTypeService.Save(hero);
+        }
+
+        // Aktuelt: "Default" -> "Standard" + standard-URL.
+        var aktuelt = _contentTypeService.Get("forsideAktuelt");
+        if (aktuelt != null)
+        {
+            bool changed = false;
+            changed |= SetPropDescription(aktuelt, "lenketekst", "Standard: Se alle artikler");
+            changed |= SetPropDescription(aktuelt, "lenkeUrl", "Standard: /artikler");
+            if (changed) _contentTypeService.Save(aktuelt);
+        }
+
+        // Arrangementer: fremhevet arrangement-picker + standard-tekster.
+        var arr = _contentTypeService.Get("forsideArrangementer");
+        if (arr != null)
+        {
+            bool changed = false;
+            if (!arr.PropertyTypeExists("arrangement"))
+            {
+                arr.AddPropertyType(Prop("arrangement", "Fremhevet arrangement", _contentPickerDt, description: "Standard: neste kommende arrangement", sortOrder: 1), "innhold");
+                changed = true;
+            }
+            changed |= SetPropDescription(arr, "lenketekst", "Standard: Se alle arrangementer");
+            changed |= SetPropDescription(arr, "lenkeUrl", "Standard: /kalender");
+            if (changed) _contentTypeService.Save(arr);
+        }
+
+        // Veiledning: veiledning-picker, tittel -> "Lenketekst" (ikke obligatorisk), fjern dobbelt lenketekst.
+        var veil = _contentTypeService.Get("forsideVeiledning");
+        if (veil != null)
+        {
+            bool changed = false;
+            if (!veil.PropertyTypeExists("veiledning"))
+            {
+                veil.AddPropertyType(Prop("veiledning", "Veiledning", _contentPickerDt, description: "Velg veiledningen kortet skal peke på. Gir standard tittel, ingress, bilde og lenke.", sortOrder: 0), "innhold");
+                changed = true;
+            }
+            changed |= SetPropLabel(veil, "tittel", "Lenketekst");
+            changed |= SetPropMandatory(veil, "tittel", false);
+            changed |= SetPropDescription(veil, "tittel", "Standard: tittelen til valgt veiledning.");
+            changed |= SetPropDescription(veil, "ingress", "Standard: ingressen til valgt veiledning.");
+            changed |= SetPropDescription(veil, "lenkeUrl", "Standard: lenken til valgt veiledning (ellers /veiledning).");
+            changed |= SetPropDescription(veil, "illustrasjon", "Standard: bildet til valgt veiledning.");
+            changed |= RemoveProp(veil, "lenketekst");
+            if (changed) _contentTypeService.Save(veil);
+        }
+
+        // Lær av andre: "Default" -> "Standard" + standard-URL.
+        var laer = _contentTypeService.Get("forsideLaerAvAndre");
+        if (laer != null)
+        {
+            bool changed = false;
+            changed |= SetPropDescription(laer, "lenketekst", "Standard: Se alle eksempler");
+            changed |= SetPropDescription(laer, "lenkeUrl", "Standard: /eksempler");
+            if (changed) _contentTypeService.Save(laer);
+        }
+
+        // Kort: ingress-overstyring nevner standarden.
+        var artKort = _contentTypeService.Get("forsideArtikkelKort");
+        if (artKort != null && SetPropDescription(artKort, "ingress", "Standard: artikkelens egen ingress. Skriv her for å overstyre."))
+            _contentTypeService.Save(artKort);
+        var eksKort = _contentTypeService.Get("forsideEksempelKort");
+        if (eksKort != null && SetPropDescription(eksKort, "ingress", "Standard: eksemplets egen ingress. Skriv her for å overstyre."))
+            _contentTypeService.Save(eksKort);
+
+        // Sandkasse: overskrift -> "Lenketekst", tekst -> vanlig tekst, fjern dobbelt lenketekst.
+        var sand = _contentTypeService.Get("forsideSandkasse");
+        if (sand != null)
+        {
+            bool changed = false;
+            changed |= SetPropLabel(sand, "overskrift", "Lenketekst");
+            changed |= SetPropDescription(sand, "overskrift", "Klikkbar overskrift på sandkasse-kortet.");
+            changed |= RetypeProp(sand, "tekst", _textAreaDt);
+            changed |= SetPropDescription(sand, "tekst", "Kort beskrivelse under overskriften.");
+            changed |= SetPropDescription(sand, "lenkeUrl", "Standard: /sandkasse");
+            changed |= RemoveProp(sand, "lenketekst");
+            if (changed) _contentTypeService.Save(sand);
+        }
+    }
+
+    // Footer-lenkene i visnings-rekkefolge. Alias beholdes (lenke2 var e-post-hacken, nå fjernet).
+    private static readonly (string alias, string label, int sort)[] FooterLenker =
+    {
+        ("footerLenke1Tekst", "Om KI Norge", 0),
+        ("footerLenke1Url", "Om KI Norge (URL)", 1),
+        ("footerLenke3Tekst", "Personvern og informasjonskapsler", 2),
+        ("footerLenke3Url", "Personvern og informasjonskapsler (URL)", 3),
+        ("footerLenke4Tekst", "Tilgjengelighet", 4),
+        ("footerLenke4Url", "Tilgjengelighet (URL)", 5),
+        ("footerLenke5Tekst", "Endre samtykke for informasjonskapsler", 6),
+        ("footerLenke5Url", "Endre samtykke (URL)", 7),
+    };
+
+    private static bool MoveProp(IContentType ct, string alias, string groupAlias)
+    {
+        if (!ct.PropertyTypes.Any(x => x.Alias == alias)) return false;
+        var target = ct.PropertyGroups.FirstOrDefault(g => g.Alias == groupAlias);
+        if (target?.PropertyTypes?.Any(x => x.Alias == alias) == true) return false;
+        ct.MovePropertyType(alias, groupAlias);
+        return true;
+    }
+
+    private static bool SetPropSort(IContentType ct, string alias, int sort)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.SortOrder == sort) return false;
+        p.SortOrder = sort;
+        return true;
+    }
+
+    // Footer er en fane med underseksjoner: Beskrivelse / Kontakt / Lenker.
+    private bool EnsureFooterGroups(IContentType ct)
+    {
+        bool changed = false;
+        if (!ct.PropertyGroups.Any(g => g.Alias == "footer"))
+        {
+            ct.AddPropertyGroup("footer", "Footer");
+            changed = true;
+        }
+        var footer = ct.PropertyGroups.First(g => g.Alias == "footer");
+        if (footer.Type != PropertyGroupType.Tab) { footer.Type = PropertyGroupType.Tab; changed = true; }
+        foreach (var (alias, name) in new[] { ("footer/beskrivelse", "Beskrivelse"), ("footer/kontakt", "Kontakt"), ("footer/lenker", "Lenker") })
+        {
+            if (!ct.PropertyGroups.Any(g => g.Alias == alias))
+            {
+                ct.AddPropertyGroup(alias, name);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    // Fersk DB: bygg footer-fanen med underseksjoner og felt direkte.
     private void AddFooterFields(IContentType ct)
     {
-        if (!ct.PropertyGroups.Any(g => g.Alias == "footer"))
-            ct.AddPropertyGroup("footer", "Footer");
-        ct.AddPropertyType(Prop("footerTittel", "Merkenavn", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt), "footer");
-        ct.AddPropertyType(Prop("footerSosialInstagram", "Instagram-URL", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerSosialLinkedin", "LinkedIn-URL", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerSosialX", "X-URL", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke1Tekst", "Lenke 1 tekst", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke1Url", "Lenke 1 URL", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke2Tekst", "Lenke 2 tekst", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke2Url", "Lenke 2 URL", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke3Tekst", "Lenke 3 tekst", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke3Url", "Lenke 3 URL", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke4Tekst", "Lenke 4 tekst", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke4Url", "Lenke 4 URL", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke5Tekst", "Lenke 5 tekst", _textStringDt), "footer");
-        ct.AddPropertyType(Prop("footerLenke5Url", "Lenke 5 URL", _textStringDt), "footer");
+        EnsureFooterGroups(ct);
+        ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt, description: "Kort tekst under logoen i footeren."), "footer/beskrivelse");
+        ct.AddPropertyType(Prop("footerEpost", "Kontakt e-post", _textStringDt, description: "E-postadressen som vises under \"Kontakt oss\"."), "footer/kontakt");
+        foreach (var (alias, label, sort) in FooterLenker)
+        {
+            var desc = alias == "footerLenke5Url" ? "La stå tom for å vise som knapp som åpner samtykke-banneret." : null;
+            ct.AddPropertyType(Prop(alias, label, _textStringDt, description: desc, sortOrder: sort), "footer/lenker");
+        }
+    }
+
+    // Eksisterende DB: migrer flat footer-gruppe til fane med underseksjoner, fjern ubrukte felt,
+    // legg til eget e-post-felt, relabel + flytt lenker. Returnerer true ved endring.
+    private bool MigrateFooter(IContentType ct)
+    {
+        bool changed = EnsureFooterGroups(ct);
+
+        // Fjern ubrukte felt: merkenavn, SoMe-URLer, og lenke2 (var e-post-hacken).
+        foreach (var alias in new[] { "footerTittel", "footerSosialInstagram", "footerSosialLinkedin", "footerSosialX", "footerLenke2Tekst", "footerLenke2Url" })
+            changed |= RemoveProp(ct, alias);
+
+        if (!ct.PropertyTypes.Any(p => p.Alias == "footerEpost"))
+        {
+            ct.AddPropertyType(Prop("footerEpost", "Kontakt e-post", _textStringDt, description: "E-postadressen som vises under \"Kontakt oss\"."), "footer/kontakt");
+            changed = true;
+        }
+        else
+        {
+            changed |= MoveProp(ct, "footerEpost", "footer/kontakt");
+        }
+
+        changed |= SetPropDescription(ct, "footerBeskrivelse", "Kort tekst under logoen i footeren.");
+        changed |= MoveProp(ct, "footerBeskrivelse", "footer/beskrivelse");
+
+        foreach (var (alias, label, sort) in FooterLenker)
+        {
+            changed |= SetPropLabel(ct, alias, label);
+            changed |= SetPropSort(ct, alias, sort);
+            changed |= MoveProp(ct, alias, "footer/lenker");
+        }
+        changed |= SetPropDescription(ct, "footerLenke5Url", "La stå tom for å vise som knapp som åpner samtykke-banneret.");
+
+        return changed;
     }
 
     private IContentType CreateGlobaleInnstillinger()
@@ -3171,11 +3389,15 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Footer flyttet hit fra forside (global, ikke forside-spesifikk).
-        if (!ct.PropertyTypes.Any(p => p.Alias == "footerTittel"))
+        // Footer: legg til hvis den mangler helt (eldre noder), ellers rydd/migrer eksisterende.
+        if (!ct.PropertyGroups.Any(g => g.Alias == "footer") && !ct.PropertyTypes.Any(p => p.Alias.StartsWith("footer")))
         {
             AddFooterFields(ct);
             changed = true;
+        }
+        else
+        {
+            changed |= MigrateFooter(ct);
         }
 
         if (ct.Description != "Globale tekster brukt på tvers av sidene (cookie-melding, footer, feilsider). Ett node på rot.")

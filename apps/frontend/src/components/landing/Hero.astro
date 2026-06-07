@@ -22,7 +22,7 @@ const {
   <div class="hero-grid">
     <div class="hero-text">
       <img src="/logo.svg" alt="KI Norge" class="hero-logo" />
-      <p class="hero-tagline ds-heading" data-size="xl">{overskrift}</p>
+      <div class="hero-tagline ds-heading" data-size="xl" set:html={overskrift} />
       <p class="hero-cta">
         {komIGangTekst}: <a class="hero-cta-link ds-focus" href={lenkeUrl}>{lenketekst} <span class="hero-cta-arrow"><AkselIcon name="ArrowRight" size={24} /></span></a>
       </p>
@@ -73,6 +73,17 @@ const {
     line-height: 1.4;
     margin: 0;
     text-wrap: balance;
+  }
+
+  /* Innhold kommer fra rik tekst (set:html): nullstill p-marger, uthev fet skrift. */
+  .hero-tagline :global(p) {
+    margin: 0;
+  }
+  .hero-tagline :global(p + p) {
+    margin-top: var(--ds-size-4);
+  }
+  .hero-tagline :global(strong) {
+    font-weight: 600;
   }
 
   @media (max-width: 767px) {

@@ -10,19 +10,24 @@ import ArrowLink from '../shared/ArrowLink.astro';
 import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
-import { getMediaUrl, type ForsideSeksjon, type Kalenderhendelse } from '../../lib/umbraco';
+import { getMediaUrl, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
 
 interface Props {
   seksjoner: ForsideSeksjon[];
   latestArticles: any[];
   eksempler?: any[];
-  nextEvent: Kalenderhendelse | null;
-  nextEventDate: { day: string; month: string; year: string } | null;
-  nextEventMultiDay?: boolean | string;
+  upcomingEvents?: Kalenderhendelse[];
+  veiledninger?: VeiledningGuide[];
   eksempelKort: { href: string; title: string; tag: string }[];
 }
-const { seksjoner, latestArticles, eksempler = [], nextEvent, nextEventDate, nextEventMultiDay, eksempelKort } = Astro.props;
+const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [], eksempelKort } = Astro.props;
 const featuredArticle = latestArticles[0];
+
+const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
+const formatEventDate = (iso: string) => {
+  const d = new Date(iso);
+  return { day: String(d.getDate()), month: monthNames[d.getMonth()], year: String(d.getFullYear()) };
+};
 
 // Normaliserer en pool-artikkel til kort-formen rendereren bruker (tittel/slug/lead/image).
 // Pool-artikler har ingress/artikkelBilde; vi mapper dem til lead/image.
@@ -58,7 +63,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   if (block.contentType === 'forsideHero') {
     return (
       <Hero
-        overskrift={block.overskrift}
+        overskrift={block.overskriftHtml ?? block.overskrift}
         komIGangTekst={block.komIGangTekst}
         lenketekst={block.lenketekst}
         lenkeUrl={block.lenkeUrl}
@@ -106,20 +111,24 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   if (block.contentType === 'forsideArrangementer') {
+    // Redaktørvalgt arrangement overstyrer auto. Tomt → neste kommende.
+    const valgt = (block.arrangementId && upcomingEvents.find((e) => e.id === block.arrangementId)) || upcomingEvents[0] || null;
+    const dato = valgt ? formatEventDate(valgt.startDato) : null;
+    const flerDager = valgt?.sluttDato && new Date(valgt.sluttDato).toDateString() !== new Date(valgt.startDato).toDateString();
     return (
       <section class="arrangementer-section" data-layout-block="content">
         <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Kommende arrangementer'}</h2>
-        {nextEvent && nextEventDate && (
+        {valgt && dato && (
           <EventCard
-            href={`/kalender/${nextEvent.slug}`}
-            title={nextEvent.tittel}
-            description={nextEvent.ingress || ''}
-            day={nextEventDate.day}
-            month={nextEventDate.month}
-            year={nextEventDate.year}
-            time={nextEvent.tid || ''}
-            timeNote={nextEventMultiDay ? 'Arrangement over flere dager' : undefined}
-            location={nextEvent.sted || ''}
+            href={`/kalender/${valgt.slug}`}
+            title={valgt.tittel}
+            description={valgt.ingress || ''}
+            day={dato.day}
+            month={dato.month}
+            year={dato.year}
+            time={valgt.tid || ''}
+            timeNote={flerDager ? 'Arrangement over flere dager' : undefined}
+            location={valgt.sted || ''}
           />
         )}
         <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst || 'Se alle arrangementer'} />
@@ -128,17 +137,23 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   if (block.contentType === 'forsideVeiledning') {
+    // Redaktørvalgt veiledning gir standardverdier; tekstfeltene overstyrer.
+    const valgt = block.veiledningId ? veiledninger.find((v) => v.id === block.veiledningId) : undefined;
+    const tittel = block.tittel || valgt?.tittel || 'Gjør dataene KI-klare';
+    const ingress = block.ingress || valgt?.ingress || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.';
+    const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : '/veiledning');
+    const image = block.illustrasjon ? getMediaUrl(block.illustrasjon) : (valgt?.seoBilde ? getMediaUrl(valgt.seoBilde) : '/woman-speaking.svg');
     return (
       <section class="veiledning-section" data-layout-block="edge">
         <div data-layout-block="content">
           <TextWithImage
-            title={block.tittel || 'Gjør dataene KI-klare'}
-            href={block.lenkeUrl || '/veiledning'}
-            image={block.illustrasjon ? getMediaUrl(block.illustrasjon) : '/woman-speaking.svg'}
+            title={tittel}
+            href={href}
+            image={image}
             imageAlt="Illustrasjon"
             label={block.label || 'Veiledning'}
           >
-            <p slot="body">{block.ingress || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.'}</p>
+            <p slot="body">{ingress}</p>
           </TextWithImage>
         </div>
       </section>
@@ -173,9 +188,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
                 <span class="sandkasse-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span>
               </a>
             </h2>
-            {block.tekstHtml
-              ? <div class="sandkasse-desc ds-paragraph" data-size="lg" set:html={block.tekstHtml} />
-              : <p class="sandkasse-desc ds-paragraph" data-size="lg">Juridisk veiledning for deg som ønsker å utvikle et risikofylt KI-prosjekt.</p>}
+            <p class="sandkasse-desc ds-paragraph" data-size="lg">{block.tekst || 'Juridisk veiledning for deg som ønsker å utvikle et risikofylt KI-prosjekt.'}</p>
           </div>
         </div>
       </section>

@@ -2,7 +2,7 @@
 import Layout from '../components/layout/Layout.astro';
 import ForsideSeksjonerRenderer from '../components/landing/ForsideSeksjonerRenderer.astro';
 import { websiteSchema } from '../lib/seo';
-import { getForside, getArtikler, getKalenderhendelser, getEksempler, type Kalenderhendelse } from '../lib/umbraco';
+import { getForside, getArtikler, getKalenderhendelser, getEksempler, getVeiledningGuider, type Kalenderhendelse, type VeiledningGuide } from '../lib/umbraco';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -10,6 +10,7 @@ let forside = null;
 let latestArticles: any[] = [];
 let eksempler: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
+let veiledninger: VeiledningGuide[] = [];
 let eksempelKort: { href: string; title: string; tag: string }[] = [];
 try {
   // Preview gjelder kun forsidens egen kladd (struktur/overskrifter/pins). Kortene henter
@@ -22,8 +23,7 @@ try {
   const now = new Date();
   upcomingEvents = hendelserRes.data
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
-    .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime())
-    .slice(0, 1);
+    .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime());
   const eksemplerRes = await getEksempler();
   eksempler = eksemplerRes.data;
   eksempelKort = eksempler.slice(0, 2).map((c: any) => ({
@@ -31,6 +31,8 @@ try {
     title: c.tittel,
     tag: 'Eksempel',
   }));
+  const veiledningerRes = await getVeiledningGuider();
+  veiledninger = veiledningerRes.data;
 } catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
 }
@@ -38,15 +40,6 @@ try {
 const title = forside?.seoTittel || 'Hjem';
 const seoDescription = forside?.seoBeskrivelse || 'KI Norge - Norges nasjonale strategi for kunstig intelligens. Veiledning, regulatorisk sandkasse og gode eksempler for offentlig sektor.';
 const websiteJsonLd = websiteSchema(seoDescription);
-
-const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
-const formatEventDate = (iso: string) => {
-  const d = new Date(iso);
-  return { day: String(d.getDate()), month: monthNames[d.getMonth()], year: String(d.getFullYear()) };
-};
-const nextEvent = upcomingEvents[0] || null;
-const nextEventDate = nextEvent ? formatEventDate(nextEvent.startDato) : null;
-const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).toDateString() !== new Date(nextEvent.startDato).toDateString();
 ---
 
 <Layout title={title} description={seoDescription} hideLogo>
@@ -57,9 +50,8 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
     seksjoner={forside?.seksjoner ?? []}
     latestArticles={latestArticles}
     eksempler={eksempler}
-    nextEvent={nextEvent}
-    nextEventDate={nextEventDate}
-    nextEventMultiDay={nextEventMultiDay}
+    upcomingEvents={upcomingEvents}
+    veiledninger={veiledninger}
     eksempelKort={eksempelKort}
   />
 </Layout>
