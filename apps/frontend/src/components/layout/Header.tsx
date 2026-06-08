@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@digdir/designsystemet-react';
-import { MenuHamburgerIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { MagnifyingGlassIcon, MenuHamburgerIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cl from 'clsx/lite';
 import Logo from './Logo';
 
@@ -112,6 +112,11 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
               </li>
             ))}
           </ul>
+
+          {/* Search — links to the hybrid search page */}
+          <a href="/sok" className="search-toggle ds-focus" aria-label="Søk">
+            <MagnifyingGlassIcon aria-hidden fontSize="1.5rem" />
+          </a>
 
           {/* Hamburger toggle — always in DOM, CSS hides on desktop */}
           <button

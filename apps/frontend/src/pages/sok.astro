@@ -1,56 +1,44 @@
 ---
 import Layout from '../components/layout/Layout.astro';
 import { Heading, Paragraph, Link, Button } from '@digdir/designsystemet-react';
-import { searchContent, type SearchResult } from '../lib/umbraco';
+import { hybridSearch, type SearchHit } from '../lib/search';
 
 const query = Astro.url.searchParams.get('q')?.trim() || '';
 
-// Content type labels and route prefixes
+// Content-type → display label (badge). Unmapped types show the raw alias.
 const typeLabels: Record<string, string> = {
   artikkel: 'Artikkel',
   eksempel: 'Eksempel',
+  case: 'Eksempel',
   veiledning: 'Veiledning',
   veiledningGuide: 'Veiledning',
   veiledningSteg: 'Veiledning',
+  faq: 'Spørsmål og svar',
+  ordbokOppslag: 'KI-ordbok',
   side: 'Side',
+  omOss: 'Om oss',
+  sandkasse: 'Sandkasse',
 };
 
-const typeRoutes: Record<string, string> = {
-  artikkel: '/artikler/',
-  eksempel: '/eksempler/',
-  veiledning: '/veiledning/',
-  veiledningGuide: '/veiledning/',
-  veiledningSteg: '/veiledning/',
-  side: '/',
-};
-
-let results: SearchResult[] = [];
+let results: SearchHit[] = [];
 let searchError = false;
 
 if (query) {
   try {
-    const response = await searchContent(query);
-    results = response.data;
+    results = await hybridSearch(query);
   } catch (error) {
     console.error('Search failed:', error);
     searchError = true;
   }
 }
 
-function getResultUrl(result: SearchResult): string {
-  const prefix = typeRoutes[result.contentType] || '/';
-  return `${prefix}${result.slug}`;
-}
-
-function formatDate(dateStr: string): string {
+// Hybrid hits carry an absolute ki.norge.no URL; render as a same-site path so
+// links work on any host (dev/prod). Fallback (Umbraco) urls are already relative.
+function path(url: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('nb-NO', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
+    return new URL(url).pathname;
   } catch {
-    return '';
+    return url;
   }
 }
 ---
@@ -114,15 +102,12 @@ function formatDate(dateStr: string): string {
         {results.map((result) => (
           <article class="result-item">
             <div class="result-meta">
-              <span class={`type-badge type-badge--${result.contentType}`}>
-                {typeLabels[result.contentType] || result.contentType}
+              <span class={`type-badge type-badge--${result.type}`}>
+                {typeLabels[result.type] || result.type}
               </span>
-              {result.publishedAt && (
-                <span class="result-date">{formatDate(result.publishedAt)}</span>
-              )}
             </div>
-            <Link href={getResultUrl(result)} className="result-title">
-              <Heading level={2} size="small">{result.tittel}</Heading>
+            <Link href={path(result.url)} className="result-title">
+              <Heading level={2} size="small">{result.title}</Heading>
             </Link>
             {result.excerpt && (
               <Paragraph size="small" className="result-excerpt">{result.excerpt}</Paragraph>
