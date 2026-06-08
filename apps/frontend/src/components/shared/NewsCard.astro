@@ -183,6 +183,10 @@ const formattedDate = date
     flex: 1;
     justify-content: center;
     padding-block: var(--ds-size-8);
+
+    @media (max-width: 767px) {
+      padding-block: 0;
+    }
   }
 
   .news-card--featured .news-card-title {

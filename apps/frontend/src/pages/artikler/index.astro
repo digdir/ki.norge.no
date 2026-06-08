@@ -243,13 +243,14 @@ const remaining = rest.slice(9);
 
   .compact-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--ds-size-12);
     border-block: 1px solid var(--ds-color-surface-active);
     padding-block: var(--ds-size-9);
-
-    @media (min-width: 768px) {
-      grid-template-columns: repeat(3, 1fr);
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: var(--ds-size-6);
     }
   }
 
