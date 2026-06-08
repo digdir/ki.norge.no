@@ -1,10 +1,10 @@
 ---
+import '../../styles/global.css'; // This NEEDS to be imported first to sort layers
 import Header from './Header.tsx';
 import Footer from './Footer.astro';
 import PreviewBanner from '../shared/PreviewBanner.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
 import { toAbsoluteMediaUrl } from '../../lib/umbraco';
-import '../../styles/global.css';
 import '../../styles/layout.css';
 import '../../styles/search-dialog.css';
 import './header.css';
