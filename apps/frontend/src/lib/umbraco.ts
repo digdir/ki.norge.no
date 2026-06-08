@@ -340,6 +340,7 @@ export interface ForsideSeksjon {
   contentType: string;
   id: string;
   overskrift?: string;
+  overskriftHtml?: string;
   komIGangTekst?: string;
   label?: string;
   tittel?: string;
@@ -347,7 +348,9 @@ export interface ForsideSeksjon {
   lenketekst?: string;
   lenkeUrl?: string;
   illustrasjon?: UmbracoMedia;
-  tekstHtml?: string;
+  tekst?: string;
+  arrangementId?: string;
+  veiledningId?: string;
   kort?: ForsideKort[];
 }
 
@@ -474,15 +477,10 @@ export interface GlobaleInnstillinger {
   tittel503?: string;
   beskrivelse503?: string;
   vedlikeholdEpost?: string;
-  footerTittel?: string;
   footerBeskrivelse?: string;
-  footerSosialInstagram?: string;
-  footerSosialLinkedin?: string;
-  footerSosialX?: string;
+  footerEpost?: string;
   footerLenke1Tekst?: string;
   footerLenke1Url?: string;
-  footerLenke2Tekst?: string;
-  footerLenke2Url?: string;
   footerLenke3Tekst?: string;
   footerLenke3Url?: string;
   footerLenke4Tekst?: string;
@@ -905,15 +903,10 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel503: props.tittel503 as string || '',
         beskrivelse503: props.beskrivelse503 as string || '',
         vedlikeholdEpost: props.vedlikeholdEpost as string || '',
-        footerTittel: props.footerTittel as string || undefined,
         footerBeskrivelse: props.footerBeskrivelse as string || undefined,
-        footerSosialInstagram: props.footerSosialInstagram as string || undefined,
-        footerSosialLinkedin: props.footerSosialLinkedin as string || undefined,
-        footerSosialX: props.footerSosialX as string || undefined,
+        footerEpost: props.footerEpost as string || undefined,
         footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
         footerLenke1Url: props.footerLenke1Url as string || undefined,
-        footerLenke2Tekst: props.footerLenke2Tekst as string || undefined,
-        footerLenke2Url: props.footerLenke2Url as string || undefined,
         footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
         footerLenke3Url: props.footerLenke3Url as string || undefined,
         footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,
@@ -1252,11 +1245,15 @@ function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
   return items.map((block: any): ForsideSeksjon => {
     const content = block.content || block;
     const props = content.properties || {};
+    // overskrift er ren tekst på de fleste moduler, men rik tekst på hero (uthevbar).
+    const overskrift = props.overskrift as any;
+    // sandkasse-tekst er nå vanlig tekst; håndter eldre rik-tekst-verdier til de re-lagres.
     const tekst = props.tekst as any;
     return {
       contentType: content.contentType,
       id: content.id || '',
-      overskrift: (props.overskrift as string) || undefined,
+      overskrift: typeof overskrift === 'string' ? (overskrift || undefined) : undefined,
+      overskriftHtml: overskrift?.tag === '#root' ? richTextToHtml(overskrift) : undefined,
       komIGangTekst: (props.komIGangTekst as string) || undefined,
       label: (props.label as string) || undefined,
       tittel: (props.tittel as string) || undefined,
@@ -1264,7 +1261,9 @@ function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
       lenketekst: (props.lenketekst as string) || undefined,
       lenkeUrl: (props.lenkeUrl as string) || undefined,
       illustrasjon: mapMedia(props.illustrasjon),
-      tekstHtml: tekst?.tag === '#root' ? richTextToHtml(tekst) : (typeof tekst === 'string' ? tekst : undefined),
+      tekst: typeof tekst === 'string' ? (tekst || undefined) : (tekst?.tag === '#root' ? richTextToHtml(tekst) : undefined),
+      arrangementId: pickerId(props.arrangement),
+      veiledningId: pickerId(props.veiledning),
       kort: mapForsideKort(props.kort),
     };
   });

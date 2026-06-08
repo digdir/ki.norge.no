@@ -7,8 +7,9 @@ try { global = await getGlobaleInnstillinger(); } catch (e) {}
 
 const desc = global?.footerBeskrivelse || 'Et tverrsektorielt samarbeid for å fremme ansvarlig og sikker bruk av kunstig intelligens i den norske forvaltningen.';
 
+const epost = global?.footerEpost || 'post@ki.norge.no';
 const navCol1 = [
-  { text: global?.footerLenke2Tekst || 'post@ki.norge.no', url: global?.footerLenke2Url || 'mailto:post@ki.norge.no' },
+  { text: epost, url: `mailto:${epost}` },
 ];
 const navCol2 = [
   { text: global?.footerLenke1Tekst || 'Om KI Norge', url: global?.footerLenke1Url || '/om-oss' },
