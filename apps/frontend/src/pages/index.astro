@@ -17,21 +17,21 @@ try {
   // alltid PUBLISERT innhold, slik at preview matcher det publikum ser (ingen upubliserte lekker inn).
   forside = await getForside({ preview: isPreview });
   // Hent en stor pool slik at redaktørvalgte kort kan slås opp på id (ikke bare de 4 nyeste).
-  const artiklerRes = await getArtikler(60);
+  const artiklerRes = await getArtikler(60, { preview: isPreview });
   latestArticles = artiklerRes.data;
-  const hendelserRes = await getKalenderhendelser();
+  const hendelserRes = await getKalenderhendelser({ preview: isPreview });
   const now = new Date();
   upcomingEvents = hendelserRes.data
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime());
-  const eksemplerRes = await getEksempler();
+  const eksemplerRes = await getEksempler({ preview: isPreview });
   eksempler = eksemplerRes.data;
   eksempelKort = eksempler.slice(0, 2).map((c: any) => ({
     href: `/caser/${c.slug}`,
     title: c.tittel,
     tag: 'Eksempel',
   }));
-  const veiledningerRes = await getVeiledningGuider();
+  const veiledningerRes = await getVeiledningGuider({ preview: isPreview });
   veiledninger = veiledningerRes.data;
 } catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
