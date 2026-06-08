@@ -60,7 +60,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 
   {latestArticles.length > 0 && (
     <section class="om-oss-aktuelt" data-layout-block="content">
-      <h2 class="om-oss-aktuelt-heading">Aktuelt</h2>
+      <h2 class="om-oss-aktuelt-heading ds-heading" data-size="md">Aktuelt</h2>
       <div class="om-oss-aktuelt-grid">
         {latestArticles.map(article => (
           <NewsCard
@@ -103,15 +103,9 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   }
 
   .om-oss-aktuelt-heading {
-    font-size: 32px;
-    font-weight: 700;
     margin: 0 0 var(--ds-size-6);
     line-height: 1.2;
     letter-spacing: -0.02em;
-  }
-
-  @media (min-width: 1024px) {
-    .om-oss-aktuelt-heading { font-size: 40px; }
   }
 
   .om-oss-aktuelt-grid {
