@@ -149,9 +149,9 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
       <section class="veiledning-section" data-layout-block="edge">
         <div data-layout-block="content">
           <TextWithImage
-            title={tittel}
-            href={href}
-            image={image}
+            title={block.tittel || 'Gjør dataene KI-klare'}
+            href={block.lenkeUrl || '/veiledning'}
+            image={block.illustrasjon ? getMediaUrl(block.illustrasjon) : '/people-workshopping.svg'}
             imageAlt="Illustrasjon"
             label={block.label || 'Veiledning'}
           >
