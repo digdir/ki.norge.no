@@ -28,6 +28,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     // Data types (resolved at init time)
     private IDataType _textStringDt = null!;
+    private IDataType _urlDt = null!;                 // Lenke / URL: TextBox-felt som auto-vaskes (interne stier) ved lagring
     private IDataType _textAreaDt = null!;
     private IDataType _richTextDt = null!;            // Standard RichText (full toolbar)
     private IDataType _richTextDtRestricted = null!;  // Restricted RichText (no headings, no source editor)
@@ -308,6 +309,10 @@ public class ContentTypeComponent : IAsyncComponent
             Step("globaleInnstillinger", () => { if (_contentTypeService.Get("globaleInnstillinger") == null) CreateGlobaleInnstillinger(); });
             Step("migrateGlobaleInnstillinger", () => MigrateGlobaleInnstillinger());
 
+            // Repeker manuelle lenkefelt til "Lenke / URL"-datatypen så de auto-vaskes
+            // (UrlFieldWashHandler). Kjøres til slutt når alle content types finnes.
+            Step("repointUrlFields", () => RepointUrlFields());
+
             // RichText data types are ensured by ResolveDataTypes() at the very start of this method.
             // Standard + Restricted variants get correct toolbar+extensions config every startup.
             // No need to call again here.
@@ -324,6 +329,7 @@ public class ContentTypeComponent : IAsyncComponent
     private void ResolveDataTypes()
     {
         _textStringDt = FindDataType(Constants.PropertyEditors.Aliases.TextBox);
+        _urlDt = CreateOrGetUrlTextBox();
         _textAreaDt = FindDataType(Constants.PropertyEditors.Aliases.TextArea);
         // RichText: ensure both standard and restricted variants exist with correct config.
         // Toolbar/extension configs live in StandardToolbar/StandardExtensions and
@@ -444,6 +450,73 @@ public class ContentTypeComponent : IAsyncComponent
         };
         _dataTypeService.Save(dt);
         return dt;
+    }
+
+    // Gjenbrukbart "Lenke / URL"-felt: vanlig TextBox, men en egen datatype slik at
+    // UrlFieldWashHandler kan kjenne den igjen og vaske interne stier ved lagring.
+    // Eksterne URLer (http..., mailto:, bart domene osv.) lar washeren stå urørt.
+    // Bruk denne datatypen på alle felt der en redaktør skriver inn en lenke.
+    private IDataType CreateOrGetUrlTextBox()
+    {
+        const string name = "Lenke / URL";
+        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.TextBox)
+            .FirstOrDefault(dt => dt.Name == name);
+        if (existing != null) return existing;
+
+        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.TextBox]
+            ?? throw new InvalidOperationException("TextBox editor not found");
+
+        var dt = new DataType(editor, _configSerializer)
+        {
+            Name = name,
+            DatabaseType = ValueStorageType.Nvarchar,
+            EditorUiAlias = "Umb.PropertyEditorUi.TextBox",
+            ConfigurationData = new Dictionary<string, object>(),
+        };
+        _dataTypeService.Save(dt);
+        return dt;
+    }
+
+    // Felt der redaktører skriver inn en lenke for hånd. Repekes til "Lenke / URL"-datatypen
+    // slik at de vaskes automatisk (UrlFieldWashHandler). Innholdspickere og slug er holdt utenfor.
+    // Nye URL-felt: bruk _urlDt direkte i Create-metoden, eller legg dem til her.
+    private static readonly (string ContentType, string Property)[] UrlFields =
+    {
+        ("kalenderhendelse", "lenke"),
+        ("forsideHero", "lenkeUrl"),
+        ("forsideAktuelt", "lenkeUrl"),
+        ("forsideArrangementer", "lenkeUrl"),
+        ("forsideVeiledning", "lenkeUrl"),
+        ("forsideLaerAvAndre", "lenkeUrl"),
+        ("forsideSandkasse", "lenkeUrl"),
+        ("artikkelInfoBoks", "lesMerUrl"),
+        ("veiledningInfo", "lesMerUrl"),
+        ("veiledningKort", "url"),
+        ("verktoyKort", "url"),
+        ("globaleInnstillinger", "footerLenke1Url"),
+        ("globaleInnstillinger", "footerLenke3Url"),
+        ("globaleInnstillinger", "footerLenke4Url"),
+        ("globaleInnstillinger", "footerLenke5Url"),
+    };
+
+    // Repeker eksisterende lenkefelt fra vanlig TextBox til "Lenke / URL"-datatypen.
+    // TextBox -> TextBox (samme Nvarchar-lagring), så lagrede verdier er uberørt.
+    // Idempotent: hopper over felt som allerede peker riktig.
+    private void RepointUrlFields()
+    {
+        foreach (var (ctAlias, propAlias) in UrlFields)
+        {
+            var ct = _contentTypeService.Get(ctAlias);
+            var prop = ct?.PropertyTypes.FirstOrDefault(p => p.Alias == propAlias);
+            if (ct == null || prop == null) continue;
+            if (prop.DataTypeKey == _urlDt.Key) continue;
+
+            prop.DataTypeId = _urlDt.Id;
+            prop.DataTypeKey = _urlDt.Key;
+            prop.ValueStorageType = _urlDt.DatabaseType;
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: repekte {ctAlias}.{propAlias} til 'Lenke / URL'-datatypen");
+        }
     }
 
     private IDataType FindDataType(string editorAlias)
