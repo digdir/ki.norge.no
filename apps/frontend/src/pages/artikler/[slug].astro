@@ -50,17 +50,17 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
         <h1 class="ds-heading article-title" data-size="xl">{article.tittel}</h1>
       </div>
     </div>
-    {heroImage?.url && (
-      <div class="article-hero-image" data-layout-block="edge">
-        <img src={getMediaUrl(heroImage) || '/article_placeholder.png'} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-      </div>
-    )}
   </section>
 
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 
   <ArticleLayout publishedAt={article.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
+    {heroImage?.url && (
+      <div class="article-hero-image">
+        <img src={getMediaUrl(heroImage) || '/article_placeholder.png'} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+      </div>
+    )}
 
     {article.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
@@ -105,13 +105,10 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     max-height: 600px;
     overflow: hidden;
     padding: 0;
-    grid-row: 2;
-    grid-column: 3 / 6;
-    margin-block-start: var(--ds-size-12);
+    grid-column: 4;
 
     @media (max-width: 767px) {
       grid-column: 1 / 5;
-      grid-row: 2;
       margin-block-start: var(--ds-size-6);
     }
   }
@@ -120,8 +117,6 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     max-width: 100%;
     width: 100%;
     object-fit: cover;
-    border-top-left-radius: var(--ds-border-radius-lg);
-    border-top-right-radius: var(--ds-border-radius-lg);
     display: block;
   }
 

@@ -21,7 +21,7 @@ const navCol2 = [
 
 <footer class="footer" data-layout-block="content">
   <div class="footer-left">
-    <p class="footer-brand"><Logo /></p>
+    <Logo className="footer-logo" />
     <p class="footer-description ds-paragraph">{desc}</p>
   </div>
   <div class="footer-col">
@@ -59,9 +59,9 @@ const navCol2 = [
     }
   }
 
-  .footer-brand {
-    font-size: 24px;
-    margin: 0;
+  :global(.footer-logo) {
+      height: 32px;
+      width: auto;
   }
 
   .footer-description {
