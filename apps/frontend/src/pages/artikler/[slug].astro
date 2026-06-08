@@ -56,6 +56,9 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       )}
     </div>
   </section>
+  <div class="article-hero-image" data-layout-block="edge">
+    <img src={getMediaUrl(heroImage) || '/article_placeholder.png'} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+  </div>
 
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
@@ -97,14 +100,18 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 
   .article-hero-text { min-width: 0; }
 
-  .article-hero-image { width: 100%; }
+  .article-hero-image {
+    max-height: 600px;
+    overflow: hidden;
+    padding: 0;
+  }
 
   .article-hero-img {
+    max-width: 100%;
     width: 100%;
-    aspect-ratio: 2 / 1;
-    max-height: 600px;
     object-fit: cover;
-    border-radius: 8px;
+    border-top-left-radius: var(--ds-border-radius-lg);
+    border-top-right-radius: var(--ds-border-radius-lg);
     display: block;
   }
 
