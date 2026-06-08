@@ -43,7 +43,7 @@ const bylineBlock = allBlocks.find(b => b.contentType === 'artikkelByline');
 const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 ---
 
-<Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage} bodyColor={article.bakgrunn}>
+<Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage} bodyColor={article.bakgrunn?.replace(' ', '').toLocaleLowerCase()}>
   <section class="article-hero" data-layout-block="edge">
     <div class="article-hero-inner">
       <div class="article-hero-text">
