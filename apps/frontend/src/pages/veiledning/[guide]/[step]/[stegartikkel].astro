@@ -53,10 +53,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
   ogImage={seoImage}
   bodyColor="brand1"
 >
-  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-  <div class="article-page" data-layout-block="content">
-    <section class="article-hero">
+<div class="article-page" data-layout-block="content">
+  <section class="article-hero">
       <div class="article-hero-inner">
         <div class="article-hero-text">
           <h1 class="article-title">{article.tittel}</h1>
@@ -69,6 +67,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
         )}
       </div>
     </section>
+    <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 
     <ArticleBlocksRenderer blocks={article.innhold} defaultDate={article.publishedAt} />
   </div>

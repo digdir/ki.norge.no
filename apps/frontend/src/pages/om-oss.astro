@@ -23,7 +23,6 @@ const seoTitle = omOss?.seoTittel || 'Om oss';
 const seoDesc = omOss?.seoBeskrivelse || omOss?.ingress || 'Om KI Norge – en nasjonal satsing for ansvarlig bruk av kunstig intelligens.';
 const seoImage = omOss?.seoBilde?.url || omOss?.artikkelBilde?.url;
 const heroImage = omOss?.artikkelBilde || omOss?.seoBilde;
-const heroBg = bakgrunnSurface(omOss?.bakgrunn);
 
 const breadcrumbJsonLd = breadcrumbSchema([
   { name: 'Forside', url: '/' },
@@ -35,10 +34,9 @@ const bylineBlock = allBlocks.find(b => b.contentType === 'artikkelByline');
 const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 ---
 
-<Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-
-  <section class="article-hero" data-layout-block="edge" style={heroBg ? `background-color: ${heroBg}` : undefined}>
+<Layout title={seoTitle} description={seoDesc} ogImage={seoImage} bodyColor={omOss?.bakgrunn}>
+  
+  <section class="article-hero" data-layout-block="edge">
     <div class="article-hero-inner">
       <div class="article-hero-text">
         <h1 class="ds-heading article-title" data-size="xl">{tittel}</h1>
@@ -50,6 +48,8 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       )}
     </div>
   </section>
+
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 
   <ArticleLayout publishedAt={omOss?.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
     {omOss?.ingress && (

@@ -66,8 +66,7 @@ const påmeldingUrl = hendelse.lenke || '#';
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
-
+  
   <section class="article-hero" data-layout-block="edge">
     <h1 class="ds-heading article-title" data-size="xl">{hendelse.tittel}</h1>
     <p class="event-datetime">
@@ -75,6 +74,7 @@ const påmeldingUrl = hendelse.lenke || '#';
       {timeDisplay && <span class="event-time">{timeDisplay}</span>}
     </p>
   </section>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 
   <ArticleLayout>
     <Fragment slot="sidebar">
