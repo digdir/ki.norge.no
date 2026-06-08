@@ -78,111 +78,103 @@ public class ContentTypeComponent : IAsyncComponent
         _propertyEditors = propertyEditors;
     }
 
+    // Kjør ett oppstart-steg isolert. Tidligere lå HELE InitializeAsync i én try/catch, så
+    // en feil i ett steg (f.eks. duplikat "seo"-gruppe) svelget feilen og hoppet stille over
+    // ALT som kom etter — inkludert footer-oppsettet. Nå logges feilen høyt per steg og de
+    // øvrige stegene kjører videre.
+    private static void Step(string label, Action step)
+    {
+        try
+        {
+            step();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ContentTypeComposer: STEG '{label}' feilet (hoppes over, resten fortsetter): {ex.Message}");
+        }
+    }
+
+    // Vanlig mønster: opprett content type hvis den mangler, ellers migrer eksisterende.
+    // Isolert via Step slik at én type-feil ikke stopper resten av oppsettet.
+    private void EnsureType(string alias, Action create, Action migrate = null)
+    {
+        Step(alias, () =>
+        {
+            if (_contentTypeService.Get(alias) == null) create();
+            else migrate?.Invoke();
+        });
+    }
+
     public Task InitializeAsync(bool isRestarting, CancellationToken cancellationToken)
     {
         if (_runtimeState.Level < RuntimeLevel.Run) return Task.CompletedTask;
 
         try
         {
-            ResolveDataTypes();
+            Step("resolveDataTypes", () => ResolveDataTypes());
 
             // Create each type only if it doesn't already exist
-            if (_contentTypeService.Get("accordionSection") == null)
-                CreateAccordionSectionElement();
-            if (_contentTypeService.Get("tipItem") == null)
-                CreateTipItemElement();
-            else
-                MigrateTipItemElement();
+            EnsureType("accordionSection", () => CreateAccordionSectionElement());
+            EnsureType("tipItem", () => CreateTipItemElement(), () => MigrateTipItemElement());
 
             // Article element types
-            if (_contentTypeService.Get("artikkelTekst") == null)
-                CreateArtikkelTekstElement();
-            else
-                MigrateArtikkelTekst();
-            if (_contentTypeService.Get("artikkelInfoBoks") == null)
-                CreateArtikkelInfoBoksElement();
+            EnsureType("artikkelTekst", () => CreateArtikkelTekstElement(), () => MigrateArtikkelTekst());
+            EnsureType("artikkelInfoBoks", () => CreateArtikkelInfoBoksElement());
             // artikkelHero element type is deprecated (replaced by Artikkelhode top-level fields).
             // Existing seed data may still reference it; renderer handles missing type gracefully.
-            if (_contentTypeService.Get("artikkelBildeSeksjon") == null)
-                CreateArtikkelBildeSeksjonElement();
-            else
-                MigrateArtikkelBildeSeksjon();
-            if (_contentTypeService.Get("artikkelTrekkspill") == null)
-                CreateArtikkelTrekkspillElement();
+            EnsureType("artikkelBildeSeksjon", () => CreateArtikkelBildeSeksjonElement(), () => MigrateArtikkelBildeSeksjon());
+            EnsureType("artikkelTrekkspill", () => CreateArtikkelTrekkspillElement());
             // Settings element for artikkelTrekkspill — exposes "Innstillinger" tab on each
             // accordion block in the editor. Currently lets the editor split groups via
             // gruppeTittel: when set, that accordion starts a new group with that title.
-            if (_contentTypeService.Get("artikkelTrekkspillSettings") == null)
-                CreateArtikkelTrekkspillSettingsElement();
-            if (_contentTypeService.Get("artikkelSitat") == null)
-                CreateArtikkelSitatElement();
-            if (_contentTypeService.Get("artikkelCallout") == null)
-                CreateArtikkelCalloutElement();
-            if (_contentTypeService.Get("artikkelFremheving") == null)
-                CreateArtikkelFremhevingElement();
+            EnsureType("artikkelTrekkspillSettings", () => CreateArtikkelTrekkspillSettingsElement());
+            EnsureType("artikkelSitat", () => CreateArtikkelSitatElement());
+            EnsureType("artikkelCallout", () => CreateArtikkelCalloutElement());
+            EnsureType("artikkelFremheving", () => CreateArtikkelFremhevingElement());
             // Prosessteg item must be created before the container (container's Block List references item)
-            if (_contentTypeService.Get("artikkelProsessStegItem") == null)
-                CreateArtikkelProsessStegItemElement();
+            EnsureType("artikkelProsessStegItem", () => CreateArtikkelProsessStegItemElement());
             // Om Oss seksjon block (replaces standalone omOssSeksjon child content)
-            if (_contentTypeService.Get("omOssBlokk") == null)
-                CreateOmOssBlokkElement();
+            EnsureType("omOssBlokk", () => CreateOmOssBlokkElement());
             // Forfatter og dato variants
-            if (_contentTypeService.Get("artikkelByline") == null)
-                CreateArtikkelBylineElement();
-            if (_contentTypeService.Get("artikkelInnholdFra") == null)
-                CreateArtikkelInnholdFraElement();
-            if (_contentTypeService.Get("artikkelKontaktkort") == null)
-                CreateArtikkelKontaktkortElement();
+            EnsureType("artikkelByline", () => CreateArtikkelBylineElement());
+            EnsureType("artikkelInnholdFra", () => CreateArtikkelInnholdFraElement());
+            EnsureType("artikkelKontaktkort", () => CreateArtikkelKontaktkortElement());
 
             // Sandkasse element types: REMOVED 2026-05-04 (sandkasseSteg, sandkasseFaq)
             // The new Sandkasse uses the same article block list, so sandkasse-specific
             // step/FAQ element types are gone. Resurrect via git if needed.
 
             // Veiledning Oversikt element types
-            if (_contentTypeService.Get("veiledningKort") == null)
-                CreateVeiledningKortElement();
-            if (_contentTypeService.Get("verktoyKort") == null)
-                CreateVerktoyKortElement();
+            EnsureType("veiledningKort", () => CreateVeiledningKortElement());
+            EnsureType("verktoyKort", () => CreateVerktoyKortElement());
 
-            MigrateVeiledningKort();
-            MigrateVerktoyKort();
+            Step("migrateVeiledningKort", () => MigrateVeiledningKort());
+            Step("migrateVerktoyKort", () => MigrateVerktoyKort());
 
             // veiledningInfo sitt trekkspill-felt bruker accordion-block-list-datatypen.
             // På fresh install kjører CreateBlockListDataTypes() lenger ned, så vi må
             // sikre at datatypen finnes her. CreateOrGetBlockListDataType er idempotent,
             // så det senere kallet er uberørt. Uten dette krasjer InitializeAsync med
             // "Value cannot be null (Parameter 'dataType')" og 0 content types seedes.
-            _blockListAccordionDt = CreateOrGetBlockListDataType(
-                "Block List - Accordion Sections", "accordionSection");
+            Step("blockListAccordion", () => _blockListAccordionDt = CreateOrGetBlockListDataType(
+                "Block List - Accordion Sections", "accordionSection"));
 
-            if (_contentTypeService.Get("veiledningTekst") == null)
-                CreateVeiledningTekstElement();
-            if (_contentTypeService.Get("veiledningInfo") == null)
-                CreateVeiledningInfoElement();
-            if (_contentTypeService.Get("veiledningEksempel") == null)
-                CreateVeiledningEksempelElement();
-            if (_contentTypeService.Get("veiledningObs") == null)
-                CreateVeiledningObsElement();
-            if (_contentTypeService.Get("veiledningTrekkspill") == null)
-                CreateVeiledningTrekkspillElement();
+            EnsureType("veiledningTekst", () => CreateVeiledningTekstElement());
+            EnsureType("veiledningInfo", () => CreateVeiledningInfoElement());
+            EnsureType("veiledningEksempel", () => CreateVeiledningEksempelElement());
+            EnsureType("veiledningObs", () => CreateVeiledningObsElement());
+            EnsureType("veiledningTrekkspill", () => CreateVeiledningTrekkspillElement());
 
-            if (_contentTypeService.Get("eksempelFeatured") == null)
-                CreateEksempelFeaturedElement();
-            if (_contentTypeService.Get("eksempelGruppe") == null)
-                CreateEksempelGruppeElement();
-            if (_contentTypeService.Get("eksempelRelatert") == null)
-                CreateEksempelRelatertElement();
-            if (_contentTypeService.Get("eksempelKontakt") == null)
-                CreateEksempelKontaktElement();
+            EnsureType("eksempelFeatured", () => CreateEksempelFeaturedElement());
+            EnsureType("eksempelGruppe", () => CreateEksempelGruppeElement());
+            EnsureType("eksempelRelatert", () => CreateEksempelRelatertElement());
+            EnsureType("eksempelKontakt", () => CreateEksempelKontaktElement());
 
             // Artikler-oversikt moduler (speiler eksempel-modulene). MÅ opprettes før
             // CreateBlockListDataTypes() som bygger _blockListArtiklerSeksjonerDt.
-            if (_contentTypeService.Get("artikkelFeatured") == null)
-                CreateArtikkelFeaturedElement();
-            if (_contentTypeService.Get("artikkelGruppe") == null)
-                CreateArtikkelGruppeElement();
-            if (_contentTypeService.Get("artikkelRelatert") == null)
-                CreateArtikkelRelatertElement();
+            EnsureType("artikkelFeatured", () => CreateArtikkelFeaturedElement());
+            EnsureType("artikkelGruppe", () => CreateArtikkelGruppeElement());
+            EnsureType("artikkelRelatert", () => CreateArtikkelRelatertElement());
 
             // Forside-moduler (block list)
             // Kort-element-typene og deres block-list-datatyper MÅ opprettes/resolves FØR
@@ -190,161 +182,131 @@ public class ContentTypeComponent : IAsyncComponent
             // Ellers er _blockListForside*Dt null når seksjonen bygges -> hele
             // InitializeAsync krasjer med "Value cannot be null (Parameter 'dataType')"
             // og 0 content types seedes (fresh install / CI).
-            if (_contentTypeService.Get("forsideArtikkelKort") == null)
-                CreateForsideArtikkelKortElement();
-            if (_contentTypeService.Get("forsideEksempelKort") == null)
-                CreateForsideEksempelKortElement();
-            if (_contentTypeService.Get("forsideForstaLenke") == null)
-                CreateForsideForstaLenkeElement();
-            _blockListForsideArtikkelKortDt = CreateOrGetBlockListDataType(
-                "Block List - Forside Artikkelkort", "forsideArtikkelKort");
-            _blockListForsideEksempelKortDt = CreateOrGetBlockListDataType(
-                "Block List - Forside Eksempelkort", "forsideEksempelKort");
-            _blockListForstaLenkerDt = CreateOrGetBlockListDataType(
-                "Block List - Forside Forstå Lenker", "forsideForstaLenke");
+            EnsureType("forsideArtikkelKort", () => CreateForsideArtikkelKortElement());
+            EnsureType("forsideEksempelKort", () => CreateForsideEksempelKortElement());
+            EnsureType("forsideForstaLenke", () => CreateForsideForstaLenkeElement());
+            Step("blockListForsideArtikkelKort", () => _blockListForsideArtikkelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Artikkelkort", "forsideArtikkelKort"));
+            Step("blockListForsideEksempelKort", () => _blockListForsideEksempelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Eksempelkort", "forsideEksempelKort"));
+            Step("blockListForstaLenker", () => _blockListForstaLenkerDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Forstå Lenker", "forsideForstaLenke"));
 
-            if (_contentTypeService.Get("forsideHero") == null)
-                CreateForsideHeroElement();
-            if (_contentTypeService.Get("forsideAktuelt") == null)
-                CreateForsideAktueltElement();
-            if (_contentTypeService.Get("forsideArrangementer") == null)
-                CreateForsideArrangementerElement();
-            if (_contentTypeService.Get("forsideVeiledning") == null)
-                CreateForsideVeiledningElement();
-            if (_contentTypeService.Get("forsideLaerAvAndre") == null)
-                CreateForsideLaerAvAndreElement();
-            if (_contentTypeService.Get("forsideSandkasse") == null)
-                CreateForsideSandkasseElement();
-            if (_contentTypeService.Get("forsideForstaRegelverket") == null)
-                CreateForsideForstaRegelverketElement();
+            EnsureType("forsideHero", () => CreateForsideHeroElement());
+            EnsureType("forsideAktuelt", () => CreateForsideAktueltElement());
+            EnsureType("forsideArrangementer", () => CreateForsideArrangementerElement());
+            EnsureType("forsideVeiledning", () => CreateForsideVeiledningElement());
+            EnsureType("forsideLaerAvAndre", () => CreateForsideLaerAvAndreElement());
+            EnsureType("forsideSandkasse", () => CreateForsideSandkasseElement());
+            EnsureType("forsideForstaRegelverket", () => CreateForsideForstaRegelverketElement());
 
-            CreateBlockListDataTypes();
+            Step("createBlockListDataTypes", () => CreateBlockListDataTypes());
 
             // Legg til kort/lenketekst/lenkeUrl på eksisterende forside-element-typer.
             // Må kjøre etter at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er satt.
-            MigrateForsideKortFelter();
+            Step("migrateForsideKortFelter", () => MigrateForsideKortFelter());
 
             // Relabel/retype/standard-tekster + arrangement/veiledning-pickere på eksisterende moduler.
-            MigrateForsideModuler();
+            Step("migrateForsideModuler", () => MigrateForsideModuler());
 
             // Nye felt på eksisterende modul-element-typer (eksempel-ingress/tags, aktuelt fremhevet).
-            MigrateModulFelter();
+            Step("migrateModulFelter", () => MigrateModulFelter());
 
-            MigrateVeiledningElementNames();
-            MigrateVeiledningObsRemoveVariant();
-            MigrateVeiledningInfo();
+            Step("migrateVeiledningElementNames", () => MigrateVeiledningElementNames());
+            Step("migrateVeiledningObsRemoveVariant", () => MigrateVeiledningObsRemoveVariant());
+            Step("migrateVeiledningInfo", () => MigrateVeiledningInfo());
 
             // Prosessteg container depends on _blockListProsessStegItemsDt being created above
-            if (_contentTypeService.Get("artikkelProsessteg") == null)
-                CreateArtikkelProsessStegElement();
+            EnsureType("artikkelProsessteg", () => CreateArtikkelProsessStegElement());
 
             // After all element types are created, refresh the Artikkel block list to include
             // any modules that didn't exist when CreateBlockListDataTypes() ran.
-            RefreshMultiBlockListAllowedModules("Block List - Artikkel Innhold", BaseArticleModules);
+            Step("refreshArtikkelInnhold", () => RefreshMultiBlockListAllowedModules("Block List - Artikkel Innhold", BaseArticleModules));
 
             // Refresh Case block list too
-            RefreshMultiBlockListAllowedModules("Block List - Eksempel Innhold", EksempelModules);
+            Step("refreshEksempelInnhold", () => RefreshMultiBlockListAllowedModules("Block List - Eksempel Innhold", EksempelModules));
 
-            RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules);
-            RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules);
-            RefreshMultiBlockListAllowedModules("Block List - Forside Seksjoner", ForsideModules);
+            Step("refreshVeiledningSteg", () => RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules));
+            Step("refreshVeiledningGuide", () => RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules));
+            Step("refreshForsideSeksjoner", () => RefreshMultiBlockListAllowedModules("Block List - Forside Seksjoner", ForsideModules));
 
             // One-shot removal of legacy CTs that are no longer part of the product
             // (FAQ, KI-ordbok, Merkelapper, veiledningOversikt). Runs early so containers
             // are gone before the rest of the bootstrap tries to reference them.
-            MigrateRemoveLegacyCleanup();
+            Step("migrateRemoveLegacyCleanup", () => MigrateRemoveLegacyCleanup());
 
-            if (_contentTypeService.Get("artikkel") == null)
-                CreateArtikkel();
-            MigrateArtikkelType();
+            Step("artikkel", () => { if (_contentTypeService.Get("artikkel") == null) CreateArtikkel(); });
+            Step("migrateArtikkelType", () => MigrateArtikkelType());
 
             // Caser → Eksempler all-in: drop legacy case/caser + the old skeleton eksempel
             // before recreating eksempel + eksempler with artikkel-like structure.
-            MigrateCaserToEksempler();
+            Step("migrateCaserToEksempler", () => MigrateCaserToEksempler());
 
-            if (_contentTypeService.Get("side") == null)
-                CreateSide();
-            MigrateSide();
+            Step("side", () => { if (_contentTypeService.Get("side") == null) CreateSide(); });
+            Step("migrateSide", () => MigrateSide());
 
-            if (_contentTypeService.Get("eksempel") == null)
-                CreateEksempel();
+            EnsureType("eksempel", () => CreateEksempel());
 
-            if (_contentTypeService.Get("veiledningGuide") == null)
-                CreateVeiledningGuide();
-            MigrateVeiledningGuideEditorLayout();
-            MigrateVeiledningGuideStegtitler();
-            MigrateVeiledningGuideInnhold();
-            if (_contentTypeService.Get("veiledningSteg") == null)
-                CreateVeiledningSteg();
-            MigrateVeiledningSteg();
-            if (_contentTypeService.Get("stegartikkel") == null)
-                CreateStegartikkel();
-            MigrateVeiledningStegAllowedChildren();
-            if (_contentTypeService.Get("enkelVeiledning") == null)
-                CreateEnkelVeiledning();
-            if (_contentTypeService.Get("forside") == null)
-                CreateForside();
-            else
-                MigrateForside();
-            if (_contentTypeService.Get("omOssSeksjon") == null)
-                CreateOmOssSeksjon();
-            if (_contentTypeService.Get("omOss") == null)
-                CreateOmOss();
-            else
-                MigrateOmOss();
-            if (_contentTypeService.Get("sandkasse") == null)
-                CreateSandkasse();
-            else
-                MigrateSandkasse();
+            Step("veiledningGuide", () => { if (_contentTypeService.Get("veiledningGuide") == null) CreateVeiledningGuide(); });
+            Step("migrateVeiledningGuideEditorLayout", () => MigrateVeiledningGuideEditorLayout());
+            Step("migrateVeiledningGuideStegtitler", () => MigrateVeiledningGuideStegtitler());
+            Step("migrateVeiledningGuideInnhold", () => MigrateVeiledningGuideInnhold());
+            Step("veiledningSteg", () => { if (_contentTypeService.Get("veiledningSteg") == null) CreateVeiledningSteg(); });
+            Step("migrateVeiledningSteg", () => MigrateVeiledningSteg());
+            Step("stegartikkel", () => { if (_contentTypeService.Get("stegartikkel") == null) CreateStegartikkel(); });
+            Step("migrateVeiledningStegAllowedChildren", () => MigrateVeiledningStegAllowedChildren());
+            Step("enkelVeiledning", () => { if (_contentTypeService.Get("enkelVeiledning") == null) CreateEnkelVeiledning(); });
+            EnsureType("forside", () => CreateForside(), () => MigrateForside());
+            EnsureType("omOssSeksjon", () => CreateOmOssSeksjon());
+            EnsureType("omOss", () => CreateOmOss(), () => MigrateOmOss());
+            EnsureType("sandkasse", () => CreateSandkasse(), () => MigrateSandkasse());
 
             // Farge (bakgrunn) kun på rik artikkelmal (artikkel + eksempel), Lars 2026-06-05.
             // Sikrer feltet der og fjerner det fra de enkle sidetypene.
-            EnforceBakgrunnScope();
+            Step("enforceBakgrunnScope", () => EnforceBakgrunnScope());
 
             // Slug ikke-obligatorisk på rike maler (auto fra tittel ved lagring, ContentSlugHandler).
-            EnsureSlugOptional();
+            Step("ensureSlugOptional", () => EnsureSlugOptional());
 
             // Create container types if missing
-            if (_contentTypeService.Get("artikler") == null)
-                CreateArtiklerOversikt();
-            MigrateArtiklerToOversikt();
-            CreateContainerIfMissing("sider", "Andre sider", "icon-folder", "side");
-            MigrateSiderToAndreSider();
-            LockSiderContainer();
-            if (_contentTypeService.Get("eksempler") == null)
-                CreateEksemplerOversikt();
-            MigrateEksemplerOversikt();
-            if (_contentTypeService.Get("veiledninger") == null)
+            Step("artikler", () => { if (_contentTypeService.Get("artikler") == null) CreateArtiklerOversikt(); });
+            Step("migrateArtiklerToOversikt", () => MigrateArtiklerToOversikt());
+            Step("siderContainer", () => CreateContainerIfMissing("sider", "Andre sider", "icon-folder", "side"));
+            Step("migrateSiderToAndreSider", () => MigrateSiderToAndreSider());
+            Step("lockSiderContainer", () => LockSiderContainer());
+            Step("eksempler", () => { if (_contentTypeService.Get("eksempler") == null) CreateEksemplerOversikt(); });
+            Step("migrateEksemplerOversikt", () => MigrateEksemplerOversikt());
+            Step("veiledningerContainer", () =>
             {
-                var guideType = _contentTypeService.Get("veiledningGuide");
-                if (guideType != null)
+                if (_contentTypeService.Get("veiledninger") == null)
                 {
-                    var ct = new ContentType(_shortStringHelper, -1)
+                    var guideType = _contentTypeService.Get("veiledningGuide");
+                    if (guideType != null)
                     {
-                        Alias = "veiledninger",
-                        Name = "Veiledning",
-                        Icon = "icon-book-alt",
-                        AllowedAsRoot = true,
-                    };
-                    ct.AllowedContentTypes = new[]
-                    {
-                        new ContentTypeSort(guideType.Key, 0, guideType.Alias)
-                    };
-                    _contentTypeService.Save(ct);
+                        var ct = new ContentType(_shortStringHelper, -1)
+                        {
+                            Alias = "veiledninger",
+                            Name = "Veiledning",
+                            Icon = "icon-book-alt",
+                            AllowedAsRoot = true,
+                        };
+                        ct.AllowedContentTypes = new[]
+                        {
+                            new ContentTypeSort(guideType.Key, 0, guideType.Alias)
+                        };
+                        _contentTypeService.Save(ct);
+                    }
                 }
-            }
-            MigrateVeiledningerContainer();
-            MigrateVeiledningGuideAllowedChildren();
-            AddOversiktFieldsToVeiledninger();
+            });
+            Step("migrateVeiledningerContainer", () => MigrateVeiledningerContainer());
+            Step("migrateVeiledningGuideAllowedChildren", () => MigrateVeiledningGuideAllowedChildren());
+            Step("addOversiktFieldsToVeiledninger", () => AddOversiktFieldsToVeiledninger());
 
-            if (_contentTypeService.Get("kalenderhendelse") == null)
-                CreateKalenderhendelse();
-            if (_contentTypeService.Get("kalender") == null)
-                CreateKalender();
+            EnsureType("kalenderhendelse", () => CreateKalenderhendelse());
+            EnsureType("kalender", () => CreateKalender());
 
-            if (_contentTypeService.Get("globaleInnstillinger") == null)
-                CreateGlobaleInnstillinger();
-            MigrateGlobaleInnstillinger();
+            Step("globaleInnstillinger", () => { if (_contentTypeService.Get("globaleInnstillinger") == null) CreateGlobaleInnstillinger(); });
+            Step("migrateGlobaleInnstillinger", () => MigrateGlobaleInnstillinger());
 
             // RichText data types are ensured by ResolveDataTypes() at the very start of this method.
             // Standard + Restricted variants get correct toolbar+extensions config every startup.
@@ -3047,10 +3009,15 @@ public class ContentTypeComponent : IAsyncComponent
             ct.PropertyGroups.Remove("verktoy");
             changed = true;
         }
-        // SEO
-        if (!ct.PropertyGroups.Any(g => g.Alias == "seo"))
+        // SEO. Guard på property, ikke gruppe: på prod var seo-gruppa lagret med en alias
+        // som ikke matchet "seo", så gruppe-guarden bommet og AddPropertyGroup("seo") kastet
+        // "An item with the same key has already been added. Key: seo" -> hele composeren
+        // stoppet før footer-steget (MigrateGlobaleInnstillinger). Når seoTittel finnes,
+        // finnes gruppa, så vi hopper trygt over. Samme mønster som MigrateArtiklerToOversikt.
+        if (!ct.PropertyTypeExists("seoTittel"))
         {
-            ct.AddPropertyGroup("seo", "SEO");
+            if (!ct.PropertyGroups.Any(g => g.Alias == "seo"))
+                ct.AddPropertyGroup("seo", "SEO");
             ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
             ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
             ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
