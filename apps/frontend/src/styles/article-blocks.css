@@ -271,18 +271,20 @@
 .article-text-block {
   line-height: 1.7;
   color: var(--ds-color-text-default);
+  margin-block-end: var(--ds-size-2);
 }
 .article-text-block h2 {
-  font-size: var(--ds-font-size-7);
-  font-weight: 500;
-  margin-block-start: var(--ds-size-10);
+  font-size: var(--ds-font-size-6);
+  margin-block-start: var(--ds-size-7);
   margin-block-end: var(--ds-size-6);
+  font-weight: 400;
 }
 .article-text-block h3 {
-  font-size: var(--ds-font-size-6);
-  font-weight: 500;
+  font-size: var(--ds-font-size-5);
   margin-block-start: var(--ds-size-9);
   margin-block-end: var(--ds-size-3);
+  font-family: var(--ds-font-family);
+  font-weight: 400;
 }
 .article-text-block p { margin: 0 0 var(--ds-size-4); }
 .article-text-block ul, .article-text-block ol {

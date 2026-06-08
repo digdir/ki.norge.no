@@ -76,7 +76,7 @@
 /* ── Article hero ── */
 .article-hero {
   padding-block-start: var(--ds-size-30);
-  padding-block-end: var(--ds-size-8);
+  padding-block-end: var(--ds-size-10);
   padding-inline: 0;
   display: grid;
   grid-template-columns: var(--article-layout-columns);
@@ -153,7 +153,7 @@
   font-size: var(--ds-font-size-7);
   line-height: 1.5;
   margin: 0;
-  margin-block-end: var(--ds-size-6);
+  margin-block-end: var(--ds-size-8);
 }
 
 }
