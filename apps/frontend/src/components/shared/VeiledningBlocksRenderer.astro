@@ -81,7 +81,7 @@ const moduleIcons: Record<string, string> = {
         </div>
         <div class="veiledning-modul-body" set:html={tekst} />
         {trekkspill && trekkspill.length > 0 && (
-          <div class="veiledning-modul-trekkspill">
+          <div class="ds-card" data-variant="tinted">
             {trekkspill.map((t) => (
               <details class="ds-details">
                 <summary>{t.tittel}</summary>
@@ -182,12 +182,6 @@ const moduleIcons: Record<string, string> = {
   }
   .veiledning-modul-body :global(p:last-child) {
     margin-bottom: 0;
-  }
-
-  .veiledning-modul-trekkspill {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-2);
   }
 
   .veiledning-modul-lesmer {

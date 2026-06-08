@@ -24,6 +24,27 @@ const substepPills = sameStepSubsteps.map(s => ({
 
 const currentIndex = allSteps.findIndex(s => s.slug === stepSlug);
 const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1] : null;
+
+const stepMap = new Map<number, { title: string; substeps: { title: string; slug: string }[] }>();
+for (const step of allSteps) {
+  if (!stepMap.has(step.steg)) {
+    stepMap.set(step.steg, { title: '', substeps: [] });
+  }
+  stepMap.get(step.steg)!.substeps.push({ title: step.tittel, slug: step.slug });
+}
+
+const stepGroupTitles: Record<number, string> = {};
+(guideData.stegGruppeTittler || '').split('\n').forEach((line, i) => {
+  const trimmed = line.trim();
+  if (trimmed) stepGroupTitles[i + 1] = trimmed;
+});
+
+const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
+  number: num,
+  title: stepGroupTitles[num] || `Steg ${num}`,
+  substeps: data.substeps,
+}));
+
 ---
 <Layout title={`${currentStep.tittel} | ${guideData.tittel}`} bodyColor="brand1">
   <div class="step-page" data-layout-block="content">
@@ -35,10 +56,11 @@ const nextStep = currentIndex < allSteps.length - 1 ? allSteps[currentIndex + 1]
         {guideData.tittel}
       </a>
     </ds-breadcrumbs>
-    <h1 class="step-substep-title ds-heading" data-size="lg">{currentStep.tittel}</h1>
+    <h1 class="step-substep-title ds-heading" data-size="lg">{currentStep.steg}. {steps[currentStep.steg - 1].title}</h1>
     <SubStepPills substeps={substepPills} guideSlug={guideSlug!} />
 
     <div class="step-content">
+      <h2 class="ds-heading" data-size="md">{currentStep.tittel}</h2>
       {currentStep.ingress && <p class="step-ingress">{currentStep.ingress}</p>}
       <VeiledningBlocksRenderer blocks={currentStep.innholdBlokker} />
       {nextStep && (
