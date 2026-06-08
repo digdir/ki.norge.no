@@ -12,6 +12,7 @@ export const GET: APIRoute = ({ url }) => {
   const body = isProd
     ? `# Allows Siteimprove only (todo: allow at launch)
 User-agent: SiteimproveBot
+User-agent: SiteimproveBot-Crawler
 Allow: /
 Disallow: /admin-tilgang
 Disallow: /preview-tilgang
