@@ -22,12 +22,12 @@
 --article-layout-content-max-width: 680px;
 --article-layout-gutter: calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2));
 --article-layout-columns:
-var(--article-layout-gutter)
-1fr
-var(--article-layout-gap)
-minmax(0, var(--article-layout-content-max-width))
-0.5fr
-var(--article-layout-gutter);
+  var(--article-layout-gutter)
+  1fr
+  var(--article-layout-gap)
+  minmax(0, var(--article-layout-content-max-width))
+  0.5fr
+  var(--article-layout-gutter);
 }
 @layer article-layout {
 
@@ -82,7 +82,7 @@ var(--article-layout-gutter);
   grid-template-columns: var(--article-layout-columns);
 }
 
-.article-title {
+.article-titl, .article-hero-inner {
   grid-column: 4;
   overflow-wrap: break-word;
   word-break: break-word;

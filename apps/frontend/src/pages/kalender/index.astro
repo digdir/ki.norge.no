@@ -40,17 +40,17 @@ const tidligere = hendelser
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
 
-const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
+const fmtMonth = (d: Date) => d.toLocaleString('nb-NO', { month: 'long' });
 const formatDate = (iso: string) => {
   if (!iso) return { day: '', month: '', year: '' };
   const d = new Date(iso);
-  return { day: String(d.getDate()), month: monthNames[d.getMonth()], year: String(d.getFullYear()) };
+  return { day: String(d.getDate()), month: fmtMonth(d), year: String(d.getFullYear()) };
 };
 const formatDateRange = (startIso: string, endIso?: string) => {
   const start = new Date(startIso);
   const end = endIso ? new Date(endIso) : null;
   const startDay = start.getDate();
-  const startMonth = monthNames[start.getMonth()];
+  const startMonth = fmtMonth(start);
   const startYear = start.getFullYear();
   if (!end || end.getTime() === start.getTime()) {
     return { dateLabel: `${startDay}.`, month: startMonth, year: String(startYear) };
@@ -125,6 +125,7 @@ const parseTagger = (s?: string) =>
                   time={h.tid || ''}
                   timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
                   location={h.sted || ''}
+                  href={`/kalender/${h.slug}`}
                 />
               );
             })}

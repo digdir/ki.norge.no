@@ -13,7 +13,7 @@
       max-width: var(--short-content-width);
     }
 
-    :where(div:not([class]), img, section, figure, table, iframe, [data-iframe-video], .u-long-content, .dodont-row, [data-wide-content]) {
+    :where(div:not([class]), img, section, figure, table, iframe, [data-iframe-video], .u-long-content, .dodont-row, [data-wide-content], [data-layout-block="edge"]) {
       max-width: var(--long-content-width);
     }
 
@@ -76,7 +76,7 @@
       margin-bottom: var(--ds-size-3);
     }
 
-    & > :where(div, table, section):not(.article-text-block) {
+    & > :where(div, table, section):not(.article-text-block, [data-layout-block="edge"]) {
       margin-block: var(--ds-size-8);
     }
 

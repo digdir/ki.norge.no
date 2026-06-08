@@ -4,7 +4,7 @@ import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.ast
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
-import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, type Eksempel, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
+import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
 
 let eksempler: Eksempel[] = [];
 let oversikt = null;
@@ -35,19 +35,40 @@ const relatertById = new Map<string, Artikkel | VeiledningGuide>();
 artikler.forEach(a => relatertById.set(a.id, a));
 guider.forEach(g => relatertById.set(g.id, g));
 
-const seksjoner = oversikt?.seksjoner || [];
+// Hard-coded seksjoner som matcher Figma-designet. Refererer til eksempler og artikler
+// fra mock-fixturen via ID. Brukes når CMS ikke leverer seksjoner.
+const eksempelIder = eksempler.map(e => e.id);
+const artikkelIder = artikler.map(a => a.id);
+
+const fallbackSeksjoner: EksemplerSeksjon[] = [
+  // 1) Featured eksempel
+  { contentType: 'eksempelFeatured', id: 'fallback-featured', eksempelId: eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
+  // 2) 2x2 grid (4 kort)
+  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-1', eksempelIds: eksempelIder.slice(0, 4), kortFarger: ['dark', 'light', 'light', 'dark'] },
+  // 3) 3-kolonne grid (3 kort)
+  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-2', antallKolonner: 3, eksempelIds: eksempelIder.slice(0, 3), kortFarger: ['dark', 'light', 'dark'] },
+  // 4) Enda en featured
+  { contentType: 'eksempelFeatured', id: 'fallback-featured-2', eksempelId: eksempelIder[1] || eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
+  // 5) 2 kort
+  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-3', eksempelIds: eksempelIder.slice(0, 2), kortFarger: ['dark', 'light'] },
+  // 6) Relatert innhold (3 artikler)
+  { contentType: 'eksempelRelatert', id: 'fallback-relatert', relatertIds: artikkelIder.slice(0, 3), relatertTags: ['Digitaliseringsstrategien', 'Offentlig sektor', 'Arbeidsmarkedet'] },
+  // 7) Kontakt-seksjon
+  { contentType: 'eksempelKontakt', id: 'fallback-kontakt', tittel: 'Ønsker du å dele et eksempel?', navn: 'Navn Navnesen', epost: 'navn@digdir.no', stilling: 'Rådgiver i Digitaliseringsdirektoratet' },
+];
+
+const seksjoner = oversikt?.seksjoner?.length ? oversikt.seksjoner : fallbackSeksjoner;
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
-  <div class="eksempler-page" data-layout-block="content">
-    <header class="eksempler-header">
+  <div class="eksempler-page">
+    <header class="eksempler-header" data-layout-block="content">
       <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>
-      {heroIngress && <p class="eksempler-lead">{heroIngress}</p>}
     </header>
 
     {seksjoner.length === 0 && eksempler.length > 0 && (
-      <section class="eksempler-section">
-        <div class="eksempler-fallback-grid">
+      <section data-layout-block="edge" class="eksempler-section">
+        <div class="eksempler-fallback-grid" data-layout-block="content">
           {eksempler.map((e, i) => (
             <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={(['dark', 'medium', 'light'] as const)[i % 3]} />
           ))}
@@ -60,14 +81,16 @@ const seksjoner = oversikt?.seksjoner || [];
         const e = eksempelById.get(s.eksempelId);
         if (!e) return null;
         return (
-          <section class="eksempler-section">
-            <ArticleCardFeatured
-              href={`/eksempler/${e.slug}`}
-              title={e.tittel}
-              lead={s.ingress || e.ingress}
-              image={e.artikkelBilde ? getMediaUrl(e.artikkelBilde) : undefined}
-              imageAlt={e.bildeAlt || ''}
-            />
+          <section data-layout-block="edge" class="eksempler-section">
+            <div data-layout-block="content">
+              <ArticleCardFeatured
+                href={`/eksempler/${e.slug}`}
+                title={e.tittel}
+                lead={s.ingress || e.ingress}
+                image={e.artikkelBilde ? getMediaUrl(e.artikkelBilde) : '/article_placeholder.png'}
+                imageAlt={e.bildeAlt || ''}
+              />
+            </div>
           </section>
         );
       }
@@ -76,14 +99,16 @@ const seksjoner = oversikt?.seksjoner || [];
         const items = (s.eksempelIds || []).map(id => eksempelById.get(id)).filter((e): e is Eksempel => !!e);
         if (items.length === 0) return null;
         return (
-          <section class="eksempler-section">
-            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
-            <ExampleLinkCards cards={items.map((e, i) => ({
-              href: `/eksempler/${e.slug}`,
-              title: e.tittel,
-              tag: s.kortTag || 'Eksempel',
-              variant: s.kortFarger?.[i],
-            }))} />
+          <section data-layout-block="edge" class="eksempler-section">
+            <div data-layout-block="content">
+              {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
+              <ExampleLinkCards cards={items.map((e, i) => ({
+                href: `/eksempler/${e.slug}`,
+                title: e.tittel,
+                tag: s.kortTag || 'Eksempel',
+                variant: s.kortFarger?.[i],
+              }))} />
+            </div>
           </section>
         );
       }
@@ -92,13 +117,15 @@ const seksjoner = oversikt?.seksjoner || [];
         const items = (s.relatertIds || []).map(id => relatertById.get(id)).filter((x): x is Artikkel | VeiledningGuide => !!x);
         if (items.length === 0) return null;
         return (
-          <section class="eksempler-section eksempler-relatert">
-            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
-            <div class="eksempler-relatert-grid">
-              {items.map((item, i) => {
-                const href = artikler.some(a => a.id === item.id) ? `/artikler/${item.slug}` : `/veiledning/${item.slug}`;
-                return <ArticleCardCompact href={href} title={item.tittel} date={item.publishedAt} tag={s.relatertTags?.[i]} tagColor="accent" />;
-              })}
+          <section data-layout-block="edge" class="eksempler-section eksempler-relatert">
+            <div data-layout-block="content">
+              {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
+              <div class="eksempler-relatert-grid">
+                {items.map((item, i) => {
+                  const href = artikler.some(a => a.id === item.id) ? `/artikler/${item.slug}` : `/veiledning/${item.slug}`;
+                  return <ArticleCardCompact href={href} title={item.tittel} date={item.publishedAt} tag={s.relatertTags?.[i]} tagColor="accent" />;
+                })}
+              </div>
             </div>
           </section>
         );
@@ -107,12 +134,14 @@ const seksjoner = oversikt?.seksjoner || [];
       if (s.contentType === 'eksempelKontakt') {
         if (!s.tittel && !s.navn && !s.epost && !s.stilling) return null;
         return (
-          <section class="eksempler-kontakt">
-            {s.tittel && <h2 class="eksempler-kontakt-tittel">{s.tittel}</h2>}
-            <div class="eksempler-kontakt-info">
-              {s.navn && <p class="eksempler-kontakt-navn">{s.navn}</p>}
-              {s.epost && <a href={`mailto:${s.epost}`} class="eksempler-kontakt-epost">{s.epost}</a>}
-              {s.stilling && <p class="eksempler-kontakt-stilling">{s.stilling}</p>}
+          <section data-layout-block="edge" class="eksempler-kontakt">
+            <div data-layout-block="content">
+              {s.tittel && <h2 class="eksempler-kontakt-tittel ds-heading">{s.tittel}</h2>}
+              <div class="eksempler-kontakt-info" data-size="lg">
+                {s.navn && <p class="ds-paragraph">{s.navn}</p>}
+                {s.epost && <a href={`mailto:${s.epost}`} class="ds-link">{s.epost}</a>}
+                {s.stilling && <p class="ds-paragraph">{s.stilling}</p>}
+              </div>
             </div>
           </section>
         );
@@ -137,12 +166,15 @@ const seksjoner = oversikt?.seksjoner || [];
 
   .eksempler-header {
     display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-4);
+    width: 100%;
+
+    & .eksempler-title {
+      width: 100%;
+      margin: 0;
+      margin-inline-end: auto;
+    }
   }
-  .eksempler-title {
-    margin: 0;
-  }
+
   .eksempler-lead {
     font-size: var(--ds-body-lg-font-size);
     line-height: var(--ds-body-lg-line-height);
@@ -160,6 +192,7 @@ const seksjoner = oversikt?.seksjoner || [];
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--ds-size-6);
+    rule: 1px solid var(--ds-color-surface-active);
   }
   @media (min-width: 768px) {
     .eksempler-relatert-grid {
@@ -167,13 +200,8 @@ const seksjoner = oversikt?.seksjoner || [];
     }
   }
   .eksempler-relatert-grid > :global(.compact-card) {
-    border-top: 2px solid var(--ds-color-base-default);
     border-radius: 0;
-    padding-inline: 0;
     padding-top: var(--ds-size-4);
-  }
-  .eksempler-relatert-grid > :global(.compact-card:nth-child(even)) {
-    border-top-color: var(--ds-color-surface-hover);
   }
 
   /* Kontakt: full-width burgundy band */
@@ -182,24 +210,33 @@ const seksjoner = oversikt?.seksjoner || [];
     color: var(--ds-color-base-contrast-default);
     padding: var(--ds-size-12);
   }
+
   .eksempler-kontakt-tittel {
-    font-size: var(--ds-heading-md-font-size);
-    font-weight: 600;
-    margin: 0 0 var(--ds-size-6);
+    font-weight: 400;
+    font-family: var(--ds-font-family);
   }
+
   .eksempler-kontakt-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-1);
-  }
-  .eksempler-kontakt-info p,
-  .eksempler-kontakt-epost {
     margin: 0;
-    color: inherit;
   }
-  .eksempler-kontakt-epost {
-    text-decoration: underline;
-    width: fit-content;
+
+  .eksempler-kontakt {
+    background: var(--ds-color-base-active);
+    color: var(--ds-color-background-default);
+    padding-block: var(--ds-size-12);
+  }
+  .eksempler-kontakt a {
+    --dsc-link-color: var(--ds-color-base-contrast-default);
+    --dsc-link-color--hover: var(--ds-color-base-contrast-subtle);
+    --dsc-link-color--active: var(--ds-color-base-contrast-default);
+  }
+  .eksempler-kontakt h2 {
+    margin-block-end: var(--ds-size-5);
+  }
+
+  .eksempler-kontakt p {
+    line-height: 1.7;
+    margin: 0;
   }
 
   .eksempler-fallback-grid {

@@ -51,8 +51,7 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
 
 <Layout title={title} description={seoDescription} hideLogo>
   <h1 class="ds-sr-only">ki.norge.no - {title}</h1>
-  <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
-
+  
   <ForsideSeksjonerRenderer
     seksjoner={forside?.seksjoner ?? []}
     latestArticles={latestArticles}
@@ -61,5 +60,6 @@ const nextEventMultiDay = nextEvent?.sluttDato && new Date(nextEvent.sluttDato).
     nextEventDate={nextEventDate}
     nextEventMultiDay={nextEventMultiDay}
     eksempelKort={eksempelKort}
-  />
+    />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
 </Layout>

@@ -107,22 +107,24 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
 
   if (block.contentType === 'forsideArrangementer') {
     return (
-      <section class="arrangementer-section" data-layout-block="content">
-        <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Kommende arrangementer'}</h2>
-        {nextEvent && nextEventDate && (
-          <EventCard
-            href={`/kalender/${nextEvent.slug}`}
-            title={nextEvent.tittel}
-            description={nextEvent.ingress || ''}
-            day={nextEventDate.day}
-            month={nextEventDate.month}
-            year={nextEventDate.year}
-            time={nextEvent.tid || ''}
-            timeNote={nextEventMultiDay ? 'Arrangement over flere dager' : undefined}
-            location={nextEvent.sted || ''}
-          />
-        )}
-        <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst || 'Se alle arrangementer'} />
+      <section class="arrangementer" data-layout-block="edge">
+        <div class="arrangementer-section" data-layout-block="content">
+          <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Kommende arrangementer'}</h2>
+          {nextEvent && nextEventDate && (
+            <EventCard
+              href={`/kalender/${nextEvent.slug}`}
+              title={nextEvent.tittel}
+              description={nextEvent.ingress || ''}
+              day={nextEventDate.day}
+              month={nextEventDate.month}
+              year={nextEventDate.year}
+              time={nextEvent.tid || ''}
+              timeNote={nextEventMultiDay ? 'Arrangement over flere dager' : undefined}
+              location={nextEvent.sted || ''}
+            />
+          )}
+          <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst || 'Se alle arrangementer'} />
+        </div>
       </section>
     );
   }
@@ -164,7 +166,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
       <section class="sandkasse-section" data-layout-block="content">
         <div class="sandkasse-card" data-clickdelegatefor={sandkasseLinkId}>
           <div class="sandkasse-card-image">
-            <img src={block.illustrasjon ? getMediaUrl(block.illustrasjon) : '/placeholder.png'} alt="" loading="lazy" decoding="async" />
+            <img src={block.illustrasjon ? getMediaUrl(block.illustrasjon) : '/people-working.svg'} alt="" loading="lazy" decoding="async" />
           </div>
           <div class="sandkasse-card-text">
             <h2 class="sandkasse-title">
@@ -198,7 +200,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   .aktuelt {
     background-color: var(--ds-color-brand2-surface-default);
   }
-
+  
   .aktuelt :global(.card-grid) {
     margin-bottom: var(--ds-size-6);
   }
@@ -208,6 +210,11 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   /* ── Kommende arrangementer (egen seksjon, uten rosa strek) ── */
+  .arrangementer {
+    background-color: var(--ds-color-brand2-surface-default);
+    margin-block-start: 0 !important;
+  }
+
   .arrangementer-section :global(.event-card) {
     margin-bottom: var(--ds-size-6);
   }
