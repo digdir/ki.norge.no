@@ -41,17 +41,17 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       <div class="article-hero-text">
         <h1 class="ds-heading article-title" data-size="xl">{tittel}</h1>
       </div>
-      {heroImage?.url && (
-        <div class="article-hero-image">
-          <img src={getMediaUrl(heroImage)} alt={omOss?.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-        </div>
-      )}
     </div>
   </section>
 
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 
   <ArticleLayout publishedAt={omOss?.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
+    {heroImage?.url && (
+      <div class="article-hero-image">
+        <img src={getMediaUrl(heroImage)} alt={omOss?.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+      </div>
+    )}
     {omOss?.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{omOss.ingress}</p>
     )}
@@ -86,14 +86,22 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 
   .article-hero-text { min-width: 0; }
 
-  .article-hero-image { width: 100%; }
+  .article-hero-image {
+    max-height: 600px;
+    overflow: hidden;
+    padding: 0;
+    grid-column: 4;
+
+    @media (max-width: 767px) {
+      grid-column: 1 / 5;
+      margin-block-start: var(--ds-size-6);
+    }
+  }
 
   .article-hero-img {
+    max-width: 100%;
     width: 100%;
-    aspect-ratio: 2 / 1;
-    max-height: 600px;
     object-fit: cover;
-    border-radius: 8px;
     display: block;
   }
 
