@@ -53,10 +53,10 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     .map((k) => {
       const ex = eksempler.find((e: any) => e.id === k.id);
       return ex
-        ? { href: `/caser/${ex.slug}`, title: ex.tittel, tag: 'Eksempel' as const, lead: k.ingress || ex.ingress }
+        ? { href: `/caser/${ex.slug}`, title: ex.tittel, tag: 'Eksempel' as const, lead: k.ingress || ex.ingress || undefined }
         : null;
     })
-    .filter((c): c is { href: string; title: string; tag: 'Eksempel'; lead?: string } => c !== null);
+    .filter((c) => c !== null) as { href: string; title: string; tag: 'Eksempel'; lead?: string }[];
 ---
 
 {seksjoner.map((block) => {
@@ -123,17 +123,17 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
       <section class="arrangementer" data-layout-block="edge">
         <div class="arrangementer-section" data-layout-block="content">
           <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Kommende arrangementer'}</h2>
-          {nextEvent && nextEventDate && (
+          {valgt && dato && (
             <EventCard
-              href={`/kalender/${nextEvent.slug}`}
-              title={nextEvent.tittel}
-              description={nextEvent.ingress || ''}
-              day={nextEventDate.day}
-              month={nextEventDate.month}
-              year={nextEventDate.year}
-              time={nextEvent.tid || ''}
-              timeNote={nextEventMultiDay ? 'Arrangement over flere dager' : undefined}
-              location={nextEvent.sted || ''}
+              href={`/kalender/${valgt.slug}`}
+              title={valgt.tittel}
+              description={valgt.ingress || ''}
+              day={dato.day}
+              month={dato.month}
+              year={dato.year}
+              time={valgt.tid || ''}
+              timeNote={flerDager ? 'Arrangement over flere dager' : undefined}
+              location={valgt.sted || ''}
             />
           )}
           <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst || 'Se alle arrangementer'} />
@@ -155,7 +155,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
           <TextWithImage
             title={block.tittel || 'Gjør dataene KI-klare'}
             href={block.lenkeUrl || '/veiledning'}
-            image={block.illustrasjon ? getMediaUrl(block.illustrasjon) : '/people-workshopping.svg'}
+            image={block.illustrasjon ? (getMediaUrl(block.illustrasjon) ?? '/people-workshopping.svg') : '/people-workshopping.svg'}
             imageAlt="Illustrasjon"
             label={block.label || 'Veiledning'}
           >
@@ -173,7 +173,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     return (
       <section data-layout-block="content" class="examples-section">
         <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Lær av andre'}</h2>
-        <ExampleLinkCards cards={kort.map((c, i) => ({ ...c, variant: i === 0 ? 'medium' : 'light' }))} />
+        <ExampleLinkCards cards={kort.filter((c): c is { href: string; title: string; tag: string } => 'href' in c && 'title' in c).map((c, i) => ({ ...c, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
         <ArrowLink href={block.lenkeUrl || '/eksempler'} text={block.lenketekst || 'Se alle eksempler'} />
       </section>
     );
