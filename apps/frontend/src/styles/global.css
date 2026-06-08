@@ -1,5 +1,3 @@
-@layer ds, layout, site, article-layout;
-
 @import '@digdir/designsystemet-css';
 @import '../../../../design-tokens-build/theme.css';
 @import './rich-text.css';
