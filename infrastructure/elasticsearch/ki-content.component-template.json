@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "description": "Hybrid-search mappings for ki.norge.no content: BM25 (norwegian analyzer) + E5-large semantic_text. Managed as code — edit here, apply with apply-templates.mjs.",
+    "managed_by": "infrastructure/elasticsearch"
+  },
+  "template": {
+    "mappings": {
+      "properties": {
+        "title": { "type": "text", "analyzer": "norwegian", "copy_to": "body_semantic" },
+        "url": { "type": "keyword" },
+        "body": { "type": "text", "analyzer": "norwegian", "copy_to": "body_semantic" },
+        "body_semantic": { "type": "semantic_text", "inference_id": ".microsoft-multilingual-e5-large" },
+        "language": { "type": "keyword" },
+        "type": { "type": "keyword" }
+      }
+    }
+  }
+}
