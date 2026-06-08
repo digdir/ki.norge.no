@@ -54,9 +54,9 @@ const richLinks = (cmsData?.seksjon2Kort?.length ?? 0) > 0
       href: `/veiledning/${g.slug}`,
     }));
 
-// Simple link list — "Forstå regelverket"
-const simpleLinks = cmsData?.verktoyKort
-  ? cmsData.verktoyKort.map(k => ({
+// Simple link list — "Forstå regelverket" (seksjon3 "Enkel liste", #389)
+const simpleLinks = (cmsData?.seksjon3Kort?.length ?? 0) > 0
+  ? cmsData!.seksjon3Kort!.map(k => ({
       title: k.tittel,
       href: k.url || '#',
     }))
@@ -128,7 +128,7 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
   <!-- Forstå regelverket — Simple link list -->
   {simpleLinks.length > 0 && (
     <section class="veil-simple-links" data-layout-block="content">
-      <LinkList links={simpleLinks} heading={cmsData?.verktoyTittel || 'Forstå regelverket'} />
+      <LinkList links={simpleLinks} heading={cmsData?.seksjon3Tittel || 'Forstå regelverket'} />
     </section>
   )}
 

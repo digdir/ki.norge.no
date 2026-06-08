@@ -48,7 +48,7 @@ const moduleIcons: Record<string, string> = {
         {item.blocks.map((block) => (
           <details class="ds-details">
             <summary>{block.content.tittel}</summary>
-            <div set:html={block.content.innhold} />
+            <div class="trekkspill-innhold" set:html={block.content.innhold} />
           </details>
         ))}
       </div>
@@ -85,7 +85,7 @@ const moduleIcons: Record<string, string> = {
             {trekkspill.map((t) => (
               <details class="ds-details">
                 <summary>{t.tittel}</summary>
-                <div set:html={t.innhold} />
+                <div class="trekkspill-innhold" set:html={t.innhold} />
               </details>
             ))}
           </div>
@@ -120,6 +120,27 @@ const moduleIcons: Record<string, string> = {
     padding-inline-start: var(--ds-size-6);
   }
   .veiledning-tekst :global(li) {
+    margin-bottom: var(--ds-size-1);
+  }
+
+  /* Rik tekst i trekkspill-kroppen. Uten dette har avsnitt (Enter i RTE) ingen
+     margin (ds-paragraph er margin-løs) og linjeskift forsvinner. (#393) */
+  .trekkspill-innhold {
+    font-size: var(--ds-body-md-font-size);
+    line-height: var(--ds-body-md-line-height);
+  }
+  .trekkspill-innhold :global(p) {
+    margin: 0 0 var(--ds-size-3);
+  }
+  .trekkspill-innhold :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .trekkspill-innhold :global(ul),
+  .trekkspill-innhold :global(ol) {
+    margin: var(--ds-size-2) 0 var(--ds-size-3);
+    padding-inline-start: var(--ds-size-6);
+  }
+  .trekkspill-innhold :global(li) {
     margin-bottom: var(--ds-size-1);
   }
 

@@ -98,7 +98,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
               <summary>
                 {block.content.tittel}
               </summary>
-              <div set:html={block.content.innhold} />
+              <div class="article-accordion-body" set:html={block.content.innhold} />
             </details>
           ))}
         </div>

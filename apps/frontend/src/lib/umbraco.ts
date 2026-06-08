@@ -451,14 +451,6 @@ export interface VeiledningKort {
   ikon?: string;
 }
 
-export interface VerktoyKort {
-  tittel: string;
-  beskrivelse?: string;
-  url?: string;
-  bilde?: UmbracoMedia;
-  ikon?: string;
-}
-
 export interface VeiledningOversikt {
   id: string;
   documentId: string;
@@ -470,8 +462,8 @@ export interface VeiledningOversikt {
   seksjon1Kort?: VeiledningKort[];
   seksjon2Tittel?: string;
   seksjon2Kort?: VeiledningKort[];
-  verktoyTittel?: string;
-  verktoyKort?: VerktoyKort[];
+  seksjon3Tittel?: string;
+  seksjon3Kort?: VeiledningKort[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -900,8 +892,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seksjon1Kort: mapVeiledningKort(props.seksjon1Kort),
         seksjon2Tittel: props.seksjon2Tittel as string || undefined,
         seksjon2Kort: mapVeiledningKort(props.seksjon2Kort),
-        verktoyTittel: props.verktoyTittel as string || undefined,
-        verktoyKort: mapVerktoyKort(props.verktoyKort),
+        seksjon3Tittel: props.seksjon3Tittel as string || undefined,
+        seksjon3Kort: mapVeiledningKort(props.seksjon3Kort),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
@@ -1196,22 +1188,6 @@ function mapVeiledningKort(value: unknown): VeiledningKort[] {
       tittel: (props.tittel as string) || '',
       beskrivelse: (props.beskrivelse as string) || undefined,
       url: (props.url as string) || undefined,
-      ikon: (props.ikon as string) || undefined,
-    };
-  });
-}
-
-function mapVerktoyKort(value: unknown): VerktoyKort[] {
-  const items = Array.isArray(value) ? value : (value as any)?.items;
-  if (!Array.isArray(items)) return [];
-  return items.map((block: any) => {
-    const content = block.content || block;
-    const props = content.properties || content;
-    return {
-      tittel: (props.tittel as string) || '',
-      beskrivelse: (props.beskrivelse as string) || undefined,
-      url: (props.url as string) || undefined,
-      bilde: mapMedia(props.bilde),
       ikon: (props.ikon as string) || undefined,
     };
   });

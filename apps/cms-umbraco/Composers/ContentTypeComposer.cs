@@ -2975,12 +2975,19 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("seksjon2Kort", "Kort", _blockListVeiledningKortDt), "seksjon2");
             changed = true;
         }
+        // Seksjon 3 (vises som "Enkel liste" i backoffice) — enkel lenkeliste, kun
+        // tittel + URL brukes på frontend ("Forstå regelverket"-seksjonen). (#389)
+        if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon3"))
+        {
+            ct.AddPropertyGroup("seksjon3", "Enkel liste");
+            ct.AddPropertyType(Prop("seksjon3Tittel", "Tittel", _textStringDt), "seksjon3");
+            ct.AddPropertyType(Prop("seksjon3Kort", "Kort", _blockListVeiledningKortDt), "seksjon3");
+            changed = true;
+        }
         // Re-label til beskrivende modulnavn (Dorte, Figma-tavle 2026-06-04). Aliasene
         // beholdes, så ingen data flyttes. Kjorer hver oppstart slik at noder opprettet
-        // med de gamle "Seksjon 1/2"-navnene ogsaa oppdateres.
-        // TODO: "Enkel liste" (seksjon 3) mangler fortsatt — egen oppgave, henger sammen
-        // med planlagt sidetre-/modulkatalog-restrukturering.
-        foreach (var (alias, name) in new[] { ("seksjon1", "Fremhevet veiledning og artikler"), ("seksjon2", "Rik liste") })
+        // med de gamle "Seksjon 1/2/3"-navnene ogsaa oppdateres.
+        foreach (var (alias, name) in new[] { ("seksjon1", "Fremhevet veiledning og artikler"), ("seksjon2", "Rik liste"), ("seksjon3", "Enkel liste") })
         {
             var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == alias);
             if (grp != null && grp.Name != name) { grp.Name = name; changed = true; }
@@ -2989,6 +2996,7 @@ public class ContentTypeComponent : IAsyncComponent
         {
             ("seksjon1Tittel", "Tittel"), ("seksjon1Kort", "Kort"),
             ("seksjon2Tittel", "Tittel"), ("seksjon2Kort", "Kort"),
+            ("seksjon3Tittel", "Tittel"), ("seksjon3Kort", "Kort"),
         })
         {
             var pt = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
