@@ -303,7 +303,7 @@ public class ContentTypeComponent : IAsyncComponent
             Step("migrateVeiledningGuideAllowedChildren", () => MigrateVeiledningGuideAllowedChildren());
             Step("addOversiktFieldsToVeiledninger", () => AddOversiktFieldsToVeiledninger());
 
-            EnsureType("kalenderhendelse", () => CreateKalenderhendelse());
+            EnsureType("kalenderhendelse", () => CreateKalenderhendelse(), () => MigrateKalenderhendelse());
             EnsureType("kalender", () => CreateKalender());
 
             Step("globaleInnstillinger", () => { if (_contentTypeService.Get("globaleInnstillinger") == null) CreateGlobaleInnstillinger(); });
@@ -2391,7 +2391,7 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("type", "Type", _textStringDt, description: "Workshop, Frokostseminar, Konferanse...", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("type", "Merkelapp", _textStringDt, description: "Kommaseparert, f.eks. \"Frokostseminar, Offentlig\". Vises som merkelapp(er) på kortet.", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Kort beskrivelse for kortvisning.", sortOrder: 3), "innhold");
         ct.AddPropertyType(Prop("detaljertBeskrivelse", "Detaljert beskrivelse", _richTextDt, description: "Vises på enkeltsiden og i featured-boksen.", sortOrder: 4), "innhold");
         ct.AddPropertyType(Prop("startDato", "Startdato", _datePickerDt, mandatory: true, sortOrder: 5), "innhold");
@@ -2399,13 +2399,24 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tid", "Tid", _textStringDt, description: "Klokkeslett, f.eks. \"09:00-11:00\" eller \"Hele dagen\".", sortOrder: 7), "innhold");
         ct.AddPropertyType(Prop("sted", "Sted", _textStringDt, description: "Fysisk adresse eller \"Digitalt\".", sortOrder: 8), "innhold");
         ct.AddPropertyType(Prop("lenke", "Lenke", _textStringDt, description: "URL til påmelding eller mer info.", sortOrder: 9), "innhold");
-        ct.AddPropertyType(Prop("tagger", "Tagger", _textAreaDt, description: "Kommaseparert liste med tagger.", sortOrder: 10), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
         SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    // type -> Merkelapp (kommaseparert), og tagger droppes (slått sammen med merkelapp).
+    private void MigrateKalenderhendelse()
+    {
+        var ct = _contentTypeService.Get("kalenderhendelse");
+        if (ct == null) return;
+        bool changed = false;
+        changed |= SetPropLabel(ct, "type", "Merkelapp");
+        changed |= SetPropDescription(ct, "type", "Kommaseparert, f.eks. \"Frokostseminar, Offentlig\". Vises som merkelapp(er) på kortet.");
+        changed |= RemoveProp(ct, "tagger");
+        if (changed) _contentTypeService.Save(ct);
     }
 
     private IContentType CreateKalender()

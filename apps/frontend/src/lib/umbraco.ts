@@ -192,6 +192,7 @@ export interface Kalenderhendelse {
   documentId: string;
   tittel: string;
   slug: string;
+  /** Merkelapp(er), kommaseparert (f.eks. "Frokostseminar, Offentlig"). CMS-alias er fortsatt "type". */
   type?: string;
   ingress?: string;
   detaljertBeskrivelse?: UmbracoBlock[];
@@ -200,7 +201,6 @@ export interface Kalenderhendelse {
   tid?: string;
   sted?: string;
   lenke?: string;
-  tagger?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -787,7 +787,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tid: props.tid as string || undefined,
         sted: props.sted as string || undefined,
         lenke: props.lenke as string || undefined,
-        tagger: props.tagger as string || undefined,
       } as T;
 
     case 'kalender':
@@ -1409,7 +1408,6 @@ function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
     tid: p.tid || undefined,
     sted: p.sted || undefined,
     lenke: p.lenke || undefined,
-    tagger: p.tagger || undefined,
     createdAt: node.createDate || '',
     updatedAt: node.updateDate || '',
     publishedAt: node.createDate || '',
