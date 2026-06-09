@@ -42,7 +42,7 @@ const seoDescription = forside?.seoBeskrivelse || 'KI Norge - Norges nasjonale s
 const websiteJsonLd = websiteSchema(seoDescription);
 ---
 
-<Layout title={title} description={seoDescription} hideLogo>
+<Layout title={title} description={seoDescription} ogImage={forside?.seoBilde?.url} hideLogo>
   <h1 class="ds-sr-only">ki.norge.no - {title}</h1>
   
   <ForsideSeksjonerRenderer

@@ -117,7 +117,7 @@ if (guideData) {
     <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   </Layout>
 ) : guideData && guideCtx ? (
-  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} bodyColor="brand1">
+  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde?.url} bodyColor="brand1">
     <div class="article-page" data-layout-block="content">
       <div class="guide-header">
         <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>

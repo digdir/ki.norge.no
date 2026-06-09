@@ -67,7 +67,7 @@ const isMultiDay = (startIso: string, endIso?: string) => {
 const parseTagger = (s?: string) =>
   (s || '').split(',').map(t => t.trim()).filter(Boolean);
 ---
-<Layout title={seoTitle} description={seoDesc}>
+<Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde?.url}>
   <header class="kalender-header" data-layout-block="content">
     <h1 class="ds-heading" data-size="xl">{tittel}</h1>
     {ingress && <p class="kalender-ingress">{ingress}</p>}
