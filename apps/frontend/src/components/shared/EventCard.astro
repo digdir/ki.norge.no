@@ -32,16 +32,16 @@ const isLink = !!href;
 ---
 
 <div class:list={["event-card", { "event-card--clickable": isLink }]} data-clickdelegatefor={id}>
-  <div class="event-card-date">
+  <p class="event-card-date">
     <span class="event-card-day">{day}. {month}</span>
     <span class="event-card-year">{year}</span>
-  </div>
+  </p>
   <div class="event-card-body">
     <div class="event-card-info">
       {tags && tags.length > 0 && (
-        <div class="event-card-tags">
-          {tags.map(tag => <span class="ds-tag" data-size="sm">{tag}</span>)}
-        </div>
+        <ul class="event-card-tags">
+          {tags.map(tag => <li class="ds-tag" data-size="sm">{tag}</li>)}
+        </ul>
       )}
       {title && (
         <h3 class="ds-heading event-card-title" data-size="sm">
@@ -51,20 +51,20 @@ const isLink = !!href;
       {description && <p class="event-card-desc">{description}</p>}
     </div>
     {(time || location) && (
-      <div class="event-card-details">
+      <ul class="event-card-details">
         {time && (
-          <p>
+          <li>
             <AkselIcon name="Clock" size={20} />
             <span>{time}{timeNote && <><br/>{timeNote}</>}</span>
-          </p>
+          </li>
         )}
         {location && (
-          <p>
+          <li>
             <AkselIcon name="LocationPin" size={20} />
             <span>{location}</span>
-          </p>
+          </li>
         )}
-      </div>
+      </ul>
     )}
   </div>
 </div>
@@ -112,6 +112,9 @@ const isLink = !!href;
     display: flex;
     flex-wrap: wrap;
     gap: var(--ds-size-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
 
   .event-card-tag {
@@ -134,6 +137,7 @@ const isLink = !!href;
     padding-block: var(--ds-size-10);
     padding-inline: var(--ds-size-8);
     gap: var(--ds-size-3);
+    margin: 0;
   }
 
   .event-card-day {
@@ -169,6 +173,7 @@ const isLink = !!href;
     flex-direction: column;
     gap: var(--ds-size-4);
     padding-inline-start: var(--ds-size-6);
+    list-style: none;
   }
 
   .event-card-details p {

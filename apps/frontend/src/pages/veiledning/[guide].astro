@@ -120,13 +120,16 @@ if (guideData) {
       {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
     </div>
     <div class="article-page" data-layout-block="content">
+      <div class="veildedning-content u-rich-text">
+        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker?.filter((block) => block.contentType !== 'veiledningTrekkspill')} />
+      </div>
 
       <div class="guide-steps">
         <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
       </div>
 
       <div class="veildedning-content u-rich-text">
-        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker} />
+        <VeiledningBlocksRenderer blocks={guideData.innholdBlokker?.filter((block) => block.contentType === 'veiledningTrekkspill')} />
       </div>
     </div>
   </Layout>
