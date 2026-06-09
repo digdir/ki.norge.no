@@ -207,6 +207,10 @@ const isLink = !!href;
     .event-card-info {
       padding-inline-end: 0;
       padding-block-end: var(--ds-size-4);
+
+      &:not(:has(*)) {
+        display: none;
+      }
     }
 
     .event-card-details {
