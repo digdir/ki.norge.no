@@ -14,10 +14,10 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
     <h2 class="cookie-notice__title">{tittel}</h2>
     <div class="cookie-notice__text" set:html={beskrivelseHtml}></div>
     <div class="cookie-notice__actions">
-      <button id="ds-button cookie-notice-allow" type="button" class="cookie-notice__btn">
+      <button id="cookie-notice-allow" type="button" class="cookie-notice__btn">
         {jaLabel}
       </button>
-      <button id="ds-button cookie-notice-deny" type="button" class="cookie-notice__btn">
+      <button id="cookie-notice-deny" type="button" class="cookie-notice__btn">
         {neiLabel}
       </button>
     </div>

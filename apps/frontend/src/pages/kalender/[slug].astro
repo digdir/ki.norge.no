@@ -4,7 +4,7 @@ import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getKalenderhendelser, getArtikler, getPlainText, getMediaUrl, type Kalenderhendelse } from '../../lib/umbraco';
+import { getKalenderhendelser, getArtikler, getPlainText, getMediaUrl, MEDIA_WIDTH, type Kalenderhendelse } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
@@ -112,7 +112,7 @@ const påmeldingUrl = hendelse.lenke || '#';
             title={a.tittel}
             date={a.publishedAt}
             variant="image"
-            image={getMediaUrl(a.artikkelBilde)}
+            image={getMediaUrl(a.artikkelBilde, MEDIA_WIDTH.card)}
           />
         ))}
       </div>

@@ -7,6 +7,7 @@ import {
   getStegartikkel,
   getPlainText,
   getMediaUrl,
+  MEDIA_WIDTH,
 } from '../../../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../../../lib/seo';
 
@@ -27,7 +28,7 @@ const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 const heroImage = article.artikkelBilde || article.seoBilde;
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
-const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage) : undefined;
+const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage, MEDIA_WIDTH.hero) : undefined;
 
 const articleJsonLd = articleSchema({
   headline: seoTitle,

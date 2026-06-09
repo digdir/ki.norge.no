@@ -1,7 +1,7 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getArtikler, getArtiklerOversikt, getVeiledningGuider, getPlainText, getMediaUrl, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
+import { getArtikler, getArtiklerOversikt, getVeiledningGuider, getPlainText, getMediaUrl, MEDIA_WIDTH, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -35,7 +35,7 @@ guider.forEach(g => relatertById.set(g.id, g));
 
 function getImageUrl(article: Artikkel) {
   // Bruk getMediaUrl slik at media-URLen blir absolutt mot CMS-hosten.
-  return getMediaUrl(article.artikkelBilde);
+  return getMediaUrl(article.artikkelBilde, MEDIA_WIDTH.card);
 }
 
 function getTag(article: Artikkel) {

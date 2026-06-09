@@ -33,11 +33,36 @@ describe('toAbsoluteMediaUrl', () => {
 });
 
 describe('getMediaUrl', () => {
-  test('gjør media-objektets url absolutt', () => {
-    expect(lib.getMediaUrl({ url: '/media/a/b.jpg' } as never)).toBe(`${CMS}/media/a/b.jpg`);
+  test('gjør media-objektets url absolutt og default-optimaliserer (content-bredde, webp)', () => {
+    expect(lib.getMediaUrl({ url: '/media/a/b.jpg' } as never))
+      .toBe(`${CMS}/media/a/b.jpg?width=${lib.MEDIA_WIDTH.content}&format=webp&quality=80`);
+  });
+  test('respekterer eksplisitt bredde (f.eks. hero)', () => {
+    expect(lib.getMediaUrl({ url: '/media/a/b.jpg' } as never, lib.MEDIA_WIDTH.hero))
+      .toBe(`${CMS}/media/a/b.jpg?width=${lib.MEDIA_WIDTH.hero}&format=webp&quality=80`);
   });
   test('undefined media gir undefined', () => {
     expect(lib.getMediaUrl(undefined)).toBeUndefined();
+  });
+});
+
+describe('toAbsoluteMediaUrl med width (leveranse-resizing)', () => {
+  test('legger width/format/quality på relativ media-URL', () => {
+    expect(lib.toAbsoluteMediaUrl('/media/x/foo.jpg', 800))
+      .toBe(`${CMS}/media/x/foo.jpg?width=800&format=webp&quality=80`);
+  });
+  test('legger params på allerede-absolutt media-URL', () => {
+    expect(lib.toAbsoluteMediaUrl('https://cdn.example/x.jpg', 800))
+      .toBe('https://cdn.example/x.jpg?width=800&format=webp&quality=80');
+  });
+  test('hopper over SVG (vektor skal ikke rasteres)', () => {
+    expect(lib.toAbsoluteMediaUrl('/media/x/logo.svg', 800)).toBe(`${CMS}/media/x/logo.svg`);
+  });
+  test('hopper over GIF (bevarer animasjon)', () => {
+    expect(lib.toAbsoluteMediaUrl('/media/x/anim.gif', 800)).toBe(`${CMS}/media/x/anim.gif`);
+  });
+  test('uten width er media-URLen urørt (f.eks. og:image)', () => {
+    expect(lib.toAbsoluteMediaUrl('/media/x/foo.jpg')).toBe(`${CMS}/media/x/foo.jpg`);
   });
 });
 

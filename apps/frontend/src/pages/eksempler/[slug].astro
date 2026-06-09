@@ -4,7 +4,7 @@ import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 
-import { getEksempel, getEksempler, getPlainText, getMediaUrl, bakgrunnSurface, type Eksempel } from '../../lib/umbraco';
+import { getEksempel, getEksempler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakgrunnSurface, type Eksempel } from '../../lib/umbraco';
 import { eksempelSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
@@ -57,7 +57,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   <ArticleLayout publishedAt={article.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
     {heroImage?.url && (
       <div class="article-hero-image" data-layout-block="edge">
-        <img src={getMediaUrl(heroImage)} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+        <img src={getMediaUrl(heroImage, MEDIA_WIDTH.hero)} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
       </div>
     )}
 

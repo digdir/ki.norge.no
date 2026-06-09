@@ -9,7 +9,7 @@ import TextWithImage from '../../components/shared/TextWithImage.astro';
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
-import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getMediaUrl } from '../../lib/umbraco';
+import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getMediaUrl, MEDIA_WIDTH } from '../../lib/umbraco';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -29,7 +29,7 @@ try {
 
 const heroTitle = cmsData?.heroTittel || 'Guider & veiledning';
 const heroText = cmsData?.heroTekst || 'Lurer du på hva det er lurt å tenke på når du bruker KI eller lager KI-løsninger? Her finner du veiledninger laget og kvalitetssikret av jurister og andre fagfolk.';
-const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde) : undefined;
+const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde, MEDIA_WIDTH.hero) : undefined;
 
 // Featured article — "Kom i gang"
 const featuredTitle = cmsData?.seksjon1Kort?.[0]?.tittel || 'Hva er KI og hva kan du bruke det til?';

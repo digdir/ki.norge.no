@@ -12,10 +12,17 @@ import { defineMiddleware } from 'astro:middleware';
  *
  * Cache invalidation: Umbraco publishes trigger a Cloudflare cache purge
  * via webhook, so the next visitor gets a fresh render.
+ *
+ * Browser revalidation: HTML bruker s-maxage (delt/edge-cache) men max-age=0,
+ * must-revalidate for nettleseren. Uten dette serverte nettleseren cachet HTML
+ * stale i opptil 24t (stale-while-revalidate), og den HTML-en pekte på
+ * fingeravtrykk-hashede _astro/*.css fra en eldre build. En frontend-deploy
+ * roterer CSS-hashen og sletter den gamle fila, så stale HTML ga 404 på CSS-en
+ * og en ustylet side. Nettleseren må derfor alltid revalidere HTML mot edgen,
+ * som har gjeldende asset-hasher.
  */
 
-const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache
-const STALE_WHILE_REVALIDATE = 60 * 60 * 24; // serve stale for up to 24h while revalidating
+const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache (s-maxage)
 
 // Public hostnames that sit behind the holding page until launch. The
 // *.workers.dev preview URLs and localhost are intentionally NOT listed, so
@@ -155,10 +162,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return response;
   }
 
-  // Cache everything else at the edge
+  // Cache everything else at the edge (s-maxage), but force the browser to
+  // revalidate every navigation (max-age=0, must-revalidate). Det hindrer at
+  // nettleseren serverer stale HTML som peker på _astro-asset-hasher en senere
+  // deploy har slettet -> 404 på CSS/JS -> ustylet side.
   response.headers.set(
     'Cache-Control',
-    `public, s-maxage=${CACHE_MAX_AGE}, stale-while-revalidate=${STALE_WHILE_REVALIDATE}`,
+    `public, s-maxage=${CACHE_MAX_AGE}, max-age=0, must-revalidate`,
   );
 
   return response;
