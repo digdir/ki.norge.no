@@ -20,7 +20,7 @@ const INDEX = process.env.KI_INDEX || 'ki-content';
 const K = 5;
 
 // Recorded production baseline (no reranker, in-cluster int8 e5-large embeddings).
-const BASELINE = { hit1: 0.78, hit3: 0.87, mrr: 0.838 };
+const BASELINE = { hit1: 0.83, hit3: 0.93, mrr: 0.893 };
 const TOL = 0.03; // tolerate minor run-to-run noise; flag drops beyond this
 
 if (!ES || !KEY) { console.error('Missing ES_ENDPOINT / ES_API_KEY'); process.exit(2); }
@@ -68,7 +68,7 @@ const m = (pred) => { const s = ranks.filter(pred); const n = s.length; return {
 console.log(`\nGolden eval — index: ${INDEX}, reranker: ${RERANK || 'none (production)'}, ${rows.length} queries\n`);
 console.log(pad('group', 7) + pad('n', 4) + pad('Hit@1', 8) + pad('Hit@3', 8) + 'MRR');
 console.log('-'.repeat(35));
-for (const [g, pred] of groups) { const r = m(pred); console.log(pad(g, 7) + pad(r.n, 4) + pad(pct(r.h1), 8) + pad(pct(r.h3), 8) + r.mrr.toFixed(3)); }
+for (const [g, pred] of groups) { const r = m(pred); if (!r.n) continue; console.log(pad(g, 7) + pad(r.n, 4) + pad(pct(r.h1), 8) + pad(pct(r.h3), 8) + r.mrr.toFixed(3)); }
 
 const all = m(() => true);
 if (RERANK) { console.log('\n(variant run — not checked against the production baseline)'); process.exit(0); }

@@ -8,27 +8,30 @@ cd infrastructure/elasticsearch && node --env-file=.env eval/run-golden.mjs
 # variant (not checked against baseline):
 node --env-file=.env eval/run-golden.mjs --rerank .jina-reranker-v2-base-multilingual
 ```
-`run-golden.mjs` runs the 63-query golden set (`golden-ki.tsv`) and **exits non-zero
-if the ALL-group numbers drop more than 0.03 below the baseline**.
+`run-golden.mjs` runs the golden set (`golden-ki.tsv`) and **exits non-zero if the
+ALL-group numbers drop more than 0.03 below the baseline**.
 
 ## Current production config
 - **Embedding:** in-cluster, int8-quantized `multilingual-e5-large` (`e5-large-incluster`) — EU, on the deployment's ML nodes.
 - **Retrieval:** `linear` 0.4 BM25 / 0.6 dense (minmax), `rank_window_size` 50.
 - **Reranker:** **none** — keeps the whole query path in-cluster/EU (no user query text leaves to any external inference service).
 
-## Recorded baseline (no reranker)  — measured 2026-06-09, 63 queries
+## Recorded baseline (no reranker) — measured 2026-06-09
+**Corpus:** 60 production docs (Umbraco Delivery API, `cms-kinorgeportal-prod…workers.dev`), guidance-heavy (`veiledningSteg`/`enkelVeiledning`/`eksempel`/`artikkel`); no glossary/faq. **Golden set:** 46 queries (sem + kw, nb + nn) — re-derived from this corpus; **first-pass, relevance to be sanity-checked.**
+
 | group | n | Hit@1 | Hit@3 | MRR |
 |---|---|---|---|---|
-| ALL | 63 | 78% | 87% | **0.838** |
-| sem | 38 | 71% | 84% | 0.785 |
-| kw | 11 | 82% | 91% | 0.882 |
-| def | 14 | 93% | 93% | 0.946 |
-| nb | 55 | 80% | 87% | 0.851 |
-| nn | 8 | 63% | 88% | 0.750 |
+| ALL | 46 | 83% | 93% | **0.893** |
+| sem | 36 | 78% | 92% | 0.863 |
+| kw | 10 | 100% | 100% | 1.000 |
+| nb | 40 | 83% | 95% | 0.896 |
+| nn | 6 | 83% | 83% | 0.875 |
 
-Regression thresholds (ALL): Hit@1 ≥ 0.75, Hit@3 ≥ 0.84, MRR ≥ 0.808 (baseline − 0.03).
+Regression thresholds (ALL): Hit@1 ≥ 0.80, Hit@3 ≥ 0.90, MRR ≥ 0.863 (baseline − 0.03).
 
 ## Analysis behind the config
+Measured on the **prior 259-doc corpus** (mostly glossary), but the *relative* findings
+still drive the config decisions:
 
 **Reranker comparison** (same in-cluster e5-large dense leg, linear 0.4/0.6):
 | reranker | Hit@1 | Hit@3 | MRR | median latency | residency | license |
@@ -42,15 +45,15 @@ Regression thresholds (ALL): Hit@1 ≥ 0.75, Hit@3 ≥ 0.84, MRR ≥ 0.808 (base
 
 ## Decisions & rationale
 - **Embedding → in-cluster int8 e5-large.** ~Parity with EIS fp32 (Hit@3 95→94), ~5× faster, removes the EIS/OpenRouter dependency, keeps data in-EU. (fp32 didn't fit the ~2.2 GB ML tier at the time; ML has since autoscaled larger.)
-- **Reranker → none, for now.** A reranker adds ~+7 pp Hit@3 / +11 pp Hit@1, but:
+- **Reranker → none, for now.** A reranker added ~+7 pp Hit@3 / +11 pp Hit@1 on the prior corpus, but:
   - **jina** (best quality + fast) runs on **EIS in the US** and is **CC-BY-NC** (can't self-host for production).
   - **bge-reranker-v2-m3** matches jina's quality, is **Apache-2.0** and EU, but in-cluster CPU reranking is **~3.8 s** (Serverless ML is CPU-only).
   - **rerank-v1** is slow *and* weak (esp. nynorsk).
-  - No-rerank keeps it fast + fully in-EU. Accepted the quality dip for now.
+  - No-rerank keeps it fast + fully in-EU. Accepted the quality dip for now (and on the leaner production corpus, no-rerank already reaches Hit@3 93%).
 - **Deferred reranker path (EU + fast + quality):** host bge-reranker-v2-m3 on a **GPU in an EU Azure region** (TEI / Azure AI Foundry) and connect via Elasticsearch's `hugging_face` rerank inference service. Revisit if the quality bump is wanted.
 
 ## Caveat
-The golden targets are content **slugs** for the current corpus snapshot (259 docs,
-crawler-extracted). If the index content changes substantially, refresh
-`golden-ki.tsv` and re-record the baseline above — otherwise score drops may reflect
-content changes, not retrieval regressions.
+The golden targets are content **slugs** for the current production corpus (60 docs).
+If the index content changes substantially, refresh `golden-ki.tsv` + re-record the
+baseline above — otherwise score drops may reflect content changes, not retrieval
+regressions. The golden set is a first-pass derivation; review query→target relevance.
