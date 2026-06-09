@@ -1,6 +1,6 @@
 # Hybrid search (ki.norge.no)
 
-Search-only hybrid retrieval on Elastic Cloud Serverless: **BM25 (norwegian analyzer) + dense vector search (E5-large `semantic_text`) fused + jina rerank**. No LLM, no Azure OpenAI, no Agent Builder — the lowest-risk slice, production-ready.
+Search-only hybrid retrieval on Elastic Cloud Serverless: **BM25 (norwegian analyzer) + dense vector search (in-cluster E5-large `semantic_text`) fused with a weighted-linear retriever (0.4/0.6), no reranker**. No LLM, no Azure OpenAI, no Agent Builder — the lowest-risk slice. The whole query path is in-cluster/EU (no user query text leaves to an external inference service).
 
 Content is **pushed** into the index by the Umbraco CMS on publish/unpublish (no crawler); the index mapping is **infrastructure as code**; retrieval runs in the Astro frontend.
 
@@ -12,7 +12,7 @@ apps/cms-umbraco (Umbraco) ──publish/unpublish/trash──▶  Elastic index
    + /search/reindex (backfill)                                   │
                                                                   │
 /sok  ──hybridSearch()──▶ /ki-content/_search  ───────────────────┘
-(SSR, apps/frontend)      linear 0.4 bm25 / 0.6 dense + jina rerank
+(SSR, apps/frontend)      linear 0.4 bm25 / 0.6 dense (no reranker)
 ```
 
 ### Ingestion (push) — `apps/cms-umbraco/Search/`
@@ -30,7 +30,7 @@ The index mapping is an Elasticsearch **component + index template** (versioned 
 - `setup-incluster-embedding.mjs` — provisions `e5-large-incluster` (starts the e5-large deployment, min 1 warm + creates the endpoint). Prerequisite: the model is imported once with Eland — see the folder README.
 
 ### Retrieval + surface — `apps/frontend/`
-- **`src/lib/search.ts`** — `hybridSearch(query)`: the tuned retriever (verified Hit@3 ≈ 100% on the golden set) via `fetch` (Workers-safe). Falls back to Umbraco search when ES is unconfigured.
+- **`src/lib/search.ts`** — `hybridSearch(query)`: the `linear` 0.4/0.6 retriever, **no reranker** (golden-set Hit@3 ≈ 87% / MRR 0.838 — see `infrastructure/elasticsearch/eval/BASELINE.md`), via `fetch` (Workers-safe). Falls back to Umbraco search when ES is unconfigured.
 - **`src/pages/sok.astro`** — search page (SSR): reads `?q=`, calls `hybridSearch`, shows ranked hits (type badge + title + excerpt), links via the `url` (made relative for same-host nav).
 - **`src/pages/api/search.ts`** — `POST { query } → { results }` for optional client use.
 - **Header** — a search icon linking to `/sok`.
@@ -53,7 +53,7 @@ Secrets stay out of git: the CMS reads them from Azure Key Vault (`Elasticsearch
 
 ## Production notes
 - **Keys:** scoped, read-only ES key for the frontend (retrieval); a write-capable key for the CMS. Rotate the spike admin key before non-demo use.
-- **Inference / data residency:** the dense embedding runs **in-cluster** (int8 E5-large via `e5-large-incluster`) — no EIS/third-party round-trip, ~5× lower query latency (median ~190 ms vs ~990 ms on EIS), and content stays in the deployment. The deployment runs with adaptive allocations **min 1** to stay warm (continuous VCU cost; drop to min 0 for scale-to-zero + cold starts). The **jina reranker is still on EIS** — moving it in-cluster (Eland-import the jina model) is the planned follow-up for a fully EIS-free pipeline. Quality vs EIS fp32 e5-large on the 63-query golden set: Hit@3 95→94%, MRR 0.929→0.905 (int8 trade-off).
+- **Inference / data residency:** the dense embedding runs **in-cluster** (int8 E5-large via `e5-large-incluster`) and there is **no reranker**, so the entire query path stays in the deployment — **no user query text leaves to any external inference service** (fully EU). ~5× lower latency than the prior EIS embedding. Adaptive allocations: pin **min 1** for interactive use (currently **min 0** to save cost in dev → first query after idle cold-starts). Reranker options were evaluated and deferred (jina = EIS/US + CC-BY-NC; in-cluster bge = Apache-2.0/EU but ~3.8 s CPU; deferred EU+fast path = bge on an EU Azure GPU via the `hugging_face` connector) — numbers + decision in `infrastructure/elasticsearch/eval/BASELINE.md`.
 - **Initial backfill / cutover:** apply templates, then run the CMS reindex endpoint once to populate `ki-content`. A clean rebuild is `DELETE ki-content` → apply-templates → reindex. Steady-state freshness is handled by the publish/unpublish handlers.
 - **Index name** `ki-content`; the `ki-content*` template pattern already covers a family for per-portal indices when info.altinn.no is added.
 - **State-managed IaC (optional):** templates can be managed with Terraform (`elasticstack_elasticsearch_component_template` / `_index_template`) for drift detection — warranted only if Terraform is already in use.

@@ -10,7 +10,9 @@ frontend's `hybridSearch`.
 The dense embedding runs **in-cluster** (int8-quantized E5-large on the deployment's
 own ML nodes) — no Elastic Inference Service / third-party round-trip, so query
 content stays inside the deployment and embedding latency is ~5× lower than EIS.
-The reranker is still jina on EIS (a planned follow-up moves it in-cluster too).
+There is **no reranker** — the dense + lexical hybrid keeps the entire query path
+in-cluster/EU (no user query text ever leaves the deployment). Reranker options were
+evaluated and deferred — see `eval/BASELINE.md`.
 
 ## Files
 - `ki-content.component-template.json` — the mappings (`body_semantic.inference_id` = `e5-large-incluster`).
@@ -19,6 +21,8 @@ The reranker is still jina on EIS (a planned follow-up moves it in-cluster too).
 - `setup-incluster-embedding.mjs` — starts the e5-large deployment (warm, min 1) + creates the `e5-large-incluster` endpoint.
 - `crawl-umbraco.mjs` — extracts all indexable content from the Umbraco Delivery API (`{id,title,url,body,language,type}`).
 - `rebuild-from-umbraco.mjs` — local (re)build of the index from that extract (dev/backfill; the CMS push is the production path).
+- `eval/golden-ki.tsv` + `eval/run-golden.mjs` — 63-query golden-set regression eval (exits non-zero if quality drops below baseline).
+- `eval/BASELINE.md` — recorded baseline numbers + the reranker/embedding analysis behind the current config.
 
 ## In-cluster embedding setup (one-time, prerequisite)
 The `e5-large-incluster` endpoint references a trained model that must be imported
@@ -95,11 +99,13 @@ Compare the resolved mapping with `ki-content.component-template.json`.
 ## Notes (Serverless)
 - Shards/replicas/ILM are platform-managed, so the template carries mappings only;
   `norwegian` is a built-in analyzer.
-- The embedding deployment runs with **adaptive allocations, min 1** so it stays
-  warm for the interactive search box — that allocation bills continuously (VCU).
-  Drop to `min 0` to scale-to-zero if you accept cold-start latency on idle.
-- The jina reranker (`.jina-reranker-v2-base-multilingual`) is still EIS; moving it
-  in-cluster (Eland-import the jina model) is the planned follow-up for a fully
-  EIS-free pipeline.
+- The embedding deployment uses **adaptive allocations**. For an interactive search
+  box pin **min 1** (stays warm, bills continuously); it is currently **min 0**
+  (scale-to-zero) to save cost in dev — the first query after idle cold-starts e5-large.
+- **No reranker** is used — the hybrid (BM25 + dense) query path is fully in-cluster/EU.
+  Rerankers were evaluated (`eval/BASELINE.md`): jina (EIS) is best + fast but US +
+  CC-BY-NC; in-cluster bge-reranker-v2-m3 matches its quality (Apache-2.0, EU) but
+  reranks in ~3.8 s on CPU. Deferred EU+fast+quality option: bge on a GPU in an EU
+  Azure region (TEI) wired via the `hugging_face` rerank inference service.
 - For state-managed IaC (drift detection, multi-env), the templates can be managed
   with Terraform (`elasticstack_elasticsearch_component_template` / `_index_template`).
