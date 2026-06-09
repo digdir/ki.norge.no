@@ -1024,6 +1024,14 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
+        // Backoffice-ikon: bytt advarselstrekant til "merk deg dette" (Dorte).
+        // Publisert side bruker HandKnot; her oppdateres eksisterende noder i prod/tt02.
+        if (ct.Icon != "icon-pushpin")
+        {
+            ct.Icon = "icon-pushpin";
+            changed = true;
+        }
+
         if (changed)
             _contentTypeService.Save(ct);
     }
