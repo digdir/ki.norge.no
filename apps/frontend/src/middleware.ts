@@ -35,6 +35,18 @@ const GATED_HOSTS = new Set(['ki.norge.no', 'ki.test.norge.no']);
 // To go live: set LAUNCH_MODE=live for that env in wrangler.jsonc and deploy.
 const LAUNCH_MODE = process.env.LAUNCH_MODE || import.meta.env.LAUNCH_MODE || '';
 
+// Branding-/delingsassets som alltid skal kunne hentes, selv mens hosten er
+// gated. Slik kan lenkeforhandsvisninger (og:image) og favicon hentes for
+// lansering uten a eksponere sideinnhold. Kun statiske merkevarefiler her,
+// ikke JS-bundles eller sider.
+const PUBLIC_ASSET_PATHS = new Set([
+  '/og-image.png',
+  '/og-image.svg',
+  '/favicon.svg',
+  '/favicon.ico',
+  '/manifest.webmanifest',
+]);
+
 const COMING_SOON_HTML = `<!doctype html>
 <html lang="nb">
 <head>
@@ -95,8 +107,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (isComingSoon) {
     const isApiRoute = url.pathname.startsWith('/api/');
     const hasAdminCookie = cookies.has('ki_admin');
+    const isPublicAsset = PUBLIC_ASSET_PATHS.has(url.pathname);
 
-    if (!isApiRoute && !hasAdminCookie) {
+    if (!isApiRoute && !hasAdminCookie && !isPublicAsset) {
       return new Response(COMING_SOON_HTML, {
         status: 200,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },

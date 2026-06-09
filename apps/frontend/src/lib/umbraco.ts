@@ -521,7 +521,7 @@ interface CompatResponse<T> {
 
 // ── Umbraco RichText JSON → HTML converter ──────────────────────
 
-import { applyDsClasses } from './richtext-classes';
+import { applyDsClasses, normalizeNbsp } from './richtext-classes';
 
 interface RichTextNode {
   tag: string;
@@ -543,7 +543,7 @@ export function absolutizeMediaUrls(html: string): string {
 function richTextToHtml(node: RichTextNode): string {
   // Text node
   if (node.tag === '#text') {
-    return escapeHtml(node.text || '');
+    return escapeHtml(normalizeNbsp(node.text || ''));
   }
 
   // Root node — render children, then tag designsystem classes onto bare
