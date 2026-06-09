@@ -79,6 +79,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={a.tittel}
             date={a.publishedAt}
             lead={getPlainText(a.innhold, 80)}
+            image={getMediaUrl(a.artikkelBilde)}
             variant="image"
           />
         ))}
