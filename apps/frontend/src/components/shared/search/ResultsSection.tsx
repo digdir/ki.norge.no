@@ -39,14 +39,14 @@ export default function ResultsSection({
         {results.map((r) => (
           <li key={r.url} className="search-result-item">
             <p className="search-result-headline">
-              {TYPE_LABELS[r.type] && (
-                <span className="ds-tag search-result-tag" data-color="neutral" data-size="sm">
-                  {TYPE_LABELS[r.type]}
-                </span>
-              )}
               <Link href={r.url} className="search-result-title" onClick={onNavigate}>
                 {r.title}
               </Link>
+              {TYPE_LABELS[r.type] && (
+                <span className="ds-tag search-result-tag" data-color="accent" data-size="sm">
+                  {TYPE_LABELS[r.type]}
+                </span>
+              )}
             </p>
             <p className="search-result-excerpt">{r.excerpt}</p>
             <p className="search-result-url">{prettyUrl(r.url)}</p>
