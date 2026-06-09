@@ -77,12 +77,12 @@ const parseTagger = (s?: string) =>
     const multiDay = isMultiDay(featured.startDato, featured.sluttDato);
     const featuredRange = formatDateRange(featured.startDato, featured.sluttDato);
     return (
-      <section class="kalender-featured" data-layout-block="edge">
+      <section class="kalender-featured" data-layout-block="edge" data-clickdelegatefor="featured-event">
         <div class="kalender-featured-inner" data-layout-block="content">
-          <h2 class="ds-heading" data-size="lg">{featured.tittel}</h2>
+          <h2 class="ds-heading" data-size="lg"><a id="featured-event" href={`/kalender/${featured.slug}`}>{featured.tittel}</a></h2>
           {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
           <EventCard
-            title={featured.tittel || ''}
+            title={''}
             tags={parseTagger(featured.tagger)}
             day={featuredRange.dateLabel.charAt(featuredRange.dateLabel.length - 1) === '.' && !multiDay ? featuredRange.dateLabel.slice(0, -1) : featuredRange.dateLabel}
             month={featuredRange.month}
@@ -90,7 +90,6 @@ const parseTagger = (s?: string) =>
             time={featured.tid || ''}
             timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
             location={featured.sted || ''}
-            href={`/kalender/${featured.slug}`}
           />
         </div>
       </section>
@@ -179,6 +178,28 @@ const parseTagger = (s?: string) =>
     background: var(--ds-color-base-active);
     color: var(--ds-color-base-contrast-default);
     padding-block: var(--ds-size-10);
+    cursor: pointer;
+
+    &:has(a:focus-visible) {
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+      box-shadow: var(--dsc-focus-boxShadow);
+    }
+
+    &:hover {
+      & a {
+        text-decoration: underline;
+      }
+    }
+
+    & a {
+      color: inherit;
+      text-decoration: none;
+
+      &:focus-visible {
+        outline: none;
+      }
+    }
 
     @media (min-width: 768px) {
       & :global(.event-card) {
