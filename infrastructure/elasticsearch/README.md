@@ -17,6 +17,8 @@ The reranker is still jina on EIS (a planned follow-up moves it in-cluster too).
 - `ki-content.index-template.json` — composes the component template, matches `ki-content*`.
 - `apply-templates.mjs` — registers/updates both templates (idempotent, zero-dep).
 - `setup-incluster-embedding.mjs` — starts the e5-large deployment (warm, min 1) + creates the `e5-large-incluster` endpoint.
+- `crawl-umbraco.mjs` — extracts all indexable content from the Umbraco Delivery API (`{id,title,url,body,language,type}`).
+- `rebuild-from-umbraco.mjs` — local (re)build of the index from that extract (dev/backfill; the CMS push is the production path).
 
 ## In-cluster embedding setup (one-time, prerequisite)
 The `e5-large-incluster` endpoint references a trained model that must be imported
@@ -65,6 +67,23 @@ node --env-file=.env apply-templates.mjs
 # then trigger a full reindex from the CMS backoffice:
 #   POST /umbraco/management/api/v1/search/reindex   (admin auth)
 ```
+
+## Local rebuild from Umbraco (restored crawler)
+A standalone alternative to the CMS push, for local dev/backfill/evals — pulls the
+Delivery API and writes documents directly (mapping still owned by the template):
+```sh
+cp .env.example .env   # + UMBRACO_URL / UMBRACO_PUBLIC_URL
+node --env-file=.env apply-templates.mjs                  # ensure mapping (once)
+node --env-file=.env rebuild-from-umbraco.mjs --rebuild   # DROP + rebuild the index
+# or idempotent upsert by content GUID (no drop):
+node --env-file=.env rebuild-from-umbraco.mjs
+```
+Indexes only *indexable* content (listing/taxonomy containers skipped, <20-char
+bodies dropped) — ~259 docs, mostly glossary (`ordbokOppslag`). Documents are keyed
+by content GUID, matching the CMS push, so the two are interchangeable. The CMS push
+(publish events + `POST /search/reindex`) stays the production path; this crawler is
+for local rebuilds. **Both modes write to `KI_INDEX` (default `ki-content`); `--rebuild`
+deletes it first.**
 
 ## Inspect drift
 ```sh
