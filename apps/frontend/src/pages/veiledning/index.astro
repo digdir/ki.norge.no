@@ -82,7 +82,7 @@ const seoTitle = cmsData?.seoTittel || 'Guider & veiledning';
 const seoDesc = cmsData?.seoBeskrivelse || heroText;
 ---
 
-<Layout title={seoTitle} description={seoDesc}>
+<Layout title={seoTitle} description={seoDesc} ogImage={cmsData?.seoBilde?.url}>
   <!-- Hero -->
   <section class="veil-hero" data-layout-block="content">
     <h1 class="ds-heading" data-size="xl">{heroTitle}</h1>

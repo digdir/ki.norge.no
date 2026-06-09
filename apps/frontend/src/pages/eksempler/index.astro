@@ -61,7 +61,7 @@ const fallbackSeksjoner: EksemplerSeksjon[] = [
 const seksjoner = oversikt?.seksjoner?.length ? oversikt.seksjoner : fallbackSeksjoner;
 ---
 
-<Layout title={seoTitle} description={seoDesc}>
+<Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde?.url}>
   <div class="eksempler-page">
     <header class="eksempler-header" data-layout-block="content">
       <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>
