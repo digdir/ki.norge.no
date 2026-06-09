@@ -1,6 +1,6 @@
 /**
  * Styles for every artikkel block module rendered by <ArticleBlocksRenderer />.
- * Used by artikler/[slug], caser/[slug], sandkasse/index — anywhere we render
+ * Used by artikler/[slug], eksempler/[slug], sandkasse/index — anywhere we render
  * the artikkel block list.
  *
  * Keep all module styles here. The page-level layout (hero, "Flere artikler",

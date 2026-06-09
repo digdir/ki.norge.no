@@ -6,7 +6,7 @@
     "forside": { "performance": 84, "accessibility": 100, "best-practices": 100, "seo": 100 },
     "artikler-list": { "performance": 85, "accessibility": 100, "best-practices": 100, "seo": 100 },
     "artikkel-detail": { "performance": 87, "accessibility": 100, "best-practices": 100, "seo": 100 },
-    "caser-list": { "performance": 86, "accessibility": 100, "best-practices": 100, "seo": 100 },
+    "eksempler-list": { "performance": 86, "accessibility": 100, "best-practices": 100, "seo": 100 },
     "veiledning": { "performance": 85, "accessibility": 100, "best-practices": 100, "seo": 100 },
     "sandkasse": { "performance": 69, "accessibility": 100, "best-practices": 100, "seo": 100, "note": "302 redirects to / because no Sandkasse content on prod yet (LAUNCH_MODE=production). Score reflects redirect chain. Re-baseline once Sara creates the prod Sandkasse." },
     "ki-ordbok": { "performance": 93, "accessibility": 100, "best-practices": 100, "seo": 100 },

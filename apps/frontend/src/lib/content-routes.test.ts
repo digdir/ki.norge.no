@@ -17,7 +17,7 @@ describe('buildUrlForContent', () => {
   describe('flate content types (kun {slug} eller statisk)', () => {
     test.each([
       ['artikkel', 'min-artikkel', '/artikler/min-artikkel'],
-      ['eksempel', 'min-case', '/caser/min-case'],
+      ['eksempel', 'min-case', '/eksempler/min-case'],
       ['enkelVeiledning', 'kom-igang', '/veiledning/kom-igang'],
       ['veiledningGuide', 'sett-igang-med-ki', '/veiledning/sett-igang-med-ki'],
       ['side', 'kontakt', '/kontakt'],
