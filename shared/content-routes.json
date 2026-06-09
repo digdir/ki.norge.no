@@ -1,0 +1,24 @@
+{
+  "$comment": "Single source of truth for content-type to frontend-URL mapping. Consumed by both apps/frontend (RTE internal link resolution, see lib/umbraco.ts) and apps/cms-umbraco (editor preview URL, see HeadlessPreviewUrlProvider.cs). When adding a new content type, add its pattern here.",
+  "patternSyntax": {
+    "{slug}": "the item's own slug field",
+    "{<contentTypeAlias>.slug}": "slug of an ancestor with that content type alias; resolver returns null/'#' if the ancestor cannot be found"
+  },
+  "routes": {
+    "artikkel": "/artikler/{slug}",
+    "eksempel": "/caser/{slug}",
+    "enkelVeiledning": "/veiledning/{slug}",
+    "veiledningGuide": "/veiledning/{slug}",
+    "veiledningSteg": "/veiledning/{veiledningGuide.slug}/{slug}",
+    "stegartikkel": "/veiledning/{veiledningGuide.slug}/{veiledningSteg.slug}/{slug}",
+    "side": "/{slug}",
+    "forside": "/",
+    "omOss": "/om-oss",
+    "sandkasse": "/sandkasse",
+    "artikler": "/artikler",
+    "eksempler": "/eksempler",
+    "kalender": "/kalender",
+    "kalenderhendelse": "/kalender",
+    "veiledninger": "/veiledning"
+  }
+}
