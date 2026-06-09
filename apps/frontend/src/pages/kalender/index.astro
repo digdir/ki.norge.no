@@ -2,6 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import EventCard from '../../components/shared/EventCard.astro';
 import { getKalender, getKalenderhendelser, type Kalenderhendelse } from '../../lib/umbraco';
+import { hendelseTilEventCard } from '../../lib/kalender';
 
 let kalender = null;
 let hendelser: Kalenderhendelse[] = [];
@@ -39,63 +40,22 @@ const tidligere = hendelser
   .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
-
-const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
-const formatDate = (iso: string) => {
-  if (!iso) return { day: '', month: '', year: '' };
-  const d = new Date(iso);
-  return { day: String(d.getDate()), month: monthNames[d.getMonth()], year: String(d.getFullYear()) };
-};
-const formatDateRange = (startIso: string, endIso?: string) => {
-  const start = new Date(startIso);
-  const end = endIso ? new Date(endIso) : null;
-  const startDay = start.getDate();
-  const startMonth = monthNames[start.getMonth()];
-  const startYear = start.getFullYear();
-  if (!end || end.getTime() === start.getTime()) {
-    return { dateLabel: `${startDay}.`, month: startMonth, year: String(startYear) };
-  }
-  const endDay = end.getDate();
-  return { dateLabel: `${startDay}. — ${endDay}.`, month: startMonth, year: String(startYear) };
-};
-const isMultiDay = (startIso: string, endIso?: string) => {
-  if (!endIso) return false;
-  const s = new Date(startIso);
-  const e = new Date(endIso);
-  return e.getTime() > s.getTime() && e.toDateString() !== s.toDateString();
-};
-const parseTagger = (s?: string) =>
-  (s || '').split(',').map(t => t.trim()).filter(Boolean);
 ---
-<Layout title={seoTitle} description={seoDesc}>
+<Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde?.url}>
   <header class="kalender-header" data-layout-block="content">
     <h1 class="ds-heading" data-size="xl">{tittel}</h1>
     {ingress && <p class="kalender-ingress">{ingress}</p>}
   </header>
 
-  {featured && (() => {
-    const featuredDate = formatDate(featured.startDato);
-    const multiDay = isMultiDay(featured.startDato, featured.sluttDato);
-    const featuredRange = formatDateRange(featured.startDato, featured.sluttDato);
-    return (
-      <section class="kalender-featured" data-layout-block="edge">
-        <div class="kalender-featured-inner" data-layout-block="content">
-          <h2 class="ds-heading" data-size="lg">{featured.tittel}</h2>
-          {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
-          <EventCard
-            title={featured.type || ''}
-            tags={parseTagger(featured.tagger)}
-            day={featuredRange.dateLabel}
-            month={featuredRange.month}
-            year={featuredRange.year}
-            time={featured.tid || ''}
-            timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
-            location={featured.sted || ''}
-          />
-        </div>
-      </section>
-    );
-  })()}
+  {featured && (
+    <section class="kalender-featured" data-layout-block="edge" data-clickdelegatefor="featured-event">
+      <div class="kalender-featured-inner" data-layout-block="content">
+        <h2 class="ds-heading" data-size="lg"><a id="featured-event" href={`/kalender/${featured.slug}`}>{featured.tittel}</a></h2>
+        {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
+        <EventCard {...hendelseTilEventCard(featured, { variant: 'featured', clickable: false })} />
+      </div>
+    </section>
+  )}
 
   <section class="kalender-arrangementer" data-layout-block="content">
     <h2 class="ds-heading" data-size="md">Arrangementer</h2>
@@ -111,23 +71,9 @@ const parseTagger = (s?: string) =>
           <p class="kalender-empty">Ingen kommende arrangement.</p>
         ) : (
           <div class="kalender-list">
-            {kommende.map(h => {
-              const date = formatDate(h.startDato);
-              const multiDay = isMultiDay(h.startDato, h.sluttDato);
-              return (
-                <EventCard
-                  title={h.tittel}
-                  description={h.ingress || ''}
-                  tags={parseTagger(h.tagger)}
-                  day={date.day}
-                  month={date.month}
-                  year={date.year}
-                  time={h.tid || ''}
-                  timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
-                  location={h.sted || ''}
-                />
-              );
-            })}
+            {kommende.map(h => (
+              <EventCard {...hendelseTilEventCard(h)} />
+            ))}
           </div>
         )}
       </ds-tabpanel>
@@ -137,21 +83,9 @@ const parseTagger = (s?: string) =>
           <p class="kalender-empty">Ingen tidligere arrangement.</p>
         ) : (
           <div class="kalender-list">
-            {tidligere.map(h => {
-              const date = formatDate(h.startDato);
-              return (
-                <EventCard
-                  title={h.tittel}
-                  description={h.ingress || ''}
-                  tags={parseTagger(h.tagger)}
-                  day={date.day}
-                  month={date.month}
-                  year={date.year}
-                  time={h.tid || ''}
-                  location={h.sted || ''}
-                />
-              );
-            })}
+            {tidligere.map(h => (
+              <EventCard {...hendelseTilEventCard(h, { clickable: false })} />
+            ))}
           </div>
         )}
       </ds-tabpanel>
@@ -178,12 +112,68 @@ const parseTagger = (s?: string) =>
     background: var(--ds-color-base-active);
     color: var(--ds-color-base-contrast-default);
     padding-block: var(--ds-size-10);
+    cursor: pointer;
+
+    &:has(a:focus-visible) {
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+      box-shadow: var(--dsc-focus-boxShadow);
+    }
+
+    &:hover {
+      & a {
+        text-decoration: underline;
+      }
+    }
+
+    & a {
+      color: inherit;
+      text-decoration: none;
+
+      &:focus-visible {
+        outline: none;
+      }
+    }
+
+    @media (min-width: 768px) {
+      & :global(.event-card) {
+        grid-template-columns: 180px 1fr;
+      }
+    }
+
+    & :global(.event-card-day) {
+      text-align: left;
+    }
+
+    & :global(.event-card-body) {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    & :global(.event-card-info) {
+      padding-inline-end: 0;
+    }
+
+    & :global(.event-card-details) {
+      padding-inline-start: 0;
+      border-top: none;
+      padding-block-start: 0;
+    }
   }
 
   .kalender-featured-inner {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-6);
+    padding-inline: var(--ds-size-22);
+
+    @media (max-width: 1024px) {
+      padding-inline: 0;
+    }
+
+    & h2 {
+      word-break: break-word;
+    }
   }
 
   .kalender-featured-ingress {

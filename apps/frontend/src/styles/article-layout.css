@@ -22,12 +22,12 @@
 --article-layout-content-max-width: 680px;
 --article-layout-gutter: calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2));
 --article-layout-columns:
-var(--article-layout-gutter)
-1fr
-var(--article-layout-gap)
-minmax(0, var(--article-layout-content-max-width))
-0.5fr
-var(--article-layout-gutter);
+  var(--article-layout-gutter)
+  1fr
+  var(--article-layout-gap)
+  minmax(0, var(--article-layout-content-max-width))
+  0.5fr
+  var(--article-layout-gutter);
 }
 @layer article-layout {
 
@@ -76,13 +76,13 @@ var(--article-layout-gutter);
 /* ── Article hero ── */
 .article-hero {
   padding-block-start: var(--ds-size-30);
-  padding-block-end: var(--ds-size-8);
+  padding-block-end: var(--ds-size-10);
   padding-inline: 0;
   display: grid;
   grid-template-columns: var(--article-layout-columns);
 }
 
-.article-title {
+.article-titl, .article-hero-inner {
   grid-column: 4;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -132,7 +132,7 @@ var(--article-layout-gutter);
   flex-direction: column;
   gap: var(--ds-size-1);
   color: var(--ds-color-text-default);
-  font-family: 'PT Serif', serif;
+  font-family: var(--ki-heading-font);
 }
 
 .article-layout__metadata-label {
@@ -149,11 +149,11 @@ var(--article-layout-gutter);
 
 /* ── Article ingress (shared) ── */
 .article-ingress {
-  font-family: 'PT Serif', serif;
+  font-family: var(--ki-heading-font);
   font-size: var(--ds-font-size-7);
   line-height: 1.5;
   margin: 0;
-  margin-block-end: var(--ds-size-6);
+  margin-block-end: var(--ds-size-8);
 }
 
 }

@@ -48,7 +48,7 @@ const moduleIcons: Record<string, string> = {
         {item.blocks.map((block) => (
           <details class="ds-details">
             <summary>{block.content.tittel}</summary>
-            <div set:html={block.content.innhold} />
+            <div class="trekkspill-innhold" set:html={block.content.innhold} />
           </details>
         ))}
       </div>
@@ -58,7 +58,7 @@ const moduleIcons: Record<string, string> = {
   const block = item.block;
 
   if (block.contentType === 'veiledningTekst') {
-    return <div class="veiledning-tekst" set:html={block.content.innhold} />;
+    return <Fragment set:html={block.content.innhold} />;
   }
 
   if (block.contentType === 'veiledningInfo'
@@ -66,6 +66,8 @@ const moduleIcons: Record<string, string> = {
     || block.contentType === 'veiledningObs') {
     const c = block.content;
     const tekst = block.contentType === 'veiledningObs' ? c.tekst : c.innhold;
+    // Obs-modulen har valgfri tittel: tom tittel vises som "Obs" (Dorte).
+    const tittel = block.contentType === 'veiledningObs' ? (c.tittel || 'Obs') : c.tittel;
     const ikon = moduleIcons[block.contentType];
     const trekkspill = block.contentType === 'veiledningInfo' ? c.trekkspill as TrekkspillItem[] | undefined : undefined;
     const lesMerTittel = block.contentType === 'veiledningInfo' ? c.lesMerTittel as string | undefined : undefined;
@@ -75,15 +77,15 @@ const moduleIcons: Record<string, string> = {
       <div class="ds-card veiledning-modul" data-variant="tinted" data-type={variantType}>
         <div class="veiledning-modul-head">
           <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
-          {c.tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{c.tittel}</h3>}
+          {tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{tittel}</h3>}
         </div>
         <div class="veiledning-modul-body" set:html={tekst} />
         {trekkspill && trekkspill.length > 0 && (
-          <div class="veiledning-modul-trekkspill">
+          <div class="ds-card" data-variant="tinted">
             {trekkspill.map((t) => (
               <details class="ds-details">
                 <summary>{t.tittel}</summary>
-                <div set:html={t.innhold} />
+                <div class="trekkspill-innhold" set:html={t.innhold} />
               </details>
             ))}
           </div>
@@ -102,14 +104,7 @@ const moduleIcons: Record<string, string> = {
 })}
 
 <style>
-  .veiledning-tekst {
-    font-size: var(--ds-body-md-font-size);
-    line-height: var(--ds-body-md-line-height);
-  }
-  .veiledning-tekst :global(p) {
-    margin: 0 0 var(--ds-size-3);
-  }
-  .veiledning-tekst :global(p:last-child) {
+  .veiledning-tekst :global(*:last-child) {
     margin-bottom: 0;
   }
   .veiledning-tekst :global(ul),
@@ -118,6 +113,27 @@ const moduleIcons: Record<string, string> = {
     padding-inline-start: var(--ds-size-6);
   }
   .veiledning-tekst :global(li) {
+    margin-bottom: var(--ds-size-1);
+  }
+
+  /* Rik tekst i trekkspill-kroppen. Uten dette har avsnitt (Enter i RTE) ingen
+     margin (ds-paragraph er margin-løs) og linjeskift forsvinner. (#393) */
+  .trekkspill-innhold {
+    font-size: var(--ds-body-md-font-size);
+    line-height: var(--ds-body-md-line-height);
+  }
+  .trekkspill-innhold :global(p) {
+    margin: 0 0 var(--ds-size-3);
+  }
+  .trekkspill-innhold :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .trekkspill-innhold :global(ul),
+  .trekkspill-innhold :global(ol) {
+    margin: var(--ds-size-2) 0 var(--ds-size-3);
+    padding-inline-start: var(--ds-size-6);
+  }
+  .trekkspill-innhold :global(li) {
     margin-bottom: var(--ds-size-1);
   }
 
@@ -159,12 +175,6 @@ const moduleIcons: Record<string, string> = {
   }
   .veiledning-modul-body :global(p:last-child) {
     margin-bottom: 0;
-  }
-
-  .veiledning-modul-trekkspill {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-2);
   }
 
   .veiledning-modul-lesmer {

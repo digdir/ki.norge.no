@@ -20,7 +20,6 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ]);
 ---
 <Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   <div class="side-page" data-layout-block="content">
     <header class="side-header">
       <h1 class="ds-heading" data-size="xl">{page.tittel}</h1>
@@ -28,6 +27,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
     </header>
     <ArticleBlocksRenderer blocks={page.innhold} defaultDate={page.publishedAt} />
   </div>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 </Layout>
 
 <style>

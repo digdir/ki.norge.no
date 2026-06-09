@@ -192,6 +192,7 @@ export interface Kalenderhendelse {
   documentId: string;
   tittel: string;
   slug: string;
+  /** Merkelapp(er), kommaseparert (f.eks. "Frokostseminar, Offentlig"). CMS-alias er fortsatt "type". */
   type?: string;
   ingress?: string;
   detaljertBeskrivelse?: UmbracoBlock[];
@@ -200,7 +201,6 @@ export interface Kalenderhendelse {
   tid?: string;
   sted?: string;
   lenke?: string;
-  tagger?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -226,12 +226,28 @@ export interface Side extends Artikkel {}
 
 export interface Eksempel extends Artikkel {}
 
+export interface ArtiklerSeksjon {
+  contentType: 'artikkelFeatured' | 'artikkelGruppe' | 'artikkelRelatert';
+  id: string;
+  // Featured: én artikkel-referanse + valgfri ingress-overstyring
+  artikkelId?: string;
+  ingress?: string;
+  // Gruppe: tittel + kolonner + 1-6 artikkel-referanser
+  tittel?: string;
+  antallKolonner?: number;
+  artikkelIds?: string[];
+  // Relatert (kun merkelapp): tittel + 1-3 referanser + per-kort merkelapp
+  relatertIds?: string[];
+  relatertTags?: Array<string | undefined>;
+}
+
 export interface ArtiklerOversikt {
   id: string;
   documentId: string;
   heroTittel?: string;
   heroSubtittel?: string;
   featuredArtikkelId?: string;
+  seksjoner?: ArtiklerSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -267,7 +283,6 @@ export interface EksemplerOversikt {
   id: string;
   documentId: string;
   heroTittel?: string;
-  heroIngress?: string;
   seksjoner?: EksemplerSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
@@ -328,51 +343,38 @@ export interface EventItem {
   eventUrl?: string;
 }
 
+// Ett redaktørvalgt kort i forsideAktuelt/forsideLaerAvAndre.
+// id = node-id på valgt artikkel/eksempel. ingress = valgfri overstyring.
+export interface ForsideKort {
+  id?: string;
+  ingress?: string;
+}
+
+// Én forside-modul (block i forside.seksjoner). Flat: alle mulige felt valgfrie.
+export interface ForsideSeksjon {
+  contentType: string;
+  id: string;
+  overskrift?: string;
+  overskriftHtml?: string;
+  komIGangTekst?: string;
+  label?: string;
+  tittel?: string;
+  ingress?: string;
+  lenketekst?: string;
+  lenkeUrl?: string;
+  illustrasjon?: UmbracoMedia;
+  tekst?: string;
+  arrangementId?: string;
+  veiledningId?: string;
+  fremhevetArtikkelId?: string;
+  forstaLenkeIds?: string[];
+  kort?: ForsideKort[];
+}
+
 export interface Forside {
   id: string;
   documentId: string;
-  heroOverskrift?: string;
-  heroTekst?: UmbracoBlock[];
-  heroBilde?: UmbracoMedia;
-  veiledningOverskrift?: string;
-  veiledning1Tittel?: string;
-  veiledning1Beskrivelse?: string;
-  veiledning1Url?: string;
-  veiledning2Tittel?: string;
-  veiledning2Beskrivelse?: string;
-  veiledning2Url?: string;
-  aktueltOverskrift?: string;
-  aktueltLenkeTekst?: string;
-  aktueltLenkeUrl?: string;
-  raadTittel?: string;
-  tips?: TipItem[];
-  sandkasseTittel?: string;
-  sandkasseTekst?: UmbracoBlock[];
-  sandkasseUrl?: string;
-  arrangementOverskrift?: string;
-  arrangementKommendeTekst?: string;
-  arrangementAvholdteTekst?: string;
-  arrangementer?: EventItem[];
-  footerTittel?: string;
-  footerBeskrivelse?: string;
-  footerSosialInstagram?: string;
-  footerSosialLinkedin?: string;
-  footerSosialX?: string;
-  footerLenke1Tekst?: string;
-  footerLenke1Url?: string;
-  footerLenke2Tekst?: string;
-  footerLenke2Url?: string;
-  footerLenke3Tekst?: string;
-  footerLenke3Url?: string;
-  footerLenke4Tekst?: string;
-  footerLenke4Url?: string;
-  footerLenke5Tekst?: string;
-  footerLenke5Url?: string;
-  rekkefolgeVeiledning?: number;
-  rekkefolgeAktuelt?: number;
-  rekkefolgeTreRaad?: number;
-  rekkefolgeSandkasse?: number;
-  rekkefolgeArrangement?: number;
+  seksjoner?: ForsideSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -403,14 +405,17 @@ export interface OmOssSeksjonBlokk {
   bildeAlt?: string;
 }
 
+// Om Oss bruker rik artikkelmal (#362): samme artikkelhode + modul-blokkliste som artikkel.
 export interface OmOss {
   id: string;
   documentId: string;
-  heroTittel?: string;
-  heroUndertittel?: string;
-  introTekst?: UmbracoBlock[];
-  misjonTekst?: UmbracoBlock[];
-  seksjoner?: OmOssSeksjonBlokk[];
+  tittel: string;
+  slug: string;
+  ingress: string;
+  artikkelBilde?: UmbracoMedia;
+  bildeAlt?: string;
+  bakgrunn?: string;
+  innhold?: UmbracoBlock[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -446,14 +451,6 @@ export interface VeiledningKort {
   ikon?: string;
 }
 
-export interface VerktoyKort {
-  tittel: string;
-  beskrivelse?: string;
-  url?: string;
-  bilde?: UmbracoMedia;
-  ikon?: string;
-}
-
 export interface VeiledningOversikt {
   id: string;
   documentId: string;
@@ -465,8 +462,8 @@ export interface VeiledningOversikt {
   seksjon1Kort?: VeiledningKort[];
   seksjon2Tittel?: string;
   seksjon2Kort?: VeiledningKort[];
-  verktoyTittel?: string;
-  verktoyKort?: VerktoyKort[];
+  seksjon3Tittel?: string;
+  seksjon3Kort?: VeiledningKort[];
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -489,6 +486,16 @@ export interface GlobaleInnstillinger {
   tittel503?: string;
   beskrivelse503?: string;
   vedlikeholdEpost?: string;
+  footerBeskrivelse?: string;
+  footerEpost?: string;
+  footerLenke1Tekst?: string;
+  footerLenke1Url?: string;
+  footerLenke3Tekst?: string;
+  footerLenke3Url?: string;
+  footerLenke4Tekst?: string;
+  footerLenke4Url?: string;
+  footerLenke5Tekst?: string;
+  footerLenke5Url?: string;
 }
 
 export interface UmbracoMedia {
@@ -727,7 +734,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       return {
         ...base,
         heroTittel: props.heroTittel as string || '',
-        heroIngress: props.heroIngress as string || '',
         seksjoner: mapEksemplerSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -742,6 +748,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         heroTittel: props.heroTittel as string || '',
         heroSubtittel: props.heroSubtittel as string || '',
         featuredArtikkelId: featuredNode?.id || undefined,
+        seksjoner: mapArtiklerSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
@@ -760,7 +767,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ingress: props.ingress as string || '',
         artikkelBilde: mapMedia(props.artikkelBilde),
         bildeAlt: props.bildeAlt as string || '',
-        bakgrunn: (props.bakgrunn as string) || 'hvit',
+        bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
         innhold: mapArtikkelBlocks(props.innhold),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -780,7 +787,6 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tid: props.tid as string || undefined,
         sted: props.sted as string || undefined,
         lenke: props.lenke as string || undefined,
-        tagger: props.tagger as string || undefined,
       } as T;
 
     case 'kalender':
@@ -824,48 +830,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'forside':
       return {
         ...base,
-        heroOverskrift: props.heroOverskrift as string || undefined,
-        heroTekst: mapRichText(props.heroTekst),
-        heroBilde: mapMedia(props.heroBilde),
-        veiledningOverskrift: props.veiledningOverskrift as string || undefined,
-        veiledning1Tittel: props.veiledning1Tittel as string || undefined,
-        veiledning1Beskrivelse: props.veiledning1Beskrivelse as string || undefined,
-        veiledning1Url: props.veiledning1Url as string || undefined,
-        veiledning2Tittel: props.veiledning2Tittel as string || undefined,
-        veiledning2Beskrivelse: props.veiledning2Beskrivelse as string || undefined,
-        veiledning2Url: props.veiledning2Url as string || undefined,
-        aktueltOverskrift: props.aktueltOverskrift as string || undefined,
-        aktueltLenkeTekst: props.aktueltLenkeTekst as string || undefined,
-        aktueltLenkeUrl: props.aktueltLenkeUrl as string || undefined,
-        raadTittel: props.raadTittel as string || undefined,
-        tips: mapTipItems(props.tips),
-        sandkasseTittel: props.sandkasseTittel as string || undefined,
-        sandkasseTekst: mapRichText(props.sandkasseTekst),
-        sandkasseUrl: props.sandkasseUrl as string || undefined,
-        arrangementOverskrift: props.arrangementOverskrift as string || undefined,
-        arrangementKommendeTekst: props.arrangementKommendeTekst as string || undefined,
-        arrangementAvholdteTekst: props.arrangementAvholdteTekst as string || undefined,
-        arrangementer: mapEventItems(props.arrangementer),
-        footerTittel: props.footerTittel as string || undefined,
-        footerBeskrivelse: props.footerBeskrivelse as string || undefined,
-        footerSosialInstagram: props.footerSosialInstagram as string || undefined,
-        footerSosialLinkedin: props.footerSosialLinkedin as string || undefined,
-        footerSosialX: props.footerSosialX as string || undefined,
-        footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
-        footerLenke1Url: props.footerLenke1Url as string || undefined,
-        footerLenke2Tekst: props.footerLenke2Tekst as string || undefined,
-        footerLenke2Url: props.footerLenke2Url as string || undefined,
-        footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
-        footerLenke3Url: props.footerLenke3Url as string || undefined,
-        footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,
-        footerLenke4Url: props.footerLenke4Url as string || undefined,
-        footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
-        footerLenke5Url: props.footerLenke5Url as string || undefined,
-        rekkefolgeVeiledning: props.rekkefolgeVeiledning as number || undefined,
-        rekkefolgeAktuelt: props.rekkefolgeAktuelt as number || undefined,
-        rekkefolgeTreRaad: props.rekkefolgeTreRaad as number || undefined,
-        rekkefolgeSandkasse: props.rekkefolgeSandkasse as number || undefined,
-        rekkefolgeArrangement: props.rekkefolgeArrangement as number || undefined,
+        seksjoner: mapForsideSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
@@ -882,30 +847,18 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       } as T;
 
     case 'omOss':
-      // Map seksjoner Block List to OmOssSeksjonBlokk[]
-      const seksjonerItems = (props.seksjoner as any)?.items || [];
-      const seksjoner: OmOssSeksjonBlokk[] = seksjonerItems.map((block: any) => {
-        const content = block.content || block;
-        const blockProps = content.properties || content;
-        const tekst = blockProps.tekst?.tag === '#root'
-          ? richTextToHtml(blockProps.tekst)
-          : (typeof blockProps.tekst === 'string' ? blockProps.tekst : '');
-        return {
-          tittel: blockProps.tittel || '',
-          tekst,
-          bilde: mapMedia(blockProps.bilde),
-          bildeAlt: blockProps.bildeAlt || '',
-        };
-      });
+      // Rik artikkelmal (#362): artikkelhode + innhold-blokkliste, som artikkel/sandkasse.
       return {
         ...base,
-        heroTittel: props.heroTittel as string || '',
-        heroUndertittel: props.heroUndertittel as string || '',
-        introTekst: mapRichText(props.introTekst),
-        misjonTekst: mapRichText(props.misjonTekst),
-        seksjoner,
-        seoTittel: props.seoTittel as string || '',
-        seoBeskrivelse: props.seoBeskrivelse as string || '',
+        tittel: props.tittel as string || item.name,
+        slug: props.slug as string || 'om-oss',
+        ingress: props.ingress as string || '',
+        artikkelBilde: mapMedia(props.artikkelBilde),
+        bildeAlt: props.bildeAlt as string || '',
+        bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
+        innhold: mapArtikkelBlocks(props.innhold),
+        seoTittel: props.seoTittel as string || undefined,
+        seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
       } as T;
 
@@ -917,7 +870,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ingress: props.ingress as string || '',
         artikkelBilde: mapMedia(props.artikkelBilde),
         bildeAlt: props.bildeAlt as string || '',
-        bakgrunn: (props.bakgrunn as string) || 'hvit',
+        bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
         innhold: mapArtikkelBlocks(props.innhold),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
@@ -938,8 +891,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seksjon1Kort: mapVeiledningKort(props.seksjon1Kort),
         seksjon2Tittel: props.seksjon2Tittel as string || undefined,
         seksjon2Kort: mapVeiledningKort(props.seksjon2Kort),
-        verktoyTittel: props.verktoyTittel as string || undefined,
-        verktoyKort: mapVerktoyKort(props.verktoyKort),
+        seksjon3Tittel: props.seksjon3Tittel as string || undefined,
+        seksjon3Kort: mapVeiledningKort(props.seksjon3Kort),
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
@@ -958,6 +911,16 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel503: props.tittel503 as string || '',
         beskrivelse503: props.beskrivelse503 as string || '',
         vedlikeholdEpost: props.vedlikeholdEpost as string || '',
+        footerBeskrivelse: props.footerBeskrivelse as string || undefined,
+        footerEpost: props.footerEpost as string || undefined,
+        footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
+        footerLenke1Url: props.footerLenke1Url as string || undefined,
+        footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
+        footerLenke3Url: props.footerLenke3Url as string || undefined,
+        footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,
+        footerLenke4Url: props.footerLenke4Url as string || undefined,
+        footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
+        footerLenke5Url: props.footerLenke5Url as string || undefined,
       } as T;
 
     default:
@@ -1229,22 +1192,6 @@ function mapVeiledningKort(value: unknown): VeiledningKort[] {
   });
 }
 
-function mapVerktoyKort(value: unknown): VerktoyKort[] {
-  const items = Array.isArray(value) ? value : (value as any)?.items;
-  if (!Array.isArray(items)) return [];
-  return items.map((block: any) => {
-    const content = block.content || block;
-    const props = content.properties || content;
-    return {
-      tittel: (props.tittel as string) || '',
-      beskrivelse: (props.beskrivelse as string) || undefined,
-      url: (props.url as string) || undefined,
-      bilde: mapMedia(props.bilde),
-      ikon: (props.ikon as string) || undefined,
-    };
-  });
-}
-
 function mapMedia(value: unknown): UmbracoMedia | undefined {
   if (!value) return undefined;
   if (Array.isArray(value) && value.length > 0) {
@@ -1281,6 +1228,69 @@ function pickerIds(value: unknown): string[] {
   if (!value) return [];
   const arr = Array.isArray(value) ? value : [value];
   return arr.map((item: any) => item?.id).filter((id): id is string => !!id);
+}
+
+function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any): ForsideSeksjon => {
+    const content = block.content || block;
+    const props = content.properties || {};
+    // overskrift er ren tekst på de fleste moduler, men rik tekst på hero (uthevbar).
+    const overskrift = props.overskrift as any;
+    // sandkasse-tekst er nå vanlig tekst; håndter eldre rik-tekst-verdier til de re-lagres.
+    const tekst = props.tekst as any;
+    return {
+      contentType: content.contentType,
+      id: content.id || '',
+      overskrift: typeof overskrift === 'string' ? (overskrift || undefined) : undefined,
+      overskriftHtml: overskrift?.tag === '#root' ? richTextToHtml(overskrift) : undefined,
+      komIGangTekst: (props.komIGangTekst as string) || undefined,
+      label: (props.label as string) || undefined,
+      tittel: (props.tittel as string) || undefined,
+      ingress: (props.ingress as string) || undefined,
+      lenketekst: (props.lenketekst as string) || undefined,
+      lenkeUrl: (props.lenkeUrl as string) || undefined,
+      illustrasjon: mapMedia(props.illustrasjon),
+      tekst: typeof tekst === 'string' ? (tekst || undefined) : (tekst?.tag === '#root' ? richTextToHtml(tekst) : undefined),
+      arrangementId: pickerId(props.arrangement),
+      veiledningId: pickerId(props.veiledning),
+      fremhevetArtikkelId: pickerId(props.fremhevetArtikkel),
+      forstaLenkeIds: mapForstaLenker(props.lenker),
+      kort: mapForsideKort(props.kort),
+    };
+  });
+}
+
+// Leser nested block list (forsideForstaLenke) under "Forstå regelverket"-modulen.
+// Hvert element har en content-picker (lenke) til veiledning/artikkel.
+function mapForstaLenker(value: unknown): string[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items) || items.length === 0) return undefined;
+  return items
+    .map((block: any) => pickerId((block.content || block).properties?.lenke))
+    .filter((id: string | undefined): id is string => !!id);
+}
+
+// Leser nested block list (forsideArtikkelKort/forsideEksempelKort) under en forside-modul.
+// Hvert kort har en content-picker (artikkel eller eksempel) + valgfri ingress-overstyring.
+function mapForsideKort(value: unknown): ForsideKort[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items) || items.length === 0) return undefined;
+
+  return items
+    .map((block: any): ForsideKort => {
+      const content = block.content || block;
+      const props = content.properties || {};
+      // Artikkelkort bruker "artikkel", eksempelkort bruker "eksempel".
+      const id = pickerId(props.artikkel) ?? pickerId(props.eksempel);
+      return {
+        id,
+        ingress: (props.ingress as string) || undefined,
+      };
+    })
+    .filter((k: ForsideKort) => !!k.id);
 }
 
 function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
@@ -1340,6 +1350,45 @@ function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
   });
 }
 
+function mapArtiklerSeksjoner(value: unknown): ArtiklerSeksjon[] | undefined {
+  const items = (value as any)?.items;
+  if (!Array.isArray(items)) return undefined;
+
+  return items.map((block: any): ArtiklerSeksjon => {
+    const content = block.content || block;
+    const ct = content.contentType;
+    const props = content.properties || {};
+    const id = content.id || '';
+
+    if (ct === 'artikkelFeatured') {
+      return { contentType: ct, id, artikkelId: pickerId(props.artikkel), ingress: (props.ingress as string) || undefined };
+    }
+    if (ct === 'artikkelGruppe') {
+      const refs = [1, 2, 3, 4, 5, 6].map((n) => pickerId(props[`artikkel${n}`])).filter((x): x is string => !!x);
+      return {
+        contentType: ct,
+        id,
+        tittel: (props.tittel as string) || undefined,
+        antallKolonner: Number(props.antallKolonner) || 3,
+        artikkelIds: refs,
+      };
+    }
+    if (ct === 'artikkelRelatert') {
+      const refs = [1, 2, 3]
+        .map((n) => ({ id: pickerId(props[`relatert${n}`]), tag: props[`relatertTag${n}`] }))
+        .filter((r): r is { id: string; tag: unknown } => !!r.id);
+      return {
+        contentType: ct,
+        id,
+        tittel: (props.tittel as string) || undefined,
+        relatertIds: refs.map((r) => r.id),
+        relatertTags: refs.map((r) => (typeof r.tag === 'string' && r.tag ? r.tag : undefined)),
+      };
+    }
+    return { contentType: ct, id };
+  });
+}
+
 function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
   if (!value) return null;
   const item = value as any;
@@ -1359,7 +1408,6 @@ function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
     tid: p.tid || undefined,
     sted: p.sted || undefined,
     lenke: p.lenke || undefined,
-    tagger: p.tagger || undefined,
     createdAt: node.createDate || '',
     updatedAt: node.updateDate || '',
     publishedAt: node.createDate || '',
@@ -1377,18 +1425,70 @@ function parseJsonArray(value: string | undefined): string[] {
   }
 }
 
+// Standard bredder for leveranse-resizing (ImageSharp width-param). Originalen
+// i CMS er urort; vi henter en nedskalert webp per kontekst. Tallene dekker
+// retina (2x) pa typisk visnings-storrelse. Juster her, ett sted.
+export const MEDIA_WIDTH = {
+  hero: 1600, // stor toppfigur, bred desktop + retina
+  content: 1200, // bilde i artikkelspalten
+  card: 800, // kort/listebilde
+} as const;
+
+// Legger pa ImageSharp-resizing nar en width er gitt. Umbraco rendrer da en
+// nedskalert webp on-demand og cacher den. SVG/GIF hoppes over (vektor/animasjon
+// skal ikke rasteres). Uten width returneres URLen urort (f.eks. og:image).
+function withImageParams(url: string, width?: number): string {
+  if (!width) return url;
+  if (/\.(svg|gif)(\?|$)/i.test(url)) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}width=${width}&format=webp&quality=80`;
+}
+
 // Gjor en relativ Umbraco media-URL (/media/...) absolutt mot CMS-hosten.
-// Passerer allerede-absolutte (http) og ikke-media-URLer uendret.
-export function toAbsoluteMediaUrl(url?: string): string | undefined {
+// Passerer allerede-absolutte (http) og ikke-media-URLer uendret. Med en width
+// legges leveranse-resizing pa (kun pa faktiske media-URLer).
+export function toAbsoluteMediaUrl(url?: string, width?: number): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith('http')) return url;
-  if (url.startsWith('/media')) return `${UMBRACO_PUBLIC_URL}${url}`;
+  if (url.startsWith('http')) return withImageParams(url, width);
+  if (url.startsWith('/media')) return withImageParams(`${UMBRACO_PUBLIC_URL}${url}`, width);
   return url;
 }
 
-// Helper to get full media URL
-export function getMediaUrl(media?: UmbracoMedia): string | undefined {
-  return toAbsoluteMediaUrl(media?.url);
+// Full media-URL for et media-objekt. Default-optimaliserer til content-bredde
+// slik at et nytt bilde aldri serveres i full storrelse ved et uhell; send
+// MEDIA_WIDTH.hero / .card (eller egen width) for andre kontekster.
+export function getMediaUrl(media?: UmbracoMedia, width: number = MEDIA_WIDTH.content): string | undefined {
+  return toAbsoluteMediaUrl(media?.url, width);
+}
+
+/**
+ * Normaliser bakgrunn-verdien fra CMS til en nokkel.
+ * Dropdown gir en streng ("accent"); ColorPicker med labels gir { label, value }.
+ */
+export function bakgrunnKey(raw: any): string | undefined {
+  if (raw == null) return undefined;
+  if (typeof raw === 'string') return raw || undefined;
+  return (raw.label as string) || (raw.value as string) || undefined;
+}
+
+/**
+ * Redaksjonell bakgrunnsfarge for artikkelhodet -> DS surface CSS-variabel.
+ * Tre valg: accent (standard), brand1, brand2. Robust for label ("Accent"/"Brand 1"),
+ * nokkel ("accent") og hex ("e9c0c8"). Ukjent/tom -> accent.
+ */
+export function bakgrunnSurface(bakgrunn?: string): string {
+  switch ((bakgrunn || '').toLowerCase().replace(/[\s#]/g, '')) {
+    case 'brand1':
+    case 'dfc2d4':
+      return 'var(--ds-color-brand1-surface-active)';
+    case 'brand2':
+    case 'e2d8d2':
+      return 'var(--ds-color-brand2-surface-hover)';
+    case 'accent':
+    case 'e9c0c8':
+    default:
+      return 'var(--ds-color-accent-surface-active)';
+  }
 }
 
 /**

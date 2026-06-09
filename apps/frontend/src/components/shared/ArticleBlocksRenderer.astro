@@ -90,19 +90,19 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
 {renderItems.map((item) => {
   if (item.kind === 'accordionGroup') {
     return (
-      <div class="article-accordion-group">
-        {item.tittel && <h2 class="article-accordion-group-title">{item.tittel}</h2>}
+      <Fragment>
+        {item.tittel && <h2 class="ds-heading" data-size="md">{item.tittel}</h2>}
         <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
             <details class="ds-details">
               <summary>
                 {block.content.tittel}
               </summary>
-              <div set:html={block.content.innhold} />
+              <div class="u-rich-text" set:html={block.content.innhold} />
             </details>
           ))}
         </div>
-      </div>
+      </Fragment>
     );
   }
   const block = item.block;
@@ -194,7 +194,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
               <span aria-hidden="true" class="article-fremheving-quote-mark article-fremheving-quote-mark--close">»</span>
             </blockquote>
           ) : (
-            <div class="article-fremheving-text" set:html={c.tekst} />
+            <div class="article-fremheving-text u-rich-text" set:html={c.tekst} />
           )}
           {c.kilde && (
             <footer class="article-fremheving-source">
@@ -222,9 +222,9 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
       <blockquote class="article-quote">
         <p class="article-quote-text">{block.content.sitat}</p>
         {block.content.kilde && (
-          <footer class="article-quote-source">
+          <div class="article-quote-source">
             <cite>{block.content.kilde}</cite>
-          </footer>
+          </div>
         )}
       </blockquote>
     );
@@ -232,7 +232,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelCallout') {
     const variant = block.content.variant || 'info';
     return (
-      <div class={`article-callout article-callout--${variant}`} role={variant === 'advarsel' ? 'alert' : 'note'}>
+      <div class={`article-callout article-callout--${variant}`}>
         {block.content.tittel && <p class="article-callout-title">{block.content.tittel}</p>}
         <div class="article-callout-body" set:html={block.content.innhold} />
       </div>
@@ -251,7 +251,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     );
   }
   return (
-    <div class="article-text-block" set:html={block.content.innhold} />
+    <Fragment set:html={block.content.innhold} />
   );
   })();
 })}

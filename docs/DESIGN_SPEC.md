@@ -147,7 +147,7 @@ ki.norge.no/
 ### Listing Pages
 
 **Layout:**
-- Max-width: 1000px
+- Max-width: 680px
 - Page title and description
 - Filter/category options (optional)
 - Card grid (auto-fit, responsive)

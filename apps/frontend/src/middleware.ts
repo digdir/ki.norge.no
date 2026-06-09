@@ -12,10 +12,17 @@ import { defineMiddleware } from 'astro:middleware';
  *
  * Cache invalidation: Umbraco publishes trigger a Cloudflare cache purge
  * via webhook, so the next visitor gets a fresh render.
+ *
+ * Browser revalidation: HTML bruker s-maxage (delt/edge-cache) men max-age=0,
+ * must-revalidate for nettleseren. Uten dette serverte nettleseren cachet HTML
+ * stale i opptil 24t (stale-while-revalidate), og den HTML-en pekte på
+ * fingeravtrykk-hashede _astro/*.css fra en eldre build. En frontend-deploy
+ * roterer CSS-hashen og sletter den gamle fila, så stale HTML ga 404 på CSS-en
+ * og en ustylet side. Nettleseren må derfor alltid revalidere HTML mot edgen,
+ * som har gjeldende asset-hasher.
  */
 
-const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache
-const STALE_WHILE_REVALIDATE = 60 * 60 * 24; // serve stale for up to 24h while revalidating
+const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache (s-maxage)
 
 // Public hostnames that sit behind the holding page until launch. The
 // *.workers.dev preview URLs and localhost are intentionally NOT listed, so
@@ -137,12 +144,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // CMS-hoster (union av alle reelle origins). Frontend henter media fra CMS,
         // sa img-src/connect-src ma tillate dem ellers blokkeres bildene. Den dode
         // Container Apps-hosten er fjernet.
-        "img-src 'self' data: https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no",
-        "connect-src 'self' https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
+        "img-src 'self' data: https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no",
+        "connect-src 'self' https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
         // Allow CMS to embed the frontend in the preview iframe. Prod og tt02 CMS
         // (dis-core + workers.dev) pluss localhost CMS dev-origin slik at preview
         // virker i dev ogsa.
-        "frame-ancestors 'self' https://cms.ki.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
+        "frame-ancestors 'self' https://cms.ki.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
         "base-uri 'self'",
         "form-action 'self'",
       ].join('; '),
@@ -155,10 +162,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return response;
   }
 
-  // Cache everything else at the edge
+  // Cache everything else at the edge (s-maxage), but force the browser to
+  // revalidate every navigation (max-age=0, must-revalidate). Det hindrer at
+  // nettleseren serverer stale HTML som peker på _astro-asset-hasher en senere
+  // deploy har slettet -> 404 på CSS/JS -> ustylet side.
   response.headers.set(
     'Cache-Control',
-    `public, s-maxage=${CACHE_MAX_AGE}, stale-while-revalidate=${STALE_WHILE_REVALIDATE}`,
+    `public, s-maxage=${CACHE_MAX_AGE}, max-age=0, must-revalidate`,
   );
 
   return response;

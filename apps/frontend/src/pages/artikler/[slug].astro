@@ -4,7 +4,7 @@ import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 
-import { getArtikkel, getArtikler, getPlainText } from '../../lib/umbraco';
+import { getArtikkel, getArtikler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakgrunnSurface } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
@@ -15,6 +15,8 @@ if (!article) return Astro.redirect('/artikler');
 const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
+const heroImage = article.artikkelBilde || article.seoBilde;
+const heroBg = bakgrunnSurface(article.bakgrunn);
 
 const articleJsonLd = articleSchema({
   headline: seoTitle,
@@ -41,15 +43,24 @@ const bylineBlock = allBlocks.find(b => b.contentType === 'artikkelByline');
 const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 ---
 
-<Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage}>
+<Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage} bodyColor={article.bakgrunn?.replace(' ', '').toLocaleLowerCase()}>
+  <section class="article-hero" data-layout-block="edge">
+    <div class="article-hero-inner">
+      <div class="article-hero-text">
+        <h1 class="ds-heading article-title" data-size="xl">{article.tittel}</h1>
+      </div>
+    </div>
+  </section>
+
   <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 
-  <section class="article-hero" data-layout-block="edge">
-    <h1 class="ds-heading article-title" data-size="xl">{article.tittel}</h1>
-  </section>
-
   <ArticleLayout publishedAt={article.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
+    {heroImage?.url && (
+      <div class="article-hero-image">
+        <img src={getMediaUrl(heroImage, MEDIA_WIDTH.hero) || '/article_placeholder.png'} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+      </div>
+    )}
 
     {article.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
@@ -68,6 +79,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={a.tittel}
             date={a.publishedAt}
             lead={getPlainText(a.innhold, 80)}
+            image={getMediaUrl(a.artikkelBilde, MEDIA_WIDTH.card)}
             variant="image"
           />
         ))}
@@ -77,9 +89,43 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 </Layout>
 
 <style>
+  /* Hero: tittel over fullbredde banner-bilde (2:1, object-fit cover) */
+  .article-hero:has(.article-hero-image) {
+    padding-bottom: 0;
+  }
+
+  .article-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-6);
+  }
+
+  .article-hero-text { min-width: 0; }
+
+  .article-hero-image {
+    max-height: 600px;
+    overflow: hidden;
+    padding: 0;
+    grid-column: 4;
+    margin-block-start: 0;
+
+    @media (max-width: 767px) {
+      grid-column: 1 / 5;
+      margin-block-start: var(--ds-size-6);
+    }
+  }
+
+  .article-hero-img {
+    max-width: 100%;
+    width: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
   /* More articles */
   .more-articles {
-    padding: 64px 0 120px;
+    padding-block-start: var(--ds-size-18);
+    padding-block-end: var(--ds-size-30);
   }
 
   .more-articles-heading {

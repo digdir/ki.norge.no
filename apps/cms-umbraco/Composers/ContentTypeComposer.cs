@@ -28,6 +28,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     // Data types (resolved at init time)
     private IDataType _textStringDt = null!;
+    private IDataType _urlDt = null!;                 // Lenke / URL: TextBox-felt som auto-vaskes (interne stier) ved lagring
     private IDataType _textAreaDt = null!;
     private IDataType _richTextDt = null!;            // Standard RichText (full toolbar)
     private IDataType _richTextDtRestricted = null!;  // Restricted RichText (no headings, no source editor)
@@ -35,7 +36,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _mediaPickerDt = null!;
     private IDataType _contentPickerDt = null!;
     private IDataType _calloutVariantDt = null!;
-    private IDataType _bakgrunnDropdownDt = null!;    // Hvit / Lys blå dropdown for Artikkelhode
+    private IDataType _bakgrunnDropdownDt = null!;    // Fargevelger (ColorPicker) for Artikkelhode-bakgrunn
     private IDataType _kolonneDropdownDt = null!;     // 1/2/3/4 kolonner for eksempel-grupper
     private IDataType _blockListEksemplerSeksjonerDt = null!;
     private IDataType _trueFalseDt = null!;           // Boolean checkbox
@@ -54,6 +55,11 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _blockListOmOssDt = null!;
     private IDataType _blockListVeiledningStegDt = null!;
     private IDataType _blockListVeiledningGuideDt = null!;
+    private IDataType _blockListForsideDt = null!;
+    private IDataType _blockListForsideArtikkelKortDt = null!;
+    private IDataType _blockListForsideEksempelKortDt = null!;
+    private IDataType _blockListForstaLenkerDt = null!;          // Forstå regelverket: lenkeliste (forside)
+    private IDataType _blockListArtiklerSeksjonerDt = null!;     // Artikler-oversikt moduler
 
     public ContentTypeComponent(
         IContentTypeService contentTypeService,
@@ -73,212 +79,239 @@ public class ContentTypeComponent : IAsyncComponent
         _propertyEditors = propertyEditors;
     }
 
+    // Kjør ett oppstart-steg isolert. Tidligere lå HELE InitializeAsync i én try/catch, så
+    // en feil i ett steg (f.eks. duplikat "seo"-gruppe) svelget feilen og hoppet stille over
+    // ALT som kom etter — inkludert footer-oppsettet. Nå logges feilen høyt per steg og de
+    // øvrige stegene kjører videre.
+    private static void Step(string label, Action step)
+    {
+        try
+        {
+            step();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ContentTypeComposer: STEG '{label}' feilet (hoppes over, resten fortsetter): {ex.Message}");
+        }
+    }
+
+    // Vanlig mønster: opprett content type hvis den mangler, ellers migrer eksisterende.
+    // Isolert via Step slik at én type-feil ikke stopper resten av oppsettet.
+    private void EnsureType(string alias, Action create, Action migrate = null)
+    {
+        Step(alias, () =>
+        {
+            if (_contentTypeService.Get(alias) == null) create();
+            else migrate?.Invoke();
+        });
+    }
+
     public Task InitializeAsync(bool isRestarting, CancellationToken cancellationToken)
     {
         if (_runtimeState.Level < RuntimeLevel.Run) return Task.CompletedTask;
 
         try
         {
-            ResolveDataTypes();
+            Step("resolveDataTypes", () => ResolveDataTypes());
 
             // Create each type only if it doesn't already exist
-            if (_contentTypeService.Get("accordionSection") == null)
-                CreateAccordionSectionElement();
-            if (_contentTypeService.Get("tipItem") == null)
-                CreateTipItemElement();
-            else
-                MigrateTipItemElement();
+            EnsureType("accordionSection", () => CreateAccordionSectionElement());
+            EnsureType("tipItem", () => CreateTipItemElement(), () => MigrateTipItemElement());
 
             // Article element types
-            if (_contentTypeService.Get("artikkelTekst") == null)
-                CreateArtikkelTekstElement();
-            else
-                MigrateArtikkelTekst();
-            if (_contentTypeService.Get("artikkelInfoBoks") == null)
-                CreateArtikkelInfoBoksElement();
+            EnsureType("artikkelTekst", () => CreateArtikkelTekstElement(), () => MigrateArtikkelTekst());
+            EnsureType("artikkelInfoBoks", () => CreateArtikkelInfoBoksElement());
             // artikkelHero element type is deprecated (replaced by Artikkelhode top-level fields).
             // Existing seed data may still reference it; renderer handles missing type gracefully.
-            if (_contentTypeService.Get("artikkelBildeSeksjon") == null)
-                CreateArtikkelBildeSeksjonElement();
-            else
-                MigrateArtikkelBildeSeksjon();
-            if (_contentTypeService.Get("artikkelTrekkspill") == null)
-                CreateArtikkelTrekkspillElement();
+            EnsureType("artikkelBildeSeksjon", () => CreateArtikkelBildeSeksjonElement(), () => MigrateArtikkelBildeSeksjon());
+            EnsureType("artikkelTrekkspill", () => CreateArtikkelTrekkspillElement());
             // Settings element for artikkelTrekkspill — exposes "Innstillinger" tab on each
             // accordion block in the editor. Currently lets the editor split groups via
             // gruppeTittel: when set, that accordion starts a new group with that title.
-            if (_contentTypeService.Get("artikkelTrekkspillSettings") == null)
-                CreateArtikkelTrekkspillSettingsElement();
-            if (_contentTypeService.Get("artikkelSitat") == null)
-                CreateArtikkelSitatElement();
-            if (_contentTypeService.Get("artikkelCallout") == null)
-                CreateArtikkelCalloutElement();
-            if (_contentTypeService.Get("artikkelFremheving") == null)
-                CreateArtikkelFremhevingElement();
+            EnsureType("artikkelTrekkspillSettings", () => CreateArtikkelTrekkspillSettingsElement());
+            EnsureType("artikkelSitat", () => CreateArtikkelSitatElement());
+            EnsureType("artikkelCallout", () => CreateArtikkelCalloutElement());
+            EnsureType("artikkelFremheving", () => CreateArtikkelFremhevingElement());
             // Prosessteg item must be created before the container (container's Block List references item)
-            if (_contentTypeService.Get("artikkelProsessStegItem") == null)
-                CreateArtikkelProsessStegItemElement();
+            EnsureType("artikkelProsessStegItem", () => CreateArtikkelProsessStegItemElement());
             // Om Oss seksjon block (replaces standalone omOssSeksjon child content)
-            if (_contentTypeService.Get("omOssBlokk") == null)
-                CreateOmOssBlokkElement();
+            EnsureType("omOssBlokk", () => CreateOmOssBlokkElement());
             // Forfatter og dato variants
-            if (_contentTypeService.Get("artikkelByline") == null)
-                CreateArtikkelBylineElement();
-            if (_contentTypeService.Get("artikkelInnholdFra") == null)
-                CreateArtikkelInnholdFraElement();
-            if (_contentTypeService.Get("artikkelKontaktkort") == null)
-                CreateArtikkelKontaktkortElement();
+            EnsureType("artikkelByline", () => CreateArtikkelBylineElement());
+            EnsureType("artikkelInnholdFra", () => CreateArtikkelInnholdFraElement());
+            EnsureType("artikkelKontaktkort", () => CreateArtikkelKontaktkortElement());
 
             // Sandkasse element types: REMOVED 2026-05-04 (sandkasseSteg, sandkasseFaq)
             // The new Sandkasse uses the same article block list, so sandkasse-specific
             // step/FAQ element types are gone. Resurrect via git if needed.
 
             // Veiledning Oversikt element types
-            if (_contentTypeService.Get("veiledningKort") == null)
-                CreateVeiledningKortElement();
-            if (_contentTypeService.Get("verktoyKort") == null)
-                CreateVerktoyKortElement();
+            EnsureType("veiledningKort", () => CreateVeiledningKortElement());
+            EnsureType("verktoyKort", () => CreateVerktoyKortElement());
 
-            MigrateVeiledningKort();
-            MigrateVerktoyKort();
+            Step("migrateVeiledningKort", () => MigrateVeiledningKort());
+            Step("migrateVerktoyKort", () => MigrateVerktoyKort());
 
             // veiledningInfo sitt trekkspill-felt bruker accordion-block-list-datatypen.
             // På fresh install kjører CreateBlockListDataTypes() lenger ned, så vi må
             // sikre at datatypen finnes her. CreateOrGetBlockListDataType er idempotent,
             // så det senere kallet er uberørt. Uten dette krasjer InitializeAsync med
             // "Value cannot be null (Parameter 'dataType')" og 0 content types seedes.
-            _blockListAccordionDt = CreateOrGetBlockListDataType(
-                "Block List - Accordion Sections", "accordionSection");
+            Step("blockListAccordion", () => _blockListAccordionDt = CreateOrGetBlockListDataType(
+                "Block List - Accordion Sections", "accordionSection"));
 
-            if (_contentTypeService.Get("veiledningTekst") == null)
-                CreateVeiledningTekstElement();
-            if (_contentTypeService.Get("veiledningInfo") == null)
-                CreateVeiledningInfoElement();
-            if (_contentTypeService.Get("veiledningEksempel") == null)
-                CreateVeiledningEksempelElement();
-            if (_contentTypeService.Get("veiledningObs") == null)
-                CreateVeiledningObsElement();
-            if (_contentTypeService.Get("veiledningTrekkspill") == null)
-                CreateVeiledningTrekkspillElement();
+            EnsureType("veiledningTekst", () => CreateVeiledningTekstElement());
+            EnsureType("veiledningInfo", () => CreateVeiledningInfoElement());
+            EnsureType("veiledningEksempel", () => CreateVeiledningEksempelElement());
+            EnsureType("veiledningObs", () => CreateVeiledningObsElement());
+            EnsureType("veiledningTrekkspill", () => CreateVeiledningTrekkspillElement());
 
-            if (_contentTypeService.Get("eksempelFeatured") == null)
-                CreateEksempelFeaturedElement();
-            if (_contentTypeService.Get("eksempelGruppe") == null)
-                CreateEksempelGruppeElement();
-            if (_contentTypeService.Get("eksempelRelatert") == null)
-                CreateEksempelRelatertElement();
-            if (_contentTypeService.Get("eksempelKontakt") == null)
-                CreateEksempelKontaktElement();
+            EnsureType("eksempelFeatured", () => CreateEksempelFeaturedElement());
+            EnsureType("eksempelGruppe", () => CreateEksempelGruppeElement());
+            EnsureType("eksempelRelatert", () => CreateEksempelRelatertElement());
+            EnsureType("eksempelKontakt", () => CreateEksempelKontaktElement());
 
-            CreateBlockListDataTypes();
+            // Artikler-oversikt moduler (speiler eksempel-modulene). MÅ opprettes før
+            // CreateBlockListDataTypes() som bygger _blockListArtiklerSeksjonerDt.
+            EnsureType("artikkelFeatured", () => CreateArtikkelFeaturedElement());
+            EnsureType("artikkelGruppe", () => CreateArtikkelGruppeElement());
+            EnsureType("artikkelRelatert", () => CreateArtikkelRelatertElement());
 
-            MigrateVeiledningElementNames();
-            MigrateVeiledningObsRemoveVariant();
-            MigrateVeiledningInfo();
+            // Forside-moduler (block list)
+            // Kort-element-typene og deres block-list-datatyper MÅ opprettes/resolves FØR
+            // forside-seksjonene (forsideAktuelt/forsideLaerAvAndre) som refererer dem.
+            // Ellers er _blockListForside*Dt null når seksjonen bygges -> hele
+            // InitializeAsync krasjer med "Value cannot be null (Parameter 'dataType')"
+            // og 0 content types seedes (fresh install / CI).
+            EnsureType("forsideArtikkelKort", () => CreateForsideArtikkelKortElement());
+            EnsureType("forsideEksempelKort", () => CreateForsideEksempelKortElement());
+            EnsureType("forsideForstaLenke", () => CreateForsideForstaLenkeElement());
+            Step("blockListForsideArtikkelKort", () => _blockListForsideArtikkelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Artikkelkort", "forsideArtikkelKort"));
+            Step("blockListForsideEksempelKort", () => _blockListForsideEksempelKortDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Eksempelkort", "forsideEksempelKort"));
+            Step("blockListForstaLenker", () => _blockListForstaLenkerDt = CreateOrGetBlockListDataType(
+                "Block List - Forside Forstå Lenker", "forsideForstaLenke"));
+
+            EnsureType("forsideHero", () => CreateForsideHeroElement());
+            EnsureType("forsideAktuelt", () => CreateForsideAktueltElement());
+            EnsureType("forsideArrangementer", () => CreateForsideArrangementerElement());
+            EnsureType("forsideVeiledning", () => CreateForsideVeiledningElement());
+            EnsureType("forsideLaerAvAndre", () => CreateForsideLaerAvAndreElement());
+            EnsureType("forsideSandkasse", () => CreateForsideSandkasseElement());
+            EnsureType("forsideForstaRegelverket", () => CreateForsideForstaRegelverketElement());
+
+            Step("createBlockListDataTypes", () => CreateBlockListDataTypes());
+
+            // Legg til kort/lenketekst/lenkeUrl på eksisterende forside-element-typer.
+            // Må kjøre etter at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er satt.
+            Step("migrateForsideKortFelter", () => MigrateForsideKortFelter());
+
+            // Relabel/retype/standard-tekster + arrangement/veiledning-pickere på eksisterende moduler.
+            Step("migrateForsideModuler", () => MigrateForsideModuler());
+
+            // Nye felt på eksisterende modul-element-typer (eksempel-ingress/tags, aktuelt fremhevet).
+            Step("migrateModulFelter", () => MigrateModulFelter());
+
+            Step("migrateVeiledningElementNames", () => MigrateVeiledningElementNames());
+            Step("migrateVeiledningObsRemoveVariant", () => MigrateVeiledningObsRemoveVariant());
+            Step("migrateVeiledningInfo", () => MigrateVeiledningInfo());
 
             // Prosessteg container depends on _blockListProsessStegItemsDt being created above
-            if (_contentTypeService.Get("artikkelProsessteg") == null)
-                CreateArtikkelProsessStegElement();
+            EnsureType("artikkelProsessteg", () => CreateArtikkelProsessStegElement());
 
             // After all element types are created, refresh the Artikkel block list to include
             // any modules that didn't exist when CreateBlockListDataTypes() ran.
-            RefreshMultiBlockListAllowedModules("Block List - Artikkel Innhold", BaseArticleModules);
+            Step("refreshArtikkelInnhold", () => RefreshMultiBlockListAllowedModules("Block List - Artikkel Innhold", BaseArticleModules));
 
             // Refresh Case block list too
-            RefreshMultiBlockListAllowedModules("Block List - Eksempel Innhold", EksempelModules);
+            Step("refreshEksempelInnhold", () => RefreshMultiBlockListAllowedModules("Block List - Eksempel Innhold", EksempelModules));
 
-            RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules);
-            RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules);
+            Step("refreshVeiledningSteg", () => RefreshMultiBlockListAllowedModules("Block List - Veiledning Steg", VeiledningStegModules));
+            Step("refreshVeiledningGuide", () => RefreshMultiBlockListAllowedModules("Block List - Veiledning Guide", VeiledningGuideModules));
+            Step("refreshForsideSeksjoner", () => RefreshMultiBlockListAllowedModules("Block List - Forside Seksjoner", ForsideModules));
 
             // One-shot removal of legacy CTs that are no longer part of the product
             // (FAQ, KI-ordbok, Merkelapper, veiledningOversikt). Runs early so containers
             // are gone before the rest of the bootstrap tries to reference them.
-            MigrateRemoveLegacyCleanup();
+            Step("migrateRemoveLegacyCleanup", () => MigrateRemoveLegacyCleanup());
 
-            if (_contentTypeService.Get("artikkel") == null)
-                CreateArtikkel();
-            MigrateArtikkelType();
+            Step("artikkel", () => { if (_contentTypeService.Get("artikkel") == null) CreateArtikkel(); });
+            Step("migrateArtikkelType", () => MigrateArtikkelType());
 
             // Caser → Eksempler all-in: drop legacy case/caser + the old skeleton eksempel
             // before recreating eksempel + eksempler with artikkel-like structure.
-            MigrateCaserToEksempler();
+            Step("migrateCaserToEksempler", () => MigrateCaserToEksempler());
 
-            if (_contentTypeService.Get("side") == null)
-                CreateSide();
-            MigrateSide();
+            Step("side", () => { if (_contentTypeService.Get("side") == null) CreateSide(); });
+            Step("migrateSide", () => MigrateSide());
 
-            if (_contentTypeService.Get("eksempel") == null)
-                CreateEksempel();
+            EnsureType("eksempel", () => CreateEksempel());
 
-            if (_contentTypeService.Get("veiledningGuide") == null)
-                CreateVeiledningGuide();
-            MigrateVeiledningGuideEditorLayout();
-            MigrateVeiledningGuideStegtitler();
-            MigrateVeiledningGuideInnhold();
-            if (_contentTypeService.Get("veiledningSteg") == null)
-                CreateVeiledningSteg();
-            MigrateVeiledningSteg();
-            if (_contentTypeService.Get("stegartikkel") == null)
-                CreateStegartikkel();
-            MigrateVeiledningStegAllowedChildren();
-            if (_contentTypeService.Get("enkelVeiledning") == null)
-                CreateEnkelVeiledning();
-            if (_contentTypeService.Get("forside") == null)
-                CreateForside();
-            else
-                MigrateForside();
-            if (_contentTypeService.Get("omOssSeksjon") == null)
-                CreateOmOssSeksjon();
-            if (_contentTypeService.Get("omOss") == null)
-                CreateOmOss();
-            else
-                MigrateOmOss();
-            if (_contentTypeService.Get("sandkasse") == null)
-                CreateSandkasse();
-            else
-                MigrateSandkasse();
+            Step("veiledningGuide", () => { if (_contentTypeService.Get("veiledningGuide") == null) CreateVeiledningGuide(); });
+            Step("migrateVeiledningGuideEditorLayout", () => MigrateVeiledningGuideEditorLayout());
+            Step("migrateVeiledningGuideStegtitler", () => MigrateVeiledningGuideStegtitler());
+            Step("migrateVeiledningGuideInnhold", () => MigrateVeiledningGuideInnhold());
+            Step("veiledningSteg", () => { if (_contentTypeService.Get("veiledningSteg") == null) CreateVeiledningSteg(); });
+            Step("migrateVeiledningSteg", () => MigrateVeiledningSteg());
+            Step("stegartikkel", () => { if (_contentTypeService.Get("stegartikkel") == null) CreateStegartikkel(); });
+            Step("migrateVeiledningStegAllowedChildren", () => MigrateVeiledningStegAllowedChildren());
+            Step("enkelVeiledning", () => { if (_contentTypeService.Get("enkelVeiledning") == null) CreateEnkelVeiledning(); });
+            EnsureType("forside", () => CreateForside(), () => MigrateForside());
+            EnsureType("omOssSeksjon", () => CreateOmOssSeksjon());
+            EnsureType("omOss", () => CreateOmOss(), () => MigrateOmOss());
+            EnsureType("sandkasse", () => CreateSandkasse(), () => MigrateSandkasse());
+
+            // Farge (bakgrunn) kun på rik artikkelmal (artikkel + eksempel), Lars 2026-06-05.
+            // Sikrer feltet der og fjerner det fra de enkle sidetypene.
+            Step("enforceBakgrunnScope", () => EnforceBakgrunnScope());
+
+            // Slug ikke-obligatorisk på rike maler (auto fra tittel ved lagring, ContentSlugHandler).
+            Step("ensureSlugOptional", () => EnsureSlugOptional());
 
             // Create container types if missing
-            if (_contentTypeService.Get("artikler") == null)
-                CreateArtiklerOversikt();
-            MigrateArtiklerToOversikt();
-            CreateContainerIfMissing("sider", "Andre sider", "icon-folder", "side");
-            MigrateSiderToAndreSider();
-            LockSiderContainer();
-            if (_contentTypeService.Get("eksempler") == null)
-                CreateEksemplerOversikt();
-            MigrateEksemplerOversikt();
-            if (_contentTypeService.Get("veiledninger") == null)
+            Step("artikler", () => { if (_contentTypeService.Get("artikler") == null) CreateArtiklerOversikt(); });
+            Step("migrateArtiklerToOversikt", () => MigrateArtiklerToOversikt());
+            Step("siderContainer", () => CreateContainerIfMissing("sider", "Andre sider", "icon-folder", "side"));
+            Step("migrateSiderToAndreSider", () => MigrateSiderToAndreSider());
+            Step("lockSiderContainer", () => LockSiderContainer());
+            Step("eksempler", () => { if (_contentTypeService.Get("eksempler") == null) CreateEksemplerOversikt(); });
+            Step("migrateEksemplerOversikt", () => MigrateEksemplerOversikt());
+            Step("veiledningerContainer", () =>
             {
-                var guideType = _contentTypeService.Get("veiledningGuide");
-                if (guideType != null)
+                if (_contentTypeService.Get("veiledninger") == null)
                 {
-                    var ct = new ContentType(_shortStringHelper, -1)
+                    var guideType = _contentTypeService.Get("veiledningGuide");
+                    if (guideType != null)
                     {
-                        Alias = "veiledninger",
-                        Name = "Veiledning",
-                        Icon = "icon-book-alt",
-                        AllowedAsRoot = true,
-                    };
-                    ct.AllowedContentTypes = new[]
-                    {
-                        new ContentTypeSort(guideType.Key, 0, guideType.Alias)
-                    };
-                    _contentTypeService.Save(ct);
+                        var ct = new ContentType(_shortStringHelper, -1)
+                        {
+                            Alias = "veiledninger",
+                            Name = "Veiledning",
+                            Icon = "icon-book-alt",
+                            AllowedAsRoot = true,
+                        };
+                        ct.AllowedContentTypes = new[]
+                        {
+                            new ContentTypeSort(guideType.Key, 0, guideType.Alias)
+                        };
+                        _contentTypeService.Save(ct);
+                    }
                 }
-            }
-            MigrateVeiledningerContainer();
-            MigrateVeiledningGuideAllowedChildren();
-            AddOversiktFieldsToVeiledninger();
+            });
+            Step("migrateVeiledningerContainer", () => MigrateVeiledningerContainer());
+            Step("migrateVeiledningGuideAllowedChildren", () => MigrateVeiledningGuideAllowedChildren());
+            Step("addOversiktFieldsToVeiledninger", () => AddOversiktFieldsToVeiledninger());
 
-            if (_contentTypeService.Get("kalenderhendelse") == null)
-                CreateKalenderhendelse();
-            if (_contentTypeService.Get("kalender") == null)
-                CreateKalender();
+            EnsureType("kalenderhendelse", () => CreateKalenderhendelse(), () => MigrateKalenderhendelse());
+            EnsureType("kalender", () => CreateKalender());
 
-            if (_contentTypeService.Get("globaleInnstillinger") == null)
-                CreateGlobaleInnstillinger();
-            MigrateGlobaleInnstillinger();
+            Step("globaleInnstillinger", () => { if (_contentTypeService.Get("globaleInnstillinger") == null) CreateGlobaleInnstillinger(); });
+            Step("migrateGlobaleInnstillinger", () => MigrateGlobaleInnstillinger());
+
+            // Repeker manuelle lenkefelt til "Lenke / URL"-datatypen så de auto-vaskes
+            // (UrlFieldWashHandler). Kjøres til slutt når alle content types finnes.
+            Step("repointUrlFields", () => RepointUrlFields());
 
             // RichText data types are ensured by ResolveDataTypes() at the very start of this method.
             // Standard + Restricted variants get correct toolbar+extensions config every startup.
@@ -296,6 +329,7 @@ public class ContentTypeComponent : IAsyncComponent
     private void ResolveDataTypes()
     {
         _textStringDt = FindDataType(Constants.PropertyEditors.Aliases.TextBox);
+        _urlDt = CreateOrGetUrlTextBox();
         _textAreaDt = FindDataType(Constants.PropertyEditors.Aliases.TextArea);
         // RichText: ensure both standard and restricted variants exist with correct config.
         // Toolbar/extension configs live in StandardToolbar/StandardExtensions and
@@ -307,7 +341,7 @@ public class ContentTypeComponent : IAsyncComponent
         _mediaPickerDt = FindDataType(Constants.PropertyEditors.Aliases.MediaPicker3);
         _contentPickerDt = FindDataType(Constants.PropertyEditors.Aliases.ContentPicker);
         _calloutVariantDt = CreateOrGetCalloutVariantDropdown();
-        _bakgrunnDropdownDt = CreateOrGetBakgrunnDropdown();
+        _bakgrunnDropdownDt = CreateOrGetBakgrunnFargevelger();
         _kolonneDropdownDt = CreateOrGetKolonneDropdown();
         _trueFalseDt = FindDataType(Constants.PropertyEditors.Aliases.Boolean);
         _datePickerDt = FindDataTypeByName(Constants.PropertyEditors.Aliases.DateTime, "Date Picker");
@@ -327,27 +361,49 @@ public class ContentTypeComponent : IAsyncComponent
             ?? throw new InvalidOperationException($"RichText data type '{name}' not found after EnsureRichTextDataTypes");
     }
 
-    private IDataType CreateOrGetBakgrunnDropdown()
+    private IDataType CreateOrGetBakgrunnFargevelger()
     {
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
-            .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunn");
-        if (existing != null) return existing;
+        // Fargevelger (ColorPicker) med labels: editor ser bade fargerute og navn, og slipper
+        // dropdownens tomme forste rad. Hex matcher DS surface-tokenene frontend bruker
+        // (bakgrunnSurface): Accent #e9c0c8, Brand 1 #dfc2d4, Brand 2 #e2d8d2.
+        // VIKTIG: ColorPicker-validatoren krever at "items" er JSON (ikke et CLR object[]),
+        // ellers feiler datatypen med InvalidConfiguration. Bygg derfor en JsonNode.
+        System.Text.Json.Nodes.JsonNode BuildItems() => System.Text.Json.Nodes.JsonNode.Parse(
+            System.Text.Json.JsonSerializer.Serialize(new[]
+            {
+                new { value = "e9c0c8", label = "Accent" },
+                new { value = "dfc2d4", label = "Brand 1" },
+                new { value = "e2d8d2", label = "Brand 2" },
+            }))!;
 
-        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.DropDownListFlexible]
-            ?? throw new InvalidOperationException("DropDownListFlexible editor not found");
+        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.ColorPicker)
+            .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunnsfarge");
+        if (existing != null)
+        {
+            var cfg = existing.ConfigurationData ?? new Dictionary<string, object>();
+            cfg["items"] = BuildItems();
+            cfg["useLabel"] = true;
+            existing.ConfigurationData = cfg;
+            var upd = _dataTypeService.UpdateAsync(existing, Constants.Security.SuperUserKey).GetAwaiter().GetResult();
+            return upd.Success ? upd.Result! : existing;
+        }
+
+        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.ColorPicker]
+            ?? throw new InvalidOperationException("ColorPicker editor not found");
 
         var dt = new DataType(editor, _configSerializer)
         {
-            Name = "Artikkelhode Bakgrunn",
+            Name = "Artikkelhode Bakgrunnsfarge",
             DatabaseType = ValueStorageType.Nvarchar,
-            EditorUiAlias = "Umb.PropertyEditorUi.Dropdown",
+            EditorUiAlias = "Umb.PropertyEditorUi.ColorPicker",
             ConfigurationData = new Dictionary<string, object>
             {
-                ["items"] = new[] { "hvit", "lyseblaa" },
+                ["useLabel"] = true,
+                ["items"] = BuildItems(),
             },
         };
-        _dataTypeService.Save(dt);
-        return dt;
+        var res = _dataTypeService.CreateAsync(dt, Constants.Security.SuperUserKey).GetAwaiter().GetResult();
+        return res.Success ? res.Result! : dt;
     }
 
     private IDataType CreateOrGetKolonneDropdown()
@@ -394,6 +450,73 @@ public class ContentTypeComponent : IAsyncComponent
         };
         _dataTypeService.Save(dt);
         return dt;
+    }
+
+    // Gjenbrukbart "Lenke / URL"-felt: vanlig TextBox, men en egen datatype slik at
+    // UrlFieldWashHandler kan kjenne den igjen og vaske interne stier ved lagring.
+    // Eksterne URLer (http..., mailto:, bart domene osv.) lar washeren stå urørt.
+    // Bruk denne datatypen på alle felt der en redaktør skriver inn en lenke.
+    private IDataType CreateOrGetUrlTextBox()
+    {
+        const string name = "Lenke / URL";
+        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.TextBox)
+            .FirstOrDefault(dt => dt.Name == name);
+        if (existing != null) return existing;
+
+        var editor = _propertyEditors[Constants.PropertyEditors.Aliases.TextBox]
+            ?? throw new InvalidOperationException("TextBox editor not found");
+
+        var dt = new DataType(editor, _configSerializer)
+        {
+            Name = name,
+            DatabaseType = ValueStorageType.Nvarchar,
+            EditorUiAlias = "Umb.PropertyEditorUi.TextBox",
+            ConfigurationData = new Dictionary<string, object>(),
+        };
+        _dataTypeService.Save(dt);
+        return dt;
+    }
+
+    // Felt der redaktører skriver inn en lenke for hånd. Repekes til "Lenke / URL"-datatypen
+    // slik at de vaskes automatisk (UrlFieldWashHandler). Innholdspickere og slug er holdt utenfor.
+    // Nye URL-felt: bruk _urlDt direkte i Create-metoden, eller legg dem til her.
+    private static readonly (string ContentType, string Property)[] UrlFields =
+    {
+        ("kalenderhendelse", "lenke"),
+        ("forsideHero", "lenkeUrl"),
+        ("forsideAktuelt", "lenkeUrl"),
+        ("forsideArrangementer", "lenkeUrl"),
+        ("forsideVeiledning", "lenkeUrl"),
+        ("forsideLaerAvAndre", "lenkeUrl"),
+        ("forsideSandkasse", "lenkeUrl"),
+        ("artikkelInfoBoks", "lesMerUrl"),
+        ("veiledningInfo", "lesMerUrl"),
+        ("veiledningKort", "url"),
+        ("verktoyKort", "url"),
+        ("globaleInnstillinger", "footerLenke1Url"),
+        ("globaleInnstillinger", "footerLenke3Url"),
+        ("globaleInnstillinger", "footerLenke4Url"),
+        ("globaleInnstillinger", "footerLenke5Url"),
+    };
+
+    // Repeker eksisterende lenkefelt fra vanlig TextBox til "Lenke / URL"-datatypen.
+    // TextBox -> TextBox (samme Nvarchar-lagring), så lagrede verdier er uberørt.
+    // Idempotent: hopper over felt som allerede peker riktig.
+    private void RepointUrlFields()
+    {
+        foreach (var (ctAlias, propAlias) in UrlFields)
+        {
+            var ct = _contentTypeService.Get(ctAlias);
+            var prop = ct?.PropertyTypes.FirstOrDefault(p => p.Alias == propAlias);
+            if (ct == null || prop == null) continue;
+            if (prop.DataTypeKey == _urlDt.Key) continue;
+
+            prop.DataTypeId = _urlDt.Id;
+            prop.DataTypeKey = _urlDt.Key;
+            prop.ValueStorageType = _urlDt.DatabaseType;
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: repekte {ctAlias}.{propAlias} til 'Lenke / URL'-datatypen");
+        }
     }
 
     private IDataType FindDataType(string editorAlias)
@@ -873,7 +996,7 @@ public class ContentTypeComponent : IAsyncComponent
             IsElement = true,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri. Tom tittel vises som \"Obs\" på siden."), "innhold");
         ct.AddPropertyType(Prop("tekst", "Tekst", _richTextDt, mandatory: true), "innhold");
         _contentTypeService.Save(ct);
         return ct;
@@ -883,10 +1006,26 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("veiledningObs");
         if (ct == null) return;
-        if (!ct.PropertyTypes.Any(p => p.Alias == "variant")) return;
-        ct.RemovePropertyType("variant");
-        _contentTypeService.Save(ct);
-        Console.WriteLine("ContentTypeComposer: Removed variant property from veiledningObs");
+
+        bool changed = false;
+
+        if (ct.PropertyTypes.Any(p => p.Alias == "variant"))
+        {
+            ct.RemovePropertyType("variant");
+            changed = true;
+            Console.WriteLine("ContentTypeComposer: Removed variant property from veiledningObs");
+        }
+
+        // Tittel er valgfri (Dorte): tom tittel vises som "Obs" i frontend. Relax eksisterende noder.
+        var tittel = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "tittel");
+        if (tittel != null && tittel.Mandatory)
+        {
+            tittel.Mandatory = false;
+            changed = true;
+        }
+
+        if (changed)
+            _contentTypeService.Save(ct);
     }
 
     private IContentType CreateVeiledningTrekkspillElement()
@@ -917,7 +1056,8 @@ public class ContentTypeComponent : IAsyncComponent
             IsElement = true,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("eksempel", "Eksempel", _contentPickerDt, mandatory: true, description: "Velg eksempelet som skal fremheves."), "innhold");
+        ct.AddPropertyType(Prop("eksempel", "Eksempel", _contentPickerDt, mandatory: true, description: "Velg eksempelet som skal fremheves.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: eksemplets egen ingress. Skriv her for å overstyre.", sortOrder: 2), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -956,8 +1096,11 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri overskrift over de relaterte lenkene.", sortOrder: 1), "innhold");
         ct.AddPropertyType(Prop("relatert1", "Relatert 1", _contentPickerDt, description: "Velg artikkel eller veiledning.", sortOrder: 2), "innhold");
-        ct.AddPropertyType(Prop("relatert2", "Relatert 2", _contentPickerDt, description: "Valgfri.", sortOrder: 3), "innhold");
-        ct.AddPropertyType(Prop("relatert3", "Relatert 3", _contentPickerDt, description: "Valgfri.", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("relatertTag1", "Merkelapp 1", _textStringDt, description: "Valgfri merkelapp på kort 1.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("relatert2", "Relatert 2", _contentPickerDt, description: "Valgfri.", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("relatertTag2", "Merkelapp 2", _textStringDt, description: "Valgfri merkelapp på kort 2.", sortOrder: 5), "innhold");
+        ct.AddPropertyType(Prop("relatert3", "Relatert 3", _contentPickerDt, description: "Valgfri.", sortOrder: 6), "innhold");
+        ct.AddPropertyType(Prop("relatertTag3", "Merkelapp 3", _textStringDt, description: "Valgfri merkelapp på kort 3.", sortOrder: 7), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -977,6 +1120,68 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("navn", "Navn", _textStringDt, description: "Kontaktpersonens navn.", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("epost", "E-post", _textStringDt, description: "Kontaktpersonens e-postadresse.", sortOrder: 3), "innhold");
         ct.AddPropertyType(Prop("stilling", "Stilling", _textStringDt, description: "Kontaktpersonens stilling/tittel.", sortOrder: 4), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    // --- Artikler Oversikt element types (speiler eksempel-modulene, men for artikler) ---
+
+    private IContentType CreateArtikkelFeaturedElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "artikkelFeatured",
+            Name = "Fremhevet artikkel",
+            Description = "Stor hero-blokk på Aktuelt-siden. Pek på én artikkel som vises som featured.",
+            Icon = "icon-bullhorn",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("artikkel", "Artikkel", _contentPickerDt, mandatory: true, description: "Velg artikkelen som skal fremheves.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: artikkelens egen ingress. Skriv her for å overstyre.", sortOrder: 2), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateArtikkelGruppeElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "artikkelGruppe",
+            Name = "Artikkel-gruppe",
+            Description = "Grid av artikler. Velg tittel (valgfri), antall kolonner (1-4) og opptil 6 artikler.",
+            Icon = "icon-grid",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri overskrift over gruppen.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("antallKolonner", "Antall kolonner", _kolonneDropdownDt, mandatory: true, description: "Hvor mange kort per rad i grid-visningen.", sortOrder: 2), "innhold");
+        for (int i = 1; i <= 6; i++)
+        {
+            ct.AddPropertyType(Prop($"artikkel{i}", $"Artikkel {i}", _contentPickerDt, description: i == 1 ? "Velg artikkel som vises i kortet." : "Valgfri, la stå tom hvis gruppen skal ha færre kort.", sortOrder: 2 + i), "innhold");
+        }
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateArtikkelRelatertElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "artikkelRelatert",
+            Name = "Kort-gruppe (kun merkelapp)",
+            Description = "3 kort med kun merkelapp og tittel (ingen bilde). Pek på artikler eller veiledninger.",
+            Icon = "icon-link",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, description: "Valgfri overskrift over kortene.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("relatert1", "Relatert 1", _contentPickerDt, description: "Velg artikkel eller veiledning.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("relatertTag1", "Merkelapp 1", _textStringDt, description: "Valgfri merkelapp på kort 1.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("relatert2", "Relatert 2", _contentPickerDt, description: "Valgfri.", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("relatertTag2", "Merkelapp 2", _textStringDt, description: "Valgfri merkelapp på kort 2.", sortOrder: 5), "innhold");
+        ct.AddPropertyType(Prop("relatert3", "Relatert 3", _contentPickerDt, description: "Valgfri.", sortOrder: 6), "innhold");
+        ct.AddPropertyType(Prop("relatertTag3", "Merkelapp 3", _textStringDt, description: "Valgfri merkelapp på kort 3.", sortOrder: 7), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -1033,9 +1238,15 @@ public class ContentTypeComponent : IAsyncComponent
         _blockListEksemplerSeksjonerDt = CreateOrGetMultiBlockListDataType(
             "Block List - Eksempler Seksjoner",
             new[] { "eksempelFeatured", "eksempelGruppe", "eksempelRelatert", "eksempelKontakt" });
+        _blockListArtiklerSeksjonerDt = CreateOrGetMultiBlockListDataType(
+            "Block List - Artikler Seksjoner",
+            new[] { "artikkelFeatured", "artikkelGruppe", "artikkelRelatert" });
         _blockListVeiledningGuideDt = CreateOrGetMultiBlockListDataType(
             "Block List - Veiledning Guide",
             VeiledningGuideModules);
+        _blockListForsideDt = CreateOrGetMultiBlockListDataType(
+            "Block List - Forside Seksjoner",
+            ForsideModules);
     }
 
     private IDataType CreateOrGetBlockListDataType(string name, string elementTypeAlias)
@@ -1091,6 +1302,25 @@ public class ContentTypeComponent : IAsyncComponent
         ["artikkelTrekkspill"] = "artikkelTrekkspillSettings",
     };
 
+    /// <summary>
+    /// Per-block label shown i Block List-oversikten, så redaktør ser et utdrag av hver
+    /// modul uten å åpne den (Dorte-ønske, Drupal-stil). Bruker Umbraco Flavored Markdown:
+    /// {umbValue: alias | filter}. Aliaser uten oppføring her får standard-label (modulnavn).
+    /// </summary>
+    private static readonly Dictionary<string, string> BlockLabelByContent = new()
+    {
+        ["artikkelTekst"]        = "{umbValue: innhold | stripHtml | wordLimit:12}",
+        ["artikkelInfoBoks"]     = "{umbValue: innhold | stripHtml | wordLimit:12}",
+        ["artikkelBildeSeksjon"] = "{umbValue: bildetekst | fallback:Bilde}",
+        ["artikkelFremheving"]   = "{umbValue: tekst | stripHtml | wordLimit:12}",
+        ["artikkelKontaktkort"]  = "{umbValue: navn | fallback:Kontaktkort}",
+        ["veiledningTekst"]      = "{umbValue: innhold | stripHtml | wordLimit:12}",
+        ["veiledningInfo"]       = "{umbValue: tittel | fallback:Info}",
+        ["veiledningEksempel"]   = "{umbValue: tittel | fallback:Eksempel}",
+        ["veiledningObs"]        = "{umbValue: tittel | fallback:Obs}",
+        ["veiledningTrekkspill"] = "{umbValue: tittel | fallback:Trekkspill}",
+    };
+
     private object? BuildBlockConfig(string alias, string contextName, string operation)
     {
         var elementType = _contentTypeService.Get(alias);
@@ -1114,6 +1344,10 @@ public class ContentTypeComponent : IAsyncComponent
             {
                 Console.WriteLine($"ContentTypeComposer: Settings element type '{settingsAlias}' for '{alias}' not found in block list '{contextName}' — skipping settings");
             }
+        }
+        if (BlockLabelByContent.TryGetValue(alias, out var label))
+        {
+            block["label"] = label;
         }
         return block;
     }
@@ -1215,6 +1449,18 @@ public class ContentTypeComponent : IAsyncComponent
         "veiledningObs",
     };
 
+    // Forside-moduler i Figma-rekkefølge (default når redaktør bygger siden).
+    private static readonly string[] ForsideModules =
+    {
+        "forsideHero",
+        "forsideAktuelt",
+        "forsideArrangementer",
+        "forsideVeiledning",
+        "forsideLaerAvAndre",
+        "forsideForstaRegelverket",
+        "forsideSandkasse",
+    };
+
     // ── RichText configurations ────────────────────────────────────────
     // Single source of truth for ALL RichText editors in the CMS.
     // To change a toolbar or add/remove a Tiptap feature: edit the lists below.
@@ -1285,11 +1531,13 @@ public class ContentTypeComponent : IAsyncComponent
     // Restricted: for highlight blocks (Fremheving) and process step descriptions.
     // No headings (block is itself a highlight, no nested sections), no source editor,
     // no alignment, no blockquote (handled by visAnforselstegn toggle).
+    // ClearFormatting ("fjern formatering") is included here too — ALL RichText
+    // editors must have a wash button so editors can strip pasted-in marks/styles.
     private static readonly List<List<List<string>>> RestrictedToolbar = new()
     {
         new()
         {
-            new() { "Umb.Tiptap.Toolbar.Bold", "Umb.Tiptap.Toolbar.Italic" },
+            new() { "Umb.Tiptap.Toolbar.Bold", "Umb.Tiptap.Toolbar.Italic", "Umb.Tiptap.Toolbar.ClearFormatting" },
             new() { "Umb.Tiptap.Toolbar.BulletList", "Umb.Tiptap.Toolbar.OrderedList" },
             new() { "Umb.Tiptap.Toolbar.Link", "Umb.Tiptap.Toolbar.Unlink" },
         }
@@ -1481,12 +1729,6 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere.", sortOrder: 4), "innhold");
             changed = true;
         }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
-        {
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Bakgrunnsfarge for artikkelhodet.", sortOrder: 2), "innstillinger");
-            changed = true;
-        }
-
         var innholdProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "innhold");
         if (innholdProp != null && innholdProp.DataTypeId != _blockListArtikkelDt.Id)
         {
@@ -1500,10 +1742,10 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
-            ("slug", 1), ("bakgrunn", 2))) changed = true;
+            ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
@@ -1536,7 +1778,16 @@ public class ContentTypeComponent : IAsyncComponent
 
         if (!ct.PropertyTypes.Any(p => p.Alias == "ingress"))
         {
-            ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+            ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Valgfri. Stegsider bruker brødtekst-modul i stedet (Dorte).", sortOrder: 2), "innhold");
+            changed = true;
+        }
+
+        // Ingress er ikke lenger påkrevd på stegsider (Dorte): innhold skal ligge i en
+        // brødtekst-modul slik at all tekst får lik størrelse. Relax eksisterende noder.
+        var ingressProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "ingress");
+        if (ingressProp != null && ingressProp.Mandatory)
+        {
+            ingressProp.Mandatory = false;
             changed = true;
         }
 
@@ -1618,8 +1869,91 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt.", sortOrder: 4), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
-        ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit.", sortOrder: 2), "innstillinger");
+        // Ikke-obligatorisk: tom slug auto-genereres fra tittel ved lagring (ContentSlugHandler).
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
+        // Bakgrunnsfarge er IKKE en del av det delte hodet lenger — farge kun på artikkel (se MigrateArtikkelType).
+    }
+
+    /// <summary>
+    /// Farge (bakgrunn) skal kun kunne velges på rik artikkelmal (Lars + designere 2026-06-05):
+    /// artikkel, eksempel, enkelVeiledning, sandkasse, omOss. De enkle malene (side, stegartikkel) skal
+    /// ikke ha farge. Andre farger (kort, seksjoner) baserer seg på dette valget i frontend. Sikrer feltet
+    /// på de rike typene og fjerner det fra de enkle. Fjerning er destruktiv: dropper hvit/lyseblaa-verdier.
+    /// </summary>
+    private void EnforceBakgrunnScope()
+    {
+        const string bakgrunnDesc = "Bakgrunnsfarge for artikkelhodet.";
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            var bakgrunn = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "bakgrunn");
+            if (bakgrunn != null)
+            {
+                // Feltet finnes alt: migrer til fargevelgeren, gjor det obligatorisk (ingen tom
+                // rad) og oppdater beskrivelsen. AddPropertyType under kjorer ikke pa eksisterende
+                // felt, sa dette maa gjores eksplisitt.
+                bool changed = false;
+                if (bakgrunn.DataTypeKey != _bakgrunnDropdownDt.Key)
+                {
+                    bakgrunn.DataTypeId = _bakgrunnDropdownDt.Id;
+                    bakgrunn.DataTypeKey = _bakgrunnDropdownDt.Key;
+                    bakgrunn.PropertyEditorAlias = _bakgrunnDropdownDt.EditorAlias;
+                    changed = true;
+                }
+                if (!bakgrunn.Mandatory) { bakgrunn.Mandatory = true; changed = true; }
+                if (bakgrunn.Description != bakgrunnDesc) { bakgrunn.Description = bakgrunnDesc; changed = true; }
+                if (changed)
+                {
+                    _contentTypeService.Save(ct);
+                    Console.WriteLine($"ContentTypeComposer: Migrerte bakgrunn til fargevelger pa '{alias}'");
+                }
+                continue;
+            }
+            if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
+                ct.AddPropertyGroup("innstillinger", "Innstillinger");
+            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, mandatory: true, description: bakgrunnDesc, sortOrder: 2), "innstillinger");
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rik artikkelmal)");
+        }
+        // Rydd vekk den gamle dropdown-datatypen (erstattet av fargevelgeren) nar ingen felt
+        // refererer den lenger. Fargevelgeren har samme navn men annen editor-alias.
+        foreach (var oldDropdown in _dataTypeService
+                     .GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
+                     .Where(dt => dt.Name == "Artikkelhode Bakgrunn").ToList())
+        {
+            _dataTypeService.Delete(oldDropdown);
+            Console.WriteLine("ContentTypeComposer: Slettet gammel dropdown-datatype 'Artikkelhode Bakgrunn'");
+        }
+        foreach (var alias in new[] { "side", "stegartikkel" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
+            ct.RemovePropertyType("bakgrunn");
+            _contentTypeService.Save(ct);
+            Console.WriteLine($"ContentTypeComposer: Removed bakgrunn from '{alias}' (farge kun på rik artikkelmal)");
+        }
+    }
+
+    /// <summary>
+    /// Slug kan stå tom og auto-genereres fra tittel ved lagring (ContentSlugHandler), jf.
+    /// feltbeskrivelsen. Gjør slug ikke-obligatorisk på de rike malene og relax eksisterende noder.
+    /// </summary>
+    private void EnsureSlugOptional()
+    {
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss", "side", "stegartikkel" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null) continue;
+            var slug = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "slug");
+            if (slug != null && slug.Mandatory)
+            {
+                slug.Mandatory = false;
+                _contentTypeService.Save(ct);
+                Console.WriteLine($"ContentTypeComposer: slug satt ikke-obligatorisk på '{alias}'");
+            }
+        }
     }
 
     private static readonly Dictionary<string, int> StandardGroupSortOrders = new()
@@ -1714,16 +2048,11 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt."), "innhold");
             changed = true;
         }
-        if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn"))
-        {
-            ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, description: "Velg bakgrunnsfarge for artikkelhodet. Standard er hvit."), "innhold");
-            changed = true;
-        }
-
-        if (EnsureInnstillingerGroup(ct, "slug", "bakgrunn")) changed = true;
+        // bakgrunn (farge) eies av EnforceBakgrunnScope() — gjelder rik artikkelmal (artikkel + eksempel).
+        if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
-            ("slug", 1), ("bakgrunn", 2))) changed = true;
+            ("slug", 1))) changed = true;
         if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
@@ -1813,10 +2142,45 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("eksempler");
         if (ct == null) return;
-        if (ct.PropertyTypes.Any(p => p.Alias == "seksjoner")) return;
-        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListEksemplerSeksjonerDt, description: "Bygg opp /eksempler med fremhevet eksempel, grupper med 1–4 kolonner, relaterte lenker og kontakt-CTA. Reorder ved drag og drop.", sortOrder: 3), "innhold");
-        _contentTypeService.Save(ct);
-        Console.WriteLine("ContentTypeComposer: Migrated eksempler with seksjoner Block List");
+        bool changed = false;
+        if (!ct.PropertyTypes.Any(p => p.Alias == "seksjoner"))
+        {
+            ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListEksemplerSeksjonerDt, description: "Bygg opp /eksempler med fremhevet eksempel, grupper med 1–4 kolonner, relaterte lenker og kontakt-CTA. Reorder ved drag og drop.", sortOrder: 3), "innhold");
+            changed = true;
+        }
+        // Ingress på selve oversiktssiden droppes (Lars). Fremhevet-modulen har egen ingress.
+        if (RemoveProp(ct, "heroIngress")) changed = true;
+        if (changed)
+        {
+            _contentTypeService.Save(ct);
+            Console.WriteLine("ContentTypeComposer: Migrated eksempler oversikt (seksjoner, fjernet heroIngress)");
+        }
+    }
+
+    // Legg til nye felt på eksisterende modul-element-typer (eksempel/forside).
+    private void MigrateModulFelter()
+    {
+        var feat = _contentTypeService.Get("eksempelFeatured");
+        if (feat != null && !feat.PropertyTypeExists("ingress"))
+        {
+            feat.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: eksemplets egen ingress. Skriv her for å overstyre.", sortOrder: 2), "innhold");
+            _contentTypeService.Save(feat);
+        }
+        var rel = _contentTypeService.Get("eksempelRelatert");
+        if (rel != null)
+        {
+            bool changed = false;
+            if (!rel.PropertyTypeExists("relatertTag1")) { rel.AddPropertyType(Prop("relatertTag1", "Merkelapp 1", _textStringDt, description: "Valgfri merkelapp på kort 1.", sortOrder: 3), "innhold"); changed = true; }
+            if (!rel.PropertyTypeExists("relatertTag2")) { rel.AddPropertyType(Prop("relatertTag2", "Merkelapp 2", _textStringDt, description: "Valgfri merkelapp på kort 2.", sortOrder: 5), "innhold"); changed = true; }
+            if (!rel.PropertyTypeExists("relatertTag3")) { rel.AddPropertyType(Prop("relatertTag3", "Merkelapp 3", _textStringDt, description: "Valgfri merkelapp på kort 3.", sortOrder: 7), "innhold"); changed = true; }
+            if (changed) _contentTypeService.Save(rel);
+        }
+        var aktuelt = _contentTypeService.Get("forsideAktuelt");
+        if (aktuelt != null && !aktuelt.PropertyTypeExists("fremhevetArtikkel"))
+        {
+            aktuelt.AddPropertyType(Prop("fremhevetArtikkel", "Fremhevet artikkel", _contentPickerDt, description: "Velg artikkelen som vises stort. Standard: nyeste artikkel.", sortOrder: 1), "innhold");
+            _contentTypeService.Save(aktuelt);
+        }
     }
 
     private IContentType CreateArtiklerOversikt()
@@ -1833,7 +2197,8 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("heroTittel", "Tittel", _textStringDt, description: "Vises som overskrift på /artikler. Default er 'Aktuelt' hvis tom.", sortOrder: 1), "innhold");
         ct.AddPropertyType(Prop("heroSubtittel", "Subtittel", _textStringDt, description: "Kort støttetekst under tittelen. Kan stå tom.", sortOrder: 2), "innhold");
-        ct.AddPropertyType(Prop("featuredArtikkel", "Fremhevet artikkel", _contentPickerDt, description: "Velg artikkel som vises stort øverst. Tom = bruk nyeste automatisk.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("featuredArtikkel", "Fremhevet artikkel", _contentPickerDt, description: "Velg artikkel som vises stort øverst. Tom = bruk nyeste automatisk. Brukes når Seksjoner er tom.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListArtiklerSeksjonerDt, description: "Bygg opp /artikler med fremhevet artikkel, kort-grupper (1–4 kolonner) og merkelapp-kort. Reorder ved drag og drop. La stå tom for automatisk visning.", sortOrder: 4), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
@@ -1886,6 +2251,11 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
             ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
             ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("seksjoner"))
+        {
+            ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListArtiklerSeksjonerDt, description: "Bygg opp /artikler med fremhevet artikkel, kort-grupper (1–4 kolonner) og merkelapp-kort. Reorder ved drag og drop. La stå tom for automatisk visning.", sortOrder: 4), "innhold");
             changed = true;
         }
 
@@ -1957,7 +2327,7 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, mandatory: true, description: "Kort introduksjonstekst som vises under tittelen.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Valgfri. Stegsider bruker brødtekst-modul i stedet (Dorte).", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 3), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
@@ -2021,7 +2391,7 @@ public class ContentTypeComponent : IAsyncComponent
         };
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 1), "innhold");
-        ct.AddPropertyType(Prop("type", "Type", _textStringDt, description: "Workshop, Frokostseminar, Konferanse...", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("type", "Merkelapp", _textStringDt, description: "Kommaseparert, f.eks. \"Frokostseminar, Offentlig\". Vises som merkelapp(er) på kortet.", sortOrder: 2), "innhold");
         ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Kort beskrivelse for kortvisning.", sortOrder: 3), "innhold");
         ct.AddPropertyType(Prop("detaljertBeskrivelse", "Detaljert beskrivelse", _richTextDt, description: "Vises på enkeltsiden og i featured-boksen.", sortOrder: 4), "innhold");
         ct.AddPropertyType(Prop("startDato", "Startdato", _datePickerDt, mandatory: true, sortOrder: 5), "innhold");
@@ -2029,13 +2399,24 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tid", "Tid", _textStringDt, description: "Klokkeslett, f.eks. \"09:00-11:00\" eller \"Hele dagen\".", sortOrder: 7), "innhold");
         ct.AddPropertyType(Prop("sted", "Sted", _textStringDt, description: "Fysisk adresse eller \"Digitalt\".", sortOrder: 8), "innhold");
         ct.AddPropertyType(Prop("lenke", "Lenke", _textStringDt, description: "URL til påmelding eller mer info.", sortOrder: 9), "innhold");
-        ct.AddPropertyType(Prop("tagger", "Tagger", _textAreaDt, description: "Kommaseparert liste med tagger.", sortOrder: 10), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
         SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
+    }
+
+    // type -> Merkelapp (kommaseparert), og tagger droppes (slått sammen med merkelapp).
+    private void MigrateKalenderhendelse()
+    {
+        var ct = _contentTypeService.Get("kalenderhendelse");
+        if (ct == null) return;
+        bool changed = false;
+        changed |= SetPropLabel(ct, "type", "Merkelapp");
+        changed |= SetPropDescription(ct, "type", "Kommaseparert, f.eks. \"Frokostseminar, Offentlig\". Vises som merkelapp(er) på kortet.");
+        changed |= RemoveProp(ct, "tagger");
+        if (changed) _contentTypeService.Save(ct);
     }
 
     private IContentType CreateKalender()
@@ -2152,21 +2533,21 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = false,  // lives under Sider container
         };
 
+        // Om Oss bruker rik artikkelmal: samme artikkelhode og samme modul-blokkliste som artikkel
+        // (Lars + designere 2026-06-05). Farge legges på av EnforceBakgrunnScope.
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("heroTittel", "Hero-tittel", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("heroUndertittel", "Hero-undertittel", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("introTekst", "Intro-tekst", _richTextDt), "innhold");
-        ct.AddPropertyType(Prop("misjonTekst", "Misjonstekst", _richTextDt, description: "Tekst i den blå misjonsbanneren"), "innhold");
-        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListOmOssDt, description: "Drag og slipp for å endre rekkefølge på seksjoner."), "innhold");
+        AddArtikkelhodeFields(ct);
+        ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
 
-        // No allowed children — sections live as blocks on the page itself
+        // No allowed children — innholdet ligger som moduler på siden
         ct.AllowedContentTypes = Array.Empty<ContentTypeSort>();
 
+        SetStandardGroupSortOrders(ct);
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2178,26 +2559,42 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
-        // Add misjonTekst if missing (legacy migration)
-        if (!ct.PropertyTypeExists("misjonTekst"))
+        // Bygg om Om Oss til rik artikkelmal (Lars + designere 2026-06-05): samme artikkelhode og
+        // samme modul-blokkliste som artikkel. Farge legges på av EnforceBakgrunnScope.
+        if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
         {
-            ct.AddPropertyType(Prop("misjonTekst", "Misjonstekst", _richTextDt, description: "Tekst i den blå misjonsbanneren"), "innhold");
+            ct.AddPropertyGroup("innhold", "Innhold");
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("tittel"))
+        {
+            AddArtikkelhodeFields(ct);
+            changed = true;
+        }
+        if (!ct.PropertyTypeExists("innhold"))
+        {
+            ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
             changed = true;
         }
 
-        // Add seksjoner Block List if missing (Om Oss flatten)
-        if (!ct.PropertyTypeExists("seksjoner"))
+        // Fjern gamle Om Oss-spesifikke felt. Destruktivt: gammelt innhold (hero/intro/misjon/seksjoner)
+        // må flyttes til modulene av redaktør.
+        foreach (var alias in new[] { "heroTittel", "heroUndertittel", "introTekst", "misjonTekst", "seksjoner" })
         {
-            ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListOmOssDt, description: "Drag og slipp for å endre rekkefølge på seksjoner."), "innhold");
-            changed = true;
+            if (ct.PropertyTypeExists(alias))
+            {
+                ct.RemovePropertyType(alias);
+                changed = true;
+            }
         }
 
-        // Remove omOssSeksjon from allowed children (sections move to blocks)
         if (ct.AllowedContentTypes != null && ct.AllowedContentTypes.Any())
         {
             ct.AllowedContentTypes = Array.Empty<ContentTypeSort>();
             changed = true;
         }
+
+        if (SetStandardGroupSortOrders(ct)) changed = true;
 
         if (changed)
             _contentTypeService.Save(ct);
@@ -2248,7 +2645,7 @@ public class ContentTypeComponent : IAsyncComponent
         }
 
         // Add Artikkelhode fields if missing
-        var hodeFields = new[] { "tittel", "slug", "ingress", "artikkelBilde", "bildeAlt", "bakgrunn" };
+        var hodeFields = new[] { "tittel", "slug", "ingress", "artikkelBilde", "bildeAlt" };
         if (hodeFields.Any(f => !ct.PropertyTypeExists(f)))
         {
             // Ensure the "innhold" group exists before adding to it
@@ -2324,70 +2721,9 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = true,
         };
 
-        // Tab: Hero
-        ct.AddPropertyGroup("hero", "Hero");
-        ct.AddPropertyType(Prop("heroOverskrift", "Overskrift", _textStringDt), "hero");
-        ct.AddPropertyType(Prop("heroTekst", "Tekst", _richTextDt), "hero");
-        ct.AddPropertyType(Prop("heroBilde", "Bilde", _mediaPickerDt), "hero");
-
-        // Tab: Tre råd
-        ct.AddPropertyGroup("treRaad", "Tre råd");
-        ct.AddPropertyType(Prop("raadTittel", "Tittel", _textStringDt), "treRaad");
-        ct.AddPropertyType(Prop("tips", "Tips", _blockListTipsDt), "treRaad");
-
-        // Tab: Sandkassen
-        ct.AddPropertyGroup("sandkassen", "Sandkassen");
-        ct.AddPropertyType(Prop("sandkasseTittel", "Tittel", _textStringDt), "sandkassen");
-        ct.AddPropertyType(Prop("sandkasseTekst", "Tekst", _richTextDt), "sandkassen");
-        ct.AddPropertyType(Prop("sandkasseUrl", "URL", _textStringDt), "sandkassen");
-
-        // Tab: Veiledning
-        ct.AddPropertyGroup("veiledning", "Veiledning");
-        ct.AddPropertyType(Prop("veiledningOverskrift", "Overskrift", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Tittel", "Veiledning 1 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Beskrivelse", "Veiledning 1 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Url", "Veiledning 1 URL", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Tittel", "Veiledning 2 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Beskrivelse", "Veiledning 2 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Url", "Veiledning 2 URL", _textStringDt), "veiledning");
-
-        // Tab: Aktuelt
-        ct.AddPropertyGroup("aktuelt", "Aktuelt");
-        ct.AddPropertyType(Prop("aktueltOverskrift", "Overskrift", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeTekst", "Lenketekst", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeUrl", "Lenke-URL", _textStringDt), "aktuelt");
-
-        // Tab: Arrangement
-        ct.AddPropertyGroup("arrangement", "Arrangement");
-        ct.AddPropertyType(Prop("arrangementOverskrift", "Overskrift", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementKommendeTekst", "Kommende tekst", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementAvholdteTekst", "Avholdte tekst", _textStringDt), "arrangement");
-
-        // Tab: Bunn (Footer)
-        ct.AddPropertyGroup("bunn", "Bunn (Footer)");
-        ct.AddPropertyType(Prop("footerTittel", "Merkenavn", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt), "bunn");
-        ct.AddPropertyType(Prop("footerSosialInstagram", "Instagram", _textStringDt, description: "URL til Instagram-profil"), "bunn");
-        ct.AddPropertyType(Prop("footerSosialLinkedin", "LinkedIn", _textStringDt, description: "URL til LinkedIn-profil"), "bunn");
-        ct.AddPropertyType(Prop("footerSosialX", "X", _textStringDt, description: "URL til X-profil"), "bunn");
-        ct.AddPropertyType(Prop("footerLenke1Tekst", "Lenke 1 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke1Url", "Lenke 1 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke2Tekst", "Lenke 2 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke2Url", "Lenke 2 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke3Tekst", "Lenke 3 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke3Url", "Lenke 3 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke4Tekst", "Lenke 4 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke4Url", "Lenke 4 URL", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke5Tekst", "Lenke 5 tekst", _textStringDt), "bunn");
-        ct.AddPropertyType(Prop("footerLenke5Url", "Lenke 5 URL", _textStringDt), "bunn");
-
-        // Tab: Rekkefølge (Order)
-        ct.AddPropertyGroup("rekkefolge", "Rekkefølge");
-        ct.AddPropertyType(Prop("rekkefolgeVeiledning", "Veiledning", _numericDt, description: "Rekkefølge for Veiledning-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeAktuelt", "Aktuelt", _numericDt, description: "Rekkefølge for Aktuelt-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeTreRaad", "Tre råd", _numericDt, description: "Rekkefølge for Tre råd-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeSandkasse", "Sandkasse", _numericDt, description: "Rekkefølge for Sandkasse-seksjonen (1-5)"), "rekkefolge");
-        ct.AddPropertyType(Prop("rekkefolgeArrangement", "Arrangement", _numericDt, description: "Rekkefølge for Arrangement-seksjonen (1-5)"), "rekkefolge");
+        // Forsiden er modularisert: ett block-list-felt med moduler (reorderbart).
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListForsideDt, description: "Bygg opp forsiden ved å legge til moduler. Reorder ved drag og slipp."), "innhold");
 
         // Tab: SEO
         ct.AddPropertyGroup("seo", "SEO");
@@ -2395,6 +2731,133 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
 
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    // --- Forside-moduler (block list) ---
+
+    private IContentType CreateForsideHeroElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideHero", Name = "Forside Hero", Description = "Hero-seksjon øverst på forsiden", Icon = "icon-home", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _richTextDtRestricted, mandatory: true, description: "Hovedteksten i hero-seksjonen. Bruk fet skrift for å fremheve ord."), "innhold");
+        ct.AddPropertyType(Prop("komIGangTekst", "Kom i gang-ledetekst", _textStringDt, description: "Liten ledetekst foran lenken, f.eks. \"Kom i gang\"."), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Hva er KI og hva kan du bruke det til?"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /veiledning/hva-er-ki"), "innhold");
+        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideAktueltElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideAktuelt", Name = "Forside Aktuelt", Description = "Seksjon med siste artikler (innhold hentes automatisk)", Icon = "icon-newspaper-alt", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("fremhevetArtikkel", "Fremhevet artikkel", _contentPickerDt, description: "Velg artikkelen som vises stort. Standard: nyeste artikkel.", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("kort", "Kort", _blockListForsideArtikkelKortDt, description: "Velg artikler til de små kortene. La stå tom for å vise nyeste automatisk."), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Se alle artikler"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /artikler"), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideArrangementerElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideArrangementer", Name = "Forside Arrangementer", Description = "Seksjon med kommende arrangement (innhold hentes automatisk)", Icon = "icon-calendar", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("arrangement", "Fremhevet arrangement", _contentPickerDt, description: "Standard: neste kommende arrangement", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Se alle arrangementer"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /kalender"), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideVeiledningElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideVeiledning", Name = "Forside Veiledning", Description = "Fremhevet veiledning på forsiden", Icon = "icon-book-alt", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("veiledning", "Veiledning", _contentPickerDt, description: "Velg veiledningen kortet skal peke på. Gir standard tittel, ingress, bilde og lenke.", sortOrder: 0), "innhold");
+        ct.AddPropertyType(Prop("label", "Label", _textStringDt, description: "Liten etikett over tittelen, f.eks. \"Veiledning\".", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Lenketekst", _textStringDt, description: "Standard: tittelen til valgt veiledning.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress", _textAreaDt, description: "Standard: ingressen til valgt veiledning.", sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: lenken til valgt veiledning (ellers /veiledning).", sortOrder: 4), "innhold");
+        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt, description: "Standard: bildet til valgt veiledning.", sortOrder: 5), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideLaerAvAndreElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideLaerAvAndre", Name = "Forside Lær av andre", Description = "Seksjon med eksempler (innhold hentes automatisk)", Icon = "icon-light-bulb", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("kort", "Kort", _blockListForsideEksempelKortDt, description: "Velg eksempler. La stå tom for å vise nyeste automatisk."), "innhold");
+        ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Se alle eksempler"), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /eksempler"), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideArtikkelKortElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideArtikkelKort", Name = "Forside Artikkelkort", Description = "Et kort som peker på en artikkel på forsiden", Icon = "icon-newspaper-alt", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("artikkel", "Artikkel", _contentPickerDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: artikkelens egen ingress. Skriv her for å overstyre."), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideEksempelKortElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideEksempelKort", Name = "Forside Eksempelkort", Description = "Et kort som peker på et eksempel på forsiden", Icon = "icon-light-bulb", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("eksempel", "Eksempel", _contentPickerDt, mandatory: true), "innhold");
+        ct.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: eksemplets egen ingress. Skriv her for å overstyre."), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideSandkasseElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideSandkasse", Name = "Forside Sandkasse", Description = "Sandkasse-CTA på forsiden", Icon = "icon-box", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Lenketekst", _textStringDt, mandatory: true, description: "Klikkbar overskrift på sandkasse-kortet."), "innhold");
+        ct.AddPropertyType(Prop("tekst", "Tekst", _textAreaDt, description: "Kort beskrivelse under overskriften."), "innhold");
+        ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /sandkasse"), "innhold");
+        ct.AddPropertyType(Prop("illustrasjon", "Illustrasjon", _mediaPickerDt), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideForstaLenkeElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideForstaLenke", Name = "Forstå regelverket-lenke", Description = "En lenke som peker på en veiledning eller artikkel", Icon = "icon-link", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("lenke", "Lenke", _contentPickerDt, mandatory: true, description: "Velg veiledning eller artikkel. Tittel og lenke hentes automatisk."), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    private IContentType CreateForsideForstaRegelverketElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        { Alias = "forsideForstaRegelverket", Name = "Forstå regelverket", Description = "Enkel lenkeliste til veiledninger/artikler om regelverk", Icon = "icon-book-alt", IsElement = true };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, description: "Standard: Forstå regelverket", sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("lenker", "Lenker", _blockListForstaLenkerDt, description: "Velg veiledninger/artikler som vises som enkel lenkeliste.", sortOrder: 2), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2580,21 +3043,48 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("heroBilde", "Hero-bilde", _mediaPickerDt), "hero");
             changed = true;
         }
-        // Seksjon 1
+        // Seksjon 1 (vises som "Fremhevet veiledning og artikler" i backoffice)
         if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon1"))
         {
-            ct.AddPropertyGroup("seksjon1", "Seksjon 1");
-            ct.AddPropertyType(Prop("seksjon1Tittel", "Seksjon 1 tittel", _textStringDt), "seksjon1");
-            ct.AddPropertyType(Prop("seksjon1Kort", "Seksjon 1 kort", _blockListVeiledningKortDt), "seksjon1");
+            ct.AddPropertyGroup("seksjon1", "Fremhevet veiledning og artikler");
+            ct.AddPropertyType(Prop("seksjon1Tittel", "Tittel", _textStringDt), "seksjon1");
+            ct.AddPropertyType(Prop("seksjon1Kort", "Kort", _blockListVeiledningKortDt), "seksjon1");
             changed = true;
         }
-        // Seksjon 2
+        // Seksjon 2 (vises som "Rik liste" i backoffice)
         if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon2"))
         {
-            ct.AddPropertyGroup("seksjon2", "Seksjon 2");
-            ct.AddPropertyType(Prop("seksjon2Tittel", "Seksjon 2 tittel", _textStringDt), "seksjon2");
-            ct.AddPropertyType(Prop("seksjon2Kort", "Seksjon 2 kort", _blockListVeiledningKortDt), "seksjon2");
+            ct.AddPropertyGroup("seksjon2", "Rik liste");
+            ct.AddPropertyType(Prop("seksjon2Tittel", "Tittel", _textStringDt), "seksjon2");
+            ct.AddPropertyType(Prop("seksjon2Kort", "Kort", _blockListVeiledningKortDt), "seksjon2");
             changed = true;
+        }
+        // Seksjon 3 (vises som "Enkel liste" i backoffice) — enkel lenkeliste, kun
+        // tittel + URL brukes på frontend ("Forstå regelverket"-seksjonen). (#389)
+        if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon3"))
+        {
+            ct.AddPropertyGroup("seksjon3", "Enkel liste");
+            ct.AddPropertyType(Prop("seksjon3Tittel", "Tittel", _textStringDt), "seksjon3");
+            ct.AddPropertyType(Prop("seksjon3Kort", "Kort", _blockListVeiledningKortDt), "seksjon3");
+            changed = true;
+        }
+        // Re-label til beskrivende modulnavn (Dorte, Figma-tavle 2026-06-04). Aliasene
+        // beholdes, så ingen data flyttes. Kjorer hver oppstart slik at noder opprettet
+        // med de gamle "Seksjon 1/2/3"-navnene ogsaa oppdateres.
+        foreach (var (alias, name) in new[] { ("seksjon1", "Fremhevet veiledning og artikler"), ("seksjon2", "Rik liste"), ("seksjon3", "Enkel liste") })
+        {
+            var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == alias);
+            if (grp != null && grp.Name != name) { grp.Name = name; changed = true; }
+        }
+        foreach (var (alias, name) in new[]
+        {
+            ("seksjon1Tittel", "Tittel"), ("seksjon1Kort", "Kort"),
+            ("seksjon2Tittel", "Tittel"), ("seksjon2Kort", "Kort"),
+            ("seksjon3Tittel", "Tittel"), ("seksjon3Kort", "Kort"),
+        })
+        {
+            var pt = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+            if (pt != null && pt.Name != name) { pt.Name = name; changed = true; }
         }
         // Verktøy-seksjonen er borte fra Figma — fjern fra eksisterende noder
         foreach (var alias in new[] { "verktoyTittel", "verktoyKort" })
@@ -2611,10 +3101,15 @@ public class ContentTypeComponent : IAsyncComponent
             ct.PropertyGroups.Remove("verktoy");
             changed = true;
         }
-        // SEO
-        if (!ct.PropertyGroups.Any(g => g.Alias == "seo"))
+        // SEO. Guard på property, ikke gruppe: på prod var seo-gruppa lagret med en alias
+        // som ikke matchet "seo", så gruppe-guarden bommet og AddPropertyGroup("seo") kastet
+        // "An item with the same key has already been added. Key: seo" -> hele composeren
+        // stoppet før footer-steget (MigrateGlobaleInnstillinger). Når seoTittel finnes,
+        // finnes gruppa, så vi hopper trygt over. Samme mønster som MigrateArtiklerToOversikt.
+        if (!ct.PropertyTypeExists("seoTittel"))
         {
-            ct.AddPropertyGroup("seo", "SEO");
+            if (!ct.PropertyGroups.Any(g => g.Alias == "seo"))
+                ct.AddPropertyGroup("seo", "SEO");
             ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt, description: "Overstyr tittel i søkeresultater og sosiale medier"), "seo");
             ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
             ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
@@ -2662,65 +3157,366 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("forside");
         if (ct == null) return;
-        if (ct.PropertyTypeExists("veiledningOverskrift")) return; // already migrated
+        // Ferdig migrert: har seksjoner-feltet og ingen gamle flate felt igjen.
+        if (ct.PropertyTypeExists("seksjoner") && !ct.PropertyTypeExists("heroOverskrift")) return;
 
-        // Tab: Veiledning
-        ct.AddPropertyGroup("veiledning", "Veiledning");
-        ct.AddPropertyType(Prop("veiledningOverskrift", "Overskrift", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Tittel", "Veiledning 1 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Beskrivelse", "Veiledning 1 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning1Url", "Veiledning 1 URL", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Tittel", "Veiledning 2 Tittel", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Beskrivelse", "Veiledning 2 Beskrivelse", _textStringDt), "veiledning");
-        ct.AddPropertyType(Prop("veiledning2Url", "Veiledning 2 URL", _textStringDt), "veiledning");
+        bool changed = false;
 
-        // Tab: Aktuelt
-        ct.AddPropertyGroup("aktuelt", "Aktuelt");
-        ct.AddPropertyType(Prop("aktueltOverskrift", "Overskrift", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeTekst", "Lenketekst", _textStringDt), "aktuelt");
-        ct.AddPropertyType(Prop("aktueltLenkeUrl", "Lenke-URL", _textStringDt), "aktuelt");
-
-        // Tab: Arrangement
-        ct.AddPropertyGroup("arrangement", "Arrangement");
-        ct.AddPropertyType(Prop("arrangementOverskrift", "Overskrift", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementKommendeTekst", "Kommende tekst", _textStringDt), "arrangement");
-        ct.AddPropertyType(Prop("arrangementAvholdteTekst", "Avholdte tekst", _textStringDt), "arrangement");
-
-        _contentTypeService.Save(ct);
-
-        // Migrate footer fields
-        if (!ct.PropertyTypeExists("footerTittel"))
+        // Forsiden er modularisert (block list). Fjern alle gamle flate felt: Hero, Tre råd,
+        // Sandkasse, Veiledning, Aktuelt, Arrangement, Footer (flyttet til globaleInnstillinger),
+        // Rekkefølge (erstattet av drag-og-slipp i block lista). Ingen innhold går tapt.
+        var legacyFields = new[]
         {
-            ct.AddPropertyGroup("bunn", "Bunn (Footer)");
-            ct.AddPropertyType(Prop("footerTittel", "Merkenavn", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt), "bunn");
-            ct.AddPropertyType(Prop("footerSosialInstagram", "Instagram", _textStringDt, description: "URL til Instagram-profil"), "bunn");
-            ct.AddPropertyType(Prop("footerSosialLinkedin", "LinkedIn", _textStringDt, description: "URL til LinkedIn-profil"), "bunn");
-            ct.AddPropertyType(Prop("footerSosialX", "X", _textStringDt, description: "URL til X-profil"), "bunn");
-            ct.AddPropertyType(Prop("footerLenke1Tekst", "Lenke 1 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke1Url", "Lenke 1 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke2Tekst", "Lenke 2 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke2Url", "Lenke 2 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke3Tekst", "Lenke 3 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke3Url", "Lenke 3 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke4Tekst", "Lenke 4 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke4Url", "Lenke 4 URL", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke5Tekst", "Lenke 5 tekst", _textStringDt), "bunn");
-            ct.AddPropertyType(Prop("footerLenke5Url", "Lenke 5 URL", _textStringDt), "bunn");
-            _contentTypeService.Save(ct);
+            "heroOverskrift", "heroTekst", "heroBilde",
+            "raadTittel", "tips",
+            "sandkasseTittel", "sandkasseTekst", "sandkasseUrl",
+            "veiledningOverskrift",
+            "veiledning1Tittel", "veiledning1Beskrivelse", "veiledning1Url",
+            "veiledning2Tittel", "veiledning2Beskrivelse", "veiledning2Url",
+            "aktueltOverskrift", "aktueltLenkeTekst", "aktueltLenkeUrl",
+            "arrangementOverskrift", "arrangementKommendeTekst", "arrangementAvholdteTekst",
+            "footerTittel", "footerBeskrivelse", "footerSosialInstagram", "footerSosialLinkedin", "footerSosialX",
+            "footerLenke1Tekst", "footerLenke1Url", "footerLenke2Tekst", "footerLenke2Url",
+            "footerLenke3Tekst", "footerLenke3Url", "footerLenke4Tekst", "footerLenke4Url",
+            "footerLenke5Tekst", "footerLenke5Url",
+            "rekkefolgeVeiledning", "rekkefolgeAktuelt", "rekkefolgeTreRaad", "rekkefolgeSandkasse", "rekkefolgeArrangement",
+        };
+        foreach (var alias in legacyFields)
+        {
+            if (ct.PropertyTypeExists(alias))
+            {
+                ct.RemovePropertyType(alias);
+                changed = true;
+            }
         }
 
-        // Migrate reorder fields
-        if (!ct.PropertyTypeExists("rekkefolgeVeiledning"))
+        // Fjern de tomme gamle gruppene (samme mønster som MigrateGlobaleInnstillinger).
+        foreach (var groupAlias in new[] { "hero", "treRaad", "sandkassen", "veiledning", "aktuelt", "arrangement", "bunn", "rekkefolge" })
         {
-            ct.AddPropertyGroup("rekkefolge", "Rekkefølge");
-            ct.AddPropertyType(Prop("rekkefolgeVeiledning", "Veiledning", _numericDt, description: "Rekkefølge for Veiledning-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeAktuelt", "Aktuelt", _numericDt, description: "Rekkefølge for Aktuelt-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeTreRaad", "Tre råd", _numericDt, description: "Rekkefølge for Tre råd-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeSandkasse", "Sandkasse", _numericDt, description: "Rekkefølge for Sandkasse-seksjonen (1-5)"), "rekkefolge");
-            ct.AddPropertyType(Prop("rekkefolgeArrangement", "Arrangement", _numericDt, description: "Rekkefølge for Arrangement-seksjonen (1-5)"), "rekkefolge");
-            _contentTypeService.Save(ct);
+            var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == groupAlias);
+            if (grp != null && !grp.PropertyTypes.Any())
+            {
+                ct.PropertyGroups.Remove(groupAlias);
+                changed = true;
+            }
         }
+
+        // Legg til block-list-feltet hvis det mangler.
+        if (!ct.PropertyTypeExists("seksjoner"))
+        {
+            if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
+                ct.AddPropertyGroup("innhold", "Innhold");
+            ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListForsideDt, description: "Bygg opp forsiden ved å legge til moduler. Reorder ved drag og slipp."), "innhold");
+            changed = true;
+        }
+
+        if (changed)
+        {
+            _contentTypeService.Save(ct);
+            Console.WriteLine("ContentTypeComposer: Modulariserte forside (block list, fjernet gamle flate felt)");
+        }
+    }
+
+    // Additivt: legger til kort/lenketekst/lenkeUrl på eksisterende forside-element-typer.
+    // Krever at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er initialisert først.
+    private void MigrateForsideKortFelter()
+    {
+        var aktuelt = _contentTypeService.Get("forsideAktuelt");
+        if (aktuelt != null)
+        {
+            bool changed = false;
+            if (!aktuelt.PropertyTypeExists("kort"))
+            {
+                aktuelt.AddPropertyType(Prop("kort", "Kort", _blockListForsideArtikkelKortDt, description: "Velg artikler. La stå tom for å vise nyeste automatisk. Første kort vises stort."), "innhold");
+                changed = true;
+            }
+            if (!aktuelt.PropertyTypeExists("lenketekst"))
+            {
+                aktuelt.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle artikler"), "innhold");
+                changed = true;
+            }
+            if (!aktuelt.PropertyTypeExists("lenkeUrl"))
+            {
+                aktuelt.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+                changed = true;
+            }
+            if (changed) _contentTypeService.Save(aktuelt);
+        }
+
+        var laer = _contentTypeService.Get("forsideLaerAvAndre");
+        if (laer != null)
+        {
+            bool changed = false;
+            if (!laer.PropertyTypeExists("kort"))
+            {
+                laer.AddPropertyType(Prop("kort", "Kort", _blockListForsideEksempelKortDt, description: "Velg eksempler. La stå tom for å vise nyeste automatisk."), "innhold");
+                changed = true;
+            }
+            if (!laer.PropertyTypeExists("lenketekst"))
+            {
+                laer.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle eksempler"), "innhold");
+                changed = true;
+            }
+            if (!laer.PropertyTypeExists("lenkeUrl"))
+            {
+                laer.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+                changed = true;
+            }
+            if (changed) _contentTypeService.Save(laer);
+        }
+
+        var arr = _contentTypeService.Get("forsideArrangementer");
+        if (arr != null)
+        {
+            bool changed = false;
+            if (!arr.PropertyTypeExists("lenketekst"))
+            {
+                arr.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Default: Se alle arrangementer"), "innhold");
+                changed = true;
+            }
+            if (!arr.PropertyTypeExists("lenkeUrl"))
+            {
+                arr.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt), "innhold");
+                changed = true;
+            }
+            if (changed) _contentTypeService.Save(arr);
+        }
+    }
+
+    // --- In-place migrering av forside-element-typer (relabel/retype/standard-tekster) ---
+    // AddPropertyType rorer ikke eksisterende felt, sa relabel/retype/beskrivelse maa settes
+    // eksplisitt pa eksisterende tt02/prod-DB. Hjelperne returnerer true ved endring.
+
+    private static bool SetPropDescription(IContentType ct, string alias, string description)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.Description == description) return false;
+        p.Description = description;
+        return true;
+    }
+
+    private static bool SetPropLabel(IContentType ct, string alias, string name)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.Name == name) return false;
+        p.Name = name;
+        return true;
+    }
+
+    private static bool SetPropMandatory(IContentType ct, string alias, bool mandatory)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.Mandatory == mandatory) return false;
+        p.Mandatory = mandatory;
+        return true;
+    }
+
+    private static bool RetypeProp(IContentType ct, string alias, IDataType dt)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.DataTypeKey == dt.Key) return false;
+        p.DataTypeId = dt.Id;
+        p.DataTypeKey = dt.Key;
+        p.PropertyEditorAlias = dt.EditorAlias;
+        return true;
+    }
+
+    private static bool RemoveProp(IContentType ct, string alias)
+    {
+        if (!ct.PropertyTypes.Any(x => x.Alias == alias)) return false;
+        ct.RemovePropertyType(alias);
+        return true;
+    }
+
+    private void MigrateForsideModuler()
+    {
+        // Hero: overskrift -> rik tekst (uthevbar), standard-tekster pa lenkefelt.
+        var hero = _contentTypeService.Get("forsideHero");
+        if (hero != null)
+        {
+            bool changed = false;
+            changed |= RetypeProp(hero, "overskrift", _richTextDtRestricted);
+            changed |= SetPropDescription(hero, "overskrift", "Hovedteksten i hero-seksjonen. Bruk fet skrift for å fremheve ord.");
+            changed |= SetPropDescription(hero, "lenketekst", "Standard: Hva er KI og hva kan du bruke det til?");
+            changed |= SetPropDescription(hero, "lenkeUrl", "Standard: /veiledning/hva-er-ki");
+            if (changed) _contentTypeService.Save(hero);
+        }
+
+        // Aktuelt: "Default" -> "Standard" + standard-URL.
+        var aktuelt = _contentTypeService.Get("forsideAktuelt");
+        if (aktuelt != null)
+        {
+            bool changed = false;
+            changed |= SetPropDescription(aktuelt, "lenketekst", "Standard: Se alle artikler");
+            changed |= SetPropDescription(aktuelt, "lenkeUrl", "Standard: /artikler");
+            if (changed) _contentTypeService.Save(aktuelt);
+        }
+
+        // Arrangementer: fremhevet arrangement-picker + standard-tekster.
+        var arr = _contentTypeService.Get("forsideArrangementer");
+        if (arr != null)
+        {
+            bool changed = false;
+            if (!arr.PropertyTypeExists("arrangement"))
+            {
+                arr.AddPropertyType(Prop("arrangement", "Fremhevet arrangement", _contentPickerDt, description: "Standard: neste kommende arrangement", sortOrder: 1), "innhold");
+                changed = true;
+            }
+            changed |= SetPropDescription(arr, "lenketekst", "Standard: Se alle arrangementer");
+            changed |= SetPropDescription(arr, "lenkeUrl", "Standard: /kalender");
+            if (changed) _contentTypeService.Save(arr);
+        }
+
+        // Veiledning: veiledning-picker, tittel -> "Lenketekst" (ikke obligatorisk), fjern dobbelt lenketekst.
+        var veil = _contentTypeService.Get("forsideVeiledning");
+        if (veil != null)
+        {
+            bool changed = false;
+            if (!veil.PropertyTypeExists("veiledning"))
+            {
+                veil.AddPropertyType(Prop("veiledning", "Veiledning", _contentPickerDt, description: "Velg veiledningen kortet skal peke på. Gir standard tittel, ingress, bilde og lenke.", sortOrder: 0), "innhold");
+                changed = true;
+            }
+            changed |= SetPropLabel(veil, "tittel", "Lenketekst");
+            changed |= SetPropMandatory(veil, "tittel", false);
+            changed |= SetPropDescription(veil, "tittel", "Standard: tittelen til valgt veiledning.");
+            changed |= SetPropDescription(veil, "ingress", "Standard: ingressen til valgt veiledning.");
+            changed |= SetPropDescription(veil, "lenkeUrl", "Standard: lenken til valgt veiledning (ellers /veiledning).");
+            changed |= SetPropDescription(veil, "illustrasjon", "Standard: bildet til valgt veiledning.");
+            changed |= RemoveProp(veil, "lenketekst");
+            if (changed) _contentTypeService.Save(veil);
+        }
+
+        // Lær av andre: "Default" -> "Standard" + standard-URL.
+        var laer = _contentTypeService.Get("forsideLaerAvAndre");
+        if (laer != null)
+        {
+            bool changed = false;
+            changed |= SetPropDescription(laer, "lenketekst", "Standard: Se alle eksempler");
+            changed |= SetPropDescription(laer, "lenkeUrl", "Standard: /eksempler");
+            if (changed) _contentTypeService.Save(laer);
+        }
+
+        // Kort: ingress-overstyring nevner standarden.
+        var artKort = _contentTypeService.Get("forsideArtikkelKort");
+        if (artKort != null && SetPropDescription(artKort, "ingress", "Standard: artikkelens egen ingress. Skriv her for å overstyre."))
+            _contentTypeService.Save(artKort);
+        var eksKort = _contentTypeService.Get("forsideEksempelKort");
+        if (eksKort != null && SetPropDescription(eksKort, "ingress", "Standard: eksemplets egen ingress. Skriv her for å overstyre."))
+            _contentTypeService.Save(eksKort);
+
+        // Sandkasse: overskrift -> "Lenketekst", tekst -> vanlig tekst, fjern dobbelt lenketekst.
+        var sand = _contentTypeService.Get("forsideSandkasse");
+        if (sand != null)
+        {
+            bool changed = false;
+            changed |= SetPropLabel(sand, "overskrift", "Lenketekst");
+            changed |= SetPropDescription(sand, "overskrift", "Klikkbar overskrift på sandkasse-kortet.");
+            changed |= RetypeProp(sand, "tekst", _textAreaDt);
+            changed |= SetPropDescription(sand, "tekst", "Kort beskrivelse under overskriften.");
+            changed |= SetPropDescription(sand, "lenkeUrl", "Standard: /sandkasse");
+            changed |= RemoveProp(sand, "lenketekst");
+            if (changed) _contentTypeService.Save(sand);
+        }
+    }
+
+    // Footer-lenkene i visnings-rekkefolge. Alias beholdes (lenke2 var e-post-hacken, nå fjernet).
+    private static readonly (string alias, string label, int sort)[] FooterLenker =
+    {
+        ("footerLenke1Tekst", "Om KI Norge", 0),
+        ("footerLenke1Url", "Om KI Norge (URL)", 1),
+        ("footerLenke3Tekst", "Personvern og informasjonskapsler", 2),
+        ("footerLenke3Url", "Personvern og informasjonskapsler (URL)", 3),
+        ("footerLenke4Tekst", "Tilgjengelighet", 4),
+        ("footerLenke4Url", "Tilgjengelighet (URL)", 5),
+        ("footerLenke5Tekst", "Endre samtykke for informasjonskapsler", 6),
+        ("footerLenke5Url", "Endre samtykke (URL)", 7),
+    };
+
+    private static bool MoveProp(IContentType ct, string alias, string groupAlias)
+    {
+        if (!ct.PropertyTypes.Any(x => x.Alias == alias)) return false;
+        var target = ct.PropertyGroups.FirstOrDefault(g => g.Alias == groupAlias);
+        if (target?.PropertyTypes?.Any(x => x.Alias == alias) == true) return false;
+        ct.MovePropertyType(alias, groupAlias);
+        return true;
+    }
+
+    private static bool SetPropSort(IContentType ct, string alias, int sort)
+    {
+        var p = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
+        if (p == null || p.SortOrder == sort) return false;
+        p.SortOrder = sort;
+        return true;
+    }
+
+    // Footer er en fane med underseksjoner: Beskrivelse / Kontakt / Lenker.
+    private bool EnsureFooterGroups(IContentType ct)
+    {
+        bool changed = false;
+        if (!ct.PropertyGroups.Any(g => g.Alias == "footer"))
+        {
+            ct.AddPropertyGroup("footer", "Footer");
+            changed = true;
+        }
+        var footer = ct.PropertyGroups.First(g => g.Alias == "footer");
+        if (footer.Type != PropertyGroupType.Tab) { footer.Type = PropertyGroupType.Tab; changed = true; }
+        foreach (var (alias, name) in new[] { ("footer/beskrivelse", "Beskrivelse"), ("footer/kontakt", "Kontakt"), ("footer/lenker", "Lenker") })
+        {
+            if (!ct.PropertyGroups.Any(g => g.Alias == alias))
+            {
+                ct.AddPropertyGroup(alias, name);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    // Fersk DB: bygg footer-fanen med underseksjoner og felt direkte.
+    private void AddFooterFields(IContentType ct)
+    {
+        EnsureFooterGroups(ct);
+        ct.AddPropertyType(Prop("footerBeskrivelse", "Beskrivelse", _textAreaDt, description: "Kort tekst under logoen i footeren."), "footer/beskrivelse");
+        ct.AddPropertyType(Prop("footerEpost", "Kontakt e-post", _textStringDt, description: "E-postadressen som vises under \"Kontakt oss\"."), "footer/kontakt");
+        foreach (var (alias, label, sort) in FooterLenker)
+        {
+            var desc = alias == "footerLenke5Url" ? "La stå tom for å vise som knapp som åpner samtykke-banneret." : null;
+            ct.AddPropertyType(Prop(alias, label, _textStringDt, description: desc, sortOrder: sort), "footer/lenker");
+        }
+    }
+
+    // Eksisterende DB: migrer flat footer-gruppe til fane med underseksjoner, fjern ubrukte felt,
+    // legg til eget e-post-felt, relabel + flytt lenker. Returnerer true ved endring.
+    private bool MigrateFooter(IContentType ct)
+    {
+        bool changed = EnsureFooterGroups(ct);
+
+        // Fjern ubrukte felt: merkenavn, SoMe-URLer, og lenke2 (var e-post-hacken).
+        foreach (var alias in new[] { "footerTittel", "footerSosialInstagram", "footerSosialLinkedin", "footerSosialX", "footerLenke2Tekst", "footerLenke2Url" })
+            changed |= RemoveProp(ct, alias);
+
+        if (!ct.PropertyTypes.Any(p => p.Alias == "footerEpost"))
+        {
+            ct.AddPropertyType(Prop("footerEpost", "Kontakt e-post", _textStringDt, description: "E-postadressen som vises under \"Kontakt oss\"."), "footer/kontakt");
+            changed = true;
+        }
+        else
+        {
+            changed |= MoveProp(ct, "footerEpost", "footer/kontakt");
+        }
+
+        changed |= SetPropDescription(ct, "footerBeskrivelse", "Kort tekst under logoen i footeren.");
+        changed |= MoveProp(ct, "footerBeskrivelse", "footer/beskrivelse");
+
+        foreach (var (alias, label, sort) in FooterLenker)
+        {
+            changed |= SetPropLabel(ct, alias, label);
+            changed |= SetPropSort(ct, alias, sort);
+            changed |= MoveProp(ct, alias, "footer/lenker");
+        }
+        changed |= SetPropDescription(ct, "footerLenke5Url", "La stå tom for å vise som knapp som åpner samtykke-banneret.");
+
+        return changed;
     }
 
     private IContentType CreateGlobaleInnstillinger()
@@ -2747,6 +3543,8 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tittel503", "503 tittel", _textStringDt, description: "Vises som overskrift på vedlikeholdssiden."), "feilsider");
         ct.AddPropertyType(Prop("beskrivelse503", "503 beskrivelse", _textAreaDt, description: "Forklarende tekst på vedlikeholdssiden."), "feilsider");
         ct.AddPropertyType(Prop("vedlikeholdEpost", "Vedlikehold-e-post", _textStringDt, description: "Kontakt-e-post for hjelp under vedlikehold."), "feilsider");
+
+        AddFooterFields(ct);
 
         _contentTypeService.Save(ct);
         return ct;
@@ -2803,9 +3601,20 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        if (ct.Description != "Globale tekster brukt på tvers av sidene (cookie-melding, feilsider). Ett node på rot.")
+        // Footer: legg til hvis den mangler helt (eldre noder), ellers rydd/migrer eksisterende.
+        if (!ct.PropertyGroups.Any(g => g.Alias == "footer") && !ct.PropertyTypes.Any(p => p.Alias.StartsWith("footer")))
         {
-            ct.Description = "Globale tekster brukt på tvers av sidene (cookie-melding, feilsider). Ett node på rot.";
+            AddFooterFields(ct);
+            changed = true;
+        }
+        else
+        {
+            changed |= MigrateFooter(ct);
+        }
+
+        if (ct.Description != "Globale tekster brukt på tvers av sidene (cookie-melding, footer, feilsider). Ett node på rot.")
+        {
+            ct.Description = "Globale tekster brukt på tvers av sidene (cookie-melding, footer, feilsider). Ett node på rot.";
             changed = true;
         }
 

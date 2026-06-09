@@ -9,7 +9,9 @@ import TextWithImage from '../../components/shared/TextWithImage.astro';
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
-import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getMediaUrl } from '../../lib/umbraco';
+import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getMediaUrl, MEDIA_WIDTH } from '../../lib/umbraco';
+
+const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
 let cmsData: Awaited<ReturnType<typeof getVeiledningOversikt>> = null;
 let guides: Awaited<ReturnType<typeof getVeiledningGuider>> = { data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } };
@@ -17,9 +19,9 @@ let cases: Awaited<ReturnType<typeof getEksempler>> = { data: [], meta: { pagina
 
 try {
   [cmsData, guides, cases] = await Promise.all([
-    getVeiledningOversikt(),
-    getVeiledningGuider(),
-    getEksempler(),
+    getVeiledningOversikt({ preview: isPreview }),
+    getVeiledningGuider({ preview: isPreview }),
+    getEksempler({ preview: isPreview }),
   ]);
 } catch (e) {
   console.error('Failed to fetch veiledning page data:', e);
@@ -27,7 +29,7 @@ try {
 
 const heroTitle = cmsData?.heroTittel || 'Guider & veiledning';
 const heroText = cmsData?.heroTekst || 'Lurer du på hva det er lurt å tenke på når du bruker KI eller lager KI-løsninger? Her finner du veiledninger laget og kvalitetssikret av jurister og andre fagfolk.';
-const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde) : undefined;
+const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde, MEDIA_WIDTH.hero) : undefined;
 
 // Featured article — "Kom i gang"
 const featuredTitle = cmsData?.seksjon1Kort?.[0]?.tittel || 'Hva er KI og hva kan du bruke det til?';
@@ -36,22 +38,25 @@ const featuredHref = cmsData?.seksjon1Kort?.[0]?.url || '/veiledning/kom-i-gang'
 const featuredLabel = cmsData?.seksjon1Tittel || 'Kom i gang';
 const featuredImage = heroImageUrl || '/woman-speaking.svg';
 
-// Rich link list — "Steg for steg" (guides with descriptions)
-const richLinks = guides.data.length > 0
-  ? guides.data.map(g => ({
-      title: g.tittel,
-      desc: g.ingress || '',
-      href: `/veiledning/${g.slug}`,
-    }))
-  : (cmsData?.seksjon2Kort || []).map(k => ({
+// Rich link list — "Steg for steg"
+// Redaktørstyrt: når redaktøren har fylt seksjon2-kortene brukes deres egen
+// beskrivelse (tilpasset tekst). Ellers auto-utledes lista fra guidene, der
+// beskrivelsen blir guidens ingress (fallback).
+const richLinks = (cmsData?.seksjon2Kort?.length ?? 0) > 0
+  ? cmsData!.seksjon2Kort!.map(k => ({
       title: k.tittel,
       desc: k.beskrivelse || '',
       href: k.url || '#',
+    }))
+  : guides.data.map(g => ({
+      title: g.tittel,
+      desc: g.ingress || '',
+      href: `/veiledning/${g.slug}`,
     }));
 
-// Simple link list — "Forstå regelverket"
-const simpleLinks = cmsData?.verktoyKort
-  ? cmsData.verktoyKort.map(k => ({
+// Simple link list — "Forstå regelverket" (seksjon3 "Enkel liste", #389)
+const simpleLinks = (cmsData?.seksjon3Kort?.length ?? 0) > 0
+  ? cmsData!.seksjon3Kort!.map(k => ({
       title: k.tittel,
       href: k.url || '#',
     }))
@@ -77,7 +82,7 @@ const seoTitle = cmsData?.seoTittel || 'Guider & veiledning';
 const seoDesc = cmsData?.seoBeskrivelse || heroText;
 ---
 
-<Layout title={seoTitle} description={seoDesc}>
+<Layout title={seoTitle} description={seoDesc} ogImage={cmsData?.seoBilde?.url}>
   <!-- Hero -->
   <section class="veil-hero" data-layout-block="content">
     <h1 class="ds-heading" data-size="xl">{heroTitle}</h1>
@@ -123,7 +128,7 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
   <!-- Forstå regelverket — Simple link list -->
   {simpleLinks.length > 0 && (
     <section class="veil-simple-links" data-layout-block="content">
-      <LinkList links={simpleLinks} heading={cmsData?.verktoyTittel || 'Forstå regelverket'} />
+      <LinkList links={simpleLinks} heading={cmsData?.seksjon3Tittel || 'Forstå regelverket'} />
     </section>
   )}
 
