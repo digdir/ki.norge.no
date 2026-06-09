@@ -14,7 +14,6 @@ import { readFileSync } from 'node:fs';
 
 const ES_ENDPOINT = (process.env.ES_ENDPOINT || '').replace(/\/$/, '');
 const ES_API_KEY = process.env.ES_API_KEY || '';
-const EMBED_ID = process.env.KI_EMBED_ID || '.microsoft-multilingual-e5-large';
 
 const COMPONENT_TEMPLATE = 'ki-content-mappings';
 const INDEX_TEMPLATE = 'ki-content-template';
@@ -30,8 +29,11 @@ const loadJson = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url),
 const componentTemplate = loadJson('./ki-content.component-template.json');
 const indexTemplate = loadJson('./ki-content.index-template.json');
 
-// Let KI_EMBED_ID override the inference endpoint declared in the template.
-componentTemplate.template.mappings.properties.body_semantic.inference_id = EMBED_ID;
+// The JSON is the source of truth; KI_EMBED_ID can optionally override it.
+if (process.env.KI_EMBED_ID) {
+  componentTemplate.template.mappings.properties.body_semantic.inference_id = process.env.KI_EMBED_ID;
+}
+const EMBED_ID = componentTemplate.template.mappings.properties.body_semantic.inference_id;
 
 async function put(path, body) {
   const res = await fetch(`${ES_ENDPOINT}${path}`, { method: 'PUT', headers, body: JSON.stringify(body) });

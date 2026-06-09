@@ -25,8 +25,9 @@ The CMS keeps the index in sync via Umbraco notifications — no external crawl.
 
 ### Index as code — `infrastructure/elasticsearch/`
 The index mapping is an Elasticsearch **component + index template** (versioned JSON), not defined in app code. `apply-templates.mjs` registers them (idempotent); an index matching `ki-content*` auto-creates with the hybrid mapping on first write. See that folder's README for apply / recreate / drift commands.
-- `ki-content.component-template.json` — mappings (`title`/`body` → text, `norwegian`, `copy_to: body_semantic`; `body_semantic` → `semantic_text` via `.microsoft-multilingual-e5-large`; `url`/`language`/`type` → keyword).
+- `ki-content.component-template.json` — mappings (`title`/`body` → text, `norwegian`, `copy_to: body_semantic`; `body_semantic` → `semantic_text` via the **in-cluster** `e5-large-incluster` endpoint (int8 E5-large on the deployment's ML nodes); `url`/`language`/`type` → keyword).
 - `ki-content.index-template.json` — composes it, matches `ki-content*`.
+- `setup-incluster-embedding.mjs` — provisions `e5-large-incluster` (starts the e5-large deployment, min 1 warm + creates the endpoint). Prerequisite: the model is imported once with Eland — see the folder README.
 
 ### Retrieval + surface — `apps/frontend/`
 - **`src/lib/search.ts`** — `hybridSearch(query)`: the tuned retriever (verified Hit@3 ≈ 100% on the golden set) via `fetch` (Workers-safe). Falls back to Umbraco search when ES is unconfigured.
@@ -45,14 +46,14 @@ The index mapping is an Elasticsearch **component + index template** (versioned 
 Secrets stay out of git: the CMS reads them from Azure Key Vault (`Elasticsearch__Endpoint` / `Elasticsearch__ApiKey`); local `.env` / `appsettings.Development.json` are git-ignored. When the CMS endpoint is empty, indexing cleanly disables (the CMS still runs).
 
 ## Verification
-1. **Templates:** `apply-templates.mjs` → `POST {ES}/_index_template/_simulate_index/ki-content` resolves `body_semantic` to `semantic_text` (e5-large). ✓ (verified)
+1. **Templates:** `apply-templates.mjs` → `POST {ES}/_index_template/_simulate_index/ki-content` resolves `body_semantic` to `semantic_text` via `e5-large-incluster` (in-cluster). ✓ (verified)
 2. **CMS compiles:** `dotnet build apps/cms-umbraco`. ✓ (verified — 0 errors)
 3. **Push E2E (staging):** publish a node in the CMS → it appears in `ki-content` (`GET {ES}/ki-content/_count` increments; the doc embeds `body_semantic`). Needs a CMS instance with content — the local dev DB is empty.
 4. **Retrieval:** `apps/frontend` `pnpm dev` → `/sok?q=…` returns ranked hits; keyword + paraphrase both hit the right page.
 
 ## Production notes
 - **Keys:** scoped, read-only ES key for the frontend (retrieval); a write-capable key for the CMS. Rotate the spike admin key before non-demo use.
-- **Data residency / EIS:** embedding + rerank run on the Elastic Inference Service. Confirm data-residency terms, or move to in-cluster / region-pinned models.
+- **Inference / data residency:** the dense embedding runs **in-cluster** (int8 E5-large via `e5-large-incluster`) — no EIS/third-party round-trip, ~5× lower query latency (median ~190 ms vs ~990 ms on EIS), and content stays in the deployment. The deployment runs with adaptive allocations **min 1** to stay warm (continuous VCU cost; drop to min 0 for scale-to-zero + cold starts). The **jina reranker is still on EIS** — moving it in-cluster (Eland-import the jina model) is the planned follow-up for a fully EIS-free pipeline. Quality vs EIS fp32 e5-large on the 63-query golden set: Hit@3 95→94%, MRR 0.929→0.905 (int8 trade-off).
 - **Initial backfill / cutover:** apply templates, then run the CMS reindex endpoint once to populate `ki-content`. A clean rebuild is `DELETE ki-content` → apply-templates → reindex. Steady-state freshness is handled by the publish/unpublish handlers.
 - **Index name** `ki-content`; the `ki-content*` template pattern already covers a family for per-portal indices when info.altinn.no is added.
 - **State-managed IaC (optional):** templates can be managed with Terraform (`elasticstack_elasticsearch_component_template` / `_index_template`) for drift detection — warranted only if Terraform is already in use.
