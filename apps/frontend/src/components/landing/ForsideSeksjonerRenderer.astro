@@ -10,7 +10,7 @@ import ArrowLink from '../shared/ArrowLink.astro';
 import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
-import { getMediaUrl, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
+import { getMediaUrl, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
 
 interface Props {
   seksjoner: ForsideSeksjon[];
@@ -35,7 +35,7 @@ const artikkelTilKort = (a: any, ingressOverride?: string) => ({
   tittel: a.tittel,
   slug: a.slug,
   lead: ingressOverride || a.lead || a.ingress,
-  image: a.image || getMediaUrl(a.artikkelBilde),
+  image: a.image || getMediaUrl(a.artikkelBilde, MEDIA_WIDTH.card),
   publishedAt: a.publishedAt,
 });
 

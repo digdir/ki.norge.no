@@ -9,6 +9,7 @@ import {
   getEnkelVeiledning,
   getPlainText,
   getMediaUrl,
+  MEDIA_WIDTH,
 } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 
@@ -37,7 +38,7 @@ if (enkel) {
     seoTitle,
     seoDesc,
     seoImage,
-    heroImage: heroImage?.url ? getMediaUrl(heroImage) : undefined,
+    heroImage: heroImage?.url ? getMediaUrl(heroImage, MEDIA_WIDTH.hero) : undefined,
     articleJsonLd: articleSchema({
       headline: seoTitle,
       description: seoDesc,

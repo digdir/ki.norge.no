@@ -2,7 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
-import { getSandkasse, getMediaUrl, getPlainText, bakgrunnSurface } from '../../lib/umbraco';
+import { getSandkasse, getMediaUrl, MEDIA_WIDTH, getPlainText, bakgrunnSurface } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -39,7 +39,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       </div>
       {heroImage?.url && (
         <div class="article-hero-image">
-          <img src={getMediaUrl(heroImage)} alt={sandkasse.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+          <img src={getMediaUrl(heroImage, MEDIA_WIDTH.hero)} alt={sandkasse.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
         </div>
       )}
     </div>

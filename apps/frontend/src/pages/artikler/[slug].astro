@@ -4,7 +4,7 @@ import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 
-import { getArtikkel, getArtikler, getPlainText, getMediaUrl, bakgrunnSurface } from '../../lib/umbraco';
+import { getArtikkel, getArtikler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakgrunnSurface } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
@@ -58,7 +58,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   <ArticleLayout publishedAt={article.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
     {heroImage?.url && (
       <div class="article-hero-image">
-        <img src={getMediaUrl(heroImage) || '/article_placeholder.png'} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+        <img src={getMediaUrl(heroImage, MEDIA_WIDTH.hero) || '/article_placeholder.png'} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
       </div>
     )}
 
@@ -79,7 +79,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={a.tittel}
             date={a.publishedAt}
             lead={getPlainText(a.innhold, 80)}
-            image={getMediaUrl(a.artikkelBilde)}
+            image={getMediaUrl(a.artikkelBilde, MEDIA_WIDTH.card)}
             variant="image"
           />
         ))}

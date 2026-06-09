@@ -4,7 +4,7 @@ import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.ast
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
-import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
+import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, MEDIA_WIDTH, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -88,7 +88,7 @@ const seksjoner = oversikt?.seksjoner?.length ? oversikt.seksjoner : fallbackSek
                 href={`/eksempler/${e.slug}`}
                 title={e.tittel}
                 lead={s.ingress || e.ingress}
-                image={e.artikkelBilde ? getMediaUrl(e.artikkelBilde) : '/article_placeholder.png'}
+                image={e.artikkelBilde ? getMediaUrl(e.artikkelBilde, MEDIA_WIDTH.card) : '/article_placeholder.png'}
                 imageAlt={e.bildeAlt || ''}
               />
             </div>

@@ -1427,18 +1427,40 @@ function parseJsonArray(value: string | undefined): string[] {
   }
 }
 
+// Standard bredder for leveranse-resizing (ImageSharp width-param). Originalen
+// i CMS er urort; vi henter en nedskalert webp per kontekst. Tallene dekker
+// retina (2x) pa typisk visnings-storrelse. Juster her, ett sted.
+export const MEDIA_WIDTH = {
+  hero: 1600, // stor toppfigur, bred desktop + retina
+  content: 1200, // bilde i artikkelspalten
+  card: 800, // kort/listebilde
+} as const;
+
+// Legger pa ImageSharp-resizing nar en width er gitt. Umbraco rendrer da en
+// nedskalert webp on-demand og cacher den. SVG/GIF hoppes over (vektor/animasjon
+// skal ikke rasteres). Uten width returneres URLen urort (f.eks. og:image).
+function withImageParams(url: string, width?: number): string {
+  if (!width) return url;
+  if (/\.(svg|gif)(\?|$)/i.test(url)) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}width=${width}&format=webp&quality=80`;
+}
+
 // Gjor en relativ Umbraco media-URL (/media/...) absolutt mot CMS-hosten.
-// Passerer allerede-absolutte (http) og ikke-media-URLer uendret.
-export function toAbsoluteMediaUrl(url?: string): string | undefined {
+// Passerer allerede-absolutte (http) og ikke-media-URLer uendret. Med en width
+// legges leveranse-resizing pa (kun pa faktiske media-URLer).
+export function toAbsoluteMediaUrl(url?: string, width?: number): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith('http')) return url;
-  if (url.startsWith('/media')) return `${UMBRACO_PUBLIC_URL}${url}`;
+  if (url.startsWith('http')) return withImageParams(url, width);
+  if (url.startsWith('/media')) return withImageParams(`${UMBRACO_PUBLIC_URL}${url}`, width);
   return url;
 }
 
-// Helper to get full media URL
-export function getMediaUrl(media?: UmbracoMedia): string | undefined {
-  return toAbsoluteMediaUrl(media?.url);
+// Full media-URL for et media-objekt. Default-optimaliserer til content-bredde
+// slik at et nytt bilde aldri serveres i full storrelse ved et uhell; send
+// MEDIA_WIDTH.hero / .card (eller egen width) for andre kontekster.
+export function getMediaUrl(media?: UmbracoMedia, width: number = MEDIA_WIDTH.content): string | undefined {
+  return toAbsoluteMediaUrl(media?.url, width);
 }
 
 /**
