@@ -1,5 +1,39 @@
 import { describe, expect, test } from 'vitest';
-import { applyDsClasses } from './richtext-classes';
+import { applyDsClasses, normalizeNbsp } from './richtext-classes';
+
+// U+00A0 bygd uten å skrive et usynlig tegn i kildekoden.
+const NBSP = String.fromCharCode(0xA0);
+
+describe('normalizeNbsp', () => {
+  test('erstatter ekte non-breaking space (U+00A0) med vanlig mellomrom', () => {
+    expect(normalizeNbsp('Holte' + NBSP + 'er')).toBe('Holte er');
+  });
+
+  test('erstatter literal nbsp-entitet limt inn som tekst', () => {
+    expect(normalizeNbsp('tekst&nbsp;her')).toBe('tekst her');
+    expect(normalizeNbsp('a&#160;b')).toBe('a b');
+    expect(normalizeNbsp('a&#xa0;b')).toBe('a b');
+    expect(normalizeNbsp('a&#XA0;b')).toBe('a b');
+  });
+
+  test('kollapser nbsp inntil mellomrom og flere nbsp til ett mellomrom', () => {
+    expect(normalizeNbsp('a' + NBSP + NBSP + 'b')).toBe('a b');
+    expect(normalizeNbsp('a' + NBSP + ' b')).toBe('a b');
+    expect(normalizeNbsp('a ' + NBSP + ' b')).toBe('a b');
+    expect(normalizeNbsp('a&nbsp; b')).toBe('a b');
+  });
+
+  test('beholder ledende/etterhengende mellomrom (nettleseren trimmer ved render)', () => {
+    expect(normalizeNbsp('slutt' + NBSP)).toBe('slutt ');
+    expect(normalizeNbsp(NBSP + 'start')).toBe(' start');
+  });
+
+  test('rører ikke rene vanlige mellomrom og tom input', () => {
+    expect(normalizeNbsp('a b c')).toBe('a b c');
+    expect(normalizeNbsp('a  b')).toBe('a  b');
+    expect(normalizeNbsp('')).toBe('');
+  });
+});
 
 describe('applyDsClasses', () => {
   test('legger ds-list på ul og ol', () => {
