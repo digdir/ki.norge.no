@@ -10,14 +10,15 @@
 // id = the content GUID (Delivery API `id`) — used as the ES _id so it lines up
 // with the CMS push (which keys on content.Key) and makes upserts idempotent.
 
-const CMS = process.env.UMBRACO_URL || 'https://cms.ki.norge.no';
+const CMS = process.env.UMBRACO_URL || 'https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev';
 const PUBLIC = process.env.UMBRACO_PUBLIC_URL || 'https://ki.norge.no';
 const BASE = `${CMS}/umbraco/delivery/api/v2/content`;
 
-// Listing/taxonomy containers — no real content of their own.
+// Listing/taxonomy containers + site settings — no real searchable content of their own.
 const SKIP_TYPES = new Set([
   'artikler', 'faqSamling', 'ordbokSamling', 'sider', 'caser',
   'veiledninger', 'merkelapper', 'merkelapp', 'forside',
+  'globaleInnstillinger', 'eksempler', 'kalender',
 ]);
 // Keys that never carry searchable prose (media, seo, slugs, ids, ordering).
 const SKIP_KEYS = new Set([

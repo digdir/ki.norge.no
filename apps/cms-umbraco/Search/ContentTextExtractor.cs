@@ -33,13 +33,14 @@ public class ContentTextExtractor
         @"<umb-rte-block(?:-inline)? data-content-key=""(?<guid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})""></umb-rte-block(?:-inline)?>",
         RegexOptions.Compiled);
 
-    // Listing/taxonomy containers — no real content of their own. Mirrors SKIP_TYPES
-    // in the retired Delivery-API crawler. Everything else is indexed (exclude-list),
-    // so new page types are picked up automatically.
+    // Listing/taxonomy containers + site settings — no real searchable content of their own.
+    // Keep in sync with SKIP_TYPES in infrastructure/elasticsearch/crawl-umbraco.mjs.
+    // Everything else is indexed (exclude-list), so new page types are picked up automatically.
     private static readonly HashSet<string> NonIndexableContentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "artikler", "faqSamling", "ordbokSamling", "sider", "caser",
         "veiledninger", "merkelapper", "merkelapp", "forside",
+        "globaleInnstillinger", "eksempler", "kalender",
     };
 
     // Property aliases that hold the display title, in priority order.
