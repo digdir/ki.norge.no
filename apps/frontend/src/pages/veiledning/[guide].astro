@@ -114,11 +114,11 @@ if (guideData) {
   </Layout>
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde?.url} bodyColor="brand1">
+    <div class="guide-header">
+      <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
+      {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
+    </div>
     <div class="article-page" data-layout-block="content">
-      <div class="guide-header">
-        <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
-        {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
-      </div>
 
       <div class="guide-steps">
         <StepNavigator steps={guideCtx.steps} guideSlug={slug!} />
