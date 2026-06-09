@@ -194,7 +194,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
               <span aria-hidden="true" class="article-fremheving-quote-mark article-fremheving-quote-mark--close">»</span>
             </blockquote>
           ) : (
-            <div class="article-fremheving-text" set:html={c.tekst} />
+            <div class="article-fremheving-text u-rich-text" set:html={c.tekst} />
           )}
           {c.kilde && (
             <footer class="article-fremheving-source">
