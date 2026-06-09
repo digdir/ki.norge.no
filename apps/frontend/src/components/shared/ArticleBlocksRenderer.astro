@@ -232,7 +232,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
   if (block.contentType === 'artikkelCallout') {
     const variant = block.content.variant || 'info';
     return (
-      <div class={`article-callout article-callout--${variant}`} role={variant === 'advarsel' ? 'alert' : 'note'}>
+      <div class={`article-callout article-callout--${variant}`}>
         {block.content.tittel && <p class="article-callout-title">{block.content.tittel}</p>}
         <div class="article-callout-body" set:html={block.content.innhold} />
       </div>
