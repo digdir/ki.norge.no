@@ -82,7 +82,7 @@ const parseTagger = (s?: string) =>
           <h2 class="ds-heading" data-size="lg">{featured.tittel}</h2>
           {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
           <EventCard
-            title={featured.type || ''}
+            title={featured.tittel || ''}
             tags={parseTagger(featured.tagger)}
             day={featuredRange.dateLabel.charAt(featuredRange.dateLabel.length - 1) === '.' && !multiDay ? featuredRange.dateLabel.slice(0, -1) : featuredRange.dateLabel}
             month={featuredRange.month}
