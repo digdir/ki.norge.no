@@ -1,4 +1,6 @@
-/* ── Search Dialog ─────────────────────────────────────── */
+/* ── KI-søk dialog (search-only) ───────────────────────────
+   Themed with Designsystemet accent tokens (warm-maroon theme,
+   see design-tokens-build/theme.css). No hardcoded brand hex. */
 
 .search-dialog-backdrop {
   position: fixed;
@@ -28,10 +30,13 @@
 
 .search-dialog-content {
   position: relative;
-  background: white;
+  background: var(--ds-color-accent-background-default);
   border-radius: 16px;
-  /* Tight shadow — subtle, not spread */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* Figma shadow/xl — deep, layered */
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.16),
+    0 4px 8px rgba(0, 0, 0, 0.16),
+    0 0 1px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -44,7 +49,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Close button — inside dialog, absolute positioned top right */
+/* Close button — top right */
 .search-dialog-close {
   position: absolute;
   top: 16px;
@@ -57,18 +62,18 @@
   height: 36px;
   border: none;
   background: transparent;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--ds-color-neutral-text-subtle);
   cursor: pointer;
   border-radius: 50%;
   transition: background 0.1s, color 0.1s;
 }
 
 .search-dialog-close:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: #000;
+  background: var(--ds-color-neutral-surface-hover);
+  color: var(--ds-color-neutral-text-default);
 }
 
-/* Header (title + search input) */
+/* Header (title + composer) */
 .search-dialog-header {
   padding: 28px 28px 20px;
   flex-shrink: 0;
@@ -76,15 +81,13 @@
 
 .search-dialog-title {
   margin: 0 0 16px;
-  padding-right: 40px; /* keep clear of close button */
-  color: #1a2a6d;
+  padding-right: 40px; /* clear of close button */
+  color: var(--ds-color-accent-text-default);
 }
 
-.search-dialog-form {
-  margin: 0;
-}
+.search-dialog-form { margin: 0; }
 
-/* Style the designsystemet Search component */
+/* Designsystemet Search overrides */
 .search-dialog-search {
   width: 100%;
   position: relative;
@@ -92,32 +95,36 @@
 
 .search-dialog-search [data-field="search"],
 .search-dialog-search input {
-  padding-right: 48px !important; /* space for embedded button */
+  padding-right: 52px !important; /* space for the submit button */
   border-radius: 99px !important;
 }
 
 .search-dialog-search input {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background: var(--ds-color-neutral-surface-default) !important;
+  border-color: var(--ds-color-neutral-border-default) !important;
   font-size: 1rem !important;
 }
 
-.search-dialog-search input:focus {
-  background: white !important;
-  border-color: #1a2a6d !important;
+.search-dialog-search input::placeholder {
+  color: var(--ds-color-accent-text-subtle);
+  opacity: 0.85;
 }
 
-/* Submit button — visually inside search bar, actual button in DOM */
+.search-dialog-search input:focus {
+  border-color: var(--ds-color-accent-base-default) !important;
+}
+
+/* Circular up-arrow submit, inside the search bar */
 .search-dialog-submit {
   position: absolute;
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: none;
-  background: #1a2a6d;
-  color: white;
+  background: var(--ds-color-accent-base-default);
+  color: var(--ds-color-accent-base-contrast-default);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -127,51 +134,40 @@
   z-index: 2;
 }
 
-.search-dialog-submit:hover {
-  background: #0f1d56;
-}
+.search-dialog-submit:hover { background: var(--ds-color-accent-base-hover); }
+.search-dialog-submit:disabled { opacity: 0.6; cursor: default; }
 
-/* Scroll container — shared between AI overview and results */
+/* Scroll container — body */
 .search-dialog-scroll {
   flex: 1;
   overflow-y: auto;
   padding: 0 28px 28px;
-  min-height: 60px; /* keep padding visible even when empty */
+  min-height: 60px;
 }
 
-/* Hints (before search is submitted) */
-.search-dialog-hints {
-  padding: 4px 0 16px;
-}
-
-.search-hint-text {
-  color: rgba(0, 0, 0, 0.55);
-}
-
+/* Hints / empty / error */
+.search-dialog-hints { padding: 4px 0 16px; }
+.search-hint-text { color: var(--ds-color-neutral-text-subtle); }
 .search-hint-text kbd {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: var(--ds-color-neutral-surface-tinted);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
   border-radius: 4px;
   padding: 0.1em 0.4em;
   font-family: inherit;
   font-size: 0.85em;
 }
+.search-empty-state { padding: 24px 0; text-align: center; }
+.search-error { color: var(--ds-color-danger-text-default, #b1283b); padding: 8px 0; }
 
-/* Section headings (KI-oversikt, Søkeresultater) */
+/* Section heading (Søkeresultater) */
 .search-section-heading {
   font-size: 1.5rem;
   font-weight: 500;
-  color: #1f2c3d;
+  color: var(--ds-color-neutral-text-default);
   margin: 0;
   line-height: 1.3;
 }
 
-/* AI overview heading row (icon + title) */
-.search-ai-overview {
-  padding-top: 8px;
-}
-
-.search-ai-heading-row,
 .search-results-heading-row {
   display: flex;
   align-items: center;
@@ -179,99 +175,13 @@
   margin-bottom: 8px;
 }
 
-.search-ai-icon,
 .search-results-icon {
   flex-shrink: 0;
-  color: #1f2c3d;
-}
-
-.search-ai-content {
-  padding-left: 32px;
-  position: relative;
-  overflow: hidden;
-  transition: max-height 0.25s ease;
-}
-
-.search-ai-content.collapsed {
-  max-height: 140px;
-  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-}
-
-.search-ai-content.expanded {
-  max-height: none;
-}
-
-.search-ai-text {
-  margin: 0;
-  color: #1f2c3d;
-  line-height: 1.5;
-  font-size: 1.125rem;
-}
-
-.search-ai-sources {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.search-ai-sources-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
-  margin: 0 0 6px;
-}
-
-.search-ai-sources-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.search-ai-sources-list a {
-  font-size: 1rem;
-  color: #005db1;
-  text-decoration: underline;
-}
-
-/* Vis mer/mindre — full width outline button */
-.search-ai-expand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: calc(100% - 32px);
-  margin: 16px 0 0 32px;
-  padding: 12px 24px;
-  background: white;
-  border: 1px solid #005db1;
-  border-radius: 4px;
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #005db1;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.1s;
-}
-
-.search-ai-expand:hover {
-  background: #f0f7ff;
-}
-
-/* Divider between sections */
-.search-divider {
-  margin: 24px 0;
-  border: none;
-  border-top: 1px solid #e2e8f0;
+  color: var(--ds-color-accent-base-default);
 }
 
 /* Search results */
-.search-results {
-  padding-top: 0;
-}
+.search-results { padding-top: 0; }
 
 .search-results-list {
   list-style: none;
@@ -279,44 +189,38 @@
   padding: 0 0 0 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
-.search-result-item {
-  margin: 0;
-  padding-top: 16px;
-}
+.search-result-item { margin: 0; padding-top: 16px; }
 
-.search-result-link {
-  display: inline-block;
-  text-decoration: none;
-  margin-bottom: 4px;
-}
+.search-result-headline { margin: 0 0 4px; }
 
 .search-result-title {
   font-size: 1.125rem;
-  color: #005db1;
+  color: var(--ds-color-accent-text-default);
   text-decoration: underline;
-  font-weight: 400;
+  font-weight: 500;
   margin-right: 8px;
 }
 
 .search-result-type {
   font-size: 1.125rem;
-  color: #005db1;
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 .search-result-excerpt {
   font-size: 1.125rem;
-  color: #1f2c3d;
+  color: var(--ds-color-neutral-text-default);
   line-height: 1.5;
-  margin: 0;
+  margin: 0 0 4px;
 }
 
-/* Empty state */
-.search-empty-state {
-  padding: 24px 0;
-  text-align: center;
+.search-result-url {
+  font-size: 0.875rem;
+  color: var(--ds-color-neutral-text-subtle);
+  margin: 0;
+  word-break: break-all;
 }
 
 /* Header search toggle button */
@@ -334,20 +238,10 @@
   transition: background 0.1s;
 }
 
-.search-toggle:hover {
-  background: rgba(0, 0, 0, 0.08);
-}
+.search-toggle:hover { background: var(--ds-color-neutral-surface-hover); }
 
 @media (max-width: 640px) {
-  .search-dialog-backdrop {
-    padding: 5vh 0.5rem 1rem;
-  }
-
-  .search-dialog-header {
-    padding: 24px 20px 16px;
-  }
-
-  .search-dialog-scroll {
-    padding: 0 20px 20px;
-  }
+  .search-dialog-backdrop { padding: 5vh 0.5rem 1rem; }
+  .search-dialog-header { padding: 24px 20px 16px; }
+  .search-dialog-scroll { padding: 0 20px 20px; }
 }

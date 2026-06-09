@@ -1,6 +1,7 @@
 ---
 import '../../styles/global.css';
 import Header from './Header.tsx';
+import SearchDialog from '../shared/SearchDialog.tsx';
 import Footer from './Footer.astro';
 import PreviewBanner from '../shared/PreviewBanner.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
@@ -96,7 +97,7 @@ const ogImageUrl = resolvedOg
       <slot />
     </main>
     <Footer />
-    <!-- <SearchDialog client:load /> -->
+    <SearchDialog client:load />
     {isPreview && <PreviewBanner currentPath={currentPath} />}
     <script is:inline>
       document.querySelectorAll('a[href^="http"]').forEach(function(a) {
