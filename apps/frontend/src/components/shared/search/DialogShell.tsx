@@ -1,11 +1,11 @@
 import type { ReactNode, RefObject } from 'react';
 import { Search, Heading } from '@digdir/designsystemet-react';
-import { ArrowUpIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { MagnifyingGlassIcon, XMarkIcon } from '@navikt/aksel-icons';
 
 /**
  * Visual shell for the KI-søk dialog (Figma nodes 3266:33298 / 808:14176):
  * backdrop, dialog box, close button, title, and the search input with the
- * circular up-arrow submit.
+ * circular magnifying-glass submit.
  */
 export default function DialogShell({
   title,
@@ -67,7 +67,7 @@ export default function DialogShell({
                 />
                 {query && <Search.Clear onClick={() => onQueryChange('')} />}
                 <button type="submit" className="search-dialog-submit" aria-label="Søk" disabled={submitting}>
-                  <ArrowUpIcon aria-hidden fontSize="1.375rem" />
+                  <MagnifyingGlassIcon aria-hidden fontSize="1.375rem" />
                 </button>
               </Search>
             </form>

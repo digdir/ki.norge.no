@@ -121,20 +121,14 @@ export default function SearchDialog() {
       placeholder="Hva kan vi hjelpe med"
     >
       {error && (
-        <Paragraph data-size="sm" className="search-error">
+        <Paragraph data-size="md" className="search-error">
           {error}
         </Paragraph>
       )}
 
-      {!submitted ? (
+      {!submitted ? null : busy && results.length === 0 ? (
         <div className="search-dialog-hints">
-          <Paragraph data-size="sm" className="search-hint-text">
-            Søk i innholdet på ki.norge.no. Bruk <kbd>Ctrl/⌘+K</kbd> for å åpne søk raskt.
-          </Paragraph>
-        </div>
-      ) : busy && results.length === 0 ? (
-        <div className="search-dialog-hints">
-          <Paragraph data-size="sm" className="search-hint-text">
+          <Paragraph data-size="md" className="search-hint-text">
             Søker …
           </Paragraph>
         </div>
@@ -142,7 +136,7 @@ export default function SearchDialog() {
         <ResultsSection results={results} onNavigate={closeDialog} />
       ) : (
         <div className="search-empty-state">
-          <Paragraph data-size="sm">Ingen resultater for «{query}». Prøv et annet søkeord.</Paragraph>
+          <Paragraph data-size="md">Ingen resultater for «{query}». Prøv et annet søkeord.</Paragraph>
         </div>
       )}
     </DialogShell>

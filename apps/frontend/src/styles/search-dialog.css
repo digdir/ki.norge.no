@@ -96,25 +96,27 @@
 .search-dialog-search [data-field="search"],
 .search-dialog-search input {
   padding-right: 52px !important; /* space for the submit button */
-  border-radius: 99px !important;
+  padding-left: var(--ds-size-5) !important; /* litt mer luft foran teksten */
+  border-radius: var(--ds-border-radius-full) !important;
 }
 
 .search-dialog-search input {
   background: var(--ds-color-neutral-surface-default) !important;
   border-color: var(--ds-color-neutral-border-default) !important;
-  font-size: 1rem !important;
+  font-size: var(--ds-font-size-4) !important; /* min 18px */
 }
 
 .search-dialog-search input::placeholder {
-  color: var(--ds-color-accent-text-subtle);
-  opacity: 0.85;
+  /* grå, bittelitt mørkere enn standard */
+  color: var(--ds-color-neutral-text-subtle);
+  opacity: 1;
 }
 
 .search-dialog-search input:focus {
   border-color: var(--ds-color-accent-base-default) !important;
 }
 
-/* Circular up-arrow submit, inside the search bar */
+/* Circular magnifying-glass submit, inside the search bar */
 .search-dialog-submit {
   position: absolute;
   right: 6px;
