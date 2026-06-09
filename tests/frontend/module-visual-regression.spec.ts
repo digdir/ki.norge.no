@@ -54,7 +54,6 @@ test.describe('Article module visual regression', () => {
 
   // Per-module screenshots — failures tell you exactly which module regressed
   const MODULES: Array<{ name: string; selector: string }> = [
-    { name: 'text-block', selector: '.article-text-block' },
     { name: 'byline', selector: '.article-byline' },
     { name: 'innhold-fra', selector: '.article-innhold-fra' },
     { name: 'kontaktkort', selector: '.article-kontaktkort' },

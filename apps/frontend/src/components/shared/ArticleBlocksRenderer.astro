@@ -98,7 +98,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
               <summary>
                 {block.content.tittel}
               </summary>
-              <div class="article-accordion-body" set:html={block.content.innhold} />
+              <div class="u-rich-text" set:html={block.content.innhold} />
             </details>
           ))}
         </div>
@@ -222,9 +222,9 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
       <blockquote class="article-quote">
         <p class="article-quote-text">{block.content.sitat}</p>
         {block.content.kilde && (
-          <footer class="article-quote-source">
+          <div class="article-quote-source">
             <cite>{block.content.kilde}</cite>
-          </footer>
+          </div>
         )}
       </blockquote>
     );

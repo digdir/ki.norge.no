@@ -75,7 +75,7 @@
       margin-bottom: var(--ds-size-3);
     }
 
-    & > :where(div, table, section):not(.article-text-block, [data-layout-block="edge"]) {
+    & > :where(div, table, section):not([data-layout-block="edge"]) {
       margin-block: var(--ds-size-8);
     }
 
