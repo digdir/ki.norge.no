@@ -992,7 +992,7 @@ public class ContentTypeComponent : IAsyncComponent
             Alias = "veiledningObs",
             Name = "Obs",
             Description = "Varselboks med tittel og tekst. Brukes for å fremheve viktig informasjon i et veiledningssteg.",
-            Icon = "icon-alert",
+            Icon = "icon-pushpin",
             IsElement = true,
         };
         ct.AddPropertyGroup("innhold", "Innhold");

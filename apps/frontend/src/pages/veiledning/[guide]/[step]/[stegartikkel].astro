@@ -17,7 +17,7 @@ const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('
 const guideData = await getVeiledningGuide(guideSlug!, { preview: isPreview });
 if (!guideData) return Astro.redirect('/veiledning');
 
-const allSteps = await getVeiledningSteg(guideSlug!);
+const allSteps = await getVeiledningSteg(guideSlug!, { preview: isPreview });
 const currentStep = allSteps.find(s => s.slug === stepSlug);
 if (!currentStep) return Astro.redirect(`/veiledning/${guideSlug}`);
 
