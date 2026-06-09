@@ -74,7 +74,6 @@ const parseTagger = (s?: string) =>
   </header>
 
   {featured && (() => {
-    const featuredDate = formatDate(featured.startDato);
     const multiDay = isMultiDay(featured.startDato, featured.sluttDato);
     const featuredRange = formatDateRange(featured.startDato, featured.sluttDato);
     return (
@@ -91,6 +90,7 @@ const parseTagger = (s?: string) =>
             time={featured.tid || ''}
             timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
             location={featured.sted || ''}
+            href={`/kalender/${featured.slug}`}
           />
         </div>
       </section>
