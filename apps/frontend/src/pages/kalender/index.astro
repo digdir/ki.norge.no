@@ -2,6 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import EventCard from '../../components/shared/EventCard.astro';
 import { getKalender, getKalenderhendelser, type Kalenderhendelse } from '../../lib/umbraco';
+import { hendelseTilEventCard } from '../../lib/kalender';
 
 let kalender = null;
 let hendelser: Kalenderhendelse[] = [];
@@ -39,33 +40,6 @@ const tidligere = hendelser
   .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
-
-const fmtMonth = (d: Date) => d.toLocaleString('nb-NO', { month: 'long' });
-const formatDate = (iso: string) => {
-  if (!iso) return { day: '', month: '', year: '' };
-  const d = new Date(iso);
-  return { day: String(d.getDate()), month: fmtMonth(d), year: String(d.getFullYear()) };
-};
-const formatDateRange = (startIso: string, endIso?: string) => {
-  const start = new Date(startIso);
-  const end = endIso ? new Date(endIso) : null;
-  const startDay = start.getDate();
-  const startMonth = fmtMonth(start);
-  const startYear = start.getFullYear();
-  if (!end || end.getTime() === start.getTime()) {
-    return { dateLabel: `${startDay}.`, month: startMonth, year: String(startYear) };
-  }
-  const endDay = end.getDate();
-  return { dateLabel: `${startDay}. — ${endDay}.`, month: startMonth, year: String(startYear) };
-};
-const isMultiDay = (startIso: string, endIso?: string) => {
-  if (!endIso) return false;
-  const s = new Date(startIso);
-  const e = new Date(endIso);
-  return e.getTime() > s.getTime() && e.toDateString() !== s.toDateString();
-};
-const parseTagger = (s?: string) =>
-  (s || '').split(',').map(t => t.trim()).filter(Boolean);
 ---
 <Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde?.url}>
   <header class="kalender-header" data-layout-block="content">
@@ -73,28 +47,15 @@ const parseTagger = (s?: string) =>
     {ingress && <p class="kalender-ingress">{ingress}</p>}
   </header>
 
-  {featured && (() => {
-    const multiDay = isMultiDay(featured.startDato, featured.sluttDato);
-    const featuredRange = formatDateRange(featured.startDato, featured.sluttDato);
-    return (
-      <section class="kalender-featured" data-layout-block="edge" data-clickdelegatefor="featured-event">
-        <div class="kalender-featured-inner" data-layout-block="content">
-          <h2 class="ds-heading" data-size="lg"><a id="featured-event" href={`/kalender/${featured.slug}`}>{featured.tittel}</a></h2>
-          {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
-          <EventCard
-            title={''}
-            tags={parseTagger(featured.tagger)}
-            day={featuredRange.dateLabel.charAt(featuredRange.dateLabel.length - 1) === '.' && !multiDay ? featuredRange.dateLabel.slice(0, -1) : featuredRange.dateLabel}
-            month={featuredRange.month}
-            year={featuredRange.year}
-            time={featured.tid || ''}
-            timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
-            location={featured.sted || ''}
-          />
-        </div>
-      </section>
-    );
-  })()}
+  {featured && (
+    <section class="kalender-featured" data-layout-block="edge" data-clickdelegatefor="featured-event">
+      <div class="kalender-featured-inner" data-layout-block="content">
+        <h2 class="ds-heading" data-size="lg"><a id="featured-event" href={`/kalender/${featured.slug}`}>{featured.tittel}</a></h2>
+        {featured.ingress && <p class="kalender-featured-ingress">{featured.ingress}</p>}
+        <EventCard {...hendelseTilEventCard(featured, { variant: 'featured', clickable: false })} />
+      </div>
+    </section>
+  )}
 
   <section class="kalender-arrangementer" data-layout-block="content">
     <h2 class="ds-heading" data-size="md">Arrangementer</h2>
@@ -110,24 +71,9 @@ const parseTagger = (s?: string) =>
           <p class="kalender-empty">Ingen kommende arrangement.</p>
         ) : (
           <div class="kalender-list">
-            {kommende.map(h => {
-              const date = formatDate(h.startDato);
-              const multiDay = isMultiDay(h.startDato, h.sluttDato);
-              return (
-                <EventCard
-                  title={h.tittel}
-                  description={h.ingress || ''}
-                  tags={parseTagger(h.tagger)}
-                  day={date.day}
-                  month={date.month}
-                  year={date.year}
-                  time={h.tid || ''}
-                  timeNote={multiDay ? 'Arrangement over flere dager' : undefined}
-                  location={h.sted || ''}
-                  href={`/kalender/${h.slug}`}
-                />
-              );
-            })}
+            {kommende.map(h => (
+              <EventCard {...hendelseTilEventCard(h)} />
+            ))}
           </div>
         )}
       </ds-tabpanel>
@@ -137,21 +83,9 @@ const parseTagger = (s?: string) =>
           <p class="kalender-empty">Ingen tidligere arrangement.</p>
         ) : (
           <div class="kalender-list">
-            {tidligere.map(h => {
-              const date = formatDate(h.startDato);
-              return (
-                <EventCard
-                  title={h.tittel}
-                  description={h.ingress || ''}
-                  tags={parseTagger(h.tagger)}
-                  day={date.day}
-                  month={date.month}
-                  year={date.year}
-                  time={h.tid || ''}
-                  location={h.sted || ''}
-                />
-              );
-            })}
+            {tidligere.map(h => (
+              <EventCard {...hendelseTilEventCard(h, { clickable: false })} />
+            ))}
           </div>
         )}
       </ds-tabpanel>

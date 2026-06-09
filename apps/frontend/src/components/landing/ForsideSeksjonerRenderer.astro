@@ -11,6 +11,7 @@ import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
 import { getMediaUrl, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
+import { hendelseTilEventCard } from '../../lib/kalender';
 
 interface Props {
   seksjoner: ForsideSeksjon[];
@@ -22,12 +23,6 @@ interface Props {
 }
 const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [], eksempelKort } = Astro.props;
 const featuredArticle = latestArticles[0];
-
-const monthNames = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
-const formatEventDate = (iso: string) => {
-  const d = new Date(iso);
-  return { day: String(d.getDate()), month: monthNames[d.getMonth()], year: String(d.getFullYear()) };
-};
 
 // Normaliserer en pool-artikkel til kort-formen rendereren bruker (tittel/slug/lead/image).
 // Pool-artikler har ingress/artikkelBilde; vi mapper dem til lead/image.
@@ -117,24 +112,12 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   if (block.contentType === 'forsideArrangementer') {
     // Redaktørvalgt arrangement overstyrer auto. Tomt → neste kommende.
     const valgt = (block.arrangementId && upcomingEvents.find((e) => e.id === block.arrangementId)) || upcomingEvents[0] || null;
-    const dato = valgt ? formatEventDate(valgt.startDato) : null;
-    const flerDager = valgt?.sluttDato && new Date(valgt.sluttDato).toDateString() !== new Date(valgt.startDato).toDateString();
     return (
       <section class="arrangementer" data-layout-block="edge">
         <div class="arrangementer-section" data-layout-block="content">
           <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Kommende arrangementer'}</h2>
-          {valgt && dato && (
-            <EventCard
-              href={`/kalender/${valgt.slug}`}
-              title={valgt.tittel}
-              description={valgt.ingress || ''}
-              day={dato.day}
-              month={dato.month}
-              year={dato.year}
-              time={valgt.tid || ''}
-              timeNote={flerDager ? 'Arrangement over flere dager' : undefined}
-              location={valgt.sted || ''}
-            />
+          {valgt && (
+            <EventCard {...hendelseTilEventCard(valgt)} />
           )}
           <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst || 'Se alle arrangementer'} />
         </div>
