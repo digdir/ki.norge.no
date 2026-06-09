@@ -196,19 +196,24 @@
 
 .search-result-item { margin: 0; padding-top: 16px; }
 
-.search-result-headline { margin: 0 0 4px; }
+.search-result-headline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  margin: 0 0 var(--ds-size-1);
+}
 
 .search-result-title {
   font-size: 1.125rem;
   color: var(--ds-color-accent-text-default);
   text-decoration: underline;
   font-weight: 500;
-  margin-right: 8px;
 }
 
-.search-result-type {
-  font-size: 1.125rem;
-  color: var(--ds-color-neutral-text-subtle);
+/* Innholdstype-merkelapp (ds-tag, samme som kortene på /eksempler) — ved siden av tittelen */
+.search-result-tag {
+  flex: 0 0 auto;
 }
 
 .search-result-excerpt {

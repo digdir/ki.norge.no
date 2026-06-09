@@ -2,6 +2,21 @@ import { Link } from '@digdir/designsystemet-react';
 import { FileSearchIcon } from '@navikt/aksel-icons';
 import type { KiResult } from './types';
 
+// Innholdstype-alias → pen merkelapp. Ukjente/stale typer (f.eks. "faq" fra
+// gamle indeks-dokumenter) får ingen merkelapp; reindeksering er CMS-siden (#419).
+const TYPE_LABELS: Record<string, string> = {
+  artikkel: 'Artikkel',
+  case: 'Eksempel',
+  eksempel: 'Eksempel',
+  veiledning: 'Veiledning',
+  veiledningGuide: 'Veiledning',
+  veiledningSteg: 'Veiledning',
+  ordbokOppslag: 'KI-ordbok',
+  sandkasse: 'Sandkasse',
+  omOss: 'Om oss',
+  side: 'Side',
+};
+
 function prettyUrl(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 }
@@ -24,10 +39,14 @@ export default function ResultsSection({
         {results.map((r) => (
           <li key={r.url} className="search-result-item">
             <p className="search-result-headline">
+              {TYPE_LABELS[r.type] && (
+                <span className="ds-tag search-result-tag" data-color="neutral" data-size="sm">
+                  {TYPE_LABELS[r.type]}
+                </span>
+              )}
               <Link href={r.url} className="search-result-title" onClick={onNavigate}>
                 {r.title}
               </Link>
-              {r.type && <span className="search-result-type">({r.type})</span>}
             </p>
             <p className="search-result-excerpt">{r.excerpt}</p>
             <p className="search-result-url">{prettyUrl(r.url)}</p>
