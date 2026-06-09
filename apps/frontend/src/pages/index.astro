@@ -27,7 +27,7 @@ try {
   const eksemplerRes = await getEksempler({ preview: isPreview });
   eksempler = eksemplerRes.data;
   eksempelKort = eksempler.slice(0, 2).map((c: any) => ({
-    href: `/caser/${c.slug}`,
+    href: `/eksempler/${c.slug}`,
     title: c.tittel,
     tag: 'Eksempel',
   }));

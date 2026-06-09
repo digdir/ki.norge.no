@@ -58,7 +58,7 @@ const moduleIcons: Record<string, string> = {
   const block = item.block;
 
   if (block.contentType === 'veiledningTekst') {
-    return <div class="veiledning-tekst" set:html={block.content.innhold} />;
+    return <Fragment set:html={block.content.innhold} />;
   }
 
   if (block.contentType === 'veiledningInfo'
@@ -104,14 +104,7 @@ const moduleIcons: Record<string, string> = {
 })}
 
 <style>
-  .veiledning-tekst {
-    font-size: var(--ds-body-md-font-size);
-    line-height: var(--ds-body-md-line-height);
-  }
-  .veiledning-tekst :global(p) {
-    margin: 0 0 var(--ds-size-3);
-  }
-  .veiledning-tekst :global(p:last-child) {
+  .veiledning-tekst :global(*:last-child) {
     margin-bottom: 0;
   }
   .veiledning-tekst :global(ul),

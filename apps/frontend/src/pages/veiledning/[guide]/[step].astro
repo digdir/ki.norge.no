@@ -59,7 +59,7 @@ const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
     <h1 class="step-substep-title ds-heading" data-size="lg">{currentStep.steg}. {steps[currentStep.steg - 1].title}</h1>
     <SubStepPills substeps={substepPills} guideSlug={guideSlug!} />
 
-    <div class="step-content">
+    <div class="step-content u-rich-text">
       <h2 class="ds-heading" data-size="md">{currentStep.tittel}</h2>
       {currentStep.ingress && <p class="step-ingress">{currentStep.ingress}</p>}
       <VeiledningBlocksRenderer blocks={currentStep.innholdBlokker} />
@@ -83,10 +83,11 @@ const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
   .step-content {
     max-width: 680px;
     margin-inline: auto;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-6);
     margin-block-start: var(--ds-size-18); 
+
+    & h2 {
+      
+    }
   }
 
   .step-back {
