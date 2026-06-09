@@ -1,7 +1,9 @@
 /**
  * Hybrid search over the ki-content index: BM25 (norwegian analyzer) + dense
- * (E5-large semantic_text) fused with a weighted-linear retriever (0.4/0.6) and
- * reranked with jina v2 multilingual — the tuned config from the eval.
+ * (E5-large semantic_text) fused with a weighted-linear retriever (0.4 / 0.6).
+ * No reranker — the whole query path stays in-cluster (EU): no user query text
+ * leaves to an external inference service. (Reranker choice deferred; see
+ * infrastructure/elasticsearch.)
  *
  * Plain `fetch` (Cloudflare Workers-safe), server-side only. If ES isn't
  * configured it degrades gracefully to the existing Umbraco search so the search
@@ -12,7 +14,6 @@ import { searchContent } from './umbraco';
 const ES_ENDPOINT = (process.env.ES_ENDPOINT || import.meta.env.ES_ENDPOINT || '').replace(/\/$/, '');
 const ES_API_KEY = process.env.ES_API_KEY || import.meta.env.ES_API_KEY || '';
 const INDEX = process.env.KI_INDEX || import.meta.env.KI_INDEX || 'ki-content';
-const RERANK_ID = '.jina-reranker-v2-base-multilingual';
 const TOP_N = 12;
 
 export const isConfigured = Boolean(ES_ENDPOINT && ES_API_KEY);
@@ -30,7 +31,7 @@ function excerptOf(body: string, max = 220): string {
   return clean.length > max ? clean.slice(0, max).replace(/\s+\S*$/, '') + ' …' : clean;
 }
 
-// Tuned winner: linear(0.4 bm25 / 0.6 dense, minmax) wrapped in jina rerank.
+// linear(0.4 bm25 / 0.6 dense, minmax) — no reranker (keeps the query path in-EU).
 function retrieverBody(query: string, size: number) {
   const lex = { standard: { query: { multi_match: { query, fields: ['title^2', 'body'] } } } };
   const sem = { standard: { query: { semantic: { field: 'body_semantic', query } } } };
@@ -38,20 +39,12 @@ function retrieverBody(query: string, size: number) {
     size,
     _source: ['title', 'url', 'type', 'body'],
     retriever: {
-      text_similarity_reranker: {
-        retriever: {
-          linear: {
-            retrievers: [
-              { retriever: lex, weight: 0.4, normalizer: 'minmax' },
-              { retriever: sem, weight: 0.6, normalizer: 'minmax' },
-            ],
-            rank_window_size: 50,
-          },
-        },
-        field: 'body',
-        inference_id: RERANK_ID,
-        inference_text: query,
-        rank_window_size: size,
+      linear: {
+        retrievers: [
+          { retriever: lex, weight: 0.4, normalizer: 'minmax' },
+          { retriever: sem, weight: 0.6, normalizer: 'minmax' },
+        ],
+        rank_window_size: 50,
       },
     },
   };
