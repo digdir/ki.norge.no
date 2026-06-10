@@ -5,15 +5,15 @@ Portal for kunstig intelligens i norsk offentlig sektor. Drives av Digitaliserin
 ## Kjøre lokalt
 
 ```bash
-# Frontend (Astro SSR på Deno)
-npm run frontend:dev          # http://localhost:4321
+# Frontend (Astro SSR, Node lokalt / Cloudflare Workers i prod)
+pnpm run frontend:dev         # http://localhost:4321
 
 # CMS (Umbraco .NET 10)
-npm run cms:dev               # http://localhost:5000/umbraco
-                               # admin@ki.norge.no / KiNorge2025!
+pnpm run cms:dev              # http://localhost:5000/umbraco
+                              # admin@ki.norge.no / KiNorge2025!
 
 # Frontend mot prod-CMS (trenger ikke lokal CMS)
-npm run frontend:dev:prod
+pnpm run frontend:dev:prod
 ```
 
 Første gang CMS kjøres opprettes SQLite-databasen og alt innhold seedes automatisk (unattended install).
@@ -23,7 +23,7 @@ Første gang CMS kjøres opprettes SQLite-databasen og alt innhold seedes automa
 Monorepo med to apper som kjører i separate Azure Container Apps.
 
 ```
-apps/frontend/          Astro SSR, Deno runtime, designsystemet-react
+apps/frontend/          Astro SSR, Cloudflare Workers, designsystemet-react
 apps/cms-umbraco/       Umbraco 17, .NET 10, SQLite, Litestream backup
 scripts/deploy-azure.sh Deploy til Azure Container Apps
 ```
@@ -88,12 +88,12 @@ Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres ti
 ## Deploy
 
 ```bash
-npm run deploy              # eller: bash scripts/deploy-azure.sh
+pnpm run deploy             # eller: bash scripts/deploy-azure.sh
 ```
 
 Krever Azure PIM-aktivering først (varer 8 timer):
 ```bash
-npm run azure:activate      # aktiverer Contributor-rolle
+pnpm run azure:activate     # aktiverer Contributor-rolle
 az login                    # etter 15 sekunder
 ```
 

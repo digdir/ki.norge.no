@@ -7,15 +7,15 @@ CMS: https://cms.ki.norge.no/umbraco
 ## Setup
 
 ```bash
-# Frontend (Astro on Deno)
-npm run frontend:dev          # http://localhost:4321
+# Frontend (Astro, runs on Node locally)
+pnpm run frontend:dev         # http://localhost:4321
 
 # CMS (Umbraco 17 / .NET 10)
-npm run cms:dev               # http://localhost:5000/umbraco
+pnpm run cms:dev              # http://localhost:5000/umbraco
                               # admin@ki.norge.no / KiNorge2025!
 
 # Frontend pointing at prod CMS (no local CMS needed)
-npm run frontend:dev:prod
+pnpm run frontend:dev:prod
 ```
 
 First time the CMS runs, it auto-creates an admin and seeds demo content.
@@ -23,7 +23,7 @@ First time the CMS runs, it auto-creates an admin and seeds demo content.
 ## Project structure
 
 ```
-apps/frontend/      Astro SSR frontend, runs on Deno
+apps/frontend/      Astro SSR frontend, runs on Node / Cloudflare Workers
 apps/cms-umbraco/   Umbraco 17 CMS, .NET 10, SQLite + Litestream backup
 scripts/            Deploy and ops scripts (deploy-azure.sh, smoke-test.sh)
 tests/              Playwright tests (frontend + CMS smoke)
@@ -59,7 +59,7 @@ the PR.
 ## Deployment
 
 Manual via `bash scripts/deploy-azure.sh`. Requires Azure PIM activation first
-(see `~/.claude/skills/az-auth/SKILL.md` or `npm run azure:activate`). CI/CD via
+(see `~/.claude/skills/az-auth/SKILL.md` or `pnpm run azure:activate`). CI/CD via
 GitHub Actions is on the roadmap.
 
 ## Reporting security issues

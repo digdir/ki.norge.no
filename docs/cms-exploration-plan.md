@@ -67,7 +67,7 @@ Note what requires Umbraco paid edition vs Community.
 
 ### Known risks
 
-Umbraco requires .NET runtime — a third runtime alongside Deno and Node.
+Umbraco requires .NET runtime — a second runtime alongside Node.
 The Content Delivery API is a secondary citizen in the Umbraco ecosystem.
 Rich text as HTML strings means less granular control over DS component rendering.
 No existing migration tooling between Strapi and Umbraco.
@@ -142,4 +142,4 @@ After both branches are complete, compare on:
 4. Rich text rendering quality with Designsystemet
 5. Ongoing maintenance burden and ecosystem support
 6. Infrastructure requirements and deployment complexity
-7. Team skill alignment (TypeScript/Deno/Node vs .NET vs Git)
+7. Team skill alignment (TypeScript/Node vs .NET vs Git)

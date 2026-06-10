@@ -14,7 +14,7 @@ Last updated: 2026-02-13
 | **CMS Secrets** | API key + preview secret | Fixed | Credentials rotated, `appsettings.Development.json` gitignored, `.example` template created |
 | **CMS Preview** | Razor → Astro redirect | Good | N/A — working headless preview flow |
 | **CMS Seeder** | ContentSeeder.cs | Good | N/A — idempotent, dev-only, comprehensive |
-| **Frontend Runtime** | Deno 2+ | Good | N/A — working well, handles npm packages via `nodeModulesDir: auto` |
+| **Frontend Runtime** | Cloudflare Workers (Node for local dev) | Good | N/A — working well |
 | **Frontend Framework** | Astro 5.16 | Good | N/A — latest major version, hybrid SSG/SSR working correctly |
 | **UI Components** | React 19 | Good | N/A — used only for Designsystemet components, not over-engineered |
 | **Design System** | Designsystemet 1.11 | Good | Token migration just completed. Optional: generate official theme via `theme.designsystemet.no` instead of manual `:root` overrides |
@@ -38,7 +38,7 @@ Last updated: 2026-02-13
 | **CMS Hosting** | Azure (planned) | Not started | No Azure config, no Dockerfile, no deployment pipeline. Needs setup before production |
 | **CI/CD** | None | **Missing** | No GitHub Actions or other pipeline. Add: lint, build, test, deploy workflows |
 | **Monorepo** | pnpm workspace | Broken | `pnpm-workspace.yaml` points to `packages/*` which doesn't exist. Should point to `apps/frontend` |
-| **README** | Root README.md | Good | Rewritten with Umbraco 17 + Deno + Astro stack, correct setup steps |
+| **README** | Root README.md | Good | Rewritten with Umbraco 17 + Node + Astro stack, correct setup steps |
 | **Font** | Public Sans (Google Fonts) | Good | N/A — appropriate for government site, loaded with `display=swap` |
 | **.gitignore** | Root + per-app | Mostly good | `appsettings.Development.json` with secrets is tracked — should be gitignored |
 
@@ -52,7 +52,7 @@ Tasks we can do right now, ordered by impact and urgency.
 
 1. ~~**Fix secrets in git**~~ — DONE. Rotated credentials, added `.gitignore` entry, created `.example` template.
 
-2. ~~**Rewrite README.md**~~ — DONE. Full rewrite with Umbraco 17 + Deno + Astro stack.
+2. ~~**Rewrite README.md**~~ — DONE. Full rewrite with Umbraco 17 + Node + Astro stack.
 
 ### P1 — High (significant user-facing impact)
 
