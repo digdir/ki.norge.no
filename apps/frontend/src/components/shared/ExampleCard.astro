@@ -19,7 +19,6 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
 ---
 
 <article class="example-card" data-variant={variant} data-clickdelegatefor={id}>
-  {tag && <span class="ds-tag" data-size="sm">{tag}</span>}
   <h3 class="ds-heading example-card-title" data-size="sm">
     <a id={id} href={href}>
       {title}
@@ -28,6 +27,7 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
       </span>
     </a>
   </h3>
+  {tag && <span class="ds-tag" data-size="sm">{tag}</span>}
 </article>
 
 <style>
@@ -62,6 +62,7 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
   }
 
   .ds-tag {
+    order: -1;
     margin-bottom: var(--ds-size-4);
     background-color: var(--ds-color-background-default);
   }
