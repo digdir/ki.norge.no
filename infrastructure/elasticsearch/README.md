@@ -64,22 +64,23 @@ Run after the embedding endpoint exists, and again whenever the mapping changes.
 An index matching `ki-content*` then auto-creates with the correct mapping on first
 write, so a CMS reindex after applying templates is enough.
 
-## Reindex (the authoritative path)
-The CMS owns indexing (`ReindexBackgroundJob` → `ContentTextExtractor`). Trigger a
-full reindex without the backoffice using the Management-API client-credentials
-trigger — a thin wrapper over `POST /search/reindex`, not a second indexer:
+## Reindex
+`pnpm run search:reindex` (= `rebuild-from-umbraco.mjs`) reads the public Delivery
+API and writes to ES with the ES key — no backoffice/bearer auth. URLs are built
+from `shared/content-routes.json` (same map as the frontend + CMS push), so hits
+link to the real routes (`/artikler/…`, `/veiledning/…`). The CMS push (publish
+events → `ContentTextExtractor`) keeps the index fresh in steady-state.
 ```sh
-cp .env.example .env   # + CMS_URL / UMBRACO_CLIENT_ID / UMBRACO_CLIENT_SECRET
-pnpm run search:reindex          # from the repo root; see reindex.mjs
+cp .env.example .env             # ES_ENDPOINT / ES_API_KEY / UMBRACO_URL
+pnpm run search:reindex          # upsert by content GUID (from repo root)
+pnpm run search:reindex -- --rebuild   # full clean rebuild (drops the index first)
 ```
-Create the API user once: backoffice → Users → API Users. See `reindex.mjs` for the
-exact auth + polling logic.
 
 ## Recreate the index from scratch
 ```sh
 curl -XDELETE "$ES_ENDPOINT/ki-content" -H "Authorization: ApiKey $ES_API_KEY"
 node --env-file=.env apply-templates.mjs
-pnpm run search:reindex          # repopulate via the CMS (see above)
+pnpm run search:reindex          # repopulate (see above)
 ```
 
 ## Local rebuild from Umbraco (restored crawler)
