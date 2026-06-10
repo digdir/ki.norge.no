@@ -33,27 +33,9 @@ public class KiNorgePreviewService : IDocumentPreviewService
         var slug = content.GetValue<string>("slug") ?? "";
         var guideSlug = content.GetValue<string>("guideSlug") ?? "";
 
-        var path = contentType switch
-        {
-            "artikkel" => $"/artikler/{slug}",
-            "eksempel" => $"/eksempler/{slug}",
-            "side" => $"/{slug}",
-            "forside" => "/",
-            "omOss" => "/om-oss",
-            "sandkasse" => "/sandkasse",
-            "veiledningGuide" => $"/veiledning/{slug}",
-            "enkelVeiledning" => $"/veiledning/{slug}",
-            "veiledningSteg" => $"/veiledning/{guideSlug}/{slug}",
-            // Oversikts-/landingssider (redigerbare)
-            "artikler" => "/artikler",
-            "eksempler" => "/eksempler",
-            "kalender" => "/kalender",
-            "veiledninger" => "/veiledning",
-            // kalenderhendelse har ingen egen detaljrute, vis i oversikten
-            "kalenderhendelse" => "/kalender",
-            // stegartikkel trenger forelder-traversering, egen oppfølging
-            _ => null
-        };
+        // Shared with the search indexer — see FrontendRoutes. stegartikkel needs
+        // ancestor traversal we don't do here, so it falls through to the Info case.
+        var path = FrontendRoutes.Path(contentType, slug, guideSlug);
 
         if (path == null)
         {

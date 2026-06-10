@@ -256,16 +256,26 @@ public class ContentTextExtractor
         }
     }
 
+    // The frontend routes by content type + slug (see FrontendRoutes), not by
+    // Umbraco's content-tree path — so a step lives at /veiledning/{guide}/{step},
+    // not at its bare tree path /{guide}/{step}. Resolve ancestor slugs for the
+    // nested veiledning types from the published cache.
     private string? GetContentUrl(IContent content)
     {
         try
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             var published = ctx.UmbracoContext.Content?.GetById(content.Id);
-            if (published != null)
-            {
-                return published.Url(mode: Umbraco.Cms.Core.Models.PublishedContent.UrlMode.Relative);
-            }
+            if (published == null)
+                return null;
+
+            var slug = published.Value<string>("slug");
+            var guideSlug = published.Ancestors()
+                .FirstOrDefault(a => a.ContentType.Alias == "veiledningGuide")?.Value<string>("slug");
+            var stegSlug = published.Ancestors()
+                .FirstOrDefault(a => a.ContentType.Alias == "veiledningSteg")?.Value<string>("slug");
+
+            return FrontendRoutes.Path(content.ContentType.Alias, slug, guideSlug, stegSlug);
         }
         catch (Exception ex)
         {
