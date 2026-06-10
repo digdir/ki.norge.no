@@ -78,7 +78,6 @@
   background: var(--ds-color-base-active);
   color: var(--ds-color-background-default);
   padding-block: var(--ds-size-12);
-  margin-block: var(--ds-size-6);
 
   & * {
     word-break: break-word;

@@ -69,7 +69,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   </ArticleLayout>
 
   {otherArticles.length > 0 && (
-    <section class="more-articles" data-layout-block="content">
+    <section class="more-articles" data-layout-block="content" data-color="accent">
       <h2 class="more-articles-heading ds-heading" data-size="md">Flere eksempler</h2>
       <div class="more-articles-grid">
         {otherArticles.map((a, i) => (

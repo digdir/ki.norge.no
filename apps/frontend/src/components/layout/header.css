@@ -66,6 +66,13 @@
   }
 }
 
+/* Nav er en flex-rad så søkeikonet ligger inline til høyre for lenkene (jf. Figma 3323-2539) */
+.header nav {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-4);
+}
+
 .nav-list {
   display: flex;
   flex-wrap: wrap;

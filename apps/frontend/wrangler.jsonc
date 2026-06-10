@@ -19,6 +19,10 @@
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
 				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
+				// Hybrid-søk (Elastic): endepunkt + indeks er offentlige (ikke hemmelige).
+				// ES_API_KEY settes som secret: wrangler secret put ES_API_KEY --env tt02
+				"ES_ENDPOINT": "https://kinorgeportal-elasticsearch-tt02-a61b24.es.germanywestcentral.azure.elastic.cloud",
+				"KI_INDEX": "ki-content",
 				// Holding page on ki.test.norge.no until launch. Flip to "live" to go public.
 				"LAUNCH_MODE": "coming-soon",
 			},

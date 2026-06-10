@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@digdir/designsystemet-react';
-import { MenuHamburgerIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { MagnifyingGlassIcon, MenuHamburgerIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cl from 'clsx/lite';
 import Logo from './Logo';
 
@@ -112,6 +112,20 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
               </li>
             ))}
           </ul>
+
+          {/* Search trigger — opens the KI-søk dialog (also Ctrl/Cmd+K) */}
+          <button
+            type="button"
+            className="ds-button search-toggle"
+            data-variant="tertiary"
+            data-icon="true"
+            data-size="sm"
+            aria-label="Åpne søk"
+            aria-keyshortcuts="Control+K Meta+K"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-search-dialog'))}
+          >
+            <MagnifyingGlassIcon aria-hidden fontSize="1.5rem" />
+          </button>
 
           {/* Hamburger toggle — always in DOM, CSS hides on desktop */}
           <button
