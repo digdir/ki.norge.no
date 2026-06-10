@@ -31,7 +31,6 @@
 
 .search-dialog-search [data-field="search"],
 .search-dialog-search input {
-  padding-right: var(--ds-size-13, 52px) !important;
   padding-left: var(--ds-size-5) !important;
   border-radius: var(--ds-border-radius-full) !important;
 }
@@ -40,15 +39,15 @@
   background: var(--ds-color-neutral-surface-default) !important;
   border-color: var(--ds-color-neutral-border-default) !important;
   font-size: var(--ds-font-size-4) !important;
-}
-
-.search-dialog-search input::placeholder {
-  color: var(--ds-color-neutral-text-subtle);
-  opacity: 1;
+  padding-inline-end: calc(var(--dsc-search-padding-inline) * 12);
 }
 
 .search-dialog-search input:focus {
   border-color: var(--ds-color-accent-base-default) !important;
+}
+
+.search-dialog-search button[type=reset] {
+  margin-inline-end: calc(var(--dsc-search-padding-inline) * 6);
 }
 
 /* Circular magnifying glass submit inside search field */
