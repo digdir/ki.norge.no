@@ -24,8 +24,8 @@ First time the CMS runs, it auto-creates an admin and seeds demo content.
 
 ```
 apps/frontend/      Astro SSR frontend, runs on Node / Cloudflare Workers
-apps/cms-umbraco/   Umbraco 17 CMS, .NET 10, SQLite + Litestream backup
-scripts/            Deploy and ops scripts (deploy-azure.sh, smoke-test.sh)
+apps/cms-umbraco/   Umbraco 17 CMS, .NET 10, Azure SQL (prod) / SQLite (local)
+scripts/            Ops scripts (smoke-test.sh; legacy deploy-azure.sh)
 tests/              Playwright tests (frontend + CMS smoke)
 ```
 
@@ -58,9 +58,10 @@ the PR.
 
 ## Deployment
 
-Manual via `bash scripts/deploy-azure.sh`. Requires Azure PIM activation first
-(see `~/.claude/skills/az-auth/SKILL.md` or `pnpm run azure:activate`). CI/CD via
-GitHub Actions is on the roadmap.
+CMS deploys via Altinn dis-core (GitHub Actions). Frontend deploys to Cloudflare
+Workers with `pnpm run frontend:deploy:prod` (and `:tt02`). The legacy Container
+Apps script `scripts/deploy-azure.sh` (Azure PIM via `pnpm run azure:activate`)
+is retired, kept for reference.
 
 ## Reporting security issues
 

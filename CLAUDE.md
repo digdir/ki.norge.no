@@ -20,15 +20,15 @@ Første gang CMS kjøres opprettes SQLite-databasen og alt innhold seedes automa
 
 ## Arkitektur
 
-Monorepo med to apper som kjører i separate Azure Container Apps.
+Monorepo med to apper: frontend på Cloudflare Workers, CMS på Altinn dis-core (Kubernetes).
 
 ```
 apps/frontend/          Astro SSR, Cloudflare Workers, designsystemet-react
-apps/cms-umbraco/       Umbraco 17, .NET 10, SQLite, Litestream backup
-scripts/deploy-azure.sh Deploy til Azure Container Apps
+apps/cms-umbraco/       Umbraco 17, .NET 10, Azure SQL (prod), SQLite (lokalt)
+scripts/deploy-azure.sh Legacy Container Apps-deploy (utgått, beholdt for referanse)
 ```
 
-Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres til Azure Blob Storage via Litestream.
+Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL (dis-core); lokalt brukes SQLite.
 
 ## Frontend
 
@@ -77,43 +77,31 @@ Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres ti
 - artikkelBildeSeksjon (bilde + bildetekst)
 - artikkelMorkPanel (skal fjernes)
 
-**Connection string:** Må bruke `|DataDirectory|` i path, ikke relativ sti. Ellers finner ikke Umbraco databasen. På prod: `Default Timeout=30` setter SQLite busy_timeout for å unngå "database is locked"-feil ved samtidige skrivinger.
+**Connection string (lokal SQLite):** Må bruke `|DataDirectory|` i path, ikke relativ sti. Ellers finner ikke Umbraco databasen. Prod kjører Azure SQL via dis-core (connection string injiseres fra Key Vault, ikke SQLite).
 
 **RichText toolbar:** Konfigureres programmatisk i ContentTypeComposer (EnsureRichTextHeadings). Har H2, H3, H4.
 
-**Migrasjon til SQL Server planlagt**: SQLite + Litestream gir lock-contention på multi-editor-bruk. Plan i `docs/sql-server-migration-plan.md`. Tester forberedt i `tests/sql-migration/`. Avventer team-go-ahead.
+**Database:** Prod kjører Azure SQL via dis-core, som erstattet SQLite + Litestream (de ga lock-contention på multi-editor-bruk). Lokal dev bruker fortsatt SQLite. Historisk migrasjonsplan: `docs/sql-server-migration-plan.md`.
 
 **Innholdsskriving fra kode = anti-pattern**: Skjema (content types) settes i kode via `ContentTypeComposer`, men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se `docs/seeder-content-write-audit.md`.
 
 ## Deploy
 
-```bash
-pnpm run deploy             # eller: bash scripts/deploy-azure.sh
-```
+- **CMS:** dis-core via GitHub Actions («Docker build and publish» + «Publish Syncroot artifacts», miljø tt02/prod).
+- **Frontend:** Cloudflare Workers via `pnpm run frontend:deploy:prod` (og `:tt02`).
 
-Krever Azure PIM-aktivering først (varer 8 timer):
-```bash
-pnpm run azure:activate     # aktiverer Contributor-rolle
-az login                    # etter 15 sekunder
-```
+Legacy Container Apps-deploy (`pnpm run deploy` = `scripts/deploy-azure.sh`, krever Azure PIM via `pnpm run azure:activate` / `az login` / /az-auth-skillen) er utgått, men beholdt for referanse.
 
-Eller bruk /az-auth skillen.
+**Infrastruktur (gjeldende)**
+- Frontend: Cloudflare Workers (`ki-norge-frontend-prod` / `-tt02`)
+- CMS: Altinn dis-core (Kubernetes), database Azure SQL
+- CMS-prod nås på `kinorgeportal.prod.dis-core.altinn.cloud` (+ offentlig proxy-worker `cms-kinorgeportal-prod...workers.dev`)
 
-**Azure-ressurser**
-- Resource group: ki-norge
-- Container Apps environment: ki-norge-no-env
-- Frontend: ki-norge-frontend (port 4321, max 3 replicas)
-- CMS: ki-norge-cms (port 8080, max 1 replica pga SQLite)
-- Registry: kinorgeacr.azurecr.io
-- Storage: kinorgestorage (blob container umbraco-db for Litestream, file share umbraco-data for media)
-- Subscription: Altinn-Portaler-Test (fdc58270...)
-- Tenant: Digitaliseringsdirektoratet ai-dev (cd0026d8...)
-
-**Litestream backup**
-- v0.3.14 (IKKE v0.5, inkompatibelt backup-format)
-- Replikerer SQLite til Azure Blob Storage kontinuerlig
-- Ved container-start: restorer fra blob hvis ingen lokal DB finnes
-- Restore lokalt: bruk `/tmp/ls013/litestream` (v0.3.13 for macOS ARM64)
+**Legacy Azure Container Apps (utgått, beholdt for referanse)**
+- Resource group ki-norge, env ki-norge-no-env, apps ki-norge-frontend / ki-norge-cms
+- Registry kinorgeacr.azurecr.io, storage kinorgestorage (Litestream-blob + media-share)
+- Subscription Altinn-Portaler-Test (fdc58270...), tenant Digitaliseringsdirektoratet ai-dev (cd0026d8...)
+- SQLite-persistens via Litestream (v0.3.14) til Azure Blob — erstattet av Azure SQL i dis-core
 
 ## Viktige beslutninger
 

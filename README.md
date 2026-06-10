@@ -12,7 +12,7 @@ Portal for kunstig intelligens i norsk offentlig sektor.
 ### CMS
 - **Umbraco 17.3.5** (current LTS line) — headless CMS, .NET 10
 - **Content Delivery API v2** for frontend consumption
-- **SQLite** + **Litestream** continuous backup to Azure Blob Storage
+- **Azure SQL** in prod (via dis-core); **SQLite** for local dev
 - Auto-bootstrap via `ContentTypeComposer` + `ContentSeeder` on first run
 
 ### Frontend
@@ -22,11 +22,9 @@ Portal for kunstig intelligens i norsk offentlig sektor.
 - **`@navikt/aksel-icons`** (extracted to static SVG map for Astro compatibility)
 
 ### Hosting
-- **Azure Container Apps** in resource group `ki-norge`, region `norwayeast`
-- Frontend: `ki-norge-frontend` container app
-- CMS: `ki-norge-cms` container app (max 1 replica due to SQLite)
-- Container Registry: `kinorgeacr.azurecr.io`
-- Storage: `kinorgestorage` (blob container `umbraco-db` for Litestream, file share `umbraco-data` for media)
+- **Frontend:** Cloudflare Workers (`ki-norge-frontend-prod` / `-tt02`)
+- **CMS:** Altinn dis-core (Kubernetes), database Azure SQL
+- Legacy Azure Container Apps (resource group `ki-norge`, registry `kinorgeacr.azurecr.io`, storage `kinorgestorage`) is retired, kept for reference
 
 ### Testing
 - **`scripts/smoke-test.sh`** — bash + curl smoke check (~10s, 21 checks). Run after every deploy.
