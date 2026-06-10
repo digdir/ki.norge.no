@@ -273,8 +273,8 @@ export interface EksemplerSeksjon {
   navn?: string;
   epost?: string;
   stilling?: string;
-  // Redaksjonelle felt fra Figma-kommentarer. CMS-feltene finnes ikke ennå,
-  // så disse er undefined i dag og frontend faller tilbake på defaults.
+  // Redaksjonelle felt fra Figma-kommentarer. kortFarger har ennå ikke et CMS-felt
+  // og er undefined i dag (frontend faller tilbake på defaults).
   ingress?: string;                              // Featured: manuell ingress
   kortTag?: string;                              // Gruppe: tag på hvert kort (default "Eksempel")
   kortFarger?: Array<'dark' | 'light' | undefined>; // Gruppe: per-kort farge, justert mot eksempelIds
@@ -371,6 +371,7 @@ export interface ForsideSeksjon {
   fremhevetArtikkelId?: string;
   forstaLenkeIds?: string[];
   kort?: ForsideKort[];
+  kortTag?: string;
 }
 
 export interface Forside {
@@ -466,6 +467,7 @@ export interface VeiledningOversikt {
   seksjon2Kort?: VeiledningKort[];
   seksjon3Tittel?: string;
   seksjon3Kort?: VeiledningKort[];
+  eksempelKortTag?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
   seoBilde?: UmbracoMedia;
@@ -1139,6 +1141,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seksjon2Kort: mapVeiledningKort(props.seksjon2Kort),
         seksjon3Tittel: props.seksjon3Tittel as string || undefined,
         seksjon3Kort: mapVeiledningKort(props.seksjon3Kort),
+        eksempelKortTag: props.eksempelKortTag as string || undefined,
         seoTittel: props.seoTittel as string || undefined,
         seoBeskrivelse: props.seoBeskrivelse as string || undefined,
         seoBilde: mapMedia(props.seoBilde),
@@ -1505,6 +1508,7 @@ function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
       fremhevetArtikkelId: pickerId(props.fremhevetArtikkel),
       forstaLenkeIds: mapForstaLenker(props.lenker),
       kort: mapForsideKort(props.kort),
+      kortTag: (props.kortTag as string) || undefined,
     };
   });
 }

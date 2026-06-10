@@ -67,15 +67,16 @@ const simpleLinks = (cmsData?.seksjon3Kort?.length ?? 0) > 0
     ];
 
 // Case cards — "Lær av andre"
+const eksempelTag = cmsData?.eksempelKortTag || 'Eksempel';
 const caseCards = cases.data.length > 0
   ? cases.data.slice(0, 2).map(c => ({
       title: c.tittel,
       href: `/eksempler/${c.slug}`,
-      tag: 'Eksempel',
+      tag: eksempelTag,
     }))
   : [
-      { title: 'Raskere analyser av dokumenter med KI-chat i Digdir', href: '/eksempler/ki-chat-staten', tag: 'Eksempel' },
-      { title: 'Politiet - Fra tale til tekst på minutter', href: '/eksempler/politiet-tale-til-tekst', tag: 'Eksempel' },
+      { title: 'Raskere analyser av dokumenter med KI-chat i Digdir', href: '/eksempler/ki-chat-staten', tag: eksempelTag },
+      { title: 'Politiet - Fra tale til tekst på minutter', href: '/eksempler/politiet-tale-til-tekst', tag: eksempelTag },
     ];
 
 const seoTitle = cmsData?.seoTittel || 'Guider & veiledning';
