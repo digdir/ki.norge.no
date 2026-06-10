@@ -43,10 +43,16 @@ function getTag(article: Artikkel) {
   return 'KI-strategien';
 }
 
-// Auto-layout (fallback når redaktøren ikke har bygd seksjoner): featured + kort + bildegrid.
+// Fremhevet artikkel-pickeren gjelder også når seksjoner er bygd: den rendres
+// som hero øverst, med mindre redaktøren har lagt inn en egen Fremhevet
+// artikkel-blokk i seksjonene (da vinner blokken).
 const featuredOverride = oversikt?.featuredArtikkelId
   ? articles.find(a => a.id === oversikt!.featuredArtikkelId)
   : null;
+const harFeaturedBlokk = seksjoner.some(s => s.contentType === 'artikkelFeatured');
+const seksjonerFeatured = seksjoner.length > 0 && !harFeaturedBlokk ? featuredOverride : null;
+
+// Auto-layout (fallback når redaktøren ikke har bygd seksjoner): featured + kort + bildegrid.
 const featured = featuredOverride || articles[0];
 const rest = articles.filter(a => a.id !== featured?.id);
 const compactCards = rest.slice(0, 3);
@@ -62,6 +68,17 @@ const remaining = rest.slice(9);
       <h1 class="ds-heading" data-size="xl">{heroTittel}</h1>
       {heroSubtittel && <p class="artikler-subtitle">{heroSubtittel}</p>}
     </header>
+
+    {seksjonerFeatured && (
+      <NewsCard
+        variant="featured"
+        href={`/artikler/${seksjonerFeatured.slug}`}
+        title={seksjonerFeatured.tittel}
+        lead={seksjonerFeatured.ingress || getPlainText(seksjonerFeatured.innhold, 150)}
+        image={getImageUrl(seksjonerFeatured)}
+        imageAlt={seksjonerFeatured.bildeAlt}
+      />
+    )}
 
     {seksjoner.length > 0 ? seksjoner.map(s => {
       if (s.contentType === 'artikkelFeatured' && s.artikkelId) {
