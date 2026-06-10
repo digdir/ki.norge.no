@@ -6,8 +6,8 @@
  * Ctrl/Cmd+K; the `open-search-dialog` event may carry an initial `{ query }`.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Paragraph } from '@digdir/designsystemet-react';
-import DialogShell from './search/DialogShell';
+import { Dialog, Paragraph, Search, Heading } from '@digdir/designsystemet-react';
+import { MagnifyingGlassIcon } from '@navikt/aksel-icons';
 import ResultsSection from './search/ResultsSection';
 import type { KiResult } from './search/types';
 
@@ -75,8 +75,6 @@ export default function SearchDialog() {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setOpen((o) => !o);
-      } else if (e.key === 'Escape') {
-        setOpen(false);
       }
     }
     window.addEventListener('keydown', onKey);
@@ -93,52 +91,72 @@ export default function SearchDialog() {
     return () => window.removeEventListener('open-search-dialog', onTrigger);
   }, [openDialog]);
 
-  // Focus the input + lock body scroll while open; abort in-flight on close.
+  // Focus the input while open; abort in-flight on close.
   useEffect(() => {
     if (open) {
       const t = setTimeout(() => inputRef.current?.focus(), 50);
-      document.body.style.overflow = 'hidden';
-      return () => {
-        clearTimeout(t);
-        document.body.style.overflow = '';
-      };
+      return () => clearTimeout(t);
     }
-    document.body.style.overflow = '';
     abortRef.current?.abort();
   }, [open]);
 
-  if (!open) return null;
-
   return (
-    <DialogShell
-      title="Hva leter du etter?"
-      query={query}
-      onQueryChange={setQuery}
-      onSubmit={() => void runSubmit(query)}
+    <Dialog
+      open={open}
       onClose={closeDialog}
-      inputRef={inputRef}
-      submitting={busy}
-      placeholder="Hva kan vi hjelpe med"
+      closedby="any"
+      className="search-dialog"
+      data-color="accent"
     >
-      {error && (
-        <Paragraph data-size="md" className="search-error">
-          {error}
-        </Paragraph>
-      )}
+      <Dialog.Block className="search-dialog-header">
+        <Heading level={2} data-size="xs" className="search-dialog-title">
+          Hva leter du etter?
+        </Heading>
+        <form
+          className="search-dialog-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void runSubmit(query);
+          }}
+        >
+          <Search className="search-dialog-search">
+            <Search.Input
+              ref={inputRef}
+              aria-label="Søk på ki.norge.no"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              // @ts-expect-error autofocus is not in React's type definitions
+              autofocus=""
+            />
+            {query && <Search.Clear onClick={() => setQuery('')} />}
+            <button type="submit" className="search-dialog-submit" aria-label="Søk" disabled={busy}>
+              <MagnifyingGlassIcon aria-hidden fontSize="1.375rem" />
+            </button>
+          </Search>
+        </form>
+      </Dialog.Block>
 
-      {!submitted ? null : busy && results.length === 0 ? (
-        <div className="search-dialog-hints">
-          <Paragraph data-size="md" className="search-hint-text">
-            Søker …
+      <Dialog.Block className="search-dialog-scroll">
+        {error && (
+          <Paragraph data-size="md" className="search-error">
+            {error}
           </Paragraph>
-        </div>
-      ) : results.length > 0 ? (
-        <ResultsSection results={results} onNavigate={closeDialog} />
-      ) : (
-        <div className="search-empty-state">
-          <Paragraph data-size="md">Ingen resultater for «{query}». Prøv et annet søkeord.</Paragraph>
-        </div>
-      )}
-    </DialogShell>
+        )}
+
+        {!submitted ? null : busy && results.length === 0 ? (
+          <div className="search-dialog-hints">
+            <Paragraph data-size="md" className="search-hint-text">
+              Søker …
+            </Paragraph>
+          </div>
+        ) : results.length > 0 ? (
+          <ResultsSection results={results} onNavigate={closeDialog} />
+        ) : (
+          <div className="search-empty-state">
+            <Paragraph data-size="md">Ingen resultater for «{query}». Prøv et annet søkeord.</Paragraph>
+          </div>
+        )}
+      </Dialog.Block>
+    </Dialog>
   );
 }

@@ -116,7 +116,10 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
           {/* Search trigger — opens the KI-søk dialog (also Ctrl/Cmd+K) */}
           <button
             type="button"
-            className="search-toggle ds-focus"
+            className="ds-button search-toggle"
+            data-variant="tertiary"
+            data-icon="true"
+            data-size="sm"
             aria-label="Åpne søk"
             aria-keyshortcuts="Control+K Meta+K"
             onClick={() => window.dispatchEvent(new CustomEvent('open-search-dialog'))}

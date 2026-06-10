@@ -1,81 +1,15 @@
 /* ── KI-søk dialog (search-only) ───────────────────────────
-   Tematisert med Designsystemet-tokens (--ds-*), varm-maroon-tema
-   (se design-tokens-build/theme.css). Ingen hardkodede merkefarger;
-   spacing/font/radius går via tokens. rgba-skygger + scrim er bevisst
-   utenfor token-systemet (ingen tilsvarende token). */
+   Uses Designsystemet <Dialog> (native <dialog>) with custom overrides
+   for the search-specific layout (max-width, spacing, scroll area).
+   Tokens: --ds-* from designsystemet, --dsc-dialog-* from the Dialog component. */
 
-.search-dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.42); /* scrim */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10vh var(--ds-size-4) var(--ds-size-8);
-  overflow-y: auto;
-  animation: search-fade-in 0.15s ease;
+/* Override Dialog component defaults for the search modal */
+.search-dialog {
+  --dsc-dialog-max-width: 720px;
+  --dsc-dialog-max-height: 80vh;
 }
 
-@keyframes search-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.search-dialog-container {
-  position: relative;
-  width: 100%;
-  max-width: 720px;
-  max-height: calc(100vh - 12vh - var(--ds-size-8));
-  display: flex;
-}
-
-.search-dialog-content {
-  position: relative;
-  background: var(--ds-color-accent-background-default);
-  border-radius: 16px; /* rundere enn radius-lg (8px), bevisst designvalg */
-  /* Figma shadow/xl — dyp, lagdelt */
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.16),
-    0 4px 8px rgba(0, 0, 0, 0.16),
-    0 0 1px rgba(0, 0, 0, 0.12);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  animation: search-slide-in 0.15s ease;
-}
-
-@keyframes search-slide-in {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Lukkeknapp — øverst til høyre */
-.search-dialog-close {
-  position: absolute;
-  top: var(--ds-size-4);
-  right: var(--ds-size-4);
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--ds-size-10);
-  height: var(--ds-size-10);
-  border: none;
-  background: transparent;
-  color: var(--ds-color-neutral-text-subtle);
-  cursor: pointer;
-  border-radius: var(--ds-border-radius-full);
-  transition: background 0.1s, color 0.1s;
-}
-
-.search-dialog-close:hover {
-  background: var(--ds-color-neutral-surface-hover);
-  color: var(--ds-color-neutral-text-default);
-}
-
-/* Header (tittel + søkefelt) */
+/* Header (title + search field) */
 .search-dialog-header {
   padding: var(--ds-size-7) var(--ds-size-7) var(--ds-size-5);
   flex-shrink: 0;
@@ -83,13 +17,13 @@
 
 .search-dialog-title {
   margin: 0 0 var(--ds-size-4);
-  padding-right: var(--ds-size-10); /* klar av lukkeknappen */
+  padding-right: var(--ds-size-10); /* clear of close button */
   color: var(--ds-color-accent-text-default);
 }
 
 .search-dialog-form { margin: 0; }
 
-/* Overstyringer for Designsystemets Search-komponent (pille) */
+/* Overrides for Designsystemet Search component (pill shape) */
 .search-dialog-search {
   width: 100%;
   position: relative;
@@ -97,19 +31,18 @@
 
 .search-dialog-search [data-field="search"],
 .search-dialog-search input {
-  padding-right: var(--ds-size-13, 52px) !important; /* plass til submit-knappen */
-  padding-left: var(--ds-size-5) !important; /* litt mer luft foran teksten */
+  padding-right: var(--ds-size-13, 52px) !important;
+  padding-left: var(--ds-size-5) !important;
   border-radius: var(--ds-border-radius-full) !important;
 }
 
 .search-dialog-search input {
   background: var(--ds-color-neutral-surface-default) !important;
   border-color: var(--ds-color-neutral-border-default) !important;
-  font-size: var(--ds-font-size-4) !important; /* min 18px */
+  font-size: var(--ds-font-size-4) !important;
 }
 
 .search-dialog-search input::placeholder {
-  /* grå, bittelitt mørkere enn standard */
   color: var(--ds-color-neutral-text-subtle);
   opacity: 1;
 }
@@ -118,7 +51,7 @@
   border-color: var(--ds-color-accent-base-default) !important;
 }
 
-/* Sirkulær lupe-submit inni søkefeltet */
+/* Circular magnifying glass submit inside search field */
 .search-dialog-submit {
   position: absolute;
   right: var(--ds-size-1);
@@ -141,15 +74,14 @@
 .search-dialog-submit:hover { background: var(--ds-color-accent-base-hover); }
 .search-dialog-submit:disabled { opacity: 0.6; cursor: default; }
 
-/* Scroll-container — kropp */
+/* Scroll container — results body */
 .search-dialog-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 0 var(--ds-size-7) var(--ds-size-7);
   min-height: var(--ds-size-15, 60px);
 }
 
-/* Hint / tom / feil */
+/* Hint / empty / error */
 .search-dialog-hints { padding: var(--ds-size-1) 0 var(--ds-size-4); }
 .search-hint-text { color: var(--ds-color-neutral-text-subtle); }
 .search-empty-state { padding: var(--ds-size-6) 0; text-align: center; }
@@ -226,23 +158,10 @@
 
 /* Søkeknapp i header */
 .search-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--ds-size-10);
-  height: var(--ds-size-10);
-  border: none;
-  background: none;
-  cursor: pointer;
   border-radius: var(--ds-border-radius-full);
   color: inherit;
-  transition: background 0.1s;
 }
 
-.search-toggle:hover { background: var(--ds-color-neutral-surface-hover); }
-
 @media (max-width: 640px) {
-  .search-dialog-backdrop { padding: 5vh var(--ds-size-2) var(--ds-size-4); }
   .search-dialog-header { padding: var(--ds-size-6) var(--ds-size-5) var(--ds-size-4); }
-  .search-dialog-scroll { padding: 0 var(--ds-size-5) var(--ds-size-5); }
 }
