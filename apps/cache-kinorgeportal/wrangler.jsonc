@@ -1,0 +1,35 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cache-kinorgeportal",
+	"account_id": "4c4f444ed739a1c06fe2f2aa5195a8a8",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-05-29",
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"workers_dev": false,
+	"env": {
+		"tt02": {
+			"name": "cache-kinorgeportal-tt02",
+			"services": [
+				{
+					"binding": "FRONTEND",
+					"service": "ki-norge-frontend-tt02"
+				}
+			]
+		},
+		"prod": {
+			"name": "cache-kinorgeportal-prod",
+			"services": [
+				{
+					"binding": "FRONTEND",
+					"service": "ki-norge-frontend-prod"
+				}
+			]
+		}
+	}
+}

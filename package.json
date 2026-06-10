@@ -19,6 +19,9 @@
     "frontend:deploy": "cd apps/frontend && pnpm run deploy",
     "frontend:deploy:tt02": "cd apps/frontend && pnpm run deploy:tt02",
     "frontend:deploy:prod": "cd apps/frontend && pnpm run deploy:prod",
+    "cache-kinorgeportal:dev": "cd apps/cache-kinorgeportal && pnpm run dev",
+    "cache-kinorgeportal:deploy:tt02": "cd apps/cache-kinorgeportal && pnpm exec wrangler deploy --env tt02",
+    "cache-kinorgeportal:deploy:prod": "cd apps/cache-kinorgeportal && pnpm exec wrangler deploy --env prod",
     "azure:activate": "TOKEN=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv) && curl -s -X PUT 'https://management.azure.com/subscriptions/fdc58270-273a-4afc-b996-83e97fe5173a/providers/Microsoft.Authorization/roleAssignmentScheduleRequests/'$(uuidgen)'?api-version=2020-10-01' -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json' -d '{\"properties\":{\"principalId\":\"3beaadb7-8bbb-4396-9773-8843fa1b2057\",\"roleDefinitionId\":\"/subscriptions/fdc58270-273a-4afc-b996-83e97fe5173a/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c\",\"requestType\":\"SelfActivate\",\"justification\":\"Deploy ki.norge.no\",\"scheduleInfo\":{\"expiration\":{\"type\":\"AfterDuration\",\"duration\":\"PT8H\"}}}}' && echo '\\nPIM activated. Wait 15s then run: az login'",
     "search:reindex": "node --env-file=infrastructure/elasticsearch/.env infrastructure/elasticsearch/rebuild-from-umbraco.mjs",
     "tokens:build": "designsystemet tokens create --config designsystemet.config.json && designsystemet tokens build --config designsystemet.config.json"
