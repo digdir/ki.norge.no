@@ -118,6 +118,12 @@ const ogImageUrl = resolvedOg
     padding-top: calc(var(--header-height, 72px) + var(--ds-size-14));
   }
 
+  @media (max-width: 600px) {
+    main > :global(:first-child) {
+      padding-top: calc(var(--header-height, 72px) + var(--ds-size-6));
+    }
+  }
+
   body {
     display: flex;
     flex-direction: column;

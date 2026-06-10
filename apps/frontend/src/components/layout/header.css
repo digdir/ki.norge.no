@@ -110,6 +110,7 @@
   &.active {
     color: var(--ds-color-base-hover);
     text-decoration: underline;
+    text-decoration-thickness: 3px;
   }
 }
 
@@ -194,7 +195,6 @@
       }
 
       &.active {
-        background-color: var(--ds-color-surface-active);
         border-bottom: none;
       }
     }
