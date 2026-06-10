@@ -141,7 +141,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
   }
   if (!response.headers.has('Strict-Transport-Security')) {
-    // 1 year, include subdomains, preload-eligible. Container Apps already terminates TLS.
+    // 1 year, include subdomains, preload-eligible. Cloudflare terminates TLS at the edge.
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   if (!response.headers.has('Content-Security-Policy')) {

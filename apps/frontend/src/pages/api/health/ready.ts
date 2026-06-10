@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 
 /**
  * Readiness probe — process is alive AND can talk to CMS.
- * Used by Container Apps to decide whether to send traffic.
- * Returns 503 if CMS Delivery API isn't reachable.
+ * Available as a health/uptime check endpoint. Returns 503 if the CMS
+ * Delivery API isn't reachable.
  */
 
 const CMS_URL = import.meta.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_URL || 'https://kinorgeportal.prod.dis-core.altinn.cloud';
