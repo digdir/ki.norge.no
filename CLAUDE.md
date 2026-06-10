@@ -25,7 +25,6 @@ Monorepo med to apper: frontend på Cloudflare Workers, CMS på Altinn dis-core 
 ```
 apps/frontend/          Astro SSR, Cloudflare Workers, designsystemet-react
 apps/cms-umbraco/       Umbraco 17, .NET 10, Azure SQL (prod), SQLite (lokalt)
-scripts/deploy-azure.sh Legacy Container Apps-deploy (utgått, beholdt for referanse)
 ```
 
 Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL (dis-core); lokalt brukes SQLite.
@@ -90,7 +89,7 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 - **CMS:** dis-core via GitHub Actions («Docker build and publish» + «Publish Syncroot artifacts», miljø tt02/prod).
 - **Frontend:** Cloudflare Workers via `pnpm run frontend:deploy:prod` (og `:tt02`).
 
-Legacy Container Apps-deploy (`pnpm run deploy` = `scripts/deploy-azure.sh`, krever Azure PIM via `pnpm run azure:activate` / `az login` / /az-auth-skillen) er utgått, men beholdt for referanse.
+Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 
 **Infrastruktur (gjeldende)**
 - Frontend: Cloudflare Workers (`ki-norge-frontend-prod` / `-tt02`)
