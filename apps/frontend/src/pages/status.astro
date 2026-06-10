@@ -3,8 +3,9 @@
  * Status page — health overview for ki.norge.no.
  * Access controlled by ki_admin cookie (see middleware.ts).
  *
- * Currently shows: HTTP health checks for frontend, CMS, Delivery API.
- * Future: Azure Container Apps metrics, Litestream backup status, analytics.
+ * Shows: live HTTP health checks for frontend, CMS backoffice, Delivery API
+ * and the ki.norge.no custom domain (see api/status-checks.ts).
+ * Future: dis-core pod health, Azure SQL, TLS expiry, søkeindeks, analytics.
  */
 import Layout from '../components/layout/Layout.astro';
 ---
@@ -13,14 +14,19 @@ import Layout from '../components/layout/Layout.astro';
   <div class="status-page">
     <h1>Status</h1>
     <p class="status-lead">
-      Live oversikt over tjenestene. Refresheres automatisk hvert 30. sekund.
+      Live oversikt over tjenestene. Oppdateres automatisk hvert 30. sekund.
     </p>
 
-    <section class="status-section">
-      <div class="status-section-header">
-        <h2>Tjenester</h2>
-        <span id="last-checked" class="status-meta"></span>
+    <div id="summary" class="status-summary is-loading">
+      <span class="summary-dot"></span>
+      <div class="summary-text">
+        <strong id="summary-title">Sjekker tjenester…</strong>
+        <span id="summary-sub" class="summary-sub"></span>
       </div>
+    </div>
+
+    <section class="status-section">
+      <h2>Tjenester</h2>
       <div id="checks" class="status-checks">
         <p class="status-loading">Sjekker…</p>
       </div>
@@ -29,10 +35,9 @@ import Layout from '../components/layout/Layout.astro';
     <section class="status-section">
       <h2>Kommer senere</h2>
       <ul class="status-future">
-        <li>Container restarts (siste 24t) — fra Azure Monitor</li>
-        <li>CPU og minne — fra Azure Monitor</li>
-        <li>Aktive replicas — fra Container Apps API</li>
-        <li>Litestream backup-timestamp — fra blob storage</li>
+        <li>Pod-helse og restarts — fra dis-core (Kubernetes)</li>
+        <li>Azure SQL tilkobling og responstid</li>
+        <li>Søkeindeks — antall dokumenter i <code>ki-content</code></li>
         <li>TLS-sertifikat utløpsdato</li>
         <li>Bruksstatistikk — fra analytics (når satt opp)</li>
       </ul>
@@ -42,7 +47,9 @@ import Layout from '../components/layout/Layout.astro';
 
 <script>
   const checksEl = document.getElementById('checks')!;
-  const lastCheckedEl = document.getElementById('last-checked')!;
+  const summaryEl = document.getElementById('summary')!;
+  const summaryTitleEl = document.getElementById('summary-title')!;
+  const summarySubEl = document.getElementById('summary-sub')!;
 
   function escape(s: string): string {
     return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -54,28 +61,47 @@ import Layout from '../components/layout/Layout.astro';
       const data = await res.json();
 
       const rows = data.checks.map((c: any) => {
-        const dot = c.status === 'ok' ? '🟢' : c.status === 'degraded' ? '🟡' : '🔴';
         const meta = c.error
-          ? `<span class="check-error">${escape(c.error)}</span>`
-          : `<span class="check-meta">HTTP ${c.httpStatus} · ${c.responseTime}ms</span>`;
+          ? `<span class="check-pill check-error">${escape(c.error)}</span>`
+          : `<span class="check-pill">HTTP ${c.httpStatus} · ${c.responseTime}ms</span>`;
         return `
-          <div class="check-row check-${c.status}">
-            <span class="check-dot">${dot}</span>
+          <div class="check check-${c.status}">
+            <span class="check-dot"></span>
             <div class="check-info">
-              <div class="check-name">${escape(c.name)}</div>
-              <div class="check-url"><a href="${escape(c.url)}" target="_blank" rel="noopener">${escape(c.url)}</a></div>
+              <span class="check-name">${escape(c.name)}</span>
+              <a class="check-url" href="${escape(c.url)}" target="_blank" rel="noopener">${escape(c.url)}</a>
             </div>
-            <div class="check-result">${meta}</div>
+            ${meta}
           </div>
         `;
       }).join('');
 
       checksEl.innerHTML = rows;
 
+      // Overall status = worst single check.
+      const statuses = data.checks.map((c: any) => c.status);
+      const overall = statuses.includes('down')
+        ? 'down'
+        : statuses.includes('degraded')
+          ? 'degraded'
+          : 'ok';
+      const title = overall === 'down'
+        ? 'Avvik oppdaget'
+        : overall === 'degraded'
+          ? 'Noe treghet'
+          : 'Alt fungerer normalt';
+      const okCount = statuses.filter((s: string) => s === 'ok').length;
       const ts = new Date(data.timestamp);
-      lastCheckedEl.textContent = `Sist sjekket ${ts.toLocaleTimeString('nb-NO')}`;
+
+      summaryEl.className = `status-summary summary-${overall}`;
+      summaryTitleEl.textContent = title;
+      summarySubEl.textContent =
+        `${okCount}/${statuses.length} tjenester OK · sist sjekket ${ts.toLocaleTimeString('nb-NO')}`;
     } catch (err) {
-      checksEl.innerHTML = `<p class="status-error">Klarte ikke hente status: ${err}</p>`;
+      checksEl.innerHTML = `<p class="status-error">Klarte ikke hente status: ${escape(String(err))}</p>`;
+      summaryEl.className = 'status-summary summary-down';
+      summaryTitleEl.textContent = 'Klarte ikke hente status';
+      summarySubEl.textContent = '';
     }
   }
 
@@ -85,7 +111,7 @@ import Layout from '../components/layout/Layout.astro';
 
 <style>
   .status-page {
-    max-width: 800px;
+    max-width: 760px;
     margin: 0 auto;
     padding: 48px 24px;
   }
@@ -93,102 +119,176 @@ import Layout from '../components/layout/Layout.astro';
   .status-page h1 {
     font-size: 2rem;
     margin: 0 0 8px;
+    color: var(--ds-color-text-default);
   }
 
   .status-lead {
-    color: rgba(0, 0, 0, 0.6);
-    margin: 0 0 32px;
+    color: var(--ds-color-neutral-text-subtle);
+    margin: 0 0 24px;
+  }
+
+  /* Overall status banner */
+  .status-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border: 1px solid var(--ds-color-neutral-border-subtle);
+    border-radius: 12px;
+    background: var(--ds-color-neutral-surface-tinted);
+    margin-bottom: 36px;
+  }
+
+  .summary-ok { border-color: var(--ds-color-success-border-subtle); background: var(--ds-color-success-surface-tinted); }
+  .summary-degraded { border-color: var(--ds-color-warning-border-subtle); background: var(--ds-color-warning-surface-tinted); }
+  .summary-down { border-color: var(--ds-color-danger-border-subtle); background: var(--ds-color-danger-surface-tinted); }
+
+  .summary-dot {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--ds-color-neutral-base-default);
+  }
+
+  .summary-ok .summary-dot { background: var(--ds-color-success-base-default); box-shadow: 0 0 0 4px var(--ds-color-success-surface-default); }
+  .summary-degraded .summary-dot { background: var(--ds-color-warning-base-default); box-shadow: 0 0 0 4px var(--ds-color-warning-surface-default); }
+  .summary-down .summary-dot { background: var(--ds-color-danger-base-default); box-shadow: 0 0 0 4px var(--ds-color-danger-surface-default); }
+  .status-summary.is-loading .summary-dot { background: var(--ds-color-neutral-text-subtle); }
+
+  .summary-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .summary-text strong {
+    font-size: 1.1rem;
+    color: var(--ds-color-text-default);
+  }
+
+  .summary-sub {
+    font-size: 0.85rem;
+    color: var(--ds-color-neutral-text-subtle);
   }
 
   .status-section {
-    margin-bottom: 32px;
-  }
-
-  .status-section-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 36px;
   }
 
   .status-section h2 {
-    font-size: 1.25rem;
-    margin: 0;
-  }
-
-  .status-meta {
-    font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.5);
+    font-size: 1.2rem;
+    margin: 0 0 16px;
+    color: var(--ds-color-text-default);
   }
 
   .status-loading {
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--ds-color-neutral-text-subtle);
     font-style: italic;
   }
 
   .status-checks {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
-  .check-row {
+  .check {
     display: grid;
     grid-template-columns: auto 1fr auto;
-    gap: 16px;
+    gap: 14px;
     align-items: center;
-    padding: 14px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: white;
+    padding: 14px 18px;
+    border: 1px solid var(--ds-color-neutral-border-subtle);
+    border-left-width: 4px;
+    border-radius: 10px;
+    background: var(--ds-color-neutral-surface-default);
+    transition: background 0.15s ease;
   }
 
-  .check-row.check-ok { border-color: #86efac; background: #f0fdf4; }
-  .check-row.check-degraded { border-color: #fcd34d; background: #fefce8; }
-  .check-row.check-down { border-color: #fca5a5; background: #fef2f2; }
+  .check:hover { background: var(--ds-color-neutral-surface-hover); }
+
+  .check-ok { border-left-color: var(--ds-color-success-base-default); }
+  .check-degraded { border-left-color: var(--ds-color-warning-base-default); }
+  .check-down { border-left-color: var(--ds-color-danger-base-default); }
 
   .check-dot {
-    font-size: 1.1rem;
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ds-color-neutral-base-default);
+  }
+
+  .check-ok .check-dot { background: var(--ds-color-success-base-default); }
+  .check-degraded .check-dot { background: var(--ds-color-warning-base-default); }
+  .check-down .check-dot { background: var(--ds-color-danger-base-default); }
+
+  .check-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
   }
 
   .check-name {
     font-weight: 600;
+    color: var(--ds-color-text-default);
   }
 
   .check-url {
     font-size: 0.8rem;
-    color: rgba(0, 0, 0, 0.5);
-    word-break: break-all;
-  }
-
-  .check-url a {
-    color: inherit;
+    color: var(--ds-color-neutral-text-subtle);
     text-decoration: none;
-  }
-
-  .check-url a:hover {
-    text-decoration: underline;
-  }
-
-  .check-meta {
-    font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.6);
-    font-family: ui-monospace, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .check-error {
-    font-size: 0.85rem;
-    color: #b91c1c;
+  .check-url:hover { text-decoration: underline; }
+
+  .check-pill {
+    justify-self: end;
+    font-size: 0.8rem;
+    color: var(--ds-color-neutral-text-default);
     font-family: ui-monospace, monospace;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--ds-color-neutral-surface-tinted);
+  }
+
+  .check-error {
+    color: var(--ds-color-danger-text-default);
+    background: var(--ds-color-danger-surface-tinted);
+    white-space: normal;
   }
 
   .status-future {
-    color: rgba(0, 0, 0, 0.6);
-    line-height: 1.8;
+    color: var(--ds-color-neutral-text-subtle);
+    line-height: 1.9;
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .status-future code {
+    font-size: 0.85em;
+    background: var(--ds-color-neutral-surface-tinted);
+    padding: 1px 5px;
+    border-radius: 4px;
   }
 
   .status-error {
-    color: #b91c1c;
+    color: var(--ds-color-danger-text-default);
+  }
+
+  @media (max-width: 540px) {
+    .check {
+      grid-template-columns: auto 1fr;
+    }
+    .check-pill {
+      grid-column: 2;
+      justify-self: start;
+    }
   }
 </style>
