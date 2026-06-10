@@ -31,6 +31,10 @@ public class ContentTextExtractor
     private static readonly Regex RteBlockRegex = new(
         @"<umb-rte-block(?:-inline)? data-content-key=""(?<guid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})""></umb-rte-block(?:-inline)?>",
         RegexOptions.Compiled);
+    private static readonly Regex UnicodeEscapeRegex = new(@"\\u([0-9a-fA-F]{4})", RegexOptions.Compiled);
+    private static readonly Regex JsonScaffoldRegex = new(
+        @"""?(markup|blocks|content|contentType|settings|tag|elements)""?\s*:", RegexOptions.Compiled);
+    private static readonly Regex BracketsRegex = new(@"[{}\[\]]", RegexOptions.Compiled);
 
     // Listing/taxonomy containers + site settings — no real searchable content of their own.
     // Keep in sync with SKIP_TYPES in infrastructure/elasticsearch/crawl-umbraco.mjs.
@@ -92,6 +96,12 @@ public class ContentTextExtractor
         }
 
         var body = WhitespaceRegex.Replace(string.Join(" ", textSegments), " ").Trim();
+
+        // Safety net: if any block-value shape still leaked a raw RTE envelope or
+        // unicode escapes, deep-clean like the Delivery-API crawler. Only runs when
+        // the telltale markers are present, so clean bodies are left untouched.
+        if (body.Contains("\\u00") || body.Contains("{\"markup\""))
+            body = DeepClean(body);
 
         // Drop nodes with effectively no prose (containers, stubs) — matches the crawler.
         if (body.Length < 20)
@@ -208,9 +218,7 @@ public class ContentTextExtractor
             {
                 if (val.TryGetProperty("value", out var valueProp))
                 {
-                    var text = valueProp.ValueKind == JsonValueKind.String
-                        ? StripHtml(valueProp.GetString() ?? "")
-                        : "";
+                    var text = ExtractBlockValueText(valueProp);
                     if (!string.IsNullOrWhiteSpace(text))
                         segments.Add(text);
                 }
@@ -218,6 +226,35 @@ public class ContentTextExtractor
         }
 
         return string.Join(" ", segments);
+    }
+
+    // A block property value is one of: plain HTML (classic RTE / TextBox), a
+    // RichText JSON envelope ({"markup":...,"blocks":...}) stored either as a
+    // nested object or as a JSON string, or a nested Block List ({"contentData":...}).
+    // The envelope cases must be parsed (ExtractRichText/ExtractBlockListText), not
+    // just StripHtml'd: StripHtml can't decode \uXXXX escapes or strip the JSON
+    // scaffolding, which is how raw {"markup":"<p..."} leaked into the snippets.
+    private string ExtractBlockValueText(JsonElement valueProp)
+    {
+        switch (valueProp.ValueKind)
+        {
+            case JsonValueKind.String:
+                var s = valueProp.GetString() ?? "";
+                var trimmed = s.TrimStart();
+                if (trimmed.StartsWith('{') && s.Contains("\"markup\""))
+                    return ExtractRichText(s);
+                if (trimmed.StartsWith('{') && s.Contains("\"contentData\""))
+                    return ExtractBlockListText(s);
+                return StripHtml(s);
+            case JsonValueKind.Object:
+                if (valueProp.TryGetProperty("markup", out _))
+                    return ExtractRichText(valueProp.GetRawText());
+                if (valueProp.TryGetProperty("contentData", out _))
+                    return ExtractBlockListText(valueProp.GetRawText());
+                return "";
+            default:
+                return "";
+        }
     }
 
     private string ExtractBlockListText(string? json)
@@ -281,5 +318,20 @@ public class ContentTextExtractor
         text = WebUtility.HtmlDecode(text);
         text = WhitespaceRegex.Replace(text, " ").Trim();
         return text;
+    }
+
+    // Last-resort cleaner mirroring deepClean in
+    // infrastructure/elasticsearch/crawl-umbraco.mjs: decode \uXXXX, drop JSON
+    // scaffolding and brackets, strip HTML, unescape entities. Blunt (removes any
+    // braces), so it only runs when structured extraction left raw JSON behind.
+    private static string DeepClean(string t)
+    {
+        t = UnicodeEscapeRegex.Replace(t, m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
+        t = t.Replace("\\n", " ").Replace("\\t", " ").Replace("\\\"", "\"").Replace("\\/", "/");
+        t = JsonScaffoldRegex.Replace(t, "");
+        t = HtmlTagRegex.Replace(t, " ");
+        t = BracketsRegex.Replace(t, " ");
+        t = WebUtility.HtmlDecode(t);
+        return WhitespaceRegex.Replace(t, " ").Trim();
     }
 }
