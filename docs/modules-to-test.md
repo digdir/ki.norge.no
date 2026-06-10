@@ -65,7 +65,7 @@ If it fails: inspect the diff (Playwright outputs to `test-results/`). If the ch
 
 - The CMS editor experience for adding blocks (use `tests/cms/artikkel-crud.spec.ts` for shallow coverage; comprehensive editor flow tests are deferred)
 - Mobile/responsive rendering (current tests run desktop only)
-- Modules used in `caser/[slug]` or `sandkasse/index` (same renderer, but page-level layout differs)
+- Modules used in `eksempler/[slug]` or `sandkasse/index` (same renderer, but page-level layout differs)
 - Legacy modules used in old prod content but not in our new templates (`artikkelInfoBoks`, `artikkelCallout`, `artikkelSitat`, `artikkelHero`) — they still render via the renderer's fallback paths, but no baseline screenshot exists. Add to the test article if you care.
 
 ## Maintenance

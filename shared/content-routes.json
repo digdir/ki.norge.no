@@ -6,7 +6,7 @@
   },
   "routes": {
     "artikkel": "/artikler/{slug}",
-    "eksempel": "/caser/{slug}",
+    "eksempel": "/eksempler/{slug}",
     "enkelVeiledning": "/veiledning/{slug}",
     "veiledningGuide": "/veiledning/{slug}",
     "veiledningSteg": "/veiledning/{veiledningGuide.slug}/{slug}",

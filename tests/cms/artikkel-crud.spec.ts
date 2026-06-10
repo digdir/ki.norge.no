@@ -142,7 +142,7 @@ test.describe('Artikkel CRUD via backoffice UI', () => {
     await page.waitForLoadState('networkidle');
 
     // Tree shows expected top-level nodes
-    for (const name of ['Forside', 'Artikler', 'Caser', 'Veiledning', 'Sider']) {
+    for (const name of ['Forside', 'Artikler', 'Eksempler', 'Veiledning', 'Sider']) {
       await expect(page.locator(`text=${name}`).first())
         .toBeVisible({ timeout: 10_000 });
     }
