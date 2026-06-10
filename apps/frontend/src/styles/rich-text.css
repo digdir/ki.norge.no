@@ -26,7 +26,7 @@
     }
 
     & > p {
-      font-size: 18px;
+      font-size: 1.125rem;
       line-height: 1.7;
       margin-bottom: var(--ds-size-6);
       text-wrap: pretty;
@@ -112,7 +112,7 @@
     /* A <p> tag that comes directly after <h1> will be treated as an ingress */
     & > h1 + p {
       font-family: var(--ki-heading-font);
-      font-size: 30px;
+      font-size: 1.875rem;
       line-height: 1.5;
       margin-top: 0;
       margin-bottom: var(--ds-size-8);

@@ -74,8 +74,6 @@ h1, h2, h3, h4, h5, h6 {
   grid-row: span 2;
 }
 
-/* TODO: sok.astro still uses Material Symbols — migrate to Aksel icons when /sok is prioritized */
-
 /* Don't add the indicator to image-wrapping links */
 main a:has(> img)::after {
   content: none;

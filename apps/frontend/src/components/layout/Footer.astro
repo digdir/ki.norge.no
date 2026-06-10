@@ -10,7 +10,7 @@ try {
 const desc = global?.footerBeskrivelse;
 
 const epost = global?.footerEpost;
-const navCol1 = [{ text: epost, url: `mailto:${epost}` }];
+const navCol1 = epost ? [{ text: epost, url: `mailto:${epost}` }] : [];
 const navCol2 = [
     {
         text: global?.footerLenke1Tekst || "Om KI Norge",
@@ -29,6 +29,8 @@ const navCol2 = [
             global?.footerLenke5Tekst ||
             "Endre samtykke for informasjonskapsler",
         url: global?.footerLenke5Url || "",
+        // Uten URL: knapp som gjenåpner cookie-banneret (CookieNotice.astro)
+        action: "open-cookie-notice",
     },
 ];
 ---
@@ -62,7 +64,11 @@ const navCol2 = [
                         {link.text}
                     </a>
                 ) : (
-                    <button type="button" class="ds-link footer-nav-button">
+                    <button
+                        type="button"
+                        class="ds-link footer-nav-button"
+                        data-action={link.action}
+                    >
                         {link.text}
                     </button>
                 ),
@@ -70,6 +76,16 @@ const navCol2 = [
         }
     </div>
 </footer>
+
+<script is:inline>
+  document
+    .querySelectorAll('.footer [data-action="open-cookie-notice"]')
+    .forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        window.dispatchEvent(new CustomEvent('open-cookie-notice'));
+      });
+    });
+</script>
 
 <style>
     .footer {

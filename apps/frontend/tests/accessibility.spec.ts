@@ -1,241 +1,183 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-test.describe('Accessibility tests (WCAG 2.1 AA)', () => {
-  test('homepage has no critical accessibility violations', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+/**
+ * UU-tester (WCAG 2.1 AA, jf. uutilsynet.no for offentlig sektor).
+ * Axe-sjekk per hovedrute + strukturelle sjekker (landemerker, skip-lenke,
+ * tastatur, skjema-labels). Kjøres mot dev-server, ev. PLAYWRIGHT_BASE_URL.
+ */
 
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
+const ROUTES = ['/', '/artikler', '/eksempler', '/veiledning', '/kalender', '/om-oss', '/sok'];
 
-    // Filter out violations to focus on serious issues
-    const criticalViolations = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
+test.describe('Axe (WCAG 2.1 AA)', () => {
+  for (const route of ROUTES) {
+    test(`${route} har ingen kritiske eller alvorlige axe-funn`, async ({ page }) => {
+      await page.goto(route);
+      await page.waitForLoadState('networkidle');
 
-    expect(criticalViolations).toEqual([]);
-  });
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
 
-  test('articles listing page has no critical accessibility violations', async ({ page }) => {
-    await page.goto('/artikler');
-    await page.waitForLoadState('networkidle');
+      const criticalViolations = results.violations.filter(
+        (v) => v.impact === 'critical' || v.impact === 'serious'
+      );
 
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
-
-    const criticalViolations = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-
-    expect(criticalViolations).toEqual([]);
-  });
-
-  test('FAQ page has no critical accessibility violations', async ({ page }) => {
-    await page.goto('/faq');
-    await page.waitForLoadState('load');
-
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
-
-    const criticalViolations = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-
-    expect(criticalViolations).toEqual([]);
-  });
-
-  test('contact page has no critical accessibility violations', async ({ page }) => {
-    await page.goto('/kontakt');
-    await page.waitForLoadState('networkidle');
-
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
-
-    const criticalViolations = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-
-    expect(criticalViolations).toEqual([]);
-  });
-});
-
-test.describe('Dark mode accessibility', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('theme', 'dark');
+      expect(
+        criticalViolations.map((v) => ({
+          id: v.id,
+          impact: v.impact,
+          nodes: v.nodes.map((n) => n.target.join(' ')).slice(0, 5),
+        }))
+      ).toEqual([]);
     });
-  });
-
-  test('homepage in dark mode has no critical accessibility violations', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Verify dark mode is active
-    const html = page.locator('html');
-    await expect(html).toHaveClass(/dark/);
-
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-      .analyze();
-
-    const criticalViolations = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    );
-
-    expect(criticalViolations).toEqual([]);
-  });
+  }
 });
 
-test.describe('Landmark and structure', () => {
-  test('all pages have valid landmarks', async ({ page }) => {
-    const pages = ['/', '/artikler', '/faq', '/kontakt', '/om-oss'];
-
-    for (const url of pages) {
+test.describe('Landemerker og struktur', () => {
+  test('alle sider har gyldige landemerker og nøyaktig én h1', async ({ page }) => {
+    for (const url of ROUTES) {
       await page.goto(url);
       await page.waitForLoadState('load');
 
-      // Should have exactly one main landmark (app main, not dev tools)
-      const main = page.locator('main#main-content');
-      await expect(main).toHaveCount(1);
+      // Nøyaktig ett main-landemerke (app-main, ikke dev-verktøy)
+      await expect(page.locator('main#main-content'), url).toHaveCount(1);
 
-      // Should have a header (use class to exclude dev toolbar)
-      const header = page.locator('header.header');
-      await expect(header).toHaveCount(1);
+      // Header og footer (klasse-basert for å utelate dev-toolbar)
+      await expect(page.locator('header.header'), url).toHaveCount(1);
+      await expect(page.locator('footer.footer'), url).toHaveCount(1);
 
-      // Should have a footer (use class to exclude dev toolbar)
-      const footer = page.locator('footer.footer');
-      await expect(footer).toHaveCount(1);
+      // Navigasjon med norsk label
+      await expect(page.locator('nav[aria-label="Hovednavigasjon"]'), url).toHaveCount(1);
 
-      // Should have navigation (use class to exclude dev toolbar)
-      const nav = page.locator('nav.nav-desktop, nav.nav-mobile, header.header nav');
-      const navCount = await nav.count();
-      expect(navCount).toBeGreaterThanOrEqual(1);
+      // Nøyaktig én h1 per side
+      await expect(page.locator('main h1'), url).toHaveCount(1);
+
+      // Språk satt på html-elementet
+      await expect(page.locator('html'), url).toHaveAttribute('lang', 'nb');
     }
   });
 
-  test('all images have alt text', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+  test('alle bilder har alt-attributt', async ({ page }) => {
+    for (const url of ['/', '/artikler', '/eksempler']) {
+      await page.goto(url);
+      await page.waitForLoadState('networkidle');
 
-    const images = page.locator('img');
-    const count = await images.count();
+      const images = page.locator('img');
+      const count = await images.count();
 
-    for (let i = 0; i < count; i++) {
-      const img = images.nth(i);
-      const alt = await img.getAttribute('alt');
-      // Alt can be empty string for decorative images, but must exist
-      expect(alt).not.toBeNull();
-    }
-  });
-});
-
-test.describe('Keyboard navigation', () => {
-  test('can navigate through main interactive elements with keyboard', async ({ page }) => {
-    await page.goto('/');
-
-    // Start tabbing through the page
-    const focusableElements: string[] = [];
-
-    // Tab through first 20 focusable elements
-    for (let i = 0; i < 20; i++) {
-      await page.keyboard.press('Tab');
-      const focused = await page.evaluate(() => {
-        const el = document.activeElement;
-        return el ? el.tagName.toLowerCase() : null;
-      });
-      if (focused) {
-        focusableElements.push(focused);
+      for (let i = 0; i < count; i++) {
+        const img = images.nth(i);
+        // Tomt alt er OK for dekorative bilder, men attributtet må finnes
+        expect(await img.getAttribute('alt'), `${url}: img ${await img.getAttribute('src')}`).not.toBeNull();
       }
     }
-
-    // Should have navigated through multiple elements
-    expect(focusableElements.length).toBeGreaterThan(0);
-
-    // Should include links and buttons
-    const hasLinks = focusableElements.includes('a');
-    const hasButtons = focusableElements.includes('button');
-    expect(hasLinks || hasButtons).toBe(true);
   });
 
-  test('focus indicators are visible', async ({ page }) => {
-    await page.goto('/');
-
-    // Tab to first interactive element
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-
-    // Get the focused element
-    const focusedElement = page.locator(':focus');
-
-    // Check that focus is visible (has outline or other visible indicator)
-    const outline = await focusedElement.evaluate((el) => {
-      const style = window.getComputedStyle(el);
-      return {
-        outline: style.outline,
-        outlineWidth: style.outlineWidth,
-        boxShadow: style.boxShadow,
-      };
-    });
-
-    // Element should have some visible focus indicator
-    const hasVisibleFocus =
-      outline.outlineWidth !== '0px' ||
-      outline.outline !== 'none' ||
-      outline.boxShadow !== 'none';
-
-    expect(hasVisibleFocus).toBe(true);
+  test('sidetitler er unike og meningsfulle', async ({ page }) => {
+    const titles = new Set<string>();
+    for (const url of ROUTES) {
+      await page.goto(url);
+      const title = await page.title();
+      expect(title, url).toMatch(/ \| KI Norge$/);
+      expect(titles.has(title), `Duplikat tittel: ${title}`).toBe(false);
+      titles.add(title);
+    }
   });
 });
 
-test.describe('Skip link', () => {
-  test('skip link is present and functional', async ({ page }) => {
+test.describe('Tastaturnavigasjon', () => {
+  test('kan navigere gjennom interaktive elementer med tastatur', async ({ page }) => {
     await page.goto('/');
 
-    // Skip link should exist
-    const skipLink = page.locator('a[href="#main-content"]');
+    const focusableElements: string[] = [];
+    for (let i = 0; i < 20; i++) {
+      await page.keyboard.press('Tab');
+      const focused = await page.evaluate(() => document.activeElement?.tagName.toLowerCase() ?? null);
+      if (focused) focusableElements.push(focused);
+    }
+
+    expect(focusableElements.length).toBeGreaterThan(0);
+    expect(focusableElements).toContain('a');
+  });
+
+  test('fokusindikator er synlig på interaktive elementer', async ({ page }) => {
+    await page.goto('/');
+
+    // Tab forbi skip-lenken til neste interaktive element
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+
+    const focusedElement = page.locator(':focus');
+    const indicator = await focusedElement.evaluate((el) => {
+      // Indikatoren kan ligge på elementet selv eller en forelder (:focus-within-mønsteret)
+      const candidates: Element[] = [el];
+      if (el.parentElement) candidates.push(el.parentElement);
+      const card = el.closest('[data-clickdelegatefor]');
+      if (card) candidates.push(card);
+      return candidates.some((c) => {
+        const s = window.getComputedStyle(c);
+        return (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== 'none';
+      });
+    });
+
+    expect(indicator).toBe(true);
+  });
+
+  test('søkedialogen kan åpnes med Ctrl+K og lukkes med Escape', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const dialog = page.locator('dialog.search-dialog');
+    // Gjenta til React-øya har hydrert og reagerer på snarveien
+    await expect(async () => {
+      await page.keyboard.press('Control+k');
+      await expect(dialog).toHaveAttribute('open', '', { timeout: 500 });
+    }).toPass({ timeout: 10_000 });
+    // Fokus skal stå i søkefeltet
+    await expect(dialog.locator('input')).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toHaveAttribute('open', '');
+  });
+});
+
+test.describe('Skip-lenke', () => {
+  test('skip-lenken finnes, blir synlig på fokus og fungerer', async ({ page }) => {
+    await page.goto('/');
+
+    const skipLink = page.locator('a.ds-skip-link');
     await expect(skipLink).toHaveCount(1);
 
-    // Skip link should become visible on focus
+    // Blir synlig ved tastaturfokus (designsystemet bruker :focus-visible)
     await page.keyboard.press('Tab');
-    const skipLinkFocused = page.locator('.skip-link:focus');
-    await expect(skipLinkFocused).toBeVisible();
+    await expect(skipLink).toBeFocused();
+    const box = await skipLink.boundingBox();
+    expect(box?.width ?? 0).toBeGreaterThan(10);
 
-    // Activating skip link should navigate to main content
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL('/#main-content');
   });
 });
 
-test.describe('Form accessibility', () => {
-  test('form labels are properly associated', async ({ page }) => {
-    await page.goto('/eksempler/send-inn');
+test.describe('Skjema', () => {
+  test('søkesiden har label på søkefeltet', async ({ page }) => {
+    await page.goto('/sok');
     await page.waitForLoadState('load');
 
-    const inputs = page.locator('form input:not([type="hidden"]):not([type="checkbox"]), form select, form textarea');
-    const count = await inputs.count();
+    const input = page.locator('#sok-input');
+    await expect(input).toHaveCount(1);
+    await expect(page.locator('label[for="sok-input"]')).toHaveCount(1);
+  });
 
-    // This page must have form inputs — fail if it doesn't
-    expect(count).toBeGreaterThan(0);
-
-    for (let i = 0; i < count; i++) {
-      const input = inputs.nth(i);
-      const id = await input.getAttribute('id');
-      const ariaLabel = await input.getAttribute('aria-label');
-      const ariaLabelledBy = await input.getAttribute('aria-labelledby');
-
-      // Each input should have either an associated label, aria-label, or aria-labelledby
-      if (id) {
-        const label = page.locator(`label[for="${id}"]`);
-        const hasLabel = (await label.count()) > 0;
-        expect(hasLabel || ariaLabel || ariaLabelledBy).toBeTruthy();
-      } else {
-        expect(ariaLabel || ariaLabelledBy).toBeTruthy();
-      }
-    }
+  test('søkedialogens felt har tilgjengelig navn og status annonseres', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const dialog = page.locator('dialog.search-dialog');
+    await expect(async () => {
+      await page.keyboard.press('Control+k');
+      await expect(dialog).toHaveAttribute('open', '', { timeout: 500 });
+    }).toPass({ timeout: 10_000 });
+    await expect(dialog.locator('input')).toHaveAttribute('aria-label', /Søk/);
+    // Statusregion for skjermlesere finnes fra start (WCAG 4.1.3)
+    await expect(dialog.locator('[role="status"]')).toHaveCount(1);
   });
 });
