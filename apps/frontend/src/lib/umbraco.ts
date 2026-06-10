@@ -685,9 +685,10 @@ async function fetchCollection<T>(
   if (options.sort) {
     params.set('sort', options.sort);
   }
-  if (options.take) {
-    params.set('take', String(options.take));
-  }
+  // Delivery API returnerer bare 10 elementer når take utelates. Sidene bruker
+  // disse samlingene som oppslags-pool for redaktørvalgte pickere, så en lav
+  // implisitt grense gjør at valgt innhold droppes stille. Hent rikelig.
+  params.set('take', String(options.take || 100));
   if (options.skip) {
     params.set('skip', String(options.skip));
   }
