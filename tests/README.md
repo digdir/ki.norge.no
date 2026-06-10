@@ -31,7 +31,7 @@ Auth credentials come from env vars `CMS_USER` / `CMS_PASS` (defaults to unatten
 
 ### What's tested today
 - **frontend/smoke.spec.ts** — every public URL returns 200, header renders, sample artikkel + case detail pages render.
-- **cms/auth-and-tree.spec.ts** — admin can log in, content tree shows expected nodes (Forside, Artikler, Caser, Veiledning, Sider, Merkelapper), no Eksempler/Ikoner residue, /api/diagnostics reports valid state.
+- **cms/auth-and-tree.spec.ts** — admin can log in, content tree confirms pr-316 structural changes (no Caser/KI-ordbok/Ikoner residue), /api/diagnostics reports valid state.
 
 ### What's missing (TODO)
 - Create + edit + publish + delete artikkel via UI

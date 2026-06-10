@@ -1,86 +1,118 @@
 ---
 // Footer — CMS-redigerbar via globaleInnstillinger. Faller tilbake til hardkodet default.
-import { getGlobaleInnstillinger } from '../../lib/umbraco';
-import Logo from './Logo';
+import { getGlobaleInnstillinger } from "../../lib/umbraco";
+import Logo from "./Logo";
 let global = null;
-try { global = await getGlobaleInnstillinger(); } catch (e) {}
+try {
+    global = await getGlobaleInnstillinger();
+} catch (e) {}
 
-const desc = global?.footerBeskrivelse || 'Et tverrsektorielt samarbeid for å fremme ansvarlig og sikker bruk av kunstig intelligens i den norske forvaltningen.';
+const desc = global?.footerBeskrivelse;
 
-const epost = global?.footerEpost || 'post@ki.norge.no';
-const navCol1 = [
-  { text: epost, url: `mailto:${epost}` },
-];
+const epost = global?.footerEpost;
+const navCol1 = [{ text: epost, url: `mailto:${epost}` }];
 const navCol2 = [
-  { text: global?.footerLenke1Tekst || 'Om KI Norge', url: global?.footerLenke1Url || '/om-oss' },
-  { text: global?.footerLenke3Tekst || 'Personvern og informasjonskapsler', url: global?.footerLenke3Url || '/personvern' },
-  { text: global?.footerLenke4Tekst || 'Tilgjengelighet', url: global?.footerLenke4Url || '/tilgjengelighet' },
-  { text: global?.footerLenke5Tekst || 'Endre samtykke for informasjonskapsler', url: global?.footerLenke5Url || '' },
+    {
+        text: global?.footerLenke1Tekst || "Om KI Norge",
+        url: global?.footerLenke1Url || "/om-oss",
+    },
+    {
+        text: global?.footerLenke3Tekst || "Personvern og informasjonskapsler",
+        url: global?.footerLenke3Url || "/personvern",
+    },
+    {
+        text: global?.footerLenke4Tekst || "Tilgjengelighet",
+        url: global?.footerLenke4Url || "/tilgjengelighet",
+    },
+    {
+        text:
+            global?.footerLenke5Tekst ||
+            "Endre samtykke for informasjonskapsler",
+        url: global?.footerLenke5Url || "",
+    },
 ];
 ---
 
 <footer class="footer" data-layout-block="content">
-  <div class="footer-left">
-    <Logo className="footer-logo" />
-    <p class="footer-description ds-paragraph">{desc}</p>
-  </div>
-  <div class="footer-col">
-    <p class="ds-paragraph">Kontakt oss:</p>
-    {navCol1.map(link => (
-      link.url
-        ? <a href={link.url} class="ds-link">{link.text}</a>
-        : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
-    ))}
-  </div>
-  <div class="footer-col">
-    {navCol2.map(link => (
-      link.url
-        ? <a href={link.url} class="ds-link">{link.text}</a>
-        : <button type="button" class="ds-link footer-nav-button">{link.text}</button>
-    ))}
-  </div>
+    <div class="footer-left">
+        <Logo className="footer-logo" />
+        <p class="footer-description ds-paragraph">{desc}</p>
+    </div>
+    <div class="footer-col">
+        <p class="ds-paragraph">Kontakt oss:</p>
+        {
+            navCol1.map((link) =>
+                link.url ? (
+                    <a href={link.url} class="ds-link">
+                        {link.text}
+                    </a>
+                ) : (
+                    <button type="button" class="ds-link footer-nav-button">
+                        {link.text}
+                    </button>
+                ),
+            )
+        }
+    </div>
+    <div class="footer-col">
+        {
+            navCol2.map((link) =>
+                link.url ? (
+                    <a href={link.url} class="ds-link">
+                        {link.text}
+                    </a>
+                ) : (
+                    <button type="button" class="ds-link footer-nav-button">
+                        {link.text}
+                    </button>
+                ),
+            )
+        }
+    </div>
 </footer>
 
 <style>
-  .footer {
-    margin-top: auto;
-    width: 100%;
-    display: grid;
-    grid-template-columns: 2fr 1fr 2fr;
-    gap: var(--ds-size-8);
-    padding-block-end: var(--ds-size-22);
-    padding-block-start: var(--ds-size-18);
-  }
-  @media (max-width: 1024px) {
     .footer {
-      grid-template-rows: auto;
-      grid-template-columns: none;
-      gap: var(--ds-size-6);
+        margin-top: auto;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 2fr 1fr 2fr;
+        gap: var(--ds-size-8);
+        padding-block-end: var(--ds-size-22);
+        padding-block-start: var(--ds-size-18);
     }
-  }
-
-  :global(.footer-logo) {
-      height: 32px;
-      width: auto;
-  }
-
-  .footer-description {
-    margin: 0;
-    max-width: 360px;
-  }
-  .footer-col {
-    & a, & button, & p {
-      display: block;
-      margin-block-end: var(--ds-size-2);
+    @media (max-width: 1024px) {
+        .footer {
+            grid-template-rows: auto;
+            grid-template-columns: none;
+            gap: var(--ds-size-6);
+        }
     }
-  }
 
-  .footer-nav-button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    text-align: left;
-    font-family: inherit;
-  }
+    :global(.footer-logo) {
+        height: 32px;
+        width: auto;
+    }
+
+    .footer-description {
+        margin: 0;
+        max-width: 360px;
+    }
+    .footer-col {
+        & a,
+        & button,
+        & p {
+            display: block;
+            margin-block-end: var(--ds-size-2);
+        }
+    }
+
+    .footer-nav-button {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+    }
 </style>

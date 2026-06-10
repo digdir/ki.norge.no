@@ -1,3 +1,5 @@
+import contentRoutesConfig from '../../../../shared/content-routes.json';
+
 const UMBRACO_URL = process.env.UMBRACO_URL || import.meta.env.UMBRACO_URL || 'http://localhost:5000';
 const UMBRACO_PUBLIC_URL = process.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_PUBLIC_URL || UMBRACO_URL;
 const API_KEY = process.env.UMBRACO_API_KEY || import.meta.env.UMBRACO_API_KEY;
@@ -592,12 +594,32 @@ function renderAttributes(attrs?: Record<string, unknown>): string {
   const out: string[] = [];
 
   // Tiptap stores internal links with a `route: { path, queryString, ... }`
-  // metadata object as an "attribute." Browsers don't understand it. Derive
-  // a real href from route.path + route.queryString and skip the metadata.
+  // metadata object as an "attribute." Browsers don't understand it.
+  //
+  // Umbraco's route.path is the content tree path built from auto-generated URL
+  // segments (e.g. "/gjoer-dataene-ki-klare/...") and lacks our frontend route
+  // prefix (e.g. "/veiledning/..."). Our pages route by the editor-controlled
+  // `slug` field, not the URL segment. We therefore emit a placeholder href
+  // and stash destinationId/Type on data-attrs; enrichBlocksInternalLinks
+  // resolves them to the correct frontend URL after fetch.
   const route = attrs.route as undefined | { path?: string; queryString?: string };
+  const destinationId = typeof attrs.destinationId === 'string' ? attrs.destinationId : '';
+  const destinationType = typeof attrs.destinationType === 'string' ? attrs.destinationType : '';
+  const isMediaLink = destinationType === 'media'
+    || (typeof route?.path === 'string' && route.path.startsWith('/media'));
+
   if (route && typeof route.path === 'string') {
-    const href = route.path + (typeof route.queryString === 'string' ? route.queryString : '');
-    out.push(` href="${escapeHtml(href)}"`);
+    if (destinationId && !isMediaLink) {
+      out.push(' href="#"');
+      out.push(` data-internal-link-id="${escapeHtml(destinationId)}"`);
+      out.push(` data-internal-link-type="${escapeHtml(destinationType)}"`);
+      if (typeof route.queryString === 'string' && route.queryString) {
+        out.push(` data-internal-link-query="${escapeHtml(route.queryString)}"`);
+      }
+    } else {
+      const href = route.path + (typeof route.queryString === 'string' ? route.queryString : '');
+      out.push(` href="${escapeHtml(href)}"`);
+    }
   }
 
   for (const [key, value] of Object.entries(attrs)) {
@@ -713,6 +735,230 @@ async function fetchBySlug<T>(
   });
   const item = result.data.find((item: any) => item.slug === slug);
   return item || null;
+}
+
+// ── Internal link resolution ────────────────────────────────────
+//
+// Rich-text editor output for internal content links is unusable verbatim:
+// Umbraco's route.path uses auto-generated URL segments (e.g. "/gjoer-...")
+// and lacks our frontend route prefix ("/veiledning/..."). richTextToHtml
+// emits placeholders (href="#" + data-internal-link-id/type) and we resolve
+// them here once we've fetched the article — translating destinationId to
+// the canonical /veiledning/{guide.slug}/{step.slug}/{stegartikkel.slug}
+// shape (and equivalents for other content types).
+
+interface ResolvedContentItem {
+  id: string;
+  contentType: string;
+  properties: Record<string, unknown>;
+}
+
+async function deliveryApiFetch<T>(path: string, options: FetchOptions = {}): Promise<T | null> {
+  const headers: HeadersInit = { 'Accept': 'application/json' };
+  if (options.locale) headers['Accept-Language'] = options.locale;
+  if (options.preview && API_KEY) {
+    headers['Api-Key'] = API_KEY;
+    headers['Preview'] = 'true';
+  }
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { headers });
+    if (!res.ok) return null;
+    return await res.json() as T;
+  } catch (error) {
+    console.error(`Failed to fetch from Umbraco Delivery API: ${path}`, error);
+    return null;
+  }
+}
+
+async function fetchContentItemById(id: string, options: FetchOptions = {}): Promise<ResolvedContentItem | null> {
+  const previewSuffix = options.preview ? '?preview=true' : '';
+  return deliveryApiFetch<ResolvedContentItem>(`/item/${id}${previewSuffix}`, options);
+}
+
+async function fetchContentAncestorsById(id: string, options: FetchOptions = {}): Promise<ResolvedContentItem[]> {
+  const previewSuffix = options.preview ? '&preview=true' : '';
+  const data = await deliveryApiFetch<UmbracoResponse<ResolvedContentItem>>(
+    `?fetch=ancestors:${id}${previewSuffix}`,
+    options,
+  );
+  return data?.items ?? [];
+}
+
+// Route patterns loaded from /shared/content-routes.json — single source of truth
+// shared with the CMS preview-URL provider. See HeadlessPreviewUrlProvider.cs.
+const CONTENT_ROUTES: Record<string, string> = contentRoutesConfig.routes;
+const ANCESTOR_TOKEN_RE = /\{([a-zA-Z][a-zA-Z0-9]*)\.slug\}/g;
+
+// Content types whose pattern references an ancestor's slug — i.e. resolver must
+// fetch ancestors before building the URL. Derived from the patterns themselves
+// so adding a new nested type only requires editing content-routes.json.
+export const NEEDS_ANCESTORS: Set<string> = new Set(
+  Object.entries(CONTENT_ROUTES)
+    .filter(([, pattern]) => /\{[a-zA-Z][a-zA-Z0-9]*\.slug\}/.test(pattern))
+    .map(([type]) => type),
+);
+
+const warnedMissingType = new Set<string>();
+
+/**
+ * Interpolates a content-type's route pattern with item slug and ancestor slugs.
+ * Returns '#' if the content type is unmapped (with one-time console.warn) or
+ * if a required ancestor slug cannot be resolved.
+ */
+export function buildUrlForContent(
+  item: { contentType: string; id?: string; properties?: Record<string, unknown> },
+  ancestors: Array<{ contentType: string; properties?: Record<string, unknown> }>,
+): string {
+  const pattern = CONTENT_ROUTES[item.contentType];
+  if (!pattern) {
+    if (!warnedMissingType.has(item.contentType)) {
+      console.warn(`[umbraco] No route mapping for contentType "${item.contentType}" — falling back to "#". Add it to shared/content-routes.json.`);
+      warnedMissingType.add(item.contentType);
+    }
+    return '#';
+  }
+
+  const slug = (item.properties?.slug as string | undefined) ?? '';
+  const ancestorSlugByType = new Map<string, string>();
+  for (const a of ancestors) {
+    ancestorSlugByType.set(a.contentType, (a.properties?.slug as string | undefined) ?? '');
+  }
+
+  let unresolved: string | null = null;
+  const resolved = pattern.replace(/\{([a-zA-Z][a-zA-Z0-9]*)(?:\.slug)?\}/g, (_match, key) => {
+    if (key === 'slug') return slug;
+    const ancestorSlug = ancestorSlugByType.get(key);
+    if (!ancestorSlug) { unresolved = key; return ''; }
+    return ancestorSlug;
+  });
+
+  if (unresolved) {
+    console.warn(`[umbraco] Cannot resolve URL for ${item.contentType} (id=${item.id ?? '?'}): missing ancestor "${unresolved}". Pattern: ${pattern}`);
+    return '#';
+  }
+  return resolved;
+}
+
+export function collectInternalLinkIds(html: string): Set<string> {
+  const ids = new Set<string>();
+  const re = /data-internal-link-id="([^"]+)"/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) ids.add(m[1]);
+  return ids;
+}
+
+export function replaceInternalLinks(html: string, urls: Map<string, string>): string {
+  // Anchor open tag: <a ...>. Placeholder has href="#" plus data-internal-link-id.
+  // Rewrite href to the resolved URL and strip the data-internal-link-* attrs.
+  return html.replace(/<a\b[^>]*>/g, (tag) => {
+    const idMatch = tag.match(/data-internal-link-id="([^"]+)"/);
+    if (!idMatch) return tag;
+    const id = idMatch[1];
+    const queryMatch = tag.match(/data-internal-link-query="([^"]*)"/);
+    const query = queryMatch ? queryMatch[1] : '';
+    const resolvedUrl = urls.get(id);
+    const href = resolvedUrl ? resolvedUrl + query : '#';
+    return tag
+      .replace(/\shref="#"/, ` href="${escapeHtml(href)}"`)
+      .replace(/\sdata-internal-link-(id|type|query)="[^"]*"/g, '');
+  });
+}
+
+async function resolveInternalLinkUrls(
+  ids: Iterable<string>,
+  options: FetchOptions,
+  cache: Map<string, string>,
+): Promise<Map<string, string>> {
+  const pending = [...ids].filter(id => !cache.has(id));
+  if (pending.length === 0) return cache;
+
+  await Promise.all(pending.map(async (id) => {
+    const item = await fetchContentItemById(id, options);
+    if (!item) {
+      cache.set(id, '#');
+      return;
+    }
+    const ancestors = NEEDS_ANCESTORS.has(item.contentType)
+      ? await fetchContentAncestorsById(id, options)
+      : [];
+    cache.set(id, buildUrlForContent(item, ancestors));
+  }));
+
+  return cache;
+}
+
+type RteField = { get: () => string; set: (v: string) => void };
+
+/**
+ * Walks any value recursively and yields a settable accessor for every string
+ * that contains the internal-link marker. Field-agnostic so new RTE-bearing
+ * shapes (new block types, nested arrays) work without code changes here.
+ */
+export function collectRteFields(root: unknown): RteField[] {
+  const fields: RteField[] = [];
+  const MARKER = 'data-internal-link-id="';
+
+  const walk = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) {
+        const child = value[i];
+        if (typeof child === 'string') {
+          if (child.includes(MARKER)) {
+            fields.push({ get: () => value[i] as string, set: (s) => { value[i] = s; } });
+          }
+        } else if (child && typeof child === 'object') {
+          walk(child);
+        }
+      }
+      return;
+    }
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      for (const key of Object.keys(obj)) {
+        const child = obj[key];
+        if (typeof child === 'string') {
+          if (child.includes(MARKER)) {
+            fields.push({ get: () => obj[key] as string, set: (s) => { obj[key] = s; } });
+          }
+        } else if (child && typeof child === 'object') {
+          walk(child);
+        }
+      }
+    }
+  };
+
+  walk(root);
+  return fields;
+}
+
+/**
+ * Walks a UmbracoBlock[] tree mutating HTML fields in-place, replacing internal
+ * link placeholders (emitted by richTextToHtml) with resolved frontend URLs.
+ * Uses an optional shared cache so repeated targets across an article cost a
+ * single Delivery API round-trip.
+ */
+export async function enrichBlocksInternalLinks(
+  blocks: UmbracoBlock[] | undefined,
+  options: FetchOptions = {},
+  cache: Map<string, string> = new Map(),
+): Promise<void> {
+  if (!blocks || blocks.length === 0) return;
+
+  const fields = collectRteFields(blocks);
+
+  const ids = new Set<string>();
+  for (const f of fields) {
+    for (const id of collectInternalLinkIds(f.get())) ids.add(id);
+  }
+  if (ids.size === 0) return;
+
+  await resolveInternalLinkUrls(ids, options, cache);
+  for (const f of fields) {
+    const html = f.get();
+    if (html.includes('data-internal-link-id="')) {
+      f.set(replaceInternalLinks(html, cache));
+    }
+  }
 }
 
 // ── Map Umbraco item to our content type interfaces ─────────────
@@ -1525,11 +1771,15 @@ export async function getArtikler(limit?: number, options: FetchOptions = {}) {
 }
 
 export async function getArtikkel(slug: string, options: FetchOptions = {}) {
-  return fetchBySlug<Artikkel>('artikkel', slug, options);
+  const item = await fetchBySlug<Artikkel>('artikkel', slug, options);
+  if (item) await enrichBlocksInternalLinks(item.innhold, options);
+  return item;
 }
 
 export async function getStegartikkel(slug: string, options: FetchOptions = {}) {
-  return fetchBySlug<Stegartikkel>('stegartikkel', slug, options);
+  const item = await fetchBySlug<Stegartikkel>('stegartikkel', slug, options);
+  if (item) await enrichBlocksInternalLinks(item.innhold, options);
+  return item;
 }
 
 export async function getStegartiklerForSteg(stegSlug: string, options: FetchOptions = {}) {
@@ -1558,7 +1808,9 @@ export async function getSider(options: FetchOptions = {}) {
 }
 
 export async function getSide(slug: string, options: FetchOptions = {}) {
-  return fetchBySlug<Side>('side', slug, options);
+  const item = await fetchBySlug<Side>('side', slug, options);
+  if (item) await enrichBlocksInternalLinks(item.innhold, options);
+  return item;
 }
 
 // ── Eksempel API functions ──────────────────────────────────────
@@ -1583,7 +1835,9 @@ export async function getEksempler(options: FetchOptions = {}) {
 }
 
 export async function getEksempel(slug: string, options: FetchOptions = {}) {
-  return fetchBySlug<Eksempel>('eksempel', slug, options);
+  const item = await fetchBySlug<Eksempel>('eksempel', slug, options);
+  if (item) await enrichBlocksInternalLinks(item.innhold, options);
+  return item;
 }
 
 // ── Forside (Frontpage) API functions ───────────────────────────
@@ -1610,9 +1864,14 @@ export async function getVeiledningGuide(slug: string, options: FetchOptions = {
 
 export async function getVeiledningSteg(guideSlug: string, options: FetchOptions = {}) {
   const result = await fetchCollection<VeiledningSteg>('veiledningSteg', { ...options, take: 100 });
-  return result.data
+  const steps = result.data
     .filter(s => s.guideSlug === guideSlug)
     .sort((a, b) => a.steg !== b.steg ? a.steg - b.steg : a.understeg - b.understeg);
+  // Share a cache across all steps in the guide — internal targets repeat across
+  // step bodies and we only want one Delivery API round-trip per target.
+  const cache = new Map<string, string>();
+  await Promise.all(steps.map(s => enrichBlocksInternalLinks(s.innholdBlokker, options, cache)));
+  return steps;
 }
 
 export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: string, options: FetchOptions = {}) {
@@ -1621,7 +1880,9 @@ export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: strin
 }
 
 export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {
-  return fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
+  const item = await fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
+  if (item) await enrichBlocksInternalLinks(item.innhold, options);
+  return item;
 }
 
 export async function getOmOssSeksjoner(options: FetchOptions = {}) {
@@ -1639,8 +1900,9 @@ export async function getOmOss(options: FetchOptions = {}): Promise<OmOss | null
 // ── Sandkasse API functions ──────────────────────────────────────
 
 export async function getSandkasse(options: FetchOptions = {}): Promise<Sandkasse | null> {
-  const result = await fetchCollection<Sandkasse>('sandkasse', { ...options, take: 1 });
-  return result.data[0] || null;
+  const item = (await fetchCollection<Sandkasse>('sandkasse', { ...options, take: 1 })).data[0] || null;
+  if (item) await enrichBlocksInternalLinks(item.innhold, options);
+  return item;
 }
 
 // ── Veiledning Oversikt API functions ────────────────────────────

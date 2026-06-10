@@ -48,7 +48,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     .map((k) => {
       const ex = eksempler.find((e: any) => e.id === k.id);
       return ex
-        ? { href: `/caser/${ex.slug}`, title: ex.tittel, tag: 'Eksempel' as const, lead: k.ingress || ex.ingress || undefined }
+        ? { href: `/eksempler/${ex.slug}`, title: ex.tittel, tag: 'Eksempel' as const, lead: k.ingress || ex.ingress || undefined }
         : null;
     })
     .filter((c) => c !== null) as { href: string; title: string; tag: 'Eksempel'; lead?: string }[];

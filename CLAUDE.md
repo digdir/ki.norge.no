@@ -35,16 +35,15 @@ Frontend henter innhold via Umbraco Delivery API v2. CMS-databasen replikeres ti
 **Stack:** Astro (server mode) + React (islands) + @digdir/designsystemet-react + @digdir/designsystemet-css
 
 **Sider** (`apps/frontend/src/pages/`)
-- Forsiden, artikler, caser, veiledning (guide + steg), sandkasse, FAQ, kontakt, om-oss, ki-ordbok, søk, status (admin-only)
-- Dynamiske ruter: `artikler/[slug]`, `caser/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`
-- `eksempler/[slug]` og `eksempler/index` redirecter til `/caser/...` (301)
+- Forsiden, artikler, eksempler, veiledning (guide + steg), sandkasse, FAQ, kontakt, om-oss, ki-ordbok, søk, status (admin-only)
+- Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`
 
 **Nøkkelfiler**
 - `src/lib/umbraco.ts` — all datahenting fra CMS. Interfaces, fetch-funksjoner, mapItem() som mapper content types til TypeScript-typer
 - `src/lib/aksel-icons.ts` — statisk SVG-map for Aksel-ikoner (React-only pakke, kan ikke brukes direkte i Astro)
 - `src/lib/seo.ts` — JSON-LD structured data
 - `src/middleware.ts` — caching, admin-tilgang (ki_admin cookie), kommer-snart-modus, security headers (CSP, HSTS osv.)
-- `src/components/shared/ArticleBlocksRenderer.astro` — **eneste** sted artikkelmoduler rendres. Brukt av artikler/[slug], caser/[slug], sandkasse/index. CSS i `src/styles/article-blocks.css`. Endre denne én filen → alle sidene oppdateres.
+- `src/components/shared/ArticleBlocksRenderer.astro` — **eneste** sted artikkelmoduler rendres. Brukt av artikler/[slug], eksempler/[slug], sandkasse/index. CSS i `src/styles/article-blocks.css`. Endre denne én filen → alle sidene oppdateres.
 - `src/components/shared/BlocksRenderer.astro` — eldre/enklere blocks renderer (tekst, advarsel, lenkeliste, faqInnhold). Brukes ikke for artikkelmoduler.
 - `src/components/shared/AkselIcon.astro` — rendrer Aksel-ikon etter navn
 - `src/components/shared/SearchDialog.tsx` — KI-søk dialog (React, client:load)

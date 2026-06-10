@@ -9,15 +9,15 @@ const jaLabel = gi?.cookieJaLabel || 'Godta';
 const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 ---
 
-<div id="cookie-notice" class="cookie-notice" hidden>
+<div id="cookie-notice" class="cookie-notice" hidden data-color="accent">
   <div class="cookie-notice__inner">
-    <h2 class="cookie-notice__title">{tittel}</h2>
+    <h2 class="cookie-notice__title ds-heading" data-size="md">{tittel}</h2>
     <div class="cookie-notice__text" set:html={beskrivelseHtml}></div>
     <div class="cookie-notice__actions">
-      <button id="cookie-notice-allow" type="button" class="cookie-notice__btn">
+      <button id="cookie-notice-allow" type="button" class="ds-button">
         {jaLabel}
       </button>
-      <button id="cookie-notice-deny" type="button" class="cookie-notice__btn">
+      <button id="cookie-notice-deny" type="button" class="ds-button">
         {neiLabel}
       </button>
     </div>
@@ -95,16 +95,10 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 
 <style>
   .cookie-notice {
-    --_kn-bg: #28478e; /* TODO: farger ikke landet */
-    --_kn-text: #ffffff; /* TODO: farger ikke landet */
-    --_kn-text-subtle: rgba(255, 255, 255, 0.75); /* TODO: farger ikke landet */
-    --_kn-btn-bg: #f3dfdd; /* TODO: farger ikke landet */
-    --_kn-btn-text: #2c0f12; /* TODO: farger ikke landet */
-    --_kn-btn-hover: #ebcecb; /* TODO: farger ikke landet */
-
-    background: var(--_kn-bg);
-    color: var(--_kn-text);
+    background: var(--ds-color-info-surface-tinted);
+    color: var(--ds-color-accent-text-default);
     width: 100%;
+    font-family: var(--ds-font-family);
   }
 
   .cookie-notice[hidden] {
@@ -121,10 +115,7 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 
   .cookie-notice__title {
     margin: 0;
-    font-size: 32px;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -0.64px;
+    font-family: var(--ds-font-family);
   }
 
   .cookie-notice__text,
@@ -153,43 +144,17 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 
   .cookie-notice__actions {
     display: flex;
-    gap: 24px;
+    gap: var(--ds-size-6);
     flex-wrap: wrap;
   }
 
-  .cookie-notice__btn {
-    background: var(--_kn-btn-bg);
-    color: var(--_kn-btn-text);
-    border: none;
-    padding: 11px 14px;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-    min-height: 48px;
-  }
-
-  .cookie-notice__btn:hover {
-    background: var(--_kn-btn-hover);
-  }
-
-  .cookie-notice__btn:focus-visible {
-    outline: 2px solid var(--_kn-text);
-    outline-offset: 2px;
+  .ds-button {
+    --dsc-button-background: var(--ds-color-base-active);
   }
 
   @media (max-width: 640px) {
     .cookie-notice__inner {
       padding: 18px 16px;
-    }
-    .cookie-notice__title {
-      font-size: 24px;
-      letter-spacing: -0.48px;
-    }
-    .cookie-notice__text,
-    .cookie-notice__secondary {
-      font-size: 16px;
     }
   }
 

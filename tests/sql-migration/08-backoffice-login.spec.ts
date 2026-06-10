@@ -35,7 +35,7 @@ test('Content tree shows expected structure post-migration', async ({ page }) =>
   await page.goto('/umbraco/section/content');
   await page.waitForLoadState('networkidle');
 
-  for (const name of ['Forside', 'Artikler', 'Caser', 'Veiledning', 'Sider', 'Merkelapper']) {
+  for (const name of ['Forside', 'Artikler', 'Eksempler', 'Veiledning', 'Sider', 'Merkelapper']) {
     await expect(page.locator(`text=${name}`).first()).toBeVisible({ timeout: 15_000 });
   }
 });

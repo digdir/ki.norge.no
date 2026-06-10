@@ -3124,19 +3124,12 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Remove veiledningOversikt from allowed children (only veiledningGuide stays)
-        var guideType = _contentTypeService.Get("veiledningGuide");
-        if (guideType != null)
-        {
-            var desired = new[] { new ContentTypeSort(guideType.Key, 0, guideType.Alias) };
-            var currentAliases = ct.AllowedContentTypes?.Select(a => a.Alias).OrderBy(a => a).ToArray() ?? Array.Empty<string>();
-            var wantAliases = new[] { "veiledningGuide" };
-            if (!currentAliases.SequenceEqual(wantAliases))
-            {
-                ct.AllowedContentTypes = desired;
-                changed = true;
-            }
-        }
+        // Allowed children for "veiledninger" eies av MigrateVeiledningerContainer (eget
+        // steg, kjorer for dette): den setter [veiledningGuide, enkelVeiledning] og fjerner
+        // dermed implisitt den gamle veiledningOversikt-typen. Tidligere satte denne metoden
+        // allowed children til KUN veiledningGuide og kastet enkelVeiledning ut igjen hver
+        // oppstart, slik at "Enkel veiledningsmal" forsvant fra Opprett-menyen. Vi rorer
+        // ikke allowed children her lenger.
 
         if (changed)
         {
