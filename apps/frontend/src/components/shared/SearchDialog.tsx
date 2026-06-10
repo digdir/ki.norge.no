@@ -100,6 +100,17 @@ export default function SearchDialog() {
     abortRef.current?.abort();
   }, [open]);
 
+  // Statusmelding for skjermlesere (WCAG 4.1.3) — speiler synlig tilstand.
+  const statusMessage = !submitted
+    ? ''
+    : busy && results.length === 0
+      ? 'Søker'
+      : error
+        ? error
+        : results.length > 0
+          ? `${results.length} søkeresultater`
+          : 'Ingen resultater';
+
   return (
     <Dialog
       open={open}
@@ -107,9 +118,15 @@ export default function SearchDialog() {
       closedby="any"
       className="search-dialog"
       data-color="accent"
+      aria-labelledby="search-dialog-heading"
     >
       <Dialog.Block className="search-dialog-header">
-        <Heading level={2} data-size="xs" className="search-dialog-title">
+        <Heading
+          level={2}
+          data-size="xs"
+          className="search-dialog-title"
+          id="search-dialog-heading"
+        >
           Hva leter du etter?
         </Heading>
         <form
@@ -121,12 +138,15 @@ export default function SearchDialog() {
         >
           <Search className="search-dialog-search">
             <Search.Input
-              ref={inputRef}
+              ref={(el: HTMLInputElement | null) => {
+                inputRef.current = el;
+                // Settes som DOM-attributt: native <dialog> fokuserer [autofocus]
+                // ved showModal(). Reacts autoFocus-prop dekker ikke dette.
+                el?.setAttribute('autofocus', '');
+              }}
               aria-label="Søk på ki.norge.no"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              // @ts-expect-error autofocus is not in React's type definitions
-              autofocus=""
             />
             {query && <Search.Clear onClick={() => setQuery('')} />}
             <button type="submit" className="search-dialog-submit ds-focus" aria-label="Søk" disabled={busy}>
@@ -137,6 +157,10 @@ export default function SearchDialog() {
       </Dialog.Block>
 
       <Dialog.Block className="search-dialog-scroll">
+        {/* Alltid i DOM så endringer i tekstinnholdet annonseres av skjermlesere */}
+        <div role="status" aria-live="polite" className="ds-sr-only">
+          {statusMessage}
+        </div>
         {error && (
           <Paragraph data-size="md" className="search-error">
             {error}

@@ -23,7 +23,7 @@ Disallow: /503
 User-agent: *
 Disallow: /
 
-Sitemap: https://ki.norge.no/sitemap-index.xml
+Sitemap: https://ki.norge.no/sitemap.xml
 
 # Human/LLM-readable route expectations for automated testing:
 # See /llm.txt

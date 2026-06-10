@@ -69,6 +69,24 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
       document.head.appendChild(s);
     }
 
+    // Lytterne registreres alltid, slik at banneret kan gjenåpnes fra
+    // "Endre samtykke for informasjonskapsler" i footeren.
+    allowBtn.addEventListener('click', function () {
+      writeConsent('allow');
+      notice.hidden = true;
+      loadSkyra();
+      loadSiteimprove();
+    });
+    denyBtn.addEventListener('click', function () {
+      writeConsent('deny');
+      notice.hidden = true;
+    });
+    window.addEventListener('open-cookie-notice', function () {
+      notice.hidden = false;
+      // Brukerinitiert gjenåpning: flytt fokus til banneret (skroller dit selv)
+      allowBtn.focus();
+    });
+
     var consent = readConsent();
     if (consent === 'allow') {
       loadSkyra();
@@ -80,16 +98,6 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
     }
 
     notice.hidden = false;
-    allowBtn.addEventListener('click', function () {
-      writeConsent('allow');
-      notice.hidden = true;
-      loadSkyra();
-      loadSiteimprove();
-    });
-    denyBtn.addEventListener('click', function () {
-      writeConsent('deny');
-      notice.hidden = true;
-    });
   })();
 </script>
 
@@ -122,13 +130,14 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
   .cookie-notice__secondary {
     margin: 0;
     max-width: 710px;
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1.7;
     letter-spacing: 0.09px;
   }
 
   .cookie-notice__secondary {
-    color: var(--_kn-text-subtle);
+    /* Neutral, ikke accent: data-color="accent" ville gitt rosa subtle-tekst */
+    color: var(--ds-color-neutral-text-subtle);
   }
 
   .cookie-notice__text :global(p),

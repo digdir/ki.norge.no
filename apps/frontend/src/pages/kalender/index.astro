@@ -27,11 +27,16 @@ const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
 // helt til siste dag er passert. Sortering bruker fortsatt startDato.
 const effectiveEnd = (h: Kalenderhendelse) => new Date(h.sluttDato || h.startDato);
 
-// Bruk CMS-felt hvis satt, ellers bruk første kommende hendelse som featured
+// Bruk CMS-felt hvis satt, ellers bruk første kommende hendelse som featured.
+// Picker-objektet fra Delivery API har tomme properties (ingen slug/dato), så
+// slå opp den fulle hendelsen i listen via id.
 const allKommende = hendelser
   .filter(h => effectiveEnd(h) >= now)
   .sort(sortByStart);
-const featured = kalender?.featuredHendelse || allKommende[0] || null;
+const featuredValgt = kalender?.featuredHendelse
+  ? hendelser.find(h => h.id === kalender!.featuredHendelse!.id)
+  : null;
+const featured = featuredValgt || allKommende[0] || null;
 const featuredId = featured?.id;
 
 const kommende = allKommende

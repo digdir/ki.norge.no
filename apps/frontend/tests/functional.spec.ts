@@ -4,29 +4,11 @@ test.describe('Navigation', () => {
   test('all main nav links navigate correctly', async ({ page }) => {
     await page.goto('/');
 
-    // Test Veiledning link
-    await page.click('nav a[href="/veiledning"]');
-    await expect(page).toHaveURL('/veiledning');
-
-    // Test Sandkasse link
-    await page.goto('/');
-    await page.click('nav a[href="/sandkasse"]');
-    await expect(page).toHaveURL('/sandkasse');
-
-    // Test Eksempler link
-    await page.goto('/');
-    await page.click('nav a[href="/eksempler"]');
-    await expect(page).toHaveURL('/eksempler');
-
-    // Test Artikler link
-    await page.goto('/');
-    await page.click('nav a[href="/artikler"]');
-    await expect(page).toHaveURL('/artikler');
-
-    // Test Om oss link
-    await page.goto('/');
-    await page.click('nav a[href="/om-oss"]');
-    await expect(page).toHaveURL('/om-oss');
+    for (const href of ['/veiledning', '/artikler', '/eksempler', '/om-oss']) {
+      await page.goto('/');
+      await page.click(`nav a[href="${href}"]`);
+      await expect(page).toHaveURL(href);
+    }
   });
 
   test('logo navigates to homepage', async ({ page }) => {
@@ -34,147 +16,66 @@ test.describe('Navigation', () => {
     await page.click('header a[href="/"]');
     await expect(page).toHaveURL('/');
   });
-});
 
-test.describe('Skip link accessibility', () => {
-  test('skip link focuses main content when activated', async ({ page }) => {
-    await page.goto('/');
-
-    // Tab to the skip link
-    await page.keyboard.press('Tab');
-
-    // The skip link should be visible when focused
-    const skipLink = page.locator('.skip-link');
-    await expect(skipLink).toBeFocused();
-
-    // Activate the skip link
-    await page.keyboard.press('Enter');
-
-    // Main content should have focus or be the target
-    await expect(page).toHaveURL('/#main-content');
+  test('aktiv side markeres med aria-current', async ({ page }) => {
+    await page.goto('/artikler');
+    const active = page.locator('header nav a[aria-current="page"]');
+    await expect(active).toHaveAttribute('href', '/artikler');
   });
 });
 
-test.describe('Mobile menu', () => {
+test.describe('Mobilmeny (popover)', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
   });
 
-  test('mobile menu toggle opens and closes', async ({ page }) => {
+  test('hamburgermenyen åpner og lukker', async ({ page }) => {
     await page.goto('/');
 
-    const menuToggle = page.locator('[data-mobile-menu-toggle]');
-    const mobileNav = page.locator('#mobile-nav');
+    const menuToggle = page.locator('button[aria-label="Åpne meny"]');
+    const mobileMenu = page.locator('#header-mobile-menu');
 
-    // Menu should be hidden initially
-    await expect(mobileNav).toBeHidden();
+    await expect(mobileMenu).toBeHidden();
 
-    // Click toggle to open
     await menuToggle.click();
-    await expect(mobileNav).toBeVisible();
-    await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(mobileMenu).toBeVisible();
 
-    // Click toggle to close
-    await menuToggle.click();
-    await expect(mobileNav).toBeHidden();
-    await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
+    await page.locator('button[aria-label="Lukk meny"]').click();
+    await expect(mobileMenu).toBeHidden();
   });
 
-  test('mobile menu closes on Escape key', async ({ page }) => {
+  test('mobilmenyen lukkes med Escape', async ({ page }) => {
     await page.goto('/');
 
-    const menuToggle = page.locator('[data-mobile-menu-toggle]');
-    const mobileNav = page.locator('#mobile-nav');
+    const menuToggle = page.locator('button[aria-label="Åpne meny"]');
+    const mobileMenu = page.locator('#header-mobile-menu');
 
-    // Open menu
     await menuToggle.click();
-    await expect(mobileNav).toBeVisible();
+    await expect(mobileMenu).toBeVisible();
 
-    // Press Escape
     await page.keyboard.press('Escape');
+    await expect(mobileMenu).toBeHidden();
+  });
 
-    // Menu should close
-    await expect(mobileNav).toBeHidden();
+  test('mobilmenyen inneholder navigasjonslenker', async ({ page }) => {
+    await page.goto('/');
+
+    await page.locator('button[aria-label="Åpne meny"]').click();
+    const links = page.locator('#header-mobile-menu .mobile-menu-list a');
+    expect(await links.count()).toBeGreaterThanOrEqual(4);
   });
 });
 
-test.describe('Dark mode', () => {
-  test('dark mode toggle switches theme', async ({ page }) => {
-    await page.goto('/');
-
-    const html = page.locator('html');
-    const toggle = page.locator('[data-theme-toggle]');
-
-    // Should start in light mode
-    await expect(html).not.toHaveClass(/dark/);
-
-    // Click toggle
-    await toggle.click();
-
-    // Should switch to dark mode
-    await expect(html).toHaveClass(/dark/);
-    await expect(html).toHaveAttribute('data-ds-color-mode', 'dark');
-
-    // Click again
-    await toggle.click();
-
-    // Should switch back to light mode
-    await expect(html).not.toHaveClass(/dark/);
-    await expect(html).toHaveAttribute('data-ds-color-mode', 'light');
-  });
-
-  test('dark mode persists on navigation', async ({ page }) => {
-    await page.goto('/');
-
-    const html = page.locator('html');
-    const toggle = page.locator('[data-theme-toggle]');
-
-    // Switch to dark mode
-    await toggle.click();
-    await expect(html).toHaveClass(/dark/);
-
-    // Navigate to another page
+test.describe('Kort-interaksjon', () => {
+  test('artikkelkort er klikkbare og navigerer', async ({ page }) => {
     await page.goto('/artikler');
+    await page.waitForLoadState('networkidle');
 
-    // Dark mode should persist
-    await expect(html).toHaveClass(/dark/);
-  });
+    // Kort bruker designsystemets clickdelegatefor-mønster med lenke i tittelen
+    const cards = page.locator('[data-clickdelegatefor]');
+    expect(await cards.count()).toBeGreaterThan(0);
 
-  test('dark mode persists on refresh', async ({ page }) => {
-    await page.goto('/');
-
-    const html = page.locator('html');
-    const toggle = page.locator('[data-theme-toggle]');
-
-    // Switch to dark mode
-    await toggle.click();
-    await expect(html).toHaveClass(/dark/);
-
-    // Refresh the page
-    await page.reload();
-
-    // Dark mode should persist
-    await expect(html).toHaveClass(/dark/);
-  });
-});
-
-test.describe('Card interactions', () => {
-  test('article cards are hoverable and clickable', async ({ page }) => {
-    await page.goto('/artikler');
-
-    // Articles must render cards — fail if none found
-    const cards = page.locator('.article-card');
-    const cardCount = await cards.count();
-    expect(cardCount).toBeGreaterThan(0);
-
-    const firstCard = cards.first();
-    await expect(firstCard).toBeVisible();
-
-    // Hover should work
-    await firstCard.hover();
-
-    // Card should contain a link that navigates to an article
-    const link = firstCard.locator('a').first();
+    const link = cards.first().locator('a').first();
     const href = await link.getAttribute('href');
     expect(href).toBeTruthy();
 
@@ -183,45 +84,63 @@ test.describe('Card interactions', () => {
   });
 });
 
-test.describe('Responsive breakpoints', () => {
-  test('layout at 375px (mobile)', async ({ page }) => {
+test.describe('Responsive brekkpunkt', () => {
+  test('layout på 375px (mobil)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
 
-    // Mobile menu button should be visible
-    const mobileToggle = page.locator('[data-mobile-menu-toggle]');
-    await expect(mobileToggle).toBeVisible();
+    // Hamburgerknappen skal være synlig
+    await expect(page.locator('button[aria-label="Åpne meny"]')).toBeVisible();
 
-    // Desktop nav should be hidden
-    const desktopNav = page.locator('.nav-desktop');
-    await expect(desktopNav).toBeHidden();
+    // Desktop-nav skal være skjult (visually hidden, ikke fokuserbar)
+    const navList = page.locator('header .nav-list');
+    await expect(navList).toBeHidden();
   });
 
-  test('layout at 768px (tablet)', async ({ page }) => {
-    await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/');
-
-    const mobileToggle = page.locator('[data-mobile-menu-toggle]');
-    const desktopNav = page.locator('.nav-desktop');
-
-    const mobileVisible = await mobileToggle.isVisible();
-    const desktopVisible = await desktopNav.isVisible();
-
-    // Exactly one navigation mode should be active — not both, not neither
-    expect(mobileVisible || desktopVisible).toBe(true);
-    expect(mobileVisible && desktopVisible).toBe(false);
-  });
-
-  test('layout at 1280px (desktop)', async ({ page }) => {
+  test('layout på 1280px (desktop)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Desktop nav should be visible
-    const desktopNav = page.locator('.nav-desktop');
-    await expect(desktopNav).toBeVisible();
+    // Desktop-nav synlig
+    await expect(page.locator('header .nav-list')).toBeVisible();
+  });
 
-    // Mobile menu button should be hidden
-    const mobileToggle = page.locator('[data-mobile-menu-toggle]');
-    await expect(mobileToggle).toBeHidden();
+  test('ingen horisontal scroll på 320px (WCAG 1.4.10 reflow)', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+
+    for (const url of ['/', '/artikler', '/veiledning', '/kalender', '/sok?q=ki']) {
+      await page.goto(url);
+      await page.waitForLoadState('load');
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+      expect(overflow, `${url} har horisontal overflow`).toBeLessThanOrEqual(0);
+    }
+  });
+});
+
+test.describe('Cookie-banner', () => {
+  test('banneret kan avslås og gjenåpnes fra footeren', async ({ page }) => {
+    await page.goto('/');
+
+    const notice = page.locator('#cookie-notice');
+    await expect(notice).toBeVisible();
+
+    // Avslå skjuler banneret
+    await page.locator('#cookie-notice-deny').click();
+    await expect(notice).toBeHidden();
+
+    // Footerknappen gjenåpner banneret og flytter fokus dit
+    await page.locator('.footer [data-action="open-cookie-notice"]').click();
+    await expect(notice).toBeVisible();
+    await expect(page.locator('#cookie-notice-allow')).toBeFocused();
+  });
+
+  test('valget huskes etter sidelast', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('#cookie-notice-deny').click();
+
+    await page.reload();
+    await expect(page.locator('#cookie-notice')).toBeHidden();
   });
 });

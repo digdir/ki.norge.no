@@ -131,14 +131,14 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     const tittel = block.tittel || valgt?.tittel || 'Gjør dataene KI-klare';
     const ingress = block.ingress || valgt?.ingress || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.';
     const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : '/veiledning');
-    const image = block.illustrasjon ? getMediaUrl(block.illustrasjon) : (valgt?.seoBilde ? getMediaUrl(valgt.seoBilde) : '/woman-speaking.svg');
+    const image = (block.illustrasjon ? getMediaUrl(block.illustrasjon) : (valgt?.seoBilde ? getMediaUrl(valgt.seoBilde) : undefined)) ?? '/people-workshopping.svg';
     return (
       <section class="veiledning-section" data-layout-block="edge">
         <div data-layout-block="content">
           <TextWithImage
-            title={block.tittel || 'Gjør dataene KI-klare'}
-            href={block.lenkeUrl || '/veiledning'}
-            image={block.illustrasjon ? (getMediaUrl(block.illustrasjon) ?? '/people-workshopping.svg') : '/people-workshopping.svg'}
+            title={tittel}
+            href={href}
+            image={image}
             imageAlt="Illustrasjon"
             label={block.label || 'Veiledning'}
           >
