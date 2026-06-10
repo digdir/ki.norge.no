@@ -48,10 +48,10 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     .map((k) => {
       const ex = eksempler.find((e: any) => e.id === k.id);
       return ex
-        ? { href: `/eksempler/${ex.slug}`, title: ex.tittel, tag: 'Eksempel' as const, lead: k.ingress || ex.ingress || undefined }
+        ? { href: `/eksempler/${ex.slug}`, title: ex.tittel, tag: 'Eksempel', lead: k.ingress || ex.ingress || undefined }
         : null;
     })
-    .filter((c) => c !== null) as { href: string; title: string; tag: 'Eksempel'; lead?: string }[];
+    .filter((c) => c !== null) as { href: string; title: string; tag: string; lead?: string }[];
 ---
 
 {seksjoner.map((block) => {
@@ -153,10 +153,11 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     // Redaktørvalgte eksempler overstyrer auto-pool. Tomt → behold nåværende oppførsel.
     const valgte = block.kort?.length ? resolveEksempelKort(block.kort) : [];
     const kort = valgte.length > 0 ? valgte : eksempelKort;
+    const eksempelTag = block.kortTag || 'Eksempel';
     return (
       <section data-layout-block="content" class="examples-section">
         <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Lær av andre'}</h2>
-        <ExampleLinkCards cards={kort.filter((c): c is { href: string; title: string; tag: string } => 'href' in c && 'title' in c).map((c, i) => ({ ...c, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
+        <ExampleLinkCards cards={kort.filter((c): c is { href: string; title: string; tag: string } => 'href' in c && 'title' in c).map((c, i) => ({ ...c, tag: eksempelTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
         <ArrowLink href={block.lenkeUrl || '/eksempler'} text={block.lenketekst || 'Se alle eksempler'} />
       </section>
     );

@@ -67,15 +67,16 @@ const simpleLinks = (cmsData?.seksjon3Kort?.length ?? 0) > 0
     ];
 
 // Case cards — "Lær av andre"
+const eksempelTag = cmsData?.eksempelKortTag || 'Eksempel';
 const caseCards = cases.data.length > 0
   ? cases.data.slice(0, 2).map(c => ({
       title: c.tittel,
       href: `/eksempler/${c.slug}`,
-      tag: 'Eksempel',
+      tag: eksempelTag,
     }))
   : [
-      { title: 'Raskere analyser av dokumenter med KI-chat i Digdir', href: '/eksempler/ki-chat-staten', tag: 'Eksempel' },
-      { title: 'Politiet - Fra tale til tekst på minutter', href: '/eksempler/politiet-tale-til-tekst', tag: 'Eksempel' },
+      { title: 'Raskere analyser av dokumenter med KI-chat i Digdir', href: '/eksempler/ki-chat-staten', tag: eksempelTag },
+      { title: 'Politiet - Fra tale til tekst på minutter', href: '/eksempler/politiet-tale-til-tekst', tag: eksempelTag },
     ];
 
 const seoTitle = cmsData?.seoTittel || 'Guider & veiledning';
@@ -190,19 +191,19 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     padding-inline: var(--ds-size-4);
     margin-inline-start: calc(-1 * var(--ds-size-4));
     width: calc(100% + var(--ds-size-4));
+    max-width: 100%;
 
     &:hover {
       background-color: var(--ds-color-surface-hover);
     }
 
     & a {
-      display: inline-flex;
       align-items: center;
-      gap: var(--ds-size-3);
       color: var(--ds-color-accent-text-default);
       text-decoration: underline;
       text-underline-offset: 4px;
       text-decoration-thickness: 2px;
+      word-break: break-word;
     }
   }
 
@@ -220,13 +221,14 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 1em;
+    height: 1em;
     border-radius: 50%;
     background-color: var(--ds-color-surface-active);
     color: var(--ds-color-accent-text-default);
     flex-shrink: 0;
     text-decoration: none;
+    margin-left: var(--ds-size-2);
   }
 
   .veil-simple-links {

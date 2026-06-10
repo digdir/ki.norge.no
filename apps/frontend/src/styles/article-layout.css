@@ -82,7 +82,7 @@
   grid-template-columns: var(--article-layout-columns);
 }
 
-.article-titl, .article-hero-inner {
+.article-title, .article-hero-inner {
   grid-column: 4;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -95,8 +95,8 @@
     grid-template-columns: 1fr;
     padding-inline: var(--ds-size-4);
   }
-
-  .article-title {
+  
+  .article-title, .article-hero-inner {
     grid-column: 1;
   }
 

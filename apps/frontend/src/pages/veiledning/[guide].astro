@@ -1,5 +1,6 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import VeiledningBlocksRenderer from '../../components/shared/VeiledningBlocksRenderer.astro';
 import StepNavigator from '../../components/guide/StepNavigator.astro';
@@ -95,23 +96,32 @@ if (guideData) {
     ogType="article"
     publishedAt={enkel.publishedAt}
     ogImage={enkelCtx.seoImage}
-    bodyColor="brand1"
+    bodyColor={enkel.bakgrunn?.replace(' ', '').toLocaleLowerCase()}
   >
-    <div class="article-hero" data-layout-block="content">
-      <h1 class="article-title ds-heading" data-size="xl">{enkel.tittel}</h1>
-      {enkel.ingress && <p class="article-ingress ds-heading" data-size="md">{enkel.ingress}</p>}
-    </div>
-    <div class="article-page u-rich-text" data-layout-block="content">
-        {enkelCtx.heroImage && (
-          <div class="article-hero-image">
-            <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
-          </div>
-        )}
+    <section class="article-hero" data-layout-block="edge">
+      <div class="article-hero-inner">
+        <div class="article-hero-text">
+          <h1 class="ds-heading article-title" data-size="xl">{enkel.tittel}</h1>
+        </div>
+      </div>
+    </section>
 
-      <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} />
-    </div>
     <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.articleJsonLd).replace(/</g, '\\u003c')} />
     <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+
+    <ArticleLayout publishedAt={enkel.publishedAt}>
+      {enkelCtx.heroImage && (
+        <div class="article-hero-image">
+          <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+        </div>
+      )}
+
+      {enkel.ingress && (
+        <p class="article-ingress ds-paragraph" data-size="lg">{enkel.ingress}</p>
+      )}
+
+      <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} />
+    </ArticleLayout>
   </Layout>
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde?.url} bodyColor="brand1">
@@ -158,60 +168,44 @@ if (guideData) {
     margin-inline: auto;
   }
 
-  .article-hero {
-    max-width: 1000px;
-    margin-inline: auto;
-    margin-block-end: var(--ds-size-12);
-
-    & h1 {
-      margin-block-end: var(--ds-size-6)
-    }
+  .article-hero:has(.article-hero-image) {
+    padding-bottom: 0;
   }
 
-  .article-ingress {
-    font-weight: 400;
-    font-family: var(--ki-heading-font);
-  }
-
-  @media (min-width: 1024px) {
-    .article-hero-inner {
-      flex-direction: row;
-      align-items: center;
-    }
-  }
-
-  .article-hero-text {
-    flex: 1;
-    min-width: 0;
+  .article-hero-inner {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--ds-size-6);
   }
+
+  .article-hero-text { min-width: 0; }
 
   .article-title {
     margin: 0;
   }
 
   .article-hero-image {
-    flex: 1;
-    min-width: 0;
+    max-height: 600px;
+    overflow: hidden;
+    padding: 0;
+    grid-column: 4;
     margin-block-start: 0;
-  }
 
-  @media (min-width: 1024px) {
-    .article-hero-image {
-      max-width: 50%;
+    @media (max-width: 767px) {
+      grid-column: 1 / 5;
+      margin-block-start: var(--ds-size-6);
     }
   }
 
   .article-hero-img {
+    max-width: 100%;
     width: 100%;
-    height: auto;
-    border-radius: 12px;
+    object-fit: cover;
     display: block;
   }
 
   .veildedning-content {
     margin-block-start: var(--ds-size-14);
+    margin-block-end: var(--ds-size-10);
   }
 </style>

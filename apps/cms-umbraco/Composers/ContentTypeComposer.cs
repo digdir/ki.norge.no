@@ -1087,6 +1087,7 @@ public class ContentTypeComponent : IAsyncComponent
         {
             ct.AddPropertyType(Prop($"eksempel{i}", $"Eksempel {i}", _contentPickerDt, description: i == 1 ? "Velg eksempel som vises i kortet." : "Valgfri, la stå tom hvis gruppen skal ha færre kort.", sortOrder: 2 + i), "innhold");
         }
+        ct.AddPropertyType(Prop("kortTag", "Merkelapp på kortene", _textStringDt, description: "Tekst på merkelappen øverst på hvert kort i gruppen. Standard: Eksempel", sortOrder: 9), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2174,6 +2175,12 @@ public class ContentTypeComponent : IAsyncComponent
             feat.AddPropertyType(Prop("ingress", "Ingress (overstyr)", _textAreaDt, description: "Standard: eksemplets egen ingress. Skriv her for å overstyre.", sortOrder: 2), "innhold");
             _contentTypeService.Save(feat);
         }
+        var grp = _contentTypeService.Get("eksempelGruppe");
+        if (grp != null && !grp.PropertyTypeExists("kortTag"))
+        {
+            grp.AddPropertyType(Prop("kortTag", "Merkelapp på kortene", _textStringDt, description: "Tekst på merkelappen øverst på hvert kort i gruppen. Standard: Eksempel", sortOrder: 9), "innhold");
+            _contentTypeService.Save(grp);
+        }
         var rel = _contentTypeService.Get("eksempelRelatert");
         if (rel != null)
         {
@@ -2808,6 +2815,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("overskrift", "Overskrift", _textStringDt, mandatory: true), "innhold");
         ct.AddPropertyType(Prop("kort", "Kort", _blockListForsideEksempelKortDt, description: "Velg eksempler. La stå tom for å vise nyeste automatisk."), "innhold");
+        ct.AddPropertyType(Prop("kortTag", "Merkelapp på kortene", _textStringDt, description: "Tekst på merkelappen øverst på hvert eksempelkort. Standard: Eksempel"), "innhold");
         ct.AddPropertyType(Prop("lenketekst", "Lenketekst", _textStringDt, description: "Standard: Se alle eksempler"), "innhold");
         ct.AddPropertyType(Prop("lenkeUrl", "Lenke-URL", _textStringDt, description: "Standard: /eksempler"), "innhold");
         _contentTypeService.Save(ct);
@@ -3109,6 +3117,16 @@ public class ContentTypeComponent : IAsyncComponent
             ct.PropertyGroups.Remove("verktoy");
             changed = true;
         }
+        // Lær av andre: redaksjonell merkelapp på eksempelkortene. Seksjonen bygges
+        // automatisk på frontend, så feltet ligger på siden (ikke på en modul). Guard på
+        // property, ikke gruppe (samme mønster som SEO under).
+        if (!ct.PropertyTypeExists("eksempelKortTag"))
+        {
+            if (!ct.PropertyGroups.Any(g => g.Alias == "laerAvAndre"))
+                ct.AddPropertyGroup("laerAvAndre", "Lær av andre");
+            ct.AddPropertyType(Prop("eksempelKortTag", "Merkelapp på eksempelkort", _textStringDt, description: "Tekst på merkelappen på eksempelkortene i \"Lær av andre\". Standard: Eksempel"), "laerAvAndre");
+            changed = true;
+        }
         // SEO. Guard på property, ikke gruppe: på prod var seo-gruppa lagret med en alias
         // som ikke matchet "seo", så gruppe-guarden bommet og AddPropertyGroup("seo") kastet
         // "An item with the same key has already been added. Key: seo" -> hele composeren
@@ -3251,6 +3269,11 @@ public class ContentTypeComponent : IAsyncComponent
             if (!laer.PropertyTypeExists("kort"))
             {
                 laer.AddPropertyType(Prop("kort", "Kort", _blockListForsideEksempelKortDt, description: "Velg eksempler. La stå tom for å vise nyeste automatisk."), "innhold");
+                changed = true;
+            }
+            if (!laer.PropertyTypeExists("kortTag"))
+            {
+                laer.AddPropertyType(Prop("kortTag", "Merkelapp på kortene", _textStringDt, description: "Tekst på merkelappen øverst på hvert eksempelkort. Standard: Eksempel"), "innhold");
                 changed = true;
             }
             if (!laer.PropertyTypeExists("lenketekst"))
