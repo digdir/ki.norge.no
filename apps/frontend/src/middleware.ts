@@ -157,7 +157,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // CMS-hoster (union av alle reelle origins). Frontend henter media fra CMS,
         // sa img-src/connect-src ma tillate dem ellers blokkeres bildene. Den dode
         // Container Apps-hosten er fjernet.
-        "img-src 'self' data: https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no",
+        // Siteimprove sender sidevisnings-beacon som bilde (image.aspx), derfor img-src.
+        "img-src 'self' data: https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.siteimproveanalytics.io",
         "connect-src 'self' https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
         // Allow CMS to embed the frontend in the preview iframe. Prod og tt02 CMS
         // (dis-core + workers.dev) pluss localhost CMS dev-origin slik at preview
