@@ -1,0 +1,9 @@
+{
+  "_meta": {
+    "description": "Index template for the ki-content hybrid-search family. Composed of the ki-content-mappings component template; matches ki-content* so the index auto-creates with the correct mapping on first write.",
+    "managed_by": "infrastructure/elasticsearch"
+  },
+  "index_patterns": ["ki-content*"],
+  "composed_of": ["ki-content-mappings"],
+  "priority": 500
+}
