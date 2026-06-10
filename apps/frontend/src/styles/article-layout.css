@@ -71,6 +71,21 @@
   padding-inline: var(--ds-size-6);
   padding-block: var(--ds-size-6);
   margin-inline: 0;
+  margin-block: var(--ds-size-6);
+}
+
+/* No gap between consecutive edge blocks */
+.article-layout__grid > [data-layout-block="edge"]:has(+ [data-layout-block="edge"]) {
+  margin-block-end: 0;
+}
+
+.article-layout__grid > [data-layout-block="edge"] + [data-layout-block="edge"] {
+  margin-block-start: 0;
+}
+
+/* Last edge block has no bottom margin */
+.article-layout__grid > [data-layout-block="edge"]:last-child {
+  margin-block-end: 0;
 }
 
 /* ── Article hero ── */
