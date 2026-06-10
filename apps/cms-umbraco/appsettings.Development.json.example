@@ -22,6 +22,11 @@
     "FrontendUrl": "http://localhost:4321",
     "PreviewSecret": "generate-a-random-secret-here"
   },
+  "Elasticsearch": {
+    "Endpoint": "https://<project>.es.<region>.azure.elastic.cloud",
+    "ApiKey": "your-elasticsearch-api-key",
+    "IndexName": "ki-content"
+  },
   "ConnectionStrings": {
   }
 }

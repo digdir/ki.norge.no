@@ -1,0 +1,47 @@
+id	category	lang	query	targets	note
+s01	sem	nb	Hvem leder KI Norge?	hans-christian-holte-leder-ki-norge
+s02	sem	nb	Hvordan utfordrer generativ KI opphavsretten?	generativ-ki-utfordrer-opphavsretten
+s03	sem	nb	Hva er EUs suverenitetspakke?	eu-har-lansert-suverenitetspakke
+s04	sem	nb	Hvor mye regnekraft har Norge til kunstig intelligens?	ki-regnekraft-status-og-utvikling
+s05	sem	nb	Hvordan kommer virksomheten min i gang med KI?	kom-i-gang-med-ki;beskriv-behovet
+s06	sem	nb	Hvordan gjør jeg dataene klare for KI?	gjoer-dataene-ki-klare
+s07	sem	nb	Hva er kunstig intelligens og hva kan jeg bruke det til?	hva-er-ki-og-hva-kan-du-bruke-det-til
+s08	sem	nb	Hvordan fungerer en språkmodell?	slik-fungerer-en-spraakmodell
+s09	sem	nb	Hva er prediktiv KI?	slik-fungerer-prediktiv-ki
+s10	sem	nb	Hva må jeg vite om KI-loven?	ki-loven-dette-boer-du-vite
+s11	sem	nb	Hvordan ivaretar jeg personvern når jeg bruker KI?	personvern-og-ki;personvern-og-sikkerhet
+s12	sem	nb	Hvordan vurderer jeg risikoen ved et KI-system?	vurder-risiko
+s13	sem	nb	Hvilke data trenger jeg for et KI-system?	finn-ut-hvilke-data-du-trenger
+s14	sem	nb	Hvordan måler og forbedrer jeg datakvaliteten?	maale-og-forbedre-datakvalitet
+s15	sem	nb	Hvordan oppdager jeg skjevhet i dataene mine?	analysere-skjevhet-i-data;skjevhet-i-data
+s16	sem	nb	Hvordan anonymiserer eller pseudonymiserer jeg data?	anonymisere-og-pseudonymisere-data
+s17	sem	nb	Hvordan velger jeg riktig modelltype?	velg-modelltype;velg-riktig-ki
+s18	sem	nb	Hvordan tester jeg et KI-system før det tas i bruk?	test-ki-systemet;planlegg-testen
+s19	sem	nb	Hvordan bruker jeg markedet til å anskaffe en KI-løsning?	anskaffe-ki-system;undersoek-markedet
+s20	sem	nb	Hvordan håndterer jeg sensitive personopplysninger i KI?	forstaa-behandling-av-sensitive-personopplysninger;personvern-og-sikkerhet
+s21	sem	nb	Bør jeg kjøre KI i skyen eller på egen infrastruktur?	velg-kjoeremiljoe
+s22	sem	nb	Hva koster det å bruke KI, og hvilke prismodeller finnes?	forstaa-prismodeller
+s23	sem	nb	Hvordan sletter og arkiverer jeg data?	slette-og-arkivere-data
+s24	sem	nb	Hvordan lager jeg et styringssystem for KI?	lag-styringssystem
+s25	sem	nb	Hvordan skriver jeg en kravspesifikasjon for en KI-løsning?	utarbeid-kravspesifikasjon
+s26	sem	nb	Eksempel på bruk av Copilot på arbeidsplassen	vestland-fylkeskommune-copilot;vestland-fylkeskommune-den-interne-ki-assistenen
+s27	sem	nb	Eksempel på å gjøre tale om til tekst	politiet-fra-tekst-til-tale
+s28	sem	nb	Eksempel på samtaletrening med kunstig intelligens	bufdir-samtaletrening-med-ki
+s29	sem	nb	Hva er KI-sandkassen?	om-ki-sandkassen
+s30	sem	nb	Hvordan samler jeg inn data til et KI-system?	samle-inn-data;kartlegg-datakilder
+n01	sem	nn	Korleis kjem verksemda mi i gang med KI?	kom-i-gang-med-ki;beskriv-behovet
+n02	sem	nn	Korleis måler eg datakvaliteten?	maale-og-forbedre-datakvalitet
+n03	sem	nn	Kva er KI og kva kan eg bruke det til?	hva-er-ki-og-hva-kan-du-bruke-det-til
+n04	sem	nn	Korleis fungerer ein språkmodell?	slik-fungerer-en-spraakmodell
+n05	sem	nn	Korleis vurderer eg risikoen ved KI?	vurder-risiko
+n06	sem	nn	Kva må eg vite om KI-lova?	ki-loven-dette-boer-du-vite
+k01	kw	nb	KI-loven	ki-loven-dette-boer-du-vite
+k02	kw	nb	regnekraft	ki-regnekraft-status-og-utvikling
+k03	kw	nb	datakvalitet	maale-og-forbedre-datakvalitet
+k04	kw	nb	kjøremiljø	velg-kjoeremiljoe
+k05	kw	nb	prismodeller	forstaa-prismodeller
+k06	kw	nb	sandkasse	om-ki-sandkassen
+k07	kw	nb	Copilot	vestland-fylkeskommune-copilot
+k08	kw	nb	kravspesifikasjon	utarbeid-kravspesifikasjon
+k09	kw	nb	styringssystem	lag-styringssystem
+k10	kw	nb	sensitive personopplysninger	forstaa-behandling-av-sensitive-personopplysninger;personvern-og-sikkerhet
