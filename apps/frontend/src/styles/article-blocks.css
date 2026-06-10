@@ -78,6 +78,11 @@
   background: var(--ds-color-base-active);
   color: var(--ds-color-background-default);
   padding-block: var(--ds-size-12);
+
+  & * {
+    word-break: break-word;
+    hyphens: auto;
+  }
 }
 .article-kontaktkort a {
   --dsc-link-color: var(--ds-color-base-contrast-default);

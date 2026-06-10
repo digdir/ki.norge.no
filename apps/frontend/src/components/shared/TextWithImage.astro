@@ -33,11 +33,12 @@ const { title, href, image, imageAlt = '', imagePosition = 'right', label } = As
   .text-with-image {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--ds-size-22);
+    gap: var(--ds-size-12);
 
     @media (min-width: 768px) {
       grid-template-columns: 2fr 1fr;
       align-items: center;
+      gap: var(--ds-size-22);
     }
 
     &[data-image-position='left'] {
@@ -112,7 +113,12 @@ const { title, href, image, imageAlt = '', imagePosition = 'right', label } = As
 
       & img {
         max-width: 100%;
+
+        @media (max-width: 768px) {
+          max-width: 60%;
+        }
       }
+
     }
   }
 </style>
