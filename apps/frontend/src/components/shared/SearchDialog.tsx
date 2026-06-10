@@ -129,7 +129,7 @@ export default function SearchDialog() {
               autofocus=""
             />
             {query && <Search.Clear onClick={() => setQuery('')} />}
-            <button type="submit" className="search-dialog-submit" aria-label="Søk" disabled={busy}>
+            <button type="submit" className="search-dialog-submit ds-focus" aria-label="Søk" disabled={busy}>
               <MagnifyingGlassIcon aria-hidden fontSize="1.375rem" />
             </button>
           </Search>
