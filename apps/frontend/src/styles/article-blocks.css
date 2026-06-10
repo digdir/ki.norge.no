@@ -1,6 +1,6 @@
 /**
  * Styles for every artikkel block module rendered by <ArticleBlocksRenderer />.
- * Used by artikler/[slug], caser/[slug], sandkasse/index — anywhere we render
+ * Used by artikler/[slug], eksempler/[slug], sandkasse/index — anywhere we render
  * the artikkel block list.
  *
  * Keep all module styles here. The page-level layout (hero, "Flere artikler",
@@ -78,6 +78,11 @@
   background: var(--ds-color-base-active);
   color: var(--ds-color-background-default);
   padding-block: var(--ds-size-12);
+
+  & * {
+    word-break: break-word;
+    hyphens: auto;
+  }
 }
 .article-kontaktkort a {
   --dsc-link-color: var(--ds-color-base-contrast-default);

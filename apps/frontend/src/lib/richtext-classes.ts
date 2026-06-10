@@ -30,6 +30,25 @@ function stripForeignFonts(el: Element): void {
   else el.removeAttribute('style');
 }
 
+// Non-breaking space (U+00A0) og literal nbsp-entiteter snik seg inn ved innliming
+// fra Word o.l. De gir fast mellomrom som ikke bryter ved linjeskift, og en entitet
+// limt inn som ren tekst (&nbsp;) vises som synlig "&nbsp;" på siden. Vi gjør all
+// nbsp om til vanlig mellomrom: et løp av mellomrom som inneholder minst én nbsp
+// kollapses til ETT vanlig mellomrom. Da blir "ord<nbsp>ord" til "ord ord", og en
+// nbsp inntil et vanlig mellomrom forsvinner. Vi trimmer ikke start/slutt her i
+// koden, for en tekstnode kan ha et bevisst mellomrom inntil et inline-element
+// (<em>, <strong> ...) som ikke skal limes sammen, og "start/slutt av linje" er
+// uansett en layout-greie nettleseren trimmer selv ved rendering. Rene vanlige
+// mellomrom (uten nbsp) røres ikke; HTML kollapser dem ved rendering. Kalles på rå
+// tekstnoder før escaping, så den fanger både tegnet og entitet-som-tekst.
+const NBSP_ENTITY = /&nbsp;|&#0*160;|&#x0*A0;/gi;
+const NBSP_RUN = /[ \t]*\u00A0[ \t\u00A0]*/g;
+
+export function normalizeNbsp(text: string): string {
+  if (!text) return text;
+  return text.replace(NBSP_ENTITY, '\u00A0').replace(NBSP_RUN, ' ');
+}
+
 export function applyDsClasses(html: string): string {
   if (!html) return '';
   const { document } = parseHTML(`<div>${html}</div>`);

@@ -5,7 +5,6 @@ using KiNorge.Cms.Search.Elasticsearch;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
-using Umbraco.Cms.Core.Web;
 
 namespace KiNorge.Cms.Search;
 
@@ -22,7 +21,7 @@ namespace KiNorge.Cms.Search;
 public class ContentTextExtractor
 {
     private readonly IDataTypeService _dataTypeService;
-    private readonly IUmbracoContextFactory _umbracoContextFactory;
+    private readonly ContentRouteResolver _routes;
     private readonly ElasticsearchOptions _options;
     private readonly ILogger<ContentTextExtractor> _logger;
     private readonly Dictionary<Guid, string?> _editorAliasCache = new();
@@ -54,12 +53,12 @@ public class ContentTextExtractor
 
     public ContentTextExtractor(
         IDataTypeService dataTypeService,
-        IUmbracoContextFactory umbracoContextFactory,
+        ContentRouteResolver routes,
         IOptions<ElasticsearchOptions> options,
         ILogger<ContentTextExtractor> logger)
     {
         _dataTypeService = dataTypeService;
-        _umbracoContextFactory = umbracoContextFactory;
+        _routes = routes;
         _options = options.Value;
         _logger = logger;
     }
@@ -256,33 +255,21 @@ public class ContentTextExtractor
         }
     }
 
-    // The frontend routes by content type + slug (see FrontendRoutes), not by
-    // Umbraco's content-tree path — so a step lives at /veiledning/{guide}/{step},
-    // not at its bare tree path /{guide}/{step}. Resolve ancestor slugs for the
-    // nested veiledning types from the published cache.
+    // The frontend routes by content type + slug, not by Umbraco's content-tree
+    // path — so a step lives at /veiledning/{guide}/{step}, not at its bare tree
+    // path /{guide}/{step}. ContentRouteResolver (content-routes.json) is the
+    // single source of truth, shared with the editor-preview provider.
     private string? GetContentUrl(IContent content)
     {
         try
         {
-            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var published = ctx.UmbracoContext.Content?.GetById(content.Id);
-            if (published == null)
-                return null;
-
-            var slug = published.Value<string>("slug");
-            var guideSlug = published.Ancestors()
-                .FirstOrDefault(a => a.ContentType.Alias == "veiledningGuide")?.Value<string>("slug");
-            var stegSlug = published.Ancestors()
-                .FirstOrDefault(a => a.ContentType.Alias == "veiledningSteg")?.Value<string>("slug");
-
-            return FrontendRoutes.Path(content.ContentType.Alias, slug, guideSlug, stegSlug);
+            return _routes.Resolve(content);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to resolve URL for content {ContentId}", content.Id);
+            return null;
         }
-
-        return null;
     }
 
     private static string StripHtml(string html)

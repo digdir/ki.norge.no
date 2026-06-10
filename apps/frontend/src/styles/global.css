@@ -81,6 +81,11 @@ main a:has(> img)::after {
   content: none;
 }
 
+/* Designsystemet overrides */
+.ds-details {
+  --dsc-details-background: var(--ds-color-background-default);
+}
+
 /* ── Reduce motion respect (UU-krav) ──────────────────
  * For users who set prefers-reduced-motion, disable transitions and animations.
  */

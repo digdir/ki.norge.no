@@ -1,77 +1,52 @@
 ---
 import Layout from '../components/layout/Layout.astro';
-import { Heading, Paragraph, Button } from '@digdir/designsystemet-react';
 import { getGlobaleInnstillinger } from '../lib/umbraco';
 
 const gi = await getGlobaleInnstillinger().catch(() => null);
-const tittel = gi?.tittel404 || 'Siden ble ikke funnet';
-const beskrivelse = gi?.beskrivelse404 || 'Beklager, vi fant ikke siden du leter etter. Den kan ha blitt flyttet eller slettet.';
+const tittel = gi?.tittel404 || 'Finner ikke siden';
+const beskrivelse = gi?.beskrivelse404 || 'Siden du leter etter finnes ikke eller har blitt fjernet.';
 ---
 
 <Layout title={tittel} description="Beklager, denne siden finnes ikke.">
-  <div class="error-page">
-    <div class="watermark">404</div>
-    <div class="error-content">
-      <Heading level={1} size="2xlarge" className="error-heading">{tittel}</Heading>
-      <Paragraph size="large" className="error-description">
-        {beskrivelse}
-      </Paragraph>
-      <div class="error-actions">
-        <Button asChild variant="primary" size="medium">
-          <a href="/">Gå til forsiden</a>
-        </Button>
-        <Button asChild variant="secondary" size="medium">
-          <a href="/sok">Søk</a>
-        </Button>
-      </div>
-    </div>
+  <div class="error-page" data-layout-block="content">
+    <span class="error-code">404</span>
+    <h1 class="error-heading">{tittel}</h1>
+    <p class="error-description ds-paragraph">{beskrivelse}</p>
+    <a href="/" class="error-link ds-link">Gå til forsiden</a>
   </div>
 </Layout>
 
 <style>
   .error-page {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 60vh;
-    position: relative;
-    overflow: hidden;
-    padding: var(--ds-size-8) var(--ds-size-4);
-  }
-
-  .watermark {
-    position: absolute;
-    font-size: clamp(150px, 25vw, 300px);
-    font-weight: 900;
-    color: var(--ds-color-neutral-border-subtle);
-    opacity: 0.3;
-    user-select: none;
-    line-height: 1;
-  }
-
-  .error-content {
-    position: relative;
     text-align: center;
+    min-height: 60vh;
+    padding: var(--ds-size-12) var(--ds-size-4);
+    gap: var(--ds-size-4);
+  }
+
+  .error-code {
+    font-family: var(--ki-heading-font);
+    font-size: var(--ds-heading-sm-font-size);
+    font-weight: 700;
+  }
+
+  .error-heading {
+    font-family: var(--ki-heading-font);
+    font-size: var(--ds-heading-2xl-font-size);
+    font-weight: 400;
+    margin: 0;
+  }
+
+  .error-description {
+    margin: 0;
     max-width: 500px;
   }
 
-  :global(.error-heading) {
-    margin: 0 0 var(--ds-size-4);
-  }
-
-  :global(.error-description) {
-    margin: 0 0 var(--ds-size-8);
-    color: var(--ds-color-neutral-text-subtle);
-  }
-
-  .error-actions {
-    display: flex;
-    justify-content: center;
-    gap: var(--ds-size-3);
-    flex-wrap: wrap;
-  }
-
-  .error-actions :global(a) {
-    text-decoration: none;
+  .error-link {
+    margin-block-start: var(--ds-size-2);
   }
 </style>

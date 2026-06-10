@@ -24,7 +24,7 @@ const REQUIRED_TYPES = [
   'artikkelBildeSeksjon',
   'omOssBlokk',
   // Containers
-  'artikler', 'caser', 'sider', 'veiledninger', 'faqSamling',
+  'artikler', 'eksempler', 'sider', 'veiledninger', 'faqSamling',
   'merkelapper', 'ordbokSamling',
 ];
 

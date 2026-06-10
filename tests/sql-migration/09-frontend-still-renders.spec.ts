@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 const PUBLIC_URLS = [
   { path: '/', label: 'Forside' },
   { path: '/artikler', label: 'Artikler list' },
-  { path: '/caser', label: 'Caser list' },
+  { path: '/eksempler', label: 'Eksempler list' },
   { path: '/veiledning', label: 'Veiledning' },
   { path: '/om-oss', label: 'Om oss' },
   { path: '/faq', label: 'FAQ' },

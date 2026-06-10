@@ -1,90 +1,29 @@
-/* ── Search Dialog ─────────────────────────────────────── */
+/* ── KI-søk dialog (search-only) ───────────────────────────
+   Uses Designsystemet <Dialog> (native <dialog>) with custom overrides
+   for the search-specific layout (max-width, spacing, scroll area).
+   Tokens: --ds-* from designsystemet, --dsc-dialog-* from the Dialog component. */
 
-.search-dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.42);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10vh 1rem 2rem;
-  overflow-y: auto;
-  animation: search-fade-in 0.15s ease;
+/* Override Dialog component defaults for the search modal */
+.search-dialog {
+  --dsc-dialog-max-width: 720px;
+  --dsc-dialog-max-height: 80vh;
 }
 
-@keyframes search-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.search-dialog-container {
-  position: relative;
-  width: 100%;
-  max-width: 720px;
-  max-height: calc(100vh - 12vh - 2rem);
-  display: flex;
-}
-
-.search-dialog-content {
-  position: relative;
-  background: white;
-  border-radius: 16px;
-  /* Tight shadow — subtle, not spread */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  animation: search-slide-in 0.15s ease;
-}
-
-@keyframes search-slide-in {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Close button — inside dialog, absolute positioned top right */
-.search-dialog-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  color: rgba(0, 0, 0, 0.55);
-  cursor: pointer;
-  border-radius: 50%;
-  transition: background 0.1s, color 0.1s;
-}
-
-.search-dialog-close:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: #000;
-}
-
-/* Header (title + search input) */
+/* Header (title + search field) */
 .search-dialog-header {
-  padding: 28px 28px 20px;
+  padding: var(--ds-size-7) var(--ds-size-7) var(--ds-size-5);
   flex-shrink: 0;
 }
 
 .search-dialog-title {
-  margin: 0 0 16px;
-  padding-right: 40px; /* keep clear of close button */
-  color: #1a2a6d;
+  margin: 0 0 var(--ds-size-4);
+  padding-right: var(--ds-size-10); /* clear of close button */
+  color: var(--ds-color-accent-text-default);
 }
 
-.search-dialog-form {
-  margin: 0;
-}
+.search-dialog-form { margin: 0; }
 
-/* Style the designsystemet Search component */
+/* Overrides for Designsystemet Search component (pill shape) */
 .search-dialog-search {
   width: 100%;
   position: relative;
@@ -92,33 +31,37 @@
 
 .search-dialog-search [data-field="search"],
 .search-dialog-search input {
-  padding-right: 48px !important; /* space for embedded button */
-  border-radius: 99px !important;
+  padding-left: var(--ds-size-5) !important;
+  border-radius: var(--ds-border-radius-full) !important;
 }
 
 .search-dialog-search input {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-  font-size: 1rem !important;
+  background: var(--ds-color-neutral-surface-default) !important;
+  border-color: var(--ds-color-neutral-border-default) !important;
+  font-size: var(--ds-font-size-4) !important;
+  padding-inline-end: calc(var(--dsc-search-padding-inline) * 12);
 }
 
 .search-dialog-search input:focus {
-  background: white !important;
-  border-color: #1a2a6d !important;
+  border-color: var(--ds-color-accent-base-default) !important;
 }
 
-/* Submit button — visually inside search bar, actual button in DOM */
+.search-dialog-search button[type=reset] {
+  margin-inline-end: calc(var(--dsc-search-padding-inline) * 6);
+}
+
+/* Circular magnifying glass submit inside search field */
 .search-dialog-submit {
   position: absolute;
-  right: 6px;
+  right: var(--ds-size-1);
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
+  width: var(--ds-size-10);
+  height: var(--ds-size-10);
   border: none;
-  background: #1a2a6d;
-  color: white;
-  border-radius: 50%;
+  background: var(--ds-color-accent-base-default);
+  color: var(--ds-color-accent-base-contrast-default);
+  border-radius: var(--ds-border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,227 +70,97 @@
   z-index: 2;
 }
 
-.search-dialog-submit:hover {
-  background: #0f1d56;
-}
+.search-dialog-submit:hover { background: var(--ds-color-accent-base-hover); }
+.search-dialog-submit:disabled { opacity: 0.6; cursor: default; }
 
-/* Scroll container — shared between AI overview and results */
+/* Scroll container — results body */
 .search-dialog-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 0 28px 28px;
-  min-height: 60px; /* keep padding visible even when empty */
+  min-height: var(--ds-size-15, 60px);
 }
 
-/* Hints (before search is submitted) */
-.search-dialog-hints {
-  padding: 4px 0 16px;
-}
+/* Hint / empty / error */
+.search-dialog-hints { padding: var(--ds-size-1) 0 var(--ds-size-4); }
+.search-hint-text { color: var(--ds-color-neutral-text-subtle); }
+.search-empty-state { padding: var(--ds-size-6) 0; text-align: center; }
+.search-error { color: var(--ds-color-danger-text-default); padding: var(--ds-size-2) 0; }
 
-.search-hint-text {
-  color: rgba(0, 0, 0, 0.55);
-}
-
-.search-hint-text kbd {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  padding: 0.1em 0.4em;
-  font-family: inherit;
-  font-size: 0.85em;
-}
-
-/* Section headings (KI-oversikt, Søkeresultater) */
+/* Seksjonsoverskrift (Søkeresultater) */
 .search-section-heading {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #1f2c3d;
+  font-size: var(--ds-font-size-6);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-neutral-text-default);
   margin: 0;
   line-height: 1.3;
 }
 
-/* AI overview heading row (icon + title) */
-.search-ai-overview {
-  padding-top: 8px;
-}
-
-.search-ai-heading-row,
 .search-results-heading-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--ds-size-2);
+  margin-bottom: var(--ds-size-2);
 }
 
-.search-ai-icon,
 .search-results-icon {
   flex-shrink: 0;
-  color: #1f2c3d;
+  color: var(--ds-color-accent-base-default);
 }
 
-.search-ai-content {
-  padding-left: 32px;
-  position: relative;
-  overflow: hidden;
-  transition: max-height 0.25s ease;
-}
-
-.search-ai-content.collapsed {
-  max-height: 140px;
-  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-}
-
-.search-ai-content.expanded {
-  max-height: none;
-}
-
-.search-ai-text {
-  margin: 0;
-  color: #1f2c3d;
-  line-height: 1.5;
-  font-size: 1.125rem;
-}
-
-.search-ai-sources {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.search-ai-sources-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.6);
-  margin: 0 0 6px;
-}
-
-.search-ai-sources-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.search-ai-sources-list a {
-  font-size: 1rem;
-  color: #005db1;
-  text-decoration: underline;
-}
-
-/* Vis mer/mindre — full width outline button */
-.search-ai-expand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: calc(100% - 32px);
-  margin: 16px 0 0 32px;
-  padding: 12px 24px;
-  background: white;
-  border: 1px solid #005db1;
-  border-radius: 4px;
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #005db1;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.1s;
-}
-
-.search-ai-expand:hover {
-  background: #f0f7ff;
-}
-
-/* Divider between sections */
-.search-divider {
-  margin: 24px 0;
-  border: none;
-  border-top: 1px solid #e2e8f0;
-}
-
-/* Search results */
-.search-results {
-  padding-top: 0;
-}
+/* Søkeresultater */
+.search-results { padding-top: 0; }
 
 .search-results-list {
   list-style: none;
   margin: 0;
-  padding: 0 0 0 32px;
+  padding: 0 0 0 var(--ds-size-8);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--ds-size-5);
 }
 
-.search-result-item {
-  margin: 0;
-  padding-top: 16px;
-}
+.search-result-item { margin: 0; padding-top: var(--ds-size-4); }
 
-.search-result-link {
-  display: inline-block;
-  text-decoration: none;
-  margin-bottom: 4px;
+.search-result-headline {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  margin: 0 0 var(--ds-size-1);
 }
 
 .search-result-title {
-  font-size: 1.125rem;
-  color: #005db1;
+  font-size: var(--ds-font-size-4);
+  color: var(--ds-color-accent-text-default);
   text-decoration: underline;
-  font-weight: 400;
-  margin-right: 8px;
+  font-weight: var(--ds-font-weight-medium);
 }
 
-.search-result-type {
-  font-size: 1.125rem;
-  color: #005db1;
+/* Innholdstype-merkelapp (ds-tag accent = rosa fra tokens) — til høyre for tittelen */
+.search-result-tag {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .search-result-excerpt {
-  font-size: 1.125rem;
-  color: #1f2c3d;
+  font-size: var(--ds-font-size-4);
+  color: var(--ds-color-neutral-text-default);
   line-height: 1.5;
+  margin: 0 0 var(--ds-size-1);
+}
+
+.search-result-url {
+  font-size: var(--ds-font-size-4);
+  color: var(--ds-color-neutral-text-subtle);
   margin: 0;
+  word-break: break-all;
 }
 
-/* Empty state */
-.search-empty-state {
-  padding: 24px 0;
-  text-align: center;
-}
-
-/* Header search toggle button */
+/* Søkeknapp i header */
 .search-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: 50%;
+  border-radius: var(--ds-border-radius-full);
   color: inherit;
-  transition: background 0.1s;
-}
-
-.search-toggle:hover {
-  background: rgba(0, 0, 0, 0.08);
 }
 
 @media (max-width: 640px) {
-  .search-dialog-backdrop {
-    padding: 5vh 0.5rem 1rem;
-  }
-
-  .search-dialog-header {
-    padding: 24px 20px 16px;
-  }
-
-  .search-dialog-scroll {
-    padding: 0 20px 20px;
-  }
+  .search-dialog-header { padding: var(--ds-size-6) var(--ds-size-5) var(--ds-size-4); }
 }

@@ -85,8 +85,8 @@ const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
     margin-inline: auto;
     margin-block-start: var(--ds-size-18); 
 
-    & h2 {
-      
+    & h2, & h3 {
+      font-family: var(--ds-font-family);
     }
   }
 
@@ -101,6 +101,7 @@ const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
 
   .step-substep-title {
     margin-block-end: var(--ds-size-4);
+    font-family: var(--ds-font-family);
   }
 
   .step-ingress {
