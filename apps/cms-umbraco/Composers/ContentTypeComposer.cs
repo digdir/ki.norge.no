@@ -2414,6 +2414,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("tid", "Tid", _textStringDt, description: "Klokkeslett, f.eks. \"09:00-11:00\" eller \"Hele dagen\".", sortOrder: 7), "innhold");
         ct.AddPropertyType(Prop("sted", "Sted", _textStringDt, description: "Fysisk adresse eller \"Digitalt\".", sortOrder: 8), "innhold");
         ct.AddPropertyType(Prop("lenke", "Lenke", _textStringDt, description: "URL til påmelding eller mer info.", sortOrder: 9), "innhold");
+        ct.AddPropertyType(Prop("pris", "Pris", _textStringDt, description: "F.eks. \"Gratis\" eller \"1 500 kr\". La stå tom for å skjule pris på siden.", sortOrder: 10), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
@@ -2423,6 +2424,7 @@ public class ContentTypeComponent : IAsyncComponent
     }
 
     // type -> Merkelapp (kommaseparert), og tagger droppes (slått sammen med merkelapp).
+    // pris lagt til i ettertid (valgfri, #460).
     private void MigrateKalenderhendelse()
     {
         var ct = _contentTypeService.Get("kalenderhendelse");
@@ -2431,6 +2433,11 @@ public class ContentTypeComponent : IAsyncComponent
         changed |= SetPropLabel(ct, "type", "Merkelapp");
         changed |= SetPropDescription(ct, "type", "Kommaseparert, f.eks. \"Frokostseminar, Offentlig\". Vises som merkelapp(er) på kortet.");
         changed |= RemoveProp(ct, "tagger");
+        if (!ct.PropertyTypeExists("pris"))
+        {
+            ct.AddPropertyType(Prop("pris", "Pris", _textStringDt, description: "F.eks. \"Gratis\" eller \"1 500 kr\". La stå tom for å skjule pris på siden.", sortOrder: 10), "innhold");
+            changed = true;
+        }
         if (changed) _contentTypeService.Save(ct);
     }
 

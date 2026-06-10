@@ -61,7 +61,7 @@ const timeDisplay = hendelse.tid || '';
 
 // Mock data for fields not yet in CMS
 const arrangør = 'Digdir';
-const pris = 'Gratis';
+const pris = hendelse.pris || '';
 const påmeldingUrl = hendelse.lenke || '#';
 ---
 
@@ -86,10 +86,12 @@ const påmeldingUrl = hendelse.lenke || '#';
         <AkselIcon name="HouseHeart" size={24} />
         <div><span class="event-meta-label">Arrangør:</span> <strong>{arrangør}</strong></div>
       </div>
-      <div class="event-meta-item">
-        <AkselIcon name="Receipt" size={24} />
-        <div><span class="event-meta-label">Pris:</span> <strong>{pris}</strong></div>
-      </div>
+      {pris && (
+        <div class="event-meta-item">
+          <AkselIcon name="Receipt" size={24} />
+          <div><span class="event-meta-label">Pris:</span> <strong>{pris}</strong></div>
+        </div>
+      )}
       {påmeldingUrl && (
         <a href={påmeldingUrl} class="ds-button">Påmelding</a>
       )}
