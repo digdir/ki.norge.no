@@ -20,7 +20,7 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
 
 <article class="example-card" data-variant={variant} data-clickdelegatefor={id}>
   {tag && <span class="ds-tag" data-size="sm">{tag}</span>}
-  <h3 class="ds-heading example-card-title" data-size="sm">
+  <h3 class="ds-heading example-card-title" data-size="md">
     <a id={id} href={href}>
       {title}
       <span class="example-card-arrow" aria-hidden="true">
@@ -37,7 +37,7 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
     padding: var(--ds-size-6);
     cursor: pointer;
     position: relative;
-    min-height: 200px;
+    min-height: 300px;
 
     & a {
       text-decoration: none;

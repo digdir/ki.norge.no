@@ -26,7 +26,7 @@
  */
 
 :root {
-  --layout-content-max-width: 1230px;
+  --layout-content-max-width: 1050px;
   --layout-edge-padding: var(--ds-size-4);
   --layout-content-padding: var(--ds-size-4);
   --layout-edge-margin: var(--ds-size-4);
