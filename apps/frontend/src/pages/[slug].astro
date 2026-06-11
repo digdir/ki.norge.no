@@ -19,33 +19,42 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: page.tittel, url: `/${slug}` },
 ]);
 ---
-<Layout title={seoTitle} description={seoDesc} ogImage={seoImage}>
-  <div class="side-page" data-layout-block="content">
-    <header class="side-header">
-      <h1 class="ds-heading" data-size="xl">{page.tittel}</h1>
-      {page.ingress && <p class="side-ingress">{page.ingress}</p>}
-    </header>
+<!-- Samme enkle artikkeldesign som veiledningens stegartikler:
+     bred tittel/ingress-blokk (1000px) og smalere sentrert brødtekst (680px) -->
+<Layout title={seoTitle} description={seoDesc} ogImage={seoImage} bodyColor="brand1">
+  <div class="article-hero" data-layout-block="content">
+    <h1 class="article-title ds-heading" data-size="xl">{page.tittel}</h1>
+    {page.ingress && <p class="article-ingress ds-heading" data-size="md">{page.ingress}</p>}
+  </div>
+  <div class="article-page u-rich-text" data-layout-block="content">
     <ArticleBlocksRenderer blocks={page.innhold} defaultDate={page.publishedAt} />
   </div>
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
 </Layout>
 
 <style>
-  .side-page {
-    display: flex;
-    flex-direction: column;
-    padding-block: var(--ds-size-8);
-    gap: var(--ds-size-6);
+  .article-hero {
+    max-width: 1000px;
+    margin-inline: auto;
+    margin-block-end: var(--ds-size-12);
+
+    & h1 {
+      margin-block-end: var(--ds-size-6);
+    }
   }
-  .side-header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-3);
-  }
-  .side-ingress {
+
+  .article-title {
     margin: 0;
-    font-size: var(--ds-body-lg-font-size);
-    line-height: var(--ds-body-lg-line-height);
-    color: var(--ds-color-neutral-text-subtle);
+  }
+
+  .article-ingress {
+    font-weight: 400;
+    font-family: var(--ki-heading-font);
+  }
+
+  .article-page {
+    max-width: 680px;
+    margin-inline: auto;
+    margin-block-end: var(--ds-size-12);
   }
 </style>
