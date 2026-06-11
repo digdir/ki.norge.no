@@ -162,6 +162,7 @@
   box-sizing: border-box;
   background-color: var(--ds-color-background-default);
   padding: var(--ds-size-4);
+  max-height: 100dvh;
 
   &::backdrop {
     background-color: rgba(0, 0, 0, 0.5);
