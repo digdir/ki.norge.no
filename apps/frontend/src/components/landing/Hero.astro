@@ -3,6 +3,7 @@
 // (forsideHero-modulen); defaults under brukes når feltet er tomt.
 import AkselIcon from '../shared/AkselIcon.astro';
 import { splitLastWord } from '../../lib/text';
+import Logo from '../layout/Logo';
 interface Props {
   overskrift?: string;
   komIGangTekst?: string;
@@ -25,7 +26,7 @@ const lenkeParts = splitLastWord(lenketekst);
 <section class="hero" data-layout-block="content">
   <div class="hero-grid">
     <div class="hero-text">
-      <img src="/logo.svg" alt="KI Norge" class="hero-logo" />
+      <Logo className="hero-logo" />
       <div class="hero-tagline ds-heading" data-size="xl" set:html={overskrift} />
       <p class="hero-cta">
         {komIGangTekst}: <a class="hero-cta-link ds-focus" href={lenkeUrl}>{lenkeParts.head}<span class="u-nowrap">{lenkeParts.last}<span class="hero-cta-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={24} /></span></span></a>
@@ -43,13 +44,13 @@ const lenkeParts = splitLastWord(lenketekst);
     padding-block-start: calc(var(--header-height, 72px) + var(--ds-size-14))
   }
 
-  .hero-logo {
+  :global(.hero-logo) {
     max-width: 300px;
     height: auto;
   }
 
   @media (max-width: 768px) {
-    .hero-logo {
+    :global(.hero-logo) {
       display: none;
     }
   }
