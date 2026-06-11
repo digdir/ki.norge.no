@@ -14,11 +14,6 @@ export function websiteSchema(description: string) {
     name: SITE_NAME,
     url: SITE_URL,
     description,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${SITE_URL}/sok?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
   };
 }
 

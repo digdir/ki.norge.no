@@ -7,7 +7,7 @@ import AxeBuilder from '@axe-core/playwright';
  * tastatur, skjema-labels). Kjøres mot dev-server, ev. PLAYWRIGHT_BASE_URL.
  */
 
-const ROUTES = ['/', '/artikler', '/eksempler', '/veiledning', '/kalender', '/om-oss', '/sok'];
+const ROUTES = ['/', '/artikler', '/eksempler', '/veiledning', '/kalender', '/om-oss'];
 
 test.describe('Axe (WCAG 2.1 AA)', () => {
   for (const route of ROUTES) {
@@ -159,15 +159,6 @@ test.describe('Skip-lenke', () => {
 });
 
 test.describe('Skjema', () => {
-  test('søkesiden har label på søkefeltet', async ({ page }) => {
-    await page.goto('/sok');
-    await page.waitForLoadState('load');
-
-    const input = page.locator('#sok-input');
-    await expect(input).toHaveCount(1);
-    await expect(page.locator('label[for="sok-input"]')).toHaveCount(1);
-  });
-
   test('søkedialogens felt har tilgjengelig navn og status annonseres', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

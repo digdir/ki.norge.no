@@ -108,7 +108,7 @@ test.describe('Responsive brekkpunkt', () => {
   test('ingen horisontal scroll på 320px (WCAG 1.4.10 reflow)', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 800 });
 
-    for (const url of ['/', '/artikler', '/veiledning', '/kalender', '/sok?q=ki']) {
+    for (const url of ['/', '/artikler', '/veiledning', '/kalender']) {
       await page.goto(url);
       await page.waitForLoadState('load');
       const overflow = await page.evaluate(
