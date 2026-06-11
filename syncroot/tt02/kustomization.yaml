@@ -25,12 +25,12 @@ patches:
         path: /spec/template/spec/containers/0/env/-
         value:
           name: Umbraco__CMS__WebRouting__UmbracoApplicationUrl
-          value: https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev
+          value: https://cms.ki.test.norge.no
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: Umbraco__CMS__Security__BackOfficeHost
-          value: https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev
+          value: https://cms.ki.test.norge.no
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
