@@ -39,7 +39,7 @@
 				"ES_ENDPOINT": "https://kinorgeportal-elasticsearch-tt02-a61b24.es.germanywestcentral.azure.elastic.cloud",
 				"KI_INDEX": "ki-content",
 				// Holding page on ki.norge.no until launch. Flip to "live" to go public.
-				"LAUNCH_MODE": "coming-soon",
+				"LAUNCH_MODE": "live",
 			},
 		},
 	},
