@@ -10,18 +10,33 @@ export const GET: APIRoute = ({ url }) => {
   const isProd = PROD_HOSTS.has(url.hostname);
 
   const body = isProd
-    ? `# Allows Siteimprove only (todo: allow at launch)
-User-agent: SiteimproveBot
-User-agent: SiteimproveBot-Crawler
-Allow: /
+    ? `# Robots.txt for https://ki.norge.no/
+# Updated: 2026-06-11 — optimized for SEO, security and AI search
+
+User-agent: *
+
+# Allow resources required for correct rendering and Core Web Vitals measurements
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.webp$
+Allow: /*.svg$
+
+# --- Search (should not appear in search results) ---
+Disallow: /sok/
+
+# --- Media library (Umbraco media files) ---
+Disallow: /media/
+
+# --- Admin and internal routes ---
 Disallow: /admin-tilgang
 Disallow: /preview-tilgang
 Disallow: /status
 Disallow: /api/
 Disallow: /503
-
-User-agent: *
-Disallow: /
+Disallow: /404
 
 Sitemap: https://ki.norge.no/sitemap.xml
 
