@@ -22,7 +22,7 @@ import { defineMiddleware } from 'astro:middleware';
  * som har gjeldende asset-hasher.
  */
 
-const CACHE_MAX_AGE = 60 * 60; // 1 hour edge cache (s-maxage)
+const CACHE_MAX_AGE = 60 * 10; // 10 minutes edge cache (s-maxage)
 
 // Public hostnames that sit behind the holding page until launch. The
 // *.workers.dev preview URLs and localhost are intentionally NOT listed, so
