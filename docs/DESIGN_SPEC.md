@@ -251,7 +251,7 @@ Rich content supports these block types:
 - Keyboard navigable
 - Focus indicators on all interactive elements
 - Alt text for images
-- Language attribute: `lang="nb"`
+- Language attribute: `lang="no"`
 
 ---
 

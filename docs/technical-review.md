@@ -27,7 +27,7 @@ Last updated: 2026-02-13
 | **SEO — Meta** | OG, Twitter Card, canonical, JSON-LD | Good | Open Graph, Twitter Card, canonical URL on all pages. JSON-LD: FAQPage, Article, WebSite+SearchAction. OG image can be added when designed. |
 | **SEO — Sitemap** | @astrojs/sitemap | Good | N/A — auto-generated, referenced in robots.txt |
 | **SEO — robots.txt** | Allow all + sitemap | Good | N/A |
-| **Accessibility** | ARIA, skip link, focus mgmt | Excellent | N/A — skip links, aria-current, aria-expanded, Escape key handling, lang="nb" all present. Designsystemet is WCAG AA compliant |
+| **Accessibility** | ARIA, skip link, focus mgmt | Excellent | N/A — skip links, aria-current, aria-expanded, Escape key handling, lang="no" all present. Designsystemet is WCAG AA compliant |
 | **Accessibility Testing** | axe-core/playwright | Good | N/A — integrated into test suite |
 | **Performance — Images** | CSS background-image | **Weak** | No `<img>` tags with width/height (causes layout shift), no `loading="lazy"`, no responsive `srcset`, no image optimization. Switch to `<img>` or Astro's `<Image>` component |
 | **Performance — Fonts** | Preconnect + display=swap | Good | N/A — proper preconnect to Google Fonts, swap prevents blocking |
