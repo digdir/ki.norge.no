@@ -48,7 +48,7 @@ const PUBLIC_ASSET_PATHS = new Set([
 ]);
 
 const COMING_SOON_HTML = `<!doctype html>
-<html lang="nb">
+<html lang="no">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
