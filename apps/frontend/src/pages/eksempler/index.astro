@@ -44,14 +44,14 @@ const artikkelIder = artikler.map(a => a.id);
 const fallbackSeksjoner: EksemplerSeksjon[] = [
   // 1) Featured eksempel
   { contentType: 'eksempelFeatured', id: 'fallback-featured', eksempelId: eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
-  // 2) 2x2 grid (4 kort)
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-1', eksempelIds: eksempelIder.slice(0, 4), kortFarger: ['dark', 'light', 'light', 'dark'] },
+  // 2) 2x2 grid (4 kort) — farger fra standardmønsteret i ExampleLinkCards (#461)
+  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-1', eksempelIds: eksempelIder.slice(0, 4) },
   // 3) 3-kolonne grid (3 kort)
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-2', antallKolonner: 3, eksempelIds: eksempelIder.slice(0, 3), kortFarger: ['dark', 'light', 'dark'] },
+  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-2', antallKolonner: 3, eksempelIds: eksempelIder.slice(0, 3) },
   // 4) Enda en featured
   { contentType: 'eksempelFeatured', id: 'fallback-featured-2', eksempelId: eksempelIder[1] || eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
   // 5) 2 kort
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-3', eksempelIds: eksempelIder.slice(0, 2), kortFarger: ['dark', 'light'] },
+  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-3', eksempelIds: eksempelIder.slice(0, 2) },
   // 6) Relatert innhold (3 artikler)
   { contentType: 'eksempelRelatert', id: 'fallback-relatert', relatertIds: artikkelIder.slice(0, 3), relatertTags: ['Digitaliseringsstrategien', 'Offentlig sektor', 'Arbeidsmarkedet'] },
   // 7) Kontakt-seksjon
@@ -71,7 +71,8 @@ const seksjoner = oversikt?.seksjoner?.length ? oversikt.seksjoner : fallbackSek
       <section data-layout-block="edge" class="eksempler-section">
         <div class="eksempler-fallback-grid" data-layout-block="content">
           {eksempler.map((e, i) => (
-            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={(['dark', 'medium', 'light'] as const)[i % 3]} />
+            // Forskjøvet syklus per rad (3 kolonner) så naboer aldri får lik farge
+            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={(['dark', 'light', 'medium'] as const)[(i + Math.floor(i / 3)) % 3]} />
           ))}
         </div>
       </section>

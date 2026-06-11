@@ -15,8 +15,21 @@ interface Props {
 
 const { cards } = Astro.props;
 
-const variants: Array<'dark' | 'medium' | 'light'> = ['dark', 'medium', 'light'];
 const count = cards.length;
+
+// Standard fargemønster per gruppestørrelse (Figma, #461): varierer alle tre
+// fargene og unngår lik farge på naboer, også vertikalt i 2-kolonners grid.
+// Merk: i temaet er "medium" (base-hover) mørkere enn "dark" (base-default);
+// designet har lyseste rød øverst til venstre og mørkeste nederst til høyre.
+// CMS-felt for per-kort farge finnes ikke ennå; card.variant overstyrer når det kommer.
+type Variant = 'dark' | 'medium' | 'light';
+const DEFAULT_PATTERNS: Record<number, Variant[]> = {
+  2: ['dark', 'light'],
+  3: ['medium', 'light', 'dark'],
+  4: ['dark', 'light', 'light', 'medium'],
+};
+const CYCLE: Variant[] = ['dark', 'light', 'medium'];
+const defaultVariant = (i: number): Variant => DEFAULT_PATTERNS[count]?.[i] ?? CYCLE[i % 3];
 ---
 
 <div class="example-link-cards" data-count={count}>
@@ -25,7 +38,7 @@ const count = cards.length;
       href={card.href}
       title={card.title}
       tag={card.tag}
-      variant={card.variant ?? variants[i % 2]}
+      variant={card.variant ?? defaultVariant(i)}
     />
   ))}
 </div>
