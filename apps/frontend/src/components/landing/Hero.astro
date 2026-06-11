@@ -2,6 +2,7 @@
 // Hero — tagline with illustration, "Kom i gang" CTA. Feltene er redaksjonelle
 // (forsideHero-modulen); defaults under brukes når feltet er tomt.
 import AkselIcon from '../shared/AkselIcon.astro';
+import { splitLastWord } from '../../lib/text';
 interface Props {
   overskrift?: string;
   komIGangTekst?: string;
@@ -16,6 +17,9 @@ const {
   lenkeUrl = '/veiledning/hva-er-ki',
   illustrasjon = '/people-working-on-computer.svg',
 } = Astro.props;
+
+// Pilen limes til siste ord så den ikke brekker alene (#464)
+const lenkeParts = splitLastWord(lenketekst);
 ---
 
 <section class="hero" data-layout-block="content">
@@ -24,7 +28,7 @@ const {
       <img src="/logo.svg" alt="KI Norge" class="hero-logo" />
       <div class="hero-tagline ds-heading" data-size="xl" set:html={overskrift} />
       <p class="hero-cta">
-        {komIGangTekst}: <a class="hero-cta-link ds-focus" href={lenkeUrl}>{lenketekst} <span class="hero-cta-arrow"><AkselIcon name="ArrowRight" size={24} /></span></a>
+        {komIGangTekst}: <a class="hero-cta-link ds-focus" href={lenkeUrl}>{lenkeParts.head}<span class="u-nowrap">{lenkeParts.last}<span class="hero-cta-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={24} /></span></span></a>
       </p>
     </div>
     <div class="hero-illustration">

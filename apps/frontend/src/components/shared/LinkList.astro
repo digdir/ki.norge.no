@@ -1,5 +1,6 @@
 ---
 import AkselIcon from './AkselIcon.astro';
+import { splitLastWord } from '../../lib/text';
 
 interface LinkItem {
   title: string;
@@ -19,13 +20,12 @@ const { links, heading } = Astro.props;
   <ul class="link-list-items">
     {links.map((link) => {
       const id = `link-list-${crypto.randomUUID().slice(0, 8)}`;
+      // Pilen limes til siste ord så den ikke brekker alene (#464)
+      const titleParts = splitLastWord(link.title);
       return (
         <li class="link-list-item" data-clickdelegatefor={id}>
           <a id={id} href={link.href}>
-            {link.title}
-            <span class="link-list-arrow" aria-hidden="true">
-              <AkselIcon name="ArrowRight" size={16} />
-            </span>
+            {titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="link-list-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={16} /></span></span>
           </a>
         </li>
       );

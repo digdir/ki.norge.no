@@ -1,5 +1,6 @@
 ---
 import AkselIcon from './AkselIcon.astro';
+import { splitLastWord } from '../../lib/text';
 
 interface Props {
   title: string;
@@ -11,6 +12,9 @@ interface Props {
 }
 
 const { title, href, image, imageAlt = '', imagePosition = 'right', label } = Astro.props;
+
+// Pilen limes til siste ord så den ikke brekker alene (#464)
+const titleParts = splitLastWord(title);
 ---
 
 <div class="text-with-image" data-image-position={imagePosition}>
@@ -18,7 +22,7 @@ const { title, href, image, imageAlt = '', imagePosition = 'right', label } = As
     {label && <p class="ds-paragraph" data-size="xl">{label}</p>}
     <slot />
     <h2 class="ds-heading" data-size="lg">
-      <a href={href} class="ds-focus">{title} <span aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></a>
+      <a href={href} class="ds-focus">{titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="text-with-image-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span></a>
     </h2>
     <div class="body ds-paragraph" data-size="lg">
       <slot name="body" />
@@ -68,7 +72,7 @@ const { title, href, image, imageAlt = '', imagePosition = 'right', label } = As
           text-underline-offset: 4px;
           text-decoration-thickness: 2px;
 
-          & span {
+          & .text-with-image-arrow {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -78,6 +82,7 @@ const { title, href, image, imageAlt = '', imagePosition = 'right', label } = As
             background-color: var(--ds-color-accent-surface-tinted);
             color: var(--ds-color-accent-text-default);
             margin-left: var(--ds-size-2);
+            vertical-align: middle;
           }
         }
       }

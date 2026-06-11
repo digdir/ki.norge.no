@@ -1,5 +1,6 @@
 ---
 import AkselIcon from './AkselIcon.astro';
+import { splitLastWord } from '../../lib/text';
 
 interface Props {
   href: string;
@@ -16,15 +17,15 @@ const {
 } = Astro.props;
 
 const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
+
+// Pilen limes til siste ord så den ikke brekker alene (#464)
+const titleParts = splitLastWord(title);
 ---
 
 <article class="example-card" data-variant={variant} data-clickdelegatefor={id}>
   <h3 class="ds-heading example-card-title" data-size="md">
     <a id={id} href={href}>
-      {title}
-      <span class="example-card-arrow" aria-hidden="true">
-        <AkselIcon name="ArrowRight" size={20} />
-      </span>
+      {titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="example-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span>
     </a>
   </h3>
   {tag && <span class="ds-tag" data-size="sm">{tag}</span>}

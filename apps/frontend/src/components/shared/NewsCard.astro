@@ -1,5 +1,6 @@
 ---
 import AkselIcon from './AkselIcon.astro';
+import { splitLastWord } from '../../lib/text';
 
 interface Props {
   href: string;
@@ -25,6 +26,9 @@ const {
 } = Astro.props;
 
 const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
+
+// Pilen i featured-varianten limes til siste ord så den ikke brekker alene (#464)
+const titleParts = splitLastWord(title);
 
 const formattedDate = date
   ? new Date(date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -56,11 +60,10 @@ const formattedDate = date
     {tag && <span class="ds-tag" data-variant="outline" data-size="sm">{tag.toUpperCase()}</span>}
     <h3 class="ds-heading news-card-title" data-size={variant === 'featured' ? 'lg' : 'sm'}>
       <a id={id} href={href}>
-        {title}
-        {variant === 'featured' && (
-          <span class="news-card-title-arrow" aria-hidden="true">
-            <AkselIcon name="ArrowRight" size={24} />
-          </span>
+        {variant === 'featured' ? (
+          <Fragment>{titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="news-card-title-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={24} /></span></span></Fragment>
+        ) : (
+          title
         )}
       </a>
     </h3>

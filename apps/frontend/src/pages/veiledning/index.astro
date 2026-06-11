@@ -10,6 +10,7 @@ import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
 import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getMediaUrl, MEDIA_WIDTH } from '../../lib/umbraco';
+import { splitLastWord } from '../../lib/text';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -105,15 +106,14 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
         <ul class="veil-rich-list">
           {richLinks.map((link) => {
             const id = `rich-link-${crypto.randomUUID().slice(0, 8)}`;
+            // Pilen limes til siste ord så den ikke brekker alene (#464)
+            const titleParts = splitLastWord(link.title);
             return (
               <li class="veil-rich-item" data-clickdelegatefor={id}>
                 <div class="veil-rich-link-heading">
                   <h3 class="ds-heading" data-size="lg">
                     <a id={id} href={link.href} class="ds-focus">
-                      {link.title}
-                      <span class="veil-rich-link-arrow" aria-hidden="true">
-                        <AkselIcon name="ArrowRight" size={18} />
-                      </span>
+                      {titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="veil-rich-link-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={18} /></span></span>
                     </a>
                   </h3>
                 </div>
