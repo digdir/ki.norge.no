@@ -41,6 +41,10 @@ const featuredId = featured?.id;
 
 const kommende = allKommende
   .filter(h => h.id !== featuredId);
+// Når det eneste kommende arrangementet er løftet til featured, blir denne fanen
+// tom. Da skal vi ikke si "Ingen kommende arrangement" (det motsier featured
+// øverst), men peke brukeren oppover.
+const featuredErKommende = !!featured && effectiveEnd(featured) >= now;
 const tidligere = hendelser
   .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
@@ -73,7 +77,11 @@ const tidligere = hendelser
 
       <ds-tabpanel id="panel-kommende">
         {kommende.length === 0 ? (
-          <p class="kalender-empty">Ingen kommende arrangement.</p>
+          featuredErKommende ? (
+            <p class="kalender-empty">Det kommende arrangementet er vist øverst på siden.</p>
+          ) : (
+            <p class="kalender-empty">Ingen kommende arrangement.</p>
+          )
         ) : (
           <div class="kalender-list">
             {kommende.map(h => (
