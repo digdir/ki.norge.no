@@ -10,14 +10,6 @@ export default {
 
 		const url = new URL(request.url);
 
-		try {
-			if (request.headers.get("cookie")?.includes("ki_admin=")) {
-				return await env.FRONTEND.fetch(request);
-			}
-		} catch (error) {
-			throw new Error(`Failed to fetch admin request from origin: ${error}`);
-		}
-
 		const cacheKey = new Request(url.toString(), {
 			headers: request.headers,
 			method: "GET",
