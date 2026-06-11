@@ -1,13 +1,8 @@
 import type { APIRoute } from 'astro';
-
-const PROD_HOSTS = new Set([
-  'ki.norge.no',
-  'www.ki.norge.no',
-  'ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev',
-]);
+import { isProdHost } from '../lib/prod-hosts';
 
 export const GET: APIRoute = ({ url }) => {
-  const isProd = PROD_HOSTS.has(url.hostname);
+  const isProd = isProdHost(url.hostname);
 
   const body = isProd
     ? `# Robots.txt for https://ki.norge.no/
