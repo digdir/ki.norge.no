@@ -14,7 +14,6 @@ const PUBLIC_URLS = [
   { path: '/veiledning', label: 'Veiledning' },
   { path: '/om-oss', label: 'Om oss' },
   { path: '/sandkasse', label: 'Sandkasse' },
-  { path: '/sok', label: 'Søk' },
 ];
 
 for (const { path, label } of PUBLIC_URLS) {
