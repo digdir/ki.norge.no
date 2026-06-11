@@ -496,6 +496,8 @@ export interface GlobaleInnstillinger {
   footerEpost?: string;
   footerLenke1Tekst?: string;
   footerLenke1Url?: string;
+  footerLenke2Tekst?: string;
+  footerLenke2Url?: string;
   footerLenke3Tekst?: string;
   footerLenke3Url?: string;
   footerLenke4Tekst?: string;
@@ -1168,6 +1170,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         footerEpost: props.footerEpost as string || undefined,
         footerLenke1Tekst: props.footerLenke1Tekst as string || undefined,
         footerLenke1Url: props.footerLenke1Url as string || undefined,
+        footerLenke2Tekst: props.footerLenke2Tekst as string || undefined,
+        footerLenke2Url: props.footerLenke2Url as string || undefined,
         footerLenke3Tekst: props.footerLenke3Tekst as string || undefined,
         footerLenke3Url: props.footerLenke3Url as string || undefined,
         footerLenke4Tekst: props.footerLenke4Tekst as string || undefined,

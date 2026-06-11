@@ -494,6 +494,7 @@ public class ContentTypeComponent : IAsyncComponent
         ("veiledningKort", "url"),
         ("verktoyKort", "url"),
         ("globaleInnstillinger", "footerLenke1Url"),
+        ("globaleInnstillinger", "footerLenke2Url"),
         ("globaleInnstillinger", "footerLenke3Url"),
         ("globaleInnstillinger", "footerLenke4Url"),
         ("globaleInnstillinger", "footerLenke5Url"),
@@ -3451,17 +3452,19 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
-    // Footer-lenkene i visnings-rekkefolge. Alias beholdes (lenke2 var e-post-hacken, nå fjernet).
+    // Footer-lenkene i visnings-rekkefolge.
     private static readonly (string alias, string label, int sort)[] FooterLenker =
     {
         ("footerLenke1Tekst", "Om KI Norge", 0),
         ("footerLenke1Url", "Om KI Norge (URL)", 1),
-        ("footerLenke3Tekst", "Personvern og informasjonskapsler", 2),
-        ("footerLenke3Url", "Personvern og informasjonskapsler (URL)", 3),
-        ("footerLenke4Tekst", "Tilgjengelighet", 4),
-        ("footerLenke4Url", "Tilgjengelighet (URL)", 5),
-        ("footerLenke5Tekst", "Endre samtykke for informasjonskapsler", 6),
-        ("footerLenke5Url", "Endre samtykke (URL)", 7),
+        ("footerLenke2Tekst", "Personvernerklæring", 2),
+        ("footerLenke2Url", "Personvernerklæring (URL)", 3),
+        ("footerLenke3Tekst", "Informasjonskapsler", 4),
+        ("footerLenke3Url", "Informasjonskapsler (URL)", 5),
+        ("footerLenke4Tekst", "Tilgjengelighet", 6),
+        ("footerLenke4Url", "Tilgjengelighet (URL)", 7),
+        ("footerLenke5Tekst", "Endre samtykke for informasjonskapsler", 8),
+        ("footerLenke5Url", "Endre samtykke (URL)", 9),
     };
 
     private static bool MoveProp(IContentType ct, string alias, string groupAlias)
@@ -3522,8 +3525,9 @@ public class ContentTypeComponent : IAsyncComponent
     {
         bool changed = EnsureFooterGroups(ct);
 
-        // Fjern ubrukte felt: merkenavn, SoMe-URLer, og lenke2 (var e-post-hacken).
-        foreach (var alias in new[] { "footerTittel", "footerSosialInstagram", "footerSosialLinkedin", "footerSosialX", "footerLenke2Tekst", "footerLenke2Url" })
+        // Fjern ubrukte felt: merkenavn og SoMe-URLer. (Lenke2 var tidligere e-post-hacken,
+        // men brukes nå til Informasjonskapsler, så den fjernes ikke lenger.)
+        foreach (var alias in new[] { "footerTittel", "footerSosialInstagram", "footerSosialLinkedin", "footerSosialX" })
             changed |= RemoveProp(ct, alias);
 
         if (!ct.PropertyTypes.Any(p => p.Alias == "footerEpost"))
@@ -3541,6 +3545,12 @@ public class ContentTypeComponent : IAsyncComponent
 
         foreach (var (alias, label, sort) in FooterLenker)
         {
+            if (!ct.PropertyTypes.Any(p => p.Alias == alias))
+            {
+                ct.AddPropertyType(Prop(alias, label, _textStringDt, sortOrder: sort), "footer/lenker");
+                changed = true;
+                continue;
+            }
             changed |= SetPropLabel(ct, alias, label);
             changed |= SetPropSort(ct, alias, sort);
             changed |= MoveProp(ct, alias, "footer/lenker");
