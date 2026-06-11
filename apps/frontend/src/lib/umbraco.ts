@@ -939,19 +939,19 @@ export function collectRteFields(root: unknown): RteField[] {
 }
 
 /**
- * Walks a UmbracoBlock[] tree mutating HTML fields in-place, replacing internal
- * link placeholders (emitted by richTextToHtml) with resolved frontend URLs.
- * Uses an optional shared cache so repeated targets across an article cost a
- * single Delivery API round-trip.
+ * Resolves internal-link placeholders (href="#" + data-internal-link-id, emitted
+ * by richTextToHtml) to real frontend URLs in every RTE string field found
+ * anywhere under `root`, mutating in-place. Works on any shape — a block tree, a
+ * mapped settings object, nested arrays — via collectRteFields. Uses an optional
+ * shared cache so repeated targets cost a single Delivery API round-trip.
  */
-export async function enrichBlocksInternalLinks(
-  blocks: UmbracoBlock[] | undefined,
+export async function enrichRteInternalLinks(
+  root: unknown,
   options: FetchOptions = {},
   cache: Map<string, string> = new Map(),
 ): Promise<void> {
-  if (!blocks || blocks.length === 0) return;
-
-  const fields = collectRteFields(blocks);
+  const fields = collectRteFields(root);
+  if (fields.length === 0) return;
 
   const ids = new Set<string>();
   for (const f of fields) {
@@ -966,6 +966,20 @@ export async function enrichBlocksInternalLinks(
       f.set(replaceInternalLinks(html, cache));
     }
   }
+}
+
+/**
+ * Walks a UmbracoBlock[] tree mutating HTML fields in-place, replacing internal
+ * link placeholders with resolved frontend URLs. Thin wrapper over
+ * enrichRteInternalLinks for the article/veiledning call sites.
+ */
+export async function enrichBlocksInternalLinks(
+  blocks: UmbracoBlock[] | undefined,
+  options: FetchOptions = {},
+  cache: Map<string, string> = new Map(),
+): Promise<void> {
+  if (!blocks || blocks.length === 0) return;
+  await enrichRteInternalLinks(blocks, options, cache);
 }
 
 // ── Map Umbraco item to our content type interfaces ─────────────
@@ -1862,7 +1876,12 @@ export async function getForside(options: FetchOptions = {}): Promise<Forside | 
 
 export async function getGlobaleInnstillinger(options: FetchOptions = {}): Promise<GlobaleInnstillinger | null> {
   const result = await fetchCollection<GlobaleInnstillinger>('globaleInnstillinger', { ...options, take: 1 });
-  return result.data[0] || null;
+  const gi = result.data[0] || null;
+  // Cookie-banner og footer kan ha interne riktekst-lenker. De rendres som
+  // placeholder (href="#" + data-internal-link-id) og må resolves her, slik
+  // artikkelinnhold gjør — ellers peker lenken bare til "#".
+  if (gi) await enrichRteInternalLinks(gi, options);
+  return gi;
 }
 
 // ── Veiledning Guide/Step API functions ─────────────────────────
