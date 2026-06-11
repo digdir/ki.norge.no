@@ -76,8 +76,13 @@ const moduleIcons: Record<string, string> = {
     return (
       <div class="ds-card veiledning-modul" data-variant="tinted" data-type={variantType}>
         <div class="veiledning-modul-head">
-          <AkselIcon name={ikon} size={24} class="veiledning-modul-ikon" />
-          {tittel && <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">{tittel}</h3>}
+          {tittel ? (
+            <h3 class="ds-heading veiledning-modul-tittel" data-size="xs">
+              <AkselIcon name={ikon} class="veiledning-modul-ikon" />{tittel}
+            </h3>
+          ) : (
+            <AkselIcon name={ikon} class="veiledning-modul-ikon" />
+          )}
         </div>
         <div class="veiledning-modul-body" set:html={tekst} />
         {trekkspill && trekkspill.length > 0 && (
@@ -155,13 +160,12 @@ const moduleIcons: Record<string, string> = {
     background-color: #FFFDE1;
   }
 
-  .veiledning-modul-head {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-size-2);
-  }
-  .veiledning-modul-ikon {
-    flex-shrink: 0;
+
+  .veiledning-modul-head :global(.veiledning-modul-ikon) {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    margin-inline-end: var(--ds-size-2);
   }
   .veiledning-modul-tittel {
     margin: 0;
