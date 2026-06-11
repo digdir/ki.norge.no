@@ -780,7 +780,7 @@ async function fetchContentItemById(id: string, options: FetchOptions = {}): Pro
   return deliveryApiFetch<ResolvedContentItem>(`/item/${id}${previewSuffix}`, options);
 }
 
-async function fetchContentAncestorsById(id: string, options: FetchOptions = {}): Promise<ResolvedContentItem[]> {
+export async function fetchContentAncestorsById(id: string, options: FetchOptions = {}): Promise<ResolvedContentItem[]> {
   const previewSuffix = options.preview ? '&preview=true' : '';
   const data = await deliveryApiFetch<UmbracoResponse<ResolvedContentItem>>(
     `?fetch=ancestors:${id}${previewSuffix}`,

@@ -3,8 +3,6 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import node from '@astrojs/node';
 
-import sitemap from '@astrojs/sitemap';
-
 import cloudflare from '@astrojs/cloudflare';
 
 // I dev mot prod/tt02-CMS (frontend:dev:prod / :tt02) kjører vi SSR på node-adapteren.
@@ -18,13 +16,6 @@ export default defineConfig({
   output: 'server',
   integrations: [
     react(),
-    sitemap({
-      // Exclude admin/redirect pages from sitemap so search engines don't index them
-      filter: (page) =>
-        !page.includes('/status') &&
-        !page.includes('/admin-tilgang') &&
-        !page.includes('/preview-tilgang'),
-    }),
   ],
   site: 'https://ki.norge.no',
   adapter: useNodeAdapter ? node({ mode: 'standalone' }) : cloudflare(),

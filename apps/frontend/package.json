@@ -24,7 +24,6 @@
     "@astrojs/cloudflare": "^13.6.0",
     "@astrojs/node": "10.1.2",
     "@astrojs/react": "5.0.6",
-    "@astrojs/sitemap": "3.7.3",
     "@digdir/designsystemet-css": "^1.15.0",
     "@digdir/designsystemet-react": "^1.15.0",
     "@navikt/aksel-icons": "^8.11.0",
