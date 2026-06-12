@@ -7,7 +7,7 @@ export default function Logo({ className }: LogoProps) {
     <svg
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 2312 438"
+      viewBox="-8 -8 2328 454"
       className={className}
     >
       <path
