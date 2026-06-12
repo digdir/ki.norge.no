@@ -151,6 +151,11 @@ const påmeldingUrl = hendelse.lenke || '#';
     align-items: center;
     gap: var(--ds-size-2);
     font-size: var(--ds-font-size-5);
+    width: max-content;
+
+    & :global(svg) {
+      flex-shrink: 0;
+    }
 
     &:last-of-type {
       margin-block-end: var(--ds-size-6);
