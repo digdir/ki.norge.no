@@ -1,6 +1,6 @@
 ---
 /**
- * Veiledning overview — "Guider & veiledning" landing page.
+ * Veiledning overview — "Veiledning og guider" landing page.
  * Sections: Hero, Featured (Kom i gang), Rich link list (Steg for steg),
  * Simple link list (Forstå regelverket), Case cards (Lær av andre).
  */
@@ -28,7 +28,7 @@ try {
   console.error('Failed to fetch veiledning page data:', e);
 }
 
-const heroTitle = cmsData?.heroTittel || 'Guider & veiledning';
+const heroTitle = cmsData?.heroTittel || 'Veiledning og guider';
 const heroText = cmsData?.heroTekst || 'Lurer du på hva det er lurt å tenke på når du bruker KI eller lager KI-løsninger? Her finner du veiledninger laget og kvalitetssikret av jurister og andre fagfolk.';
 const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde, MEDIA_WIDTH.hero) : undefined;
 
@@ -80,7 +80,7 @@ const caseCards = cases.data.length > 0
       { title: 'Politiet - Fra tale til tekst på minutter', href: '/eksempler/politiet-tale-til-tekst', tag: eksempelTag },
     ];
 
-const seoTitle = cmsData?.seoTittel || 'Guider & veiledning';
+const seoTitle = cmsData?.seoTittel || 'Veiledning og guider';
 const seoDesc = cmsData?.seoBeskrivelse || heroText;
 ---
 
