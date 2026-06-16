@@ -1,23 +1,34 @@
 import {
-  getArtikler,
-  getEksempler,
-  getSider,
-  getVeiledningGuider,
-  getKalenderhendelser,
-  fetchContentAncestorsById,
+  fetchAllPublishedContent,
+  resolveContentUrl,
+  type RawContentNode,
 } from './umbraco';
 
-// Statiske toppsider som ikke har eget innholdsnode med slug, men som
-// alltid finnes. Forsiden, oversiktene og singleton-sider.
-const STATIC_PATHS = [
-  '/',
-  '/artikler',
-  '/eksempler',
-  '/veiledning',
-  '/sandkasse',
-  '/om-oss',
-  '/kalender',
+// Innholdstyper som har en rute i content-routes.json, men som aldri skal
+// indekseres. Speiler robots.txt på alias-nivå. Tom i dag — mekanismen står
+// klar hvis en slik type dukker opp (match på alias er mer robust enn på sti).
+export const EXCLUDED_CONTENT_TYPES = new Set<string>([]);
+
+// Sti-prefikser som aldri skal i sitemap. Speiler Disallow-listen i
+// src/pages/robots.txt.ts. Hold de to listene synkronisert (én delt konstant
+// kan vurderes i en senere runde). Brukes som fallback når et innholdsnode
+// likevel resolver til en reservert sti (f.eks. en `side` med slug "status").
+export const EXCLUDED_PATH_PREFIXES = [
+  '/sok',
+  '/media',
+  '/admin-tilgang',
+  '/preview-tilgang',
+  '/status',
+  '/api',
+  '/503',
+  '/404',
 ] as const;
+
+// Rene .astro-sider uten CMS-node bak seg. Tom i dag — alle statiske toppsider
+// er dekket av singleton-innholdstyper (forside, omOss, oversiktene), som
+// crawlen plukker opp. sitemap-pages.test.ts vokter at en ny kun-kode-side
+// får en bevisst sitemap-beslutning i stedet for å falle stille ut.
+export const STATIC_ROUTES: string[] = [];
 
 type SitemapUrl = {
   loc: string;
@@ -52,103 +63,59 @@ function toLastModified(value?: string): string | undefined {
   return date.toISOString();
 }
 
-// Stegartikkel-URLer trenger guide- og steg-slug fra forfedrene i innholdstreet.
-// Veiledning-steg har feltet guideSlug allerede, så denne brukes kun for stegartikkel.
-async function resolveStegartikkelPath(id: string): Promise<{ path: string; updateDate?: string } | null> {
-  const ancestors = await fetchContentAncestorsById(id);
-  const guide = ancestors.find(a => a.contentType === 'veiledningGuide');
-  const steg = ancestors.find(a => a.contentType === 'veiledningSteg');
-  const guideSlug = guide?.properties?.slug as string | undefined;
-  const stegSlug = steg?.properties?.slug as string | undefined;
-  if (!guideSlug || !stegSlug) return null;
-  return { path: `/veiledning/${guideSlug}/${stegSlug}` };
+export function isExcludedPath(path: string): boolean {
+  return EXCLUDED_PATH_PREFIXES.some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+  );
+}
+
+// Resolver ett node til en sitemap-URL, eller null om det skal utelates.
+// To utelukkelses-porter: ekskludert innholdstype, eller ekskludert sti.
+// Per-node feiltoleranse: et enkelt dårlig node (f.eks. ancestor-oppslag som
+// feiler) skal ikke tømme hele sitemapet.
+async function resolveNode(node: RawContentNode, publicBaseUrl: string): Promise<SitemapUrl | null> {
+  try {
+    if (EXCLUDED_CONTENT_TYPES.has(node.contentType)) return null;
+
+    const path = await resolveContentUrl(node);
+    if (!path) {
+      // Ingen rute for typen, eller ancestor lot seg ikke resolve. Debug-nivå
+      // slik at en glemt rute-mapping er synlig uten å være støy i produksjon.
+      console.debug(`[sitemap] ingen URL for ${node.contentType} (id=${node.id})`);
+      return null;
+    }
+
+    if (isExcludedPath(path)) return null;
+
+    return { loc: toAbsoluteUrl(publicBaseUrl, path), lastmod: toLastModified(node.updateDate) };
+  } catch (error) {
+    console.error(`[sitemap] kunne ikke resolve node ${node.id}`, error);
+    return null;
+  }
 }
 
 async function collectSitemapUrls(publicBaseUrl: string): Promise<SitemapUrl[]> {
-  const urls: SitemapUrl[] = STATIC_PATHS.map(path => ({
-    loc: toAbsoluteUrl(publicBaseUrl, path),
-  }));
-
-  // Hver fetcher kan feile uavhengig (CMS-utfall, nettverksfeil) uten å ta ned hele sitemapet.
-  const [
-    artikler,
-    eksempler,
-    sider,
-    guider,
-    hendelser,
-  ] = await Promise.all([
-    safeFetch(() => getArtikler(500).then(r => r.data)),
-    safeFetch(() => getEksempler({ take: 500 }).then(r => r.data)),
-    safeFetch(() => getSider({ take: 500 }).then(r => r.data)),
-    safeFetch(() => getVeiledningGuider({ take: 500 }).then(r => r.data)),
-    safeFetch(() => getKalenderhendelser().then(r => r.data)),
-  ]);
-
-  for (const a of artikler) {
-    if (!a.slug) continue;
-    urls.push({ loc: toAbsoluteUrl(publicBaseUrl, `/artikler/${a.slug}`), lastmod: toLastModified(a.updatedAt) });
-  }
-  for (const e of eksempler) {
-    if (!e.slug) continue;
-    urls.push({ loc: toAbsoluteUrl(publicBaseUrl, `/eksempler/${e.slug}`), lastmod: toLastModified(e.updatedAt) });
-  }
-  for (const s of sider) {
-    if (!s.slug) continue;
-    urls.push({ loc: toAbsoluteUrl(publicBaseUrl, `/${s.slug}`), lastmod: toLastModified(s.updatedAt) });
-  }
-  for (const g of guider) {
-    if (!g.slug) continue;
-    urls.push({ loc: toAbsoluteUrl(publicBaseUrl, `/veiledning/${g.slug}`), lastmod: toLastModified(g.updatedAt) });
-  }
-  for (const h of hendelser) {
-    if (!h.slug) continue;
-    urls.push({ loc: toAbsoluteUrl(publicBaseUrl, `/kalender/${h.slug}`), lastmod: toLastModified(h.updatedAt) });
+  // Inkluder alt som standard. Hele det publiserte treet hentes i én paginert
+  // gjennomgang; utelatelse skjer kun gjennom de eksplisitte portene i resolveNode.
+  let nodes: RawContentNode[] = [];
+  try {
+    nodes = await fetchAllPublishedContent();
+  } catch (error) {
+    console.error('[sitemap] crawl av innhold feilet', error);
   }
 
-  // enkelVeiledning, veiledningSteg og stegartikkel hentes via Delivery API direkte siden de ikke
-  // har egne high-level getters i umbraco.ts. Bruker fetch direkte mot collection-endepunktet.
-  // enkelVeiledning og veiledningGuide deler ruten /veiledning/{slug} (se shared/content-routes.json);
-  // dedupeAndSort filtrerer eventuelle slug-kollisjoner mellom typene.
-  const [enkelVeiledninger, veiledningSteg, stegartikler] = await Promise.all([
-    safeFetchRaw('enkelVeiledning'),
-    safeFetchRaw('veiledningSteg'),
-    safeFetchRaw('stegartikkel'),
-  ]);
-
-  for (const v of enkelVeiledninger) {
-    const slug = v.properties?.slug as string | undefined;
-    if (!slug) continue;
-    urls.push({
-      loc: toAbsoluteUrl(publicBaseUrl, `/veiledning/${slug}`),
-      lastmod: toLastModified(v.updateDate),
-    });
-  }
-
-  for (const step of veiledningSteg) {
-    const slug = step.properties?.slug as string | undefined;
-    const guideSlug = step.properties?.guideSlug as string | undefined;
-    if (!slug || !guideSlug) continue;
-    urls.push({
-      loc: toAbsoluteUrl(publicBaseUrl, `/veiledning/${guideSlug}/${slug}`),
-      lastmod: toLastModified(step.updateDate),
-    });
-  }
-
-  // Stegartikkel krever forfedrene for å bygge hele URL-en. Henter dem parallelt.
-  const stegartikkelEntries = await Promise.all(
-    stegartikler.map(async (item) => {
-      const slug = item.properties?.slug as string | undefined;
-      if (!slug) return null;
-      const parent = await resolveStegartikkelPath(item.id);
-      if (!parent) return null;
-      return {
-        loc: toAbsoluteUrl(publicBaseUrl, `${parent.path}/${slug}`),
-        lastmod: toLastModified(item.updateDate),
-      };
-    }),
-  );
-  for (const entry of stegartikkelEntries) {
+  const resolved = await Promise.all(nodes.map((node) => resolveNode(node, publicBaseUrl)));
+  const urls: SitemapUrl[] = [];
+  for (const entry of resolved) {
     if (entry) urls.push(entry);
+  }
+
+  // Statiske, kun-kode-ruter uten CMS-node. Tom i dag, men flettes inn for
+  // framtidige sider. Respekter også sti-utelukkelsene her.
+  for (const path of STATIC_ROUTES) {
+    if (!isExcludedPath(path)) {
+      urls.push({ loc: toAbsoluteUrl(publicBaseUrl, path) });
+    }
   }
 
   return dedupeAndSort(urls);
@@ -159,36 +126,12 @@ function dedupeAndSort(urls: SitemapUrl[]): SitemapUrl[] {
   for (const url of urls) {
     const existing = byLoc.get(url.loc);
     // Behold den nyeste lastmod om samme URL dukker opp flere ganger.
+    // (Flere noder kan resolve til samme URL, f.eks. kalenderhendelse-oversikt.)
     if (!existing || (url.lastmod && (!existing.lastmod || url.lastmod > existing.lastmod))) {
       byLoc.set(url.loc, url);
     }
   }
   return [...byLoc.values()].sort((a, b) => a.loc.localeCompare(b.loc));
-}
-
-async function safeFetch<T>(fn: () => Promise<T[]>): Promise<T[]> {
-  try {
-    return await fn();
-  } catch (error) {
-    console.error('[sitemap] fetch failed', error);
-    return [];
-  }
-}
-
-type RawItem = { id: string; updateDate?: string; properties?: Record<string, unknown> };
-
-async function safeFetchRaw(contentType: string): Promise<RawItem[]> {
-  const UMBRACO_URL = process.env.UMBRACO_URL || import.meta.env.UMBRACO_URL || 'http://localhost:5000';
-  const url = `${UMBRACO_URL}/umbraco/delivery/api/v2/content?filter=contentType:${contentType}&take=500`;
-  try {
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
-    if (!res.ok) return [];
-    const data = await res.json() as { items?: RawItem[] };
-    return data.items ?? [];
-  } catch (error) {
-    console.error(`[sitemap] raw fetch failed for ${contentType}`, error);
-    return [];
-  }
 }
 
 function buildSitemapXml(urls: SitemapUrl[]): string {

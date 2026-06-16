@@ -815,8 +815,9 @@ const warnedMissingType = new Set<string>();
 export function buildUrlForContent(
   item: { contentType: string; id?: string; properties?: Record<string, unknown> },
   ancestors: Array<{ contentType: string; properties?: Record<string, unknown> }>,
+  routeMap: Record<string, string> = CONTENT_ROUTES,
 ): string {
-  const pattern = CONTENT_ROUTES[item.contentType];
+  const pattern = routeMap[item.contentType];
   if (!pattern) {
     if (!warnedMissingType.has(item.contentType)) {
       console.warn(`[umbraco] No route mapping for contentType "${item.contentType}" — falling back to "#". Add it to shared/content-routes.json.`);
@@ -844,6 +845,73 @@ export function buildUrlForContent(
     return '#';
   }
   return resolved;
+}
+
+// True when a route pattern references an ancestor slug (e.g. {veiledningGuide.slug}),
+// meaning the resolver must fetch ancestors before it can build the URL.
+const ANCESTOR_TOKEN_TEST = /\{[a-zA-Z][a-zA-Z0-9]*\.slug\}/;
+
+/**
+ * Resolves a Delivery API content node to a frontend path via the shared route
+ * map. Fetches ancestors only when the pattern needs an ancestor slug. Returns
+ * null when the content type has no route mapping, or when a required ancestor
+ * cannot be resolved — so callers (sitemap, link resolution) can simply skip
+ * the node instead of emitting a broken "#".
+ */
+export async function resolveContentUrl(
+  item: { contentType: string; id: string; properties?: Record<string, unknown> },
+  routeMap: Record<string, string> = CONTENT_ROUTES,
+  options: FetchOptions = {},
+): Promise<string | null> {
+  const pattern = routeMap[item.contentType];
+  if (!pattern) return null;
+  const ancestors = ANCESTOR_TOKEN_TEST.test(pattern)
+    ? await fetchContentAncestorsById(item.id, options)
+    : [];
+  const url = buildUrlForContent(item, ancestors, routeMap);
+  return url === '#' ? null : url;
+}
+
+// Minimal projection of a published node, enough to resolve its sitemap URL.
+export interface RawContentNode {
+  id: string;
+  contentType: string;
+  updateDate?: string;
+  properties?: Record<string, unknown>;
+}
+
+/**
+ * Paginated crawl of the entire published content tree, regardless of type.
+ * The Delivery API caps page size, so loop on take/skip until we have pulled
+ * `total`. Returns whatever was collected; a failed page stops the crawl rather
+ * than emptying the result, so one bad request cannot wipe out the sitemap.
+ */
+export async function fetchAllPublishedContent(options: FetchOptions = {}): Promise<RawContentNode[]> {
+  const PAGE_SIZE = 100;
+  const all: RawContentNode[] = [];
+  let skip = 0;
+  let total = Number.POSITIVE_INFINITY;
+
+  while (skip < total) {
+    const params = new URLSearchParams({ take: String(PAGE_SIZE), skip: String(skip) });
+    const data = await deliveryApiFetch<UmbracoResponse<unknown>>(`?${params.toString()}`, options);
+    if (!data) break;
+    const items = data.items ?? [];
+    for (const item of items) {
+      all.push({
+        id: item.id,
+        contentType: item.contentType,
+        updateDate: item.updateDate,
+        properties: item.properties,
+      });
+    }
+    total = typeof data.total === 'number' ? data.total : all.length;
+    // Guard against a non-advancing loop if the API returns fewer than expected.
+    if (items.length === 0) break;
+    skip += items.length;
+  }
+
+  return all;
 }
 
 export function collectInternalLinkIds(html: string): Set<string> {

@@ -70,6 +70,11 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: ${{ github.event.inputs.tag }}
 
+      # content-routes.json lever kun i /shared (én kilde). Docker-konteksten er
+      # apps/cms-umbraco/ alene, så vi genererer CMS-speilet inn i konteksten før build.
+      - name: Mirror content-routes into CMS build context
+        run: node scripts/sync-content-routes.js
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image

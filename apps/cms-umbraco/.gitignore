@@ -23,6 +23,10 @@ wwwroot/media/*
 umbraco-package-schema.json
 appsettings-schema.*.json
 
+## Generated mirror of /shared/content-routes.json (se scripts/sync-content-routes.js).
+## Eneste kilde er /shared/content-routes.json. Speilet lages ved build.
+content-routes.json
+
 ## User secrets
 appsettings.*.local.json
 .cms-running.lock
