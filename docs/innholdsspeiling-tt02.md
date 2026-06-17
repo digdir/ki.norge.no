@@ -17,7 +17,7 @@ Transport-steget mellom poddene er pakket i `scripts/sync-prod-til-tt02.sh` med 
 | Modus | Tar med |
 |-------|---------|
 | `innhold` | uSync-innhold (dokumenter + media-metadata), ingen bildefiler |
-| `media` | kun bildefiler (media-binærfiler) |
+| `media` | kun bildefiler, inkrementelt (bare det som mangler på tt02) |
 | `alt` | innhold + bildefiler |
 
 Selve Export og Import gjøres fortsatt manuelt i backoffice, scriptet er bare transporten. Vanlig runde med innhold og bilder:
@@ -43,7 +43,14 @@ Når media er uendret og du vil gå raskere:
 scripts/sync-prod-til-tt02.sh innhold
 ```
 
-Scriptet kopierer pod-til-pod gjennom maskinen din, sjekker at begge podder er nåbare (krever Altinn-VPN), og minner om Export/Import-stegene. `-y` hopper over bekreftelsen. Kontekster/namespace kan overstyres med miljøvariabler (`PROD_CTX`, `TT02_CTX`, `NS`, `POD`, `CONTAINER`).
+Media overføres inkrementelt: scriptet sammenligner filstier på prod og tt02 og kopierer bare det som mangler. Det er trygt fordi Umbraco lagrer media under unike nøkkel-mapper, så et nytt eller erstattet bilde får ny sti. Forhåndsvis med `--sjekk` (viser antall og størrelse, overfører ingenting), og tving full kopi med `--full`:
+
+```bash
+scripts/sync-prod-til-tt02.sh media --sjekk
+scripts/sync-prod-til-tt02.sh media --full
+```
+
+Scriptet kopierer pod-til-pod gjennom maskinen din, sjekker at begge podder er nåbare (krever Altinn-VPN), minner om Export/Import-stegene, og spør før det skriver. `-y` hopper over bekreftelsen. Kontekster/namespace kan overstyres med miljøvariabler (`PROD_CTX`, `TT02_CTX`, `NS`, `POD`, `CONTAINER`).
 
 ## Regler
 
