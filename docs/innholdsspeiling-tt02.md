@@ -12,27 +12,38 @@ Alt er manuelt. uSync gjør ingenting ved oppstart, deploy eller lagring.
 
 ## Speilingsrunde
 
+Transport-steget mellom poddene er pakket i `scripts/sync-prod-til-tt02.sh` med tre moduser:
+
+| Modus | Tar med |
+|-------|---------|
+| `innhold` | uSync-innhold (dokumenter + media-metadata), ingen bildefiler |
+| `media` | kun bildefiler (media-binærfiler) |
+| `alt` | innhold + bildefiler |
+
+Selve Export og Import gjøres fortsatt manuelt i backoffice, scriptet er bare transporten. Vanlig runde med innhold og bilder:
+
 1. Prod-backoffice, Settings, uSync, kjør **Export**
-2. Kopier eksporten fra prod-podden til tt02-podden
+2. Kjør transporten fra maskinen din:
 
    ```bash
-   kubectl --context dis-core-prod-aks -n product-kinorgeportal \
-     exec deploy/umbraco -c umbraco -- tar -czf - -C /app uSync > /tmp/usync-prod.tgz
-
-   kubectl --context dis-core-tt02-aks -n product-kinorgeportal \
-     exec -i deploy/umbraco -c umbraco -- tar -xzf - -C /app < /tmp/usync-prod.tgz
+   scripts/sync-prod-til-tt02.sh alt
    ```
 
 3. tt02-backoffice, Settings, uSync, kjør **Import** (vanlig, aldri clean)
-4. Media-filer ved behov, uSync tar bare metadata
 
-   ```bash
-   kubectl --context dis-core-prod-aks -n product-kinorgeportal \
-     exec deploy/umbraco -c umbraco -- tar -czf - -C /app/wwwroot media > /tmp/media-prod.tgz
+Når kun bildene trenger oppfriskning (ingen ny innholds-eksport/import):
 
-   kubectl --context dis-core-tt02-aks -n product-kinorgeportal \
-     exec -i deploy/umbraco -c umbraco -- tar -xzf - -C /app/wwwroot < /tmp/media-prod.tgz
-   ```
+```bash
+scripts/sync-prod-til-tt02.sh media
+```
+
+Når media er uendret og du vil gå raskere:
+
+```bash
+scripts/sync-prod-til-tt02.sh innhold
+```
+
+Scriptet kopierer pod-til-pod gjennom maskinen din, sjekker at begge podder er nåbare (krever Altinn-VPN), og minner om Export/Import-stegene. `-y` hopper over bekreftelsen. Kontekster/namespace kan overstyres med miljøvariabler (`PROD_CTX`, `TT02_CTX`, `NS`, `POD`, `CONTAINER`).
 
 ## Regler
 
