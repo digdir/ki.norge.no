@@ -3,9 +3,10 @@
   "private": true,
   "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1",
   "scripts": {
-    "cms:dev": "cd apps/cms-umbraco && dotnet run",
-    "cms:restart": "pkill -f KiNorge.Cms 2>/dev/null; sleep 2; cd apps/cms-umbraco && dotnet run",
-    "cms:build": "cd apps/cms-umbraco && dotnet build -c Release",
+    "sync:content-routes": "node scripts/sync-content-routes.js",
+    "cms:dev": "node scripts/sync-content-routes.js && cd apps/cms-umbraco && dotnet run",
+    "cms:restart": "node scripts/sync-content-routes.js && (pkill -f KiNorge.Cms 2>/dev/null; sleep 2; cd apps/cms-umbraco && dotnet run)",
+    "cms:build": "node scripts/sync-content-routes.js && cd apps/cms-umbraco && dotnet build -c Release",
     "cms:restore": "cd apps/cms-umbraco && dotnet restore",
     "frontend:dev": "cd apps/frontend && pnpm run dev",
     "frontend:dev:mock": "node apps/frontend/tools/mock-cms/dev.mjs",

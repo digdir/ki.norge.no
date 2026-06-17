@@ -12,8 +12,10 @@ namespace KiNorge.Cms;
 /// /veiledning/{guide}/{slug}) using the route patterns in content-routes.json.
 /// The frontend routes by content type + slug, NOT by Umbraco's content-tree
 /// path, so every headless consumer (editor preview, search indexing) must build
-/// URLs through here — one source of truth, mirroring /shared/content-routes.json
-/// (kept honest by content-routes-sync.test.ts in the frontend).
+/// URLs through here. The single source is /shared/content-routes.json; this
+/// content-routes.json is generated from it at build time
+/// (scripts/sync-content-routes.js) because the Docker build context is this
+/// directory alone and cannot reach /shared. The generated copy is git-ignored.
 ///
 /// Returns null when the content type has no route, or when a required ancestor
 /// slug is missing.

@@ -36,4 +36,18 @@
     </None>
   </ItemGroup>
 
+  <!--
+    Regenererer det git-ignorerte speilet av /shared/content-routes.json fra
+    kilden før build/publish, slik at `dotnet run`/`dotnet build` alltid er i
+    synk uten et eget pre-steg. Condition-en skrur targeten av når /shared ikke
+    er nåbar (Docker-build-konteksten er apps/cms-umbraco/ alene, der
+    GitHub-actionen allerede har staget speilet inn), og når man bevisst vil ha
+    lokal drift: `dotnet run -p:SkipContentRoutesSync=true`.
+  -->
+  <Target Name="SyncContentRoutes" BeforeTargets="BeforeBuild;BeforePublish"
+          Condition="Exists('$(MSBuildProjectDirectory)/../../shared/content-routes.json')
+                     AND '$(SkipContentRoutesSync)' != 'true'">
+    <Exec Command="node &quot;$(MSBuildProjectDirectory)/../../scripts/sync-content-routes.js&quot;" />
+  </Target>
+
 </Project>

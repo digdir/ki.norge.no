@@ -9,9 +9,10 @@ function item(contentType: string, slug?: string, id = 'abc'): Item {
 }
 
 // Vakter mot at routes-fila og pattern-interpolatoren divergerer fra implementasjonen.
-// Hvis du legger til en ny content type i shared/content-routes.json:
-//   1) Speil endringen i apps/cms-umbraco/content-routes.json (CMS-mirror).
-//   2) Hvis pattern bruker {<X>.slug}: legg til X i ancestor-mocken her.
+// shared/content-routes.json er eneste kilde. CMS-speilet genereres ved build
+// (scripts/sync-content-routes.js), så det skal ikke redigeres for hånd.
+// Hvis du legger til en ny content type i shared/content-routes.json og pattern
+// bruker {<X>.slug}: legg til X i ancestor-mocken her.
 
 describe('buildUrlForContent', () => {
   describe('flate content types (kun {slug} eller statisk)', () => {
@@ -21,6 +22,7 @@ describe('buildUrlForContent', () => {
       ['enkelVeiledning', 'kom-igang', '/veiledning/kom-igang'],
       ['veiledningGuide', 'sett-igang-med-ki', '/veiledning/sett-igang-med-ki'],
       ['side', 'kontakt', '/kontakt'],
+      ['kalenderhendelse', 'markedsdialog', '/kalender/markedsdialog'],
     ])('%s med slug %s → %s', (type, slug, expected) => {
       expect(buildUrlForContent(item(type, slug), [])).toBe(expected);
     });
@@ -32,7 +34,6 @@ describe('buildUrlForContent', () => {
       ['artikler', '/artikler'],
       ['eksempler', '/eksempler'],
       ['kalender', '/kalender'],
-      ['kalenderhendelse', '/kalender'],
       ['veiledninger', '/veiledning'],
     ])('%s (statisk rute) → %s', (type, expected) => {
       expect(buildUrlForContent(item(type, 'irrelevant'), [])).toBe(expected);
