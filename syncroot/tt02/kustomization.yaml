@@ -46,6 +46,11 @@ patches:
         value:
           name: HeadlessPreview__FrontendUrl
           value: https://ki-norge-frontend-tt02.digitaliseringsdirektoratet.workers.dev
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: uSync__Settings__DefaultSet
+          value: Speiling
   - target:
       kind: HTTPRoute
       name: umbraco
