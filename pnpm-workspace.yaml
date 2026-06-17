@@ -5,6 +5,11 @@ minimumReleaseAge: 1440
 blockExoticSubdeps: true
 overrides:
   devalue: "^5.8.1"
+  # Sikkerhetspinninger for transitive deps Trivy flagger (HIGH). Fjern når
+  # vite/astro drar inn fiksede versjoner selv.
+  esbuild: "^0.28.1" # GHSA-gv7w-rqvm-qjhr
+  vite: "7.3.5" # CVE-2026-53571 (innenfor astro 6.4.6 sin ^7.3.2)
+  ws: "^8.21.0" # CVE-2026-48779
 allowBuilds:
   esbuild: true
   sharp: true
@@ -14,7 +19,7 @@ minimumReleaseAgeExclude:
   - '@astrojs/markdown-remark@7.2.0'
   - '@astrojs/node@10.1.2'
   - '@astrojs/react@5.0.6'
-  - astro@6.4.2
+  - astro@6.4.7
   - '@digdir/designsystemet-css@1.15.0'
   - '@digdir/designsystemet-react@1.15.0'
   - '@digdir/designsystemet-types@1.15.0'

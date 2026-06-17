@@ -27,7 +27,7 @@
     "@digdir/designsystemet-css": "^1.15.0",
     "@digdir/designsystemet-react": "^1.15.0",
     "@navikt/aksel-icons": "^8.11.0",
-    "astro": "6.4.2",
+    "astro": "6.4.7",
     "clsx": "^2.1.1",
     "linkedom": "^0.18.12",
     "react": "^19.2.6",
@@ -43,8 +43,5 @@
     "@types/react-dom": "^19.2.3",
     "postcss-nesting": "^14.0.0",
     "vitest": "^4.1.7"
-  },
-  "overrides": {
-    "vite": "^8.0.14"
   }
 }
