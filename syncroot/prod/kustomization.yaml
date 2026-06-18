@@ -46,6 +46,11 @@ patches:
         value:
           name: HeadlessPreview__FrontendUrl
           value: https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Cloudflare__SiteBaseUrl
+          value: https://ki.norge.no
   - target:
       kind: HTTPRoute
       name: umbraco

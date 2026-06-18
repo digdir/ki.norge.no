@@ -49,6 +49,11 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
+          name: Cloudflare__SiteBaseUrl
+          value: https://ki.test.norge.no
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
           name: uSync__Settings__DefaultSet
           value: Speiling
   - target:
