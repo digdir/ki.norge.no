@@ -53,7 +53,7 @@ jobs:
         run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN_ProviderName")).value = "Microsoft.Data.SqlClient"' ./syncroot/base/umbraco/deployment.yaml
 
       - name: Build and push syncroot artifact
-        uses: Altinn/altinn-platform/actions/flux/build-push-image@f455bf81a0d88b87dd78735609a05a17d99b61ab # main
+        uses: Altinn/altinn-platform/actions/flux/build-push-image@384452615f2f15683070d184a07f8c5eea67bd3c # main
         with:
           image_name: ${{ env.SYNCROOT_ARTIFACT_NAME }}
           tag: ${{ inputs.environment }}
