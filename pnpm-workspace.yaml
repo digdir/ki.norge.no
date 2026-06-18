@@ -8,8 +8,10 @@ overrides:
   # Sikkerhetspinninger for transitive deps Trivy flagger (HIGH). Fjern når
   # vite/astro drar inn fiksede versjoner selv.
   esbuild: "^0.28.1" # GHSA-gv7w-rqvm-qjhr
-  vite: "7.3.5" # CVE-2026-53571 (innenfor astro 6.4.6 sin ^7.3.2)
   ws: "^8.21.0" # CVE-2026-48779
+  # vite-override fjernet: astro 6.4 sin ^7.3.2 drar nå inn en fikset 7.x selv
+  # (CVE-2026-53571 fikset i 7.3.5), så pinningen var overflødig og hindret
+  # Renovate i å la vite flyte. Lar den være transitiv til astro 7 (drar inn vite 8).
 allowBuilds:
   esbuild: true
   sharp: true
