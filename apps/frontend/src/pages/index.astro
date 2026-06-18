@@ -35,6 +35,9 @@ try {
   veiledninger = veiledningerRes.data;
 } catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
+  // CMS-henting feilet: ikke cache den degraderte renderen (tom forside uten
+  // hero) på edgen. Se middleware – den respekterer denne no-store.
+  Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
 const title = forside?.seoTittel || 'Hjem';

@@ -23,6 +23,9 @@ try {
 }
 
 if (!hendelse) {
+  // Ingen hendelse funnet (CMS-feil eller ukjent slug): vis fallback, men ikke
+  // cache den på edgen — ellers serveres en mock til alle på en ekte URL.
+  Astro.response.headers.set('Cache-Control', 'private, no-store');
   hendelse = {
     id: 'mock',
     documentId: 'mock',

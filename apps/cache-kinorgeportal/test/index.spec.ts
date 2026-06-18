@@ -40,17 +40,15 @@ describe("frontend-cache", () => {
 		expect(fetcher.fetch).toHaveBeenCalledTimes(2);
 	});
 
-	it("ki_admin cookie bypasses cache: admin requests always reach origin", async () => {
-		const { env, fetcher } = mockEnv(() => new Response("admin-view", { status: 200, headers: { "Cache-Control": "public, s-maxage=3600" } }));
-
-		const headers = new Headers({ Cookie: "session=abc; ki_admin=1; other=x" });
+	it("no-store/private responses are not cached: preview and degraded renders always reach origin", async () => {
+		const { env, fetcher } = mockEnv(() => new Response("draft-or-degraded", { status: 200, headers: { "Cache-Control": "private, no-store" } }));
 
 		const ctx1 = createExecutionContext();
-		await worker.fetch(new Request("https://test.local/status", { headers }), env, ctx1);
+		await worker.fetch(new Request("https://test.local/no-store-1"), env, ctx1);
 		await waitOnExecutionContext(ctx1);
 
 		const ctx2 = createExecutionContext();
-		await worker.fetch(new Request("https://test.local/status", { headers }), env, ctx2);
+		await worker.fetch(new Request("https://test.local/no-store-1"), env, ctx2);
 		await waitOnExecutionContext(ctx2);
 
 		expect(fetcher.fetch).toHaveBeenCalledTimes(2);

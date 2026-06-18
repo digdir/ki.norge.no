@@ -19,6 +19,8 @@ try {
   guider = guiderRes.data;
 } catch (e) {
   console.error('Failed to fetch artikler:', e);
+  // CMS-henting feilet: ikke cache den degraderte renderen (se middleware).
+  Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
 const heroTittel = oversikt?.heroTittel || 'Aktuelt';
