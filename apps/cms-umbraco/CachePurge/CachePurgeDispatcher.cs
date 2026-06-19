@@ -6,11 +6,6 @@ using Umbraco.Cms.Core.Models;
 
 namespace KiNorge.Cms.CachePurge;
 
-/// <summary>
-/// Samler påvirkede URLer for en innholdsendring og purger dem på Cloudflare-edgen.
-/// Fire-and-forget: et purge-kall kan ta sekunder og ville ellers frosset "Lagrer…"-
-/// spinneren i backoffice. Mister vi et purge (pod-restart midt i), dekker s-maxage (10 min) det.
-/// </summary>
 public class CachePurgeDispatcher
 {
     private readonly FrontendUrlResolver _resolver;
@@ -48,8 +43,8 @@ public class CachePurgeDispatcher
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Klarte ikke løse URLer for content {ContentId} (reason={Reason}) — eskalerer", content.Id, reason);
-                purgeEverything = true; // trygt: heller for mye enn stale
+                    "Klarte ikke løse URLer for content {ContentId} (reason={Reason})", content.Id, reason);
+                purgeEverything = true;
             }
         }
 
@@ -59,11 +54,11 @@ public class CachePurgeDispatcher
         SchedulePurge(urls.ToArray(), purgeEverything, reason);
     }
 
+    // Fire-and-forget så backoffice-lagring ikke blokkeres.
     private void SchedulePurge(string[] urls, bool purgeEverything, string reason)
     {
         _ = Task.Run(async () =>
         {
-            // Frisk scope — notifikasjons-scopen kan være disposet når denne kjører.
             using IServiceScope scope = _scopeFactory.CreateScope();
             ICloudflareCachePurgeService purge =
                 scope.ServiceProvider.GetRequiredService<ICloudflareCachePurgeService>();

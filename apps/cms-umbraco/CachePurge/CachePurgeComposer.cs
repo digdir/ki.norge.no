@@ -10,11 +10,6 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace KiNorge.Cms.CachePurge;
 
-/// <summary>
-/// Kobler opp edge-cache-purge: Cloudflare-adapteren, URL-resolveren, dispatcheren og
-/// publiser/avpubliser/papirkurv-handlerne som purger ki.norge.no-edgen ved innholdsendringer.
-/// No-op til ZoneId + ApiToken er satt (Key Vault), så trygg å deploye nå.
-/// </summary>
 public class CachePurgeComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
@@ -31,8 +26,6 @@ public class CachePurgeComposer : IComposer
     }
 }
 
-/// <summary>Logger purge-konfigurasjonen ved oppstart, så det er lett å verifisere at
-/// secreten er på plass uten å publisere noe.</summary>
 internal sealed class CachePurgeStartupLogger : IHostedService
 {
     private readonly IOptions<CloudflareOptions> _options;

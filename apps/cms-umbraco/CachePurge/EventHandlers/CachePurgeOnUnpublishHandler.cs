@@ -3,7 +3,6 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace KiNorge.Cms.CachePurge.EventHandlers;
 
-/// <summary>Purger påvirkede frontend-URLer når innhold avpubliseres.</summary>
 public class CachePurgeOnUnpublishHandler : INotificationHandler<ContentUnpublishedNotification>
 {
     private readonly CachePurgeDispatcher _dispatcher;

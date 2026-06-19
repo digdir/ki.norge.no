@@ -5,12 +5,6 @@ using Microsoft.Extensions.Options;
 
 namespace KiNorge.Cms.CachePurge.Cloudflare;
 
-/// <summary>
-/// Tynn klient mot Cloudflares purge_cache-API. Purger per URL (`files`), som virker på
-/// Business-planen (purge per hostname/tag er Enterprise-only). purge_everything brukes kun
-/// for globale endringer (header/footer) og masse-publisering. No-op når ZoneId eller
-/// ApiToken mangler, så koden er trygg å deploye før secreten er satt opp.
-/// </summary>
 public class CloudflareCachePurgeService : ICloudflareCachePurgeService
 {
     private readonly HttpClient _http;
@@ -93,8 +87,6 @@ public class CloudflareCachePurgeService : ICloudflareCachePurgeService
         using HttpRequestMessage request = new(
             HttpMethod.Post, $"client/v4/zones/{opts.ZoneId}/purge_cache")
         {
-            // Per-request-header, ikke DefaultRequestHeaders, så token aldri lekker inn i
-            // delt klient-state eller traces.
             Headers = { Authorization = new AuthenticationHeaderValue("Bearer", opts.ApiToken.Trim()) },
             Content = JsonContent.Create(body),
         };

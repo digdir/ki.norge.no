@@ -6,10 +6,6 @@ namespace KiNorge.Cms.CachePurge.Cloudflare;
 
 public static class ConfigureCloudflare
 {
-    /// <summary>
-    /// Registrerer Cloudflare-purge-adapteren: options bundet til "Cloudflare"-seksjonen og
-    /// en typed HttpClient mot purge_cache-API-et.
-    /// </summary>
     public static IServiceCollection AddCloudflareCachePurge(
         this IServiceCollection services, IConfiguration configuration)
     {

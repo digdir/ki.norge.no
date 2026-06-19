@@ -3,7 +3,6 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace KiNorge.Cms.CachePurge.EventHandlers;
 
-/// <summary>Purger påvirkede frontend-URLer når innhold flyttes til papirkurven.</summary>
 public class CachePurgeOnTrashHandler : INotificationHandler<ContentMovedToRecycleBinNotification>
 {
     private readonly CachePurgeDispatcher _dispatcher;

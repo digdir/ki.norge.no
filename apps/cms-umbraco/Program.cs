@@ -146,9 +146,7 @@ app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService ct
     });
 });
 
-// Diagnose: Cloudflare cache-purge-config + valgfri live purge-selvtest.
-// Config-status (kun booleans/lengder, ALDRI verdier) er åpen; selve purge-testen
-// gates på Delivery API-nøkkelen (Api-Key-header) så den ikke kan misbrukes.
+// Cloudflare-config-status; live purge-test gates på Delivery API-nøkkelen.
 app.MapGet("/api/diagnostics/cloudflare", async (
     HttpContext http,
     Microsoft.Extensions.Options.IOptionsMonitor<KiNorge.Cms.CachePurge.Cloudflare.CloudflareOptions> cfOpts,
