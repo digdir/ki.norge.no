@@ -146,6 +146,35 @@ app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService ct
     });
 });
 
+// Diagnose: Cloudflare cache-purge-config + valgfri live purge-selvtest.
+// Config-status (kun booleans/lengder, ALDRI verdier) er åpen; selve purge-testen
+// gates på Delivery API-nøkkelen (Api-Key-header) så den ikke kan misbrukes.
+app.MapGet("/api/diagnostics/cloudflare", async (
+    HttpContext http,
+    Microsoft.Extensions.Options.IOptionsMonitor<KiNorge.Cms.CachePurge.Cloudflare.CloudflareOptions> cfOpts,
+    KiNorge.Cms.CachePurge.Cloudflare.ICloudflareCachePurgeService cfPurge) =>
+{
+    var o = cfOpts.CurrentValue;
+    string? deliveryKey = app.Configuration["Umbraco:CMS:DeliveryApi:ApiKey"];
+    string providedKey = http.Request.Headers["Api-Key"].ToString();
+    bool authed = !string.IsNullOrEmpty(deliveryKey) && providedKey == deliveryKey;
+
+    object selfTest = authed
+        ? await cfPurge.SelfTestAsync()
+        : new { skipped = "send 'Api-Key'-header (Delivery API-nøkkel) for å kjøre live purge-test" };
+
+    return Results.Ok(new
+    {
+        enabled = o.Enabled,
+        zoneIdSet = !string.IsNullOrWhiteSpace(o.ZoneId),
+        zoneIdLength = o.ZoneId?.Length ?? 0,
+        apiTokenSet = !string.IsNullOrWhiteSpace(o.ApiToken),
+        apiTokenLength = o.ApiToken?.Length ?? 0,
+        siteBaseUrl = o.SiteBaseUrl,
+        selfTest,
+    });
+});
+
 app.UseUmbraco()
     .WithMiddleware(u =>
     {
