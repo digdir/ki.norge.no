@@ -172,7 +172,11 @@ app.MapGet("/api/diagnostics/cloudflare", async (
             try
             {
                 var s = await client.GetSecretAsync(name);
-                probed.Add(new { name, found = true, length = s.Value.Value?.Length ?? 0, enabled = s.Value.Properties.Enabled });
+                string? val = s.Value.Value;
+                string sha = string.IsNullOrEmpty(val) ? "" :
+                    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                        System.Text.Encoding.UTF8.GetBytes(val))).ToLowerInvariant()[..16];
+                probed.Add(new { name, found = true, length = val?.Length ?? 0, enabled = s.Value.Properties.Enabled, sha256 = sha });
             }
             catch (Azure.RequestFailedException rfe)
             {
