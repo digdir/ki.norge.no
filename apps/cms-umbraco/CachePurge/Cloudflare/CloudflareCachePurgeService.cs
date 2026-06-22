@@ -39,32 +39,6 @@ public class CloudflareCachePurgeService : ICloudflareCachePurgeService
         await PostPurgeAsync(opts, new { purge_everything = true }, ct);
     }
 
-    public async Task<CloudflarePurgeProbe> SelfTestAsync(CancellationToken ct = default)
-    {
-        CloudflareOptions opts = _options.CurrentValue;
-        if (!IsConfigured(opts))
-            return new CloudflarePurgeProbe(false, null, false, "Enabled/ApiToken/ZoneId mangler (ikke lastet)");
-
-        string url = (opts.SiteBaseUrl?.TrimEnd('/') ?? "") + "/__cf-purge-selftest";
-        try
-        {
-            using HttpRequestMessage request = new(
-                HttpMethod.Post, $"client/v4/zones/{opts.ZoneId}/purge_cache")
-            {
-                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", opts.ApiToken.Trim()) },
-                Content = JsonContent.Create(new { files = new[] { url } }),
-            };
-            using HttpResponseMessage response = await _http.SendAsync(request, ct);
-            string body = await response.Content.ReadAsStringAsync(ct);
-            if (body.Length > 400) body = body[..400];
-            return new CloudflarePurgeProbe(true, (int)response.StatusCode, response.IsSuccessStatusCode, body);
-        }
-        catch (Exception ex)
-        {
-            return new CloudflarePurgeProbe(true, null, false, ex.Message);
-        }
-    }
-
     private bool IsConfigured(CloudflareOptions opts)
     {
         if (opts.Enabled

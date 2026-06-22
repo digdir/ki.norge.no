@@ -146,64 +146,6 @@ app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService ct
     });
 });
 
-// Cloudflare-config-status; live purge-test gates på Delivery API-nøkkelen.
-app.MapGet("/api/diagnostics/cloudflare", async (
-    HttpContext http,
-    Microsoft.Extensions.Options.IOptionsMonitor<KiNorge.Cms.CachePurge.Cloudflare.CloudflareOptions> cfOpts,
-    KiNorge.Cms.CachePurge.Cloudflare.ICloudflareCachePurgeService cfPurge) =>
-{
-    var o = cfOpts.CurrentValue;
-    string? deliveryKey = app.Configuration["Umbraco:CMS:DeliveryApi:ApiKey"];
-    string providedKey = http.Request.Headers["Api-Key"].ToString();
-    bool authed = !string.IsNullOrEmpty(deliveryKey) && providedKey == deliveryKey;
-
-    object selfTest = authed
-        ? await cfPurge.SelfTestAsync()
-        : new { skipped = "send 'Api-Key'-header (Delivery API-nøkkel) for å kjøre live purge-test" };
-
-    object vaultProbe;
-    try
-    {
-        var client = new Azure.Security.KeyVault.Secrets.SecretClient(
-            new Uri(akvUri!), new Azure.Identity.DefaultAzureCredential());
-        var probed = new List<object>();
-        foreach (string name in new[] { "Cloudflare--ApiToken", "Cloudflare--ZoneId", "Umbraco--CMS--DeliveryApi--ApiKey" })
-        {
-            try
-            {
-                var s = await client.GetSecretAsync(name);
-                string? val = s.Value.Value;
-                string sha = string.IsNullOrEmpty(val) ? "" :
-                    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
-                        System.Text.Encoding.UTF8.GetBytes(val))).ToLowerInvariant()[..16];
-                probed.Add(new { name, found = true, length = val?.Length ?? 0, enabled = s.Value.Properties.Enabled, sha256 = sha });
-            }
-            catch (Azure.RequestFailedException rfe)
-            {
-                probed.Add(new { name, found = false, status = rfe.Status, error = rfe.ErrorCode });
-            }
-        }
-        vaultProbe = new { reachable = true, secrets = probed };
-    }
-    catch (Exception ex)
-    {
-        vaultProbe = new { reachable = false, error = ex.GetType().Name + ": " + ex.Message };
-    }
-
-    return Results.Ok(new
-    {
-        akvUri,
-        enabled = o.Enabled,
-        zoneIdSet = !string.IsNullOrWhiteSpace(o.ZoneId),
-        zoneIdLength = o.ZoneId?.Length ?? 0,
-        apiTokenSet = !string.IsNullOrWhiteSpace(o.ApiToken),
-        apiTokenLength = o.ApiToken?.Length ?? 0,
-        siteBaseUrl = o.SiteBaseUrl,
-        vaultProbe,
-        selfTest,
-    });
-});
-
 app.UseUmbraco()
     .WithMiddleware(u =>
     {
