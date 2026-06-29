@@ -11,8 +11,8 @@ apps/cms-umbraco (Umbraco) ──publish/unpublish/trash──▶  Elastic index
    extractor + event handlers      push                  (semantic_text + norwegian analyzer)
    + /search/reindex (backfill)                                   │
                                                                   │
-/sok  ──hybridSearch()──▶ /ki-content/_search  ───────────────────┘
-(SSR, apps/frontend)      linear 0.4 bm25 / 0.6 dense (no reranker)
+/api/search ──hybridSearch()──▶ /ki-content/_search  ─────────────┘
+(SearchDialog modal)      linear 0.4 bm25 / 0.6 dense (no reranker)
 ```
 
 ### Ingestion (push) — `apps/cms-umbraco/Search/`
@@ -31,9 +31,9 @@ The index mapping is an Elasticsearch **component + index template** (versioned 
 
 ### Retrieval + surface — `apps/frontend/`
 - **`src/lib/search.ts`** — `hybridSearch(query)`: the `linear` 0.4/0.6 retriever, **no reranker** (golden-set Hit@3 ≈ 87% / MRR 0.838 — see `infrastructure/elasticsearch/eval/BASELINE.md`), via `fetch` (Workers-safe). Falls back to Umbraco search when ES is unconfigured.
-- **`src/pages/sok.astro`** — search page (SSR): reads `?q=`, calls `hybridSearch`, shows ranked hits (type badge + title + excerpt), links via the `url` (made relative for same-host nav).
-- **`src/pages/api/search.ts`** — `POST { query } → { results }` for optional client use.
-- **Header** — a search icon linking to `/sok`.
+- **`src/pages/api/search.ts`** — `POST { query } → { results }`: calls `hybridSearch`, the search surface's only entry point.
+- **`src/components/shared/SearchDialog.tsx`** — search modal (React island, `client:load`): opened from the Header (search icon + Ctrl/Cmd+K), POSTs to `/api/search`, shows ranked hits (type badge + title + excerpt), links via the `url` (made relative for same-host nav). There is no `/sok` page.
+- **Header** — a search icon (+ Ctrl/Cmd+K) that opens the modal.
 
 ## Configuration (env)
 | Var | Where | Default |
@@ -49,7 +49,7 @@ Secrets stay out of git: the CMS reads them from Azure Key Vault (`Elasticsearch
 1. **Templates:** `apply-templates.mjs` → `POST {ES}/_index_template/_simulate_index/ki-content` resolves `body_semantic` to `semantic_text` via `e5-large-incluster` (in-cluster). ✓ (verified)
 2. **CMS compiles:** `dotnet build apps/cms-umbraco`. ✓ (verified — 0 errors)
 3. **Push E2E (staging):** publish a node in the CMS → it appears in `ki-content` (`GET {ES}/ki-content/_count` increments; the doc embeds `body_semantic`). Needs a CMS instance with content — the local dev DB is empty.
-4. **Retrieval:** `apps/frontend` `pnpm dev` → `/sok?q=…` returns ranked hits; keyword + paraphrase both hit the right page.
+4. **Retrieval:** `apps/frontend` `pnpm dev` → open the search modal (Ctrl/Cmd+K) and query; keyword + paraphrase both hit the right page.
 
 ## Production notes
 - **Keys:** scoped, read-only ES key for the frontend (retrieval); a write-capable key for the CMS. Rotate the spike admin key before non-demo use.

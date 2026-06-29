@@ -34,8 +34,9 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 **Stack:** Astro (server mode) + React (islands) + @digdir/designsystemet-react + @digdir/designsystemet-css
 
 **Sider** (`apps/frontend/src/pages/`)
-- Forsiden, artikler, eksempler, veiledning (guide + steg), sandkasse, FAQ, kontakt, om-oss, ki-ordbok, søk, status (admin-only)
-- Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`
+- Forsiden, artikler, eksempler, kalender, veiledning (guide + steg), sandkasse, om-oss, status (admin-only)
+- Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `kalender/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`, og toppnivå `[slug]` (CMS `side`-noder)
+- Søk er en modal (`SearchDialog`, kaller `/api/search`), ikke en egen side. Det finnes IKKE en `/kontakt`-, `/faq`-, `/sok`- eller `/ki-ordbok`-side i koden. Footer har en "Kontakt oss"-seksjon, men ingen kontaktside.
 
 **Nøkkelfiler**
 - `src/lib/umbraco.ts` — all datahenting fra CMS. Interfaces, fetch-funksjoner, mapItem() som mapper content types til TypeScript-typer
