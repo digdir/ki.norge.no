@@ -15,8 +15,6 @@ Mange sider henter innhold fra Strapi CMS. Hvis CMS ikke er tilgjengelig eller i
 - Artikkel-sider
 - Veiledning-sider
 - Eksempel-sider
-- FAQ
-- Kontakt
 
 ## Globalt (gjelder alle sider)
 - Det skal finnes en toppnavigasjon med lenker:
@@ -73,16 +71,6 @@ Mange sider henter innhold fra Strapi CMS. Hvis CMS ikke er tilgjengelig eller i
 - Forventet:
   - H1: "Om KI Norge"
   - Partnerkort med eksterne lenker
-
-### /kontakt
-- Forventet:
-  - H1: "Kontakt" (fra CMS) eller fallback
-  - Kontaktkort med mailto: og tel:
-
-### /faq
-- Forventet:
-  - H1: "Vanlige sporsmal"
-  - FAQ-liste fra CMS eller tom tilstand
 
 ## 404-test
 - Forventet:

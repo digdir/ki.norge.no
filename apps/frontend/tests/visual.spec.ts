@@ -43,22 +43,6 @@ test.describe('Visual regression tests', () => {
       });
     });
 
-    test('FAQ page', async ({ page }) => {
-      await page.goto('/faq');
-      await page.waitForLoadState('load');
-      await expect(page).toHaveScreenshot('faq-page.png', {
-        fullPage: true,
-      });
-    });
-
-    test('contact page', async ({ page }) => {
-      await page.goto('/kontakt');
-      await page.waitForLoadState('networkidle');
-      await expect(page).toHaveScreenshot('contact-page.png', {
-        fullPage: true,
-      });
-    });
-
     test('about page', async ({ page }) => {
       await page.goto('/om-oss');
       await page.waitForLoadState('networkidle');

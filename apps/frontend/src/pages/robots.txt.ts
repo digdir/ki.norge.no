@@ -19,9 +19,6 @@ Allow: /*.jpeg$
 Allow: /*.webp$
 Allow: /*.svg$
 
-# --- Search (should not appear in search results) ---
-Disallow: /sok/
-
 # --- Media library (Umbraco media files) ---
 Disallow: /media/
 
