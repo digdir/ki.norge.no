@@ -107,7 +107,6 @@ Content is fetched via the Umbraco Content Delivery API v2 at `/umbraco/delivery
 | `/artikler/[slug]` | Article content (rich text blocks) | Page template, TOC |
 | `/eksempler` | Example list, status, tools | Page layout, status badges, filters |
 | `/eksempler/[slug]` | Example content, metadata | Page template, related cases |
-| `/eksempler/send-inn` | — | Entire page (submission form) |
 | `/veiledning` | Veiledning list, categories | Page layout, category icons |
 | `/veiledning/[slug]` | Veiledning content (blocks) | Page template |
 | `/om-oss` | Page content (blocks) | Partner cards, offerings grid |

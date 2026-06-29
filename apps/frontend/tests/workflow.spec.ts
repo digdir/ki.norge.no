@@ -467,7 +467,7 @@ test.describe('Seeded content', () => {
     );
   });
 
-  test('3 pages are published (Om oss, Kontakt, Sandkasse)', async ({
+  test('2 pages are published (Om oss, Sandkasse)', async ({
     request,
   }) => {
     const res = await request.get(api, {
@@ -475,11 +475,10 @@ test.describe('Seeded content', () => {
       ignoreHTTPSErrors: true,
     });
     const { total, items } = await res.json();
-    expect(total).toBe(3);
+    expect(total).toBe(2);
 
     const slugs = items.map((i: any) => i.properties.slug);
     expect(slugs).toContain('om-oss');
-    expect(slugs).toContain('kontakt');
     expect(slugs).toContain('sandkasse');
   });
 

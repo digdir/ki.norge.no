@@ -128,7 +128,7 @@ describe('collectSitemapUrls via generateSitemapXml', () => {
   test('output er velformet sitemap 0.9 med absolutte loc-er', async () => {
     const nodes: RawContentNode[] = [
       { id: '1', contentType: 'artikkel', updateDate: '2026-02-01T10:00:00Z', properties: { slug: 'a' } },
-      { id: '2', contentType: 'side', properties: { slug: 'kontakt' } },
+      { id: '2', contentType: 'side', properties: { slug: 'en-side' } },
     ];
     const { xml } = await sitemapFor(nodes);
 

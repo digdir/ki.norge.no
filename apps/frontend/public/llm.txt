@@ -53,11 +53,6 @@ Mange sider henter innhold fra Strapi CMS. Hvis CMS ikke er tilgjengelig eller i
 - Type: Dynamisk generert fra Strapi CMS
 - Krever publisert innhold i CMS for å fungere
 
-### /eksempler/send-inn
-- Forventet:
-  - H1: "Send inn eksempel"
-  - Skjema med obligatoriske felt
-
 ### /artikler
 - Forventet:
   - H1: "Siste nytt"
