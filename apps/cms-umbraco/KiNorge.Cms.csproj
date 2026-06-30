@@ -13,6 +13,7 @@
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="9.4.2" />
     <PackageReference Include="Kjac.HeadlessPreview" Version="3.0.0" />
     <PackageReference Include="MailKit" Version="4.17.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.7" />
     <PackageReference Include="Umbraco.Cms" Version="17.4.2" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.4.2" />
     <PackageReference Include="uSync" Version="17.3.5" />
