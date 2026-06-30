@@ -78,6 +78,17 @@ case "$MODE" in
   alt)     do_usync=1; do_media=1 ;;
 esac
 
+# innhold/alt krever en fersk Export på prod. Mappa /app/uSync er efemer (ikke
+# et persistent volum), så den forsvinner hvis prod-podden restartes eller
+# redeployes. Sjekk at den finnes før vi prøver å overføre, ellers blir det en
+# kryptisk "tar: Cannot stat"-feil.
+if [ "$do_usync" -eq 1 ] && ! kprod exec "$POD" -c "$CONTAINER" -- test -d /app/uSync 2>/dev/null; then
+  echo "Fant ingen uSync-eksport på prod (/app/uSync mangler)." >&2
+  echo "Kjør Export i prod-backoffice (Settings -> uSync -> Export) først, så dette scriptet." >&2
+  echo "NB: eksportmappa er efemer og vaskes vekk hvis prod-podden restartes/redeployes mellom Export og dette steget." >&2
+  exit 1
+fi
+
 MISSING_FILE=""
 miss_count=0
 hsize="0 B"
