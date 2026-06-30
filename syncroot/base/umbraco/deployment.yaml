@@ -40,6 +40,19 @@ spec:
               value: "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
             - name: ConnectionStrings__umbracoDbDSN_ProviderName
               value: "Microsoft.Data.Sqlite"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.monitoring.svc.cluster.local:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_SERVICE_NAME
+              value: kinorgeportal
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
           ports:
             - name: http
               containerPort: 8080
