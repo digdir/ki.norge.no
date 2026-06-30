@@ -35,7 +35,7 @@ async function sitemapFor(nodes: RawContentNode[]): Promise<{ xml: string; base:
 }
 
 describe('isExcludedPath (port 2: sti-prefiks som speiler robots.txt)', () => {
-  test.each(['/status', '/sok', '/sok/ki', '/media/bilde.png', '/api/soek', '/admin-tilgang', '/preview-tilgang', '/503', '/404'])(
+  test.each(['/status', '/media/bilde.png', '/api/soek', '/admin-tilgang', '/preview-tilgang', '/503', '/404'])(
     '%s er ekskludert',
     (path) => {
       expect(isExcludedPath(path)).toBe(true);
@@ -128,7 +128,7 @@ describe('collectSitemapUrls via generateSitemapXml', () => {
   test('output er velformet sitemap 0.9 med absolutte loc-er', async () => {
     const nodes: RawContentNode[] = [
       { id: '1', contentType: 'artikkel', updateDate: '2026-02-01T10:00:00Z', properties: { slug: 'a' } },
-      { id: '2', contentType: 'side', properties: { slug: 'kontakt' } },
+      { id: '2', contentType: 'side', properties: { slug: 'en-side' } },
     ];
     const { xml } = await sitemapFor(nodes);
 

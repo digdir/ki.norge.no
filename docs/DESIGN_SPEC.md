@@ -91,13 +91,10 @@ ki.norge.no/
 ├── /sandkasse (Regulatory sandbox)
 │   └── /sandkasse/prosjekter (Sandbox projects)
 ├── /eksempler (Case studies)
-│   ├── /eksempler/[slug] (Individual cases)
-│   └── /eksempler/send-inn (Submit form)
+│   └── /eksempler/[slug] (Individual cases)
 ├── /artikler (News/articles)
 │   └── /artikler/[slug] (Individual articles)
-├── /faq (FAQ)
-├── /om-oss (About)
-└── /kontakt (Contact)
+└── /om-oss (About)
 ```
 
 ---
@@ -160,7 +157,7 @@ ki.norge.no/
 ### Navigation Header
 - Sticky positioning
 - Logo (left): "KI Norge" linking to homepage
-- Navigation links (right): Veiledning, Sandkasse, Eksempler, Artikler, Om oss, Kontakt
+- Navigation links (right): Veiledning, Sandkasse, Eksempler, Artikler, Om oss
 - Active state: underline or accent color
 - Mobile: hamburger menu (collapsible)
 
@@ -169,7 +166,7 @@ ki.norge.no/
 - 4 columns:
   1. About KI Norge (brief)
   2. Partners (Nkom, Datatilsynet, Digdir logos/links)
-  3. Quick links (FAQ, Contact)
+  3. Quick links
   4. Legal (Privacy, Accessibility statement)
 - Copyright at bottom
 

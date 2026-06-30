@@ -14,6 +14,9 @@ App_Data/
 wwwroot/media/*
 !wwwroot/media/.gitkeep
 
+## uSync-eksporter (innholdsspeiling, skal ikke i repo)
+uSync/
+
 ## SQLite database
 *.sqlite.db
 *.sqlite.db-shm

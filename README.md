@@ -92,7 +92,7 @@ pnpm run dev
 | Type | Content Type Alias | Description |
 |------|-------------------|-------------|
 | Artikkel | `artikkel` | News articles |
-| Side | `side` | Static pages (om-oss, kontakt, sandkasse) |
+| Side | `side` | Static pages (om-oss, sandkasse) |
 | Eksempel | `eksempel` | AI case studies |
 | Veiledning | `veiledning` | Guidance documents |
 
@@ -107,11 +107,8 @@ Content is fetched via the Umbraco Content Delivery API v2 at `/umbraco/delivery
 | `/artikler/[slug]` | Article content (rich text blocks) | Page template, TOC |
 | `/eksempler` | Example list, status, tools | Page layout, status badges, filters |
 | `/eksempler/[slug]` | Example content, metadata | Page template, related cases |
-| `/eksempler/send-inn` | — | Entire page (submission form) |
 | `/veiledning` | Veiledning list, categories | Page layout, category icons |
 | `/veiledning/[slug]` | Veiledning content (blocks) | Page template |
-| `/faq` | FAQ items, categories | Page layout, accordion, filter pills |
-| `/kontakt` | Page content (blocks) | Page template |
 | `/om-oss` | Page content (blocks) | Partner cards, offerings grid |
 | `/sandkasse` | Optional page content | Feature cards, process steps |
 | `/404` | — | Entire page |

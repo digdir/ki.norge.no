@@ -148,7 +148,7 @@ Disse er allerede satt i `appsettings.Production.json`:
 
 ## Cloudflare Pages — Frontend
 
-Frontenden (Astro) deployes til Cloudflare Pages. Statiske sider serveres fra CDN, SSR-sider (`/sok`, `/api/preview`) kjører som Cloudflare Workers.
+Frontenden (Astro) deployes til Cloudflare Pages. Statiske sider serveres fra CDN, SSR-sider (`/api/search`, `/api/preview`) kjører som Cloudflare Workers.
 
 ### Alternativ A: Koble til GitHub (anbefalt)
 
@@ -187,7 +187,7 @@ Etter første deploy, legg til custom domain i Cloudflare Pages → Custom domai
 Cloudflare Pages Free inkluderer:
 - 500 bygg per måned
 - Ubegrenset båndbredde for statiske sider
-- 100 000 Worker-requests per dag (for `/sok` og `/api/preview`)
+- 100 000 Worker-requests per dag (for `/api/search` og `/api/preview`)
 - DDoS-beskyttelse og CDN
 
 ---

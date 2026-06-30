@@ -170,8 +170,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     );
   }
 
-  // Don't cache preview, API, or admin routes
-  if (isPreview || isApiRoute || isAdminRoute) {
+  // Don't cache preview, API, or admin routes — eller sider som selv har bedt om
+  // å ikke caches. En side setter `no-store` i sin egen catch når CMS-henting
+  // feilet, slik at en degradert render (manglende hero/innhold) aldri caches på
+  // edgen og serveres til alle. Uten dette ville et transient CMS-blaff bli
+  // fanget i edge-cachen i opptil s-maxage og vist til alle besøkende.
+  const pageOptedOutOfCache = response.headers.get('Cache-Control')?.includes('no-store');
+  if (isPreview || isApiRoute || isAdminRoute || pageOptedOutOfCache) {
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   }

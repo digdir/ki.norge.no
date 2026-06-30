@@ -31,7 +31,14 @@ export default {
 				throw new Error(`Failed to fetch GET-request from origin: ${error}`);
 			}
 
-			if (response.ok) {
+			// Respekter no-store/private fra origin. Preview og degraderte/feilede
+			// renders (CMS-henting feilet) sender disse direktivene, og de skal aldri
+			// lagres på edgen — ellers serveres ett uheldig svar til ALLE besøkende,
+			// ikke bare den som utløste det. Gjelder hver bruker likt.
+			const cacheControl = response.headers.get("Cache-Control") || "";
+			const mayCache = !/\b(no-store|private)\b/i.test(cacheControl);
+
+			if (response.ok && mayCache) {
 				try {
 					ctx.waitUntil(cache.put(cacheKey, response.clone()));
 				} catch (error) {

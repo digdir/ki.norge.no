@@ -22,7 +22,7 @@ Last updated: 2026-02-13
 | **CSS** | Scoped CSS + DS tokens | Good | N/A — clean pattern, dark mode overrides eliminated |
 | **Dark Mode** | CSS custom properties | Good | N/A — auto-switching via DS tokens, localStorage persistence, prefers-color-scheme respect |
 | **Rendering (SSG)** | Prerendered pages | Good | N/A — correct for a content site |
-| **Rendering (SSR)** | `/sok` + `/api/preview` | Good | N/A — only dynamic where needed |
+| **Rendering (SSR)** | `/api/search` + `/api/preview` | Good | N/A — only dynamic where needed |
 | **API Client** | umbraco.ts | Needs work | No fetch timeouts, no retries, no caching. `fetchBySlug` fetches ALL items then filters client-side (O(n)). Add `AbortSignal.timeout(5000)`, retry with backoff, and server-side slug filtering |
 | **SEO — Meta** | OG, Twitter Card, canonical, JSON-LD | Good | Open Graph, Twitter Card, canonical URL on all pages. JSON-LD: FAQPage, Article, WebSite+SearchAction. OG image can be added when designed. |
 | **SEO — Sitemap** | @astrojs/sitemap | Good | N/A — auto-generated, referenced in robots.txt |
@@ -32,7 +32,7 @@ Last updated: 2026-02-13
 | **Performance — Images** | CSS background-image | **Weak** | No `<img>` tags with width/height (causes layout shift), no `loading="lazy"`, no responsive `srcset`, no image optimization. Switch to `<img>` or Astro's `<Image>` component |
 | **Performance — Fonts** | Preconnect + display=swap | Good | N/A — proper preconnect to Google Fonts, swap prevents blocking |
 | **Performance — JS** | Astro islands | Good | N/A — minimal client JS, most components are server-rendered |
-| **Testing** | Playwright 1.44 | Good | 81 tests passing. Consider adding tests for `/sok` search results and 404 page |
+| **Testing** | Playwright 1.44 | Good | 81 tests passing. Consider adding tests for search results and 404 page |
 | **Test Browsers** | 6 projects | Good | N/A — Chrome/Firefox/Safari + dark + mobile variants |
 | **Frontend Hosting** | Cloudflare Pages | OK | No `wrangler.toml` in repo — deployment config is cloud-only. Add config to git for reproducible deploys |
 | **CMS Hosting** | Azure (planned) | Not started | No Azure config, no Dockerfile, no deployment pipeline. Needs setup before production |
@@ -58,7 +58,7 @@ Tasks we can do right now, ordered by impact and urgency.
 
 3. ~~**Add SEO meta tags to Layout.astro**~~ — DONE. Added Open Graph, Twitter Card, canonical URL. Article pages pass `ogType="article"` and `publishedAt`.
 
-4. ~~**Add JSON-LD structured data**~~ — DONE. FAQPage schema on `/faq`, Article schema on `/artikler/[slug]`, WebSite+SearchAction on homepage.
+4. ~~**Add JSON-LD structured data**~~ — DONE. Article schema on `/artikler/[slug]`, WebSite+SearchAction on homepage.
 
 5. ~~**CMS-editable SEO fields**~~ — DONE. Added `seoTittel`, `seoBeskrivelse`, `seoBilde` to Artikkel, Eksempel, Veiledning, Side. Mapped in `umbraco.ts`, used in all page templates with auto-generated fallbacks. Note: existing databases need a fresh install to pick up the new content type fields.
 
@@ -76,7 +76,7 @@ Tasks we can do right now, ordered by impact and urgency.
 
 ### P3 — Low (nice to have)
 
-11. **Add Playwright tests for /sok and /404** — These pages exist but aren't covered by visual regression tests. Quick wins for test coverage.
+11. **Add Playwright tests for /404** — Not covered by visual regression tests. Quick win for test coverage.
 
 12. **Self-host Material Symbols font** — Currently loaded from Google Fonts CDN. Self-hosting removes the external dependency and the DNS lookup, slightly improving first paint.
 

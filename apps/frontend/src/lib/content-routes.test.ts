@@ -21,7 +21,7 @@ describe('buildUrlForContent', () => {
       ['eksempel', 'min-case', '/eksempler/min-case'],
       ['enkelVeiledning', 'kom-igang', '/veiledning/kom-igang'],
       ['veiledningGuide', 'sett-igang-med-ki', '/veiledning/sett-igang-med-ki'],
-      ['side', 'kontakt', '/kontakt'],
+      ['side', 'en-side', '/en-side'],
       ['kalenderhendelse', 'markedsdialog', '/kalender/markedsdialog'],
     ])('%s med slug %s → %s', (type, slug, expected) => {
       expect(buildUrlForContent(item(type, slug), [])).toBe(expected);

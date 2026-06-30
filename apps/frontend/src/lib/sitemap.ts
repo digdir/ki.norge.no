@@ -14,7 +14,6 @@ export const EXCLUDED_CONTENT_TYPES = new Set<string>([]);
 // kan vurderes i en senere runde). Brukes som fallback når et innholdsnode
 // likevel resolver til en reservert sti (f.eks. en `side` med slug "status").
 export const EXCLUDED_PATH_PREFIXES = [
-  '/sok',
   '/media',
   '/admin-tilgang',
   '/preview-tilgang',

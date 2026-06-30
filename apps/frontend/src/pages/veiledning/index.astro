@@ -26,6 +26,8 @@ try {
   ]);
 } catch (e) {
   console.error('Failed to fetch veiledning page data:', e);
+  // CMS-henting feilet: ikke cache den degraderte renderen (se middleware).
+  Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
 const heroTitle = cmsData?.heroTittel || 'Veiledning og guider';
