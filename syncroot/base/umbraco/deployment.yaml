@@ -31,6 +31,10 @@ spec:
           env:
             - name: ASPNETCORE_FORWARDEDHEADERS_ENABLED
               value: "true"
+            # Uten denne hopper Umbraco over ventende databasemigreringer ved
+            # oppstart, og Delivery API svarer 200 OK med tom liste.
+            - name: Umbraco__CMS__Unattended__UpgradeUnattended
+              value: "true"
             - name: KeyVault__AkvUri
               valueFrom:
                 configMapKeyRef:
