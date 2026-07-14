@@ -66,13 +66,34 @@ export async function hybridSearch(query: string, size = TOP_N): Promise<SearchH
   if (!q) return [];
   if (!isConfigured) return fallbackSearch(q);
 
-  const res = await fetch(`${ES_ENDPOINT}/${INDEX}/_search`, {
-    method: 'POST',
-    headers: { Authorization: `ApiKey ${ES_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(retrieverBody(q, size)),
-  });
-  if (!res.ok) throw new Error(`ES search ${res.status}: ${await res.text()}`);
-  const data = (await res.json()) as { hits: { hits: { _source: Record<string, string> }[] } };
+  const headers = { Authorization: `ApiKey ${ES_API_KEY}`, 'Content-Type': 'application/json' };
+
+  // BM25 count runs in parallel with the hybrid search. If no keyword hits exist
+  // in the corpus, hybrid results are pure semantic noise — return empty.
+  const [countRes, searchRes] = await Promise.all([
+    fetch(`${ES_ENDPOINT}/${INDEX}/_count`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ query: { multi_match: { query: q, fields: ['title^2', 'body'] } } }),
+    }),
+    fetch(`${ES_ENDPOINT}/${INDEX}/_search`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(retrieverBody(q, size)),
+    }),
+  ]);
+
+  if (!searchRes.ok) throw new Error(`ES search ${searchRes.status}: ${await searchRes.text()}`);
+
+  if (countRes.ok) {
+    const { count } = (await countRes.json()) as { count: number };
+    if (count === 0) {
+      searchRes.body?.cancel();
+      return [];
+    }
+  }
+
+  const data = (await searchRes.json()) as { hits: { hits: { _source: Record<string, string> }[] } };
   return data.hits.hits.map((h) => {
     const s = h._source;
     return { title: s.title, url: s.url, type: s.type, excerpt: excerptOf(s.body) };
