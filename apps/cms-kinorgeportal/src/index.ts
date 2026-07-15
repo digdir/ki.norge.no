@@ -6,6 +6,12 @@ export default {
   async fetch(request, env, ctx) {
     const targetBase = env.ORIGIN;
     const url = new URL(request.url);
+
+    // CMS-et er headless og har ingenting på rot; send folk til backoffice.
+    if (url.pathname === "/") {
+      return Response.redirect(`${url.origin}/umbraco`, 302);
+    }
+
     const targetUrl = targetBase + url.pathname + url.search;
     const incomingUrl = new URL(request.url);
 
@@ -13,8 +19,6 @@ export default {
     headers.set("Host", incomingUrl.host);
     headers.set("X-Forwarded-Host", incomingUrl.host);
     headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
-
-    const originRequest: Request = new Request(targetUrl, request);
 
     const proxyRequest = new Request(targetUrl.toString(), {
       method: request.method,
