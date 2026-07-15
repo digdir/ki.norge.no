@@ -13,7 +13,6 @@
     "deploy:tt02": "pnpm run deploy:check-main && CLOUDFLARE_ENV=tt02 astro build && node scripts/keep-previous-assets.mjs tt02 && wrangler deploy --env tt02",
     "deploy:prod": "pnpm run deploy:check-main && CLOUDFLARE_ENV=prod astro build && node scripts/keep-previous-assets.mjs prod && wrangler deploy --env prod",
     "deploy:tt02:preview": "CLOUDFLARE_ENV=tt02 astro build && node scripts/keep-previous-assets.mjs tt02 && wrangler deploy --env tt02",
-    "start": "node dist/server/entry.mjs",
     "test:unit": "vitest run",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
     "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
