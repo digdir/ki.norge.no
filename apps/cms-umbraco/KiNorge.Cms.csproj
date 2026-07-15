@@ -14,6 +14,9 @@
     <PackageReference Include="Kjac.HeadlessPreview" Version="3.0.0" />
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.9" />
+    <!-- Transitiv via Umbraco. Pinnet over sårbar 2.4.1 (GHSA-v5pm-xwqc-g5wc);
+         fjern når Umbraco selv drar >= 2.7.5. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="Umbraco.Cms" Version="17.5.3" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.5.3" />
     <PackageReference Include="uSync" Version="17.3.5" />
