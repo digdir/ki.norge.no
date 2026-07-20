@@ -38,7 +38,9 @@ const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde, MEDIA_W
 const featuredTitle = cmsData?.seksjon1Kort?.[0]?.tittel || 'Hva er KI og hva kan du bruke det til?';
 const featuredDesc = cmsData?.seksjon1Kort?.[0]?.beskrivelse || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.';
 const featuredHref = cmsData?.seksjon1Kort?.[0]?.url || '/veiledning/kom-i-gang';
-const featuredLabel = cmsData?.seksjon1Tittel || 'Kom i gang';
+// Ingen hardkodet fallback: redaktøren skal kunne fjerne tittelen helt (#494).
+// TextWithImage skjuler label-feltet når det er tomt.
+const featuredLabel = cmsData?.seksjon1Tittel;
 const featuredImage = heroImageUrl || '/woman-speaking.svg';
 
 // Rich link list — "Steg for steg"
@@ -104,7 +106,7 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
   {richLinks.length > 0 && (
     <section class="veil-rich-links" data-layout-block="edge">
       <div data-layout-block="content">
-        <h2 class="ds-heading veil-section-heading" data-size="xs">{cmsData?.seksjon2Tittel || 'Steg for steg'}</h2>
+        {cmsData?.seksjon2Tittel && <h2 class="ds-heading veil-section-heading" data-size="xs">{cmsData.seksjon2Tittel}</h2>}
         <ul class="veil-rich-list">
           {richLinks.map((link) => {
             const id = `rich-link-${crypto.randomUUID().slice(0, 8)}`;
