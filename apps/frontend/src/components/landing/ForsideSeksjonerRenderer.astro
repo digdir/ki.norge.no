@@ -113,6 +113,8 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   if (block.contentType === 'forsideArrangementer') {
     // Redaktørvalgt arrangement overstyrer auto. Tomt → neste kommende.
     const valgt = (block.arrangementId && upcomingEvents.find((e) => e.id === block.arrangementId)) || upcomingEvents[0] || null;
+    // Ingen kommende arrangementer → skjul hele seksjonen (ikke en tom overskrift + lenke).
+    if (!valgt) return null;
     return (
       <section class="arrangementer" data-layout-block="edge">
         <div class="arrangementer-section" data-layout-block="content">
