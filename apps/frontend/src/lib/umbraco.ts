@@ -452,6 +452,8 @@ export interface Sandkasse {
 export interface VeiledningKort {
   tittel: string;
   beskrivelse?: string;
+  /** Content-picker: id på valgt veiledning/artikkel/eksempel. Løses til URL via pool. Overstyrer url. */
+  lenkeId?: string;
   url?: string;
   ikon?: string;
 }
@@ -1525,6 +1527,7 @@ function mapVeiledningKort(value: unknown): VeiledningKort[] {
     return {
       tittel: (props.tittel as string) || '',
       beskrivelse: (props.beskrivelse as string) || undefined,
+      lenkeId: pickerId(props.lenke),
       url: (props.url as string) || undefined,
       ikon: (props.ikon as string) || undefined,
     };
