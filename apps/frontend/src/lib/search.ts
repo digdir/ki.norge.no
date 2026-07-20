@@ -31,7 +31,14 @@ function excerptOf(body: string, max = 220): string {
   return clean.length > max ? clean.slice(0, max).replace(/\s+\S*$/, '') + ' …' : clean;
 }
 
-// linear(0.4 bm25 / 0.6 dense, minmax) — no reranker (keeps the query path in-EU).
+// Vekting nøkkelord (BM25) vs semantikk, lineært kombinert med minmax-norm.
+// Ingen reranker (holder query-stien in-EU). Høyere LEX favoriserer eksakte
+// ord/titler, høyere SEM betydningslikhet. Vektet mot nøkkelord (var 0.4/0.6)
+// så tittel-/navnesøk ikke havner under semantisk nære, ordmessig svakere
+// treff (#544). Juster ved behov.
+const LEX_WEIGHT = 0.6;
+const SEM_WEIGHT = 0.4;
+
 function retrieverBody(query: string, size: number) {
   const lex = { standard: { query: { multi_match: { query, fields: ['title^2', 'body'] } } } };
   const sem = { standard: { query: { semantic: { field: 'body_semantic', query } } } };
@@ -41,8 +48,8 @@ function retrieverBody(query: string, size: number) {
     retriever: {
       linear: {
         retrievers: [
-          { retriever: lex, weight: 0.4, normalizer: 'minmax' },
-          { retriever: sem, weight: 0.6, normalizer: 'minmax' },
+          { retriever: lex, weight: LEX_WEIGHT, normalizer: 'minmax' },
+          { retriever: sem, weight: SEM_WEIGHT, normalizer: 'minmax' },
         ],
         rank_window_size: 50,
       },
