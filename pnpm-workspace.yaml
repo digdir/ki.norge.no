@@ -19,7 +19,8 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@astrojs/internal-helpers@0.10.0'
   - '@astrojs/markdown-remark@7.2.0'
-  - '@astrojs/node@10.1.2'
+  # Renovate security update: @astrojs/node@11.0.2
+  - '@astrojs/node@10.1.2 || 11.0.2'
   - '@astrojs/react@5.0.6'
   - astro@6.4.7
   - '@digdir/designsystemet-css@1.15.0'
