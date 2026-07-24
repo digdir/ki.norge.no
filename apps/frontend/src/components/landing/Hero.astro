@@ -16,7 +16,7 @@ const {
   komIGangTekst = 'Kom i gang',
   lenketekst = 'Hva er KI og hva kan du bruke det til?',
   lenkeUrl = '/veiledning/hva-er-ki',
-  illustrasjon = '/people-working-on-computer.svg',
+  illustrasjon,
 } = Astro.props;
 
 // Pilen limes til siste ord så den ikke brekker alene (#464)
@@ -32,9 +32,11 @@ const lenkeParts = splitLastWord(lenketekst);
         {komIGangTekst}: <a class="hero-cta-link ds-focus" href={lenkeUrl}>{lenkeParts.head}<span class="u-nowrap">{lenkeParts.last}<span class="hero-cta-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={24} /></span></span></a>
       </p>
     </div>
-    <div class="hero-illustration">
-      <img src={illustrasjon} alt="" width="400" height="300" fetchpriority="high" />
-    </div>
+    {illustrasjon && (
+      <div class="hero-illustration">
+        <img src={illustrasjon} alt="" width="400" height="300" fetchpriority="high" />
+      </div>
+    )}
   </div>
 </section>
 
