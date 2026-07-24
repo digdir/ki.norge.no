@@ -31,7 +31,14 @@ function excerptOf(body: string, max = 220): string {
   return clean.length > max ? clean.slice(0, max).replace(/\s+\S*$/, '') + ' …' : clean;
 }
 
-// linear(0.4 bm25 / 0.6 dense, minmax) — no reranker (keeps the query path in-EU).
+// Vekting nøkkelord (BM25) vs semantikk, lineært kombinert med minmax-norm.
+// Ingen reranker (holder query-stien in-EU). Høyere LEX favoriserer eksakte
+// ord/titler, høyere SEM betydningslikhet. Vektet mot nøkkelord (var 0.4/0.6)
+// så tittel-/navnesøk ikke havner under semantisk nære, ordmessig svakere
+// treff (#544). Juster ved behov.
+const LEX_WEIGHT = 0.6;
+const SEM_WEIGHT = 0.4;
+
 function retrieverBody(query: string, size: number) {
   const lex = { standard: { query: { multi_match: { query, fields: ['title^2', 'body'] } } } };
   const sem = { standard: { query: { semantic: { field: 'body_semantic', query } } } };
@@ -41,8 +48,8 @@ function retrieverBody(query: string, size: number) {
     retriever: {
       linear: {
         retrievers: [
-          { retriever: lex, weight: 0.4, normalizer: 'minmax' },
-          { retriever: sem, weight: 0.6, normalizer: 'minmax' },
+          { retriever: lex, weight: LEX_WEIGHT, normalizer: 'minmax' },
+          { retriever: sem, weight: SEM_WEIGHT, normalizer: 'minmax' },
         ],
         rank_window_size: 50,
       },
@@ -61,19 +68,44 @@ const TYPE_ROUTES: Record<string, string> = {
   side: '/',
 };
 
+// Relevans-gate: semantisk søk finner alltid de nærmeste dokumentene, så tull
+// ("middag") gir alltid treff. BM25 er en ren nøkkelord-match og er 0 når ingen
+// søkeord finnes i innholdet. Vi krever et minimum lexikalsk treff før vi viser
+// resultater. Rå semantisk score duger ikke som gate: E5-similariteter ligger
+// 0.90-0.96 for både relevante og irrelevante søk. Kjent begrensning: engelske
+// søk mot norsk innhold og enkeltstående vanlige ord kan bomme. Juster ved behov.
+const LEX_GATE_MIN_SCORE = 1;
+
+// Ren BM25-probe, kun for gate-scoren (size 1, ingen _source).
+function lexicalGateBody(query: string) {
+  return { size: 1, _source: false, query: { multi_match: { query, fields: ['title^2', 'body'] } } };
+}
+
 export async function hybridSearch(query: string, size = TOP_N): Promise<SearchHit[]> {
   const q = query.trim();
   if (!q) return [];
   if (!isConfigured) return fallbackSearch(q);
 
-  const res = await fetch(`${ES_ENDPOINT}/${INDEX}/_search`, {
+  // Ett _msearch-kall: [lexikalsk gate-probe, hybrid rangering] i én rundtur.
+  const ndjson =
+    [JSON.stringify({}), JSON.stringify(lexicalGateBody(q)),
+     JSON.stringify({}), JSON.stringify(retrieverBody(q, size))].join('\n') + '\n';
+
+  const res = await fetch(`${ES_ENDPOINT}/${INDEX}/_msearch`, {
     method: 'POST',
-    headers: { Authorization: `ApiKey ${ES_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(retrieverBody(q, size)),
+    headers: { Authorization: `ApiKey ${ES_API_KEY}`, 'Content-Type': 'application/x-ndjson' },
+    body: ndjson,
   });
-  if (!res.ok) throw new Error(`ES search ${res.status}: ${await res.text()}`);
-  const data = (await res.json()) as { hits: { hits: { _source: Record<string, string> }[] } };
-  return data.hits.hits.map((h) => {
+  if (!res.ok) throw new Error(`ES msearch ${res.status}: ${await res.text()}`);
+  const { responses } = (await res.json()) as {
+    responses: { hits?: { max_score?: number | null; hits?: { _source: Record<string, string> }[] } }[];
+  };
+  const [lexResp, hybridResp] = responses ?? [];
+
+  // Ingen nøkkelord-forankring i innholdet → behandle som ingen treff (#544).
+  if ((lexResp?.hits?.max_score ?? 0) < LEX_GATE_MIN_SCORE) return [];
+
+  return (hybridResp?.hits?.hits ?? []).map((h) => {
     const s = h._source;
     return { title: s.title, url: s.url, type: s.type, excerpt: excerptOf(s.body) };
   });
