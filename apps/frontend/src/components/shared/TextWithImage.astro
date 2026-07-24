@@ -5,7 +5,7 @@ import { splitLastWord } from '../../lib/text';
 interface Props {
   title: string;
   href: string;
-  image: string;
+  image?: string;
   imageAlt?: string;
   imagePosition?: 'left' | 'right';
   label?: string;
@@ -28,9 +28,11 @@ const titleParts = splitLastWord(title);
       <slot name="body" />
     </div>
   </div>
-  <div class="illustration">
-    <img src={image} alt={imageAlt} />
-  </div>
+  {image && (
+    <div class="illustration">
+      <img src={image} alt={imageAlt} />
+    </div>
+  )}
 </div>
 
 <style is:global>

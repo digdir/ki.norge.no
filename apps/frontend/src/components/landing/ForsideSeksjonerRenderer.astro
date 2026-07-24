@@ -134,7 +134,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     const tittel = block.tittel || valgt?.tittel || 'Gjør dataene KI-klare';
     const ingress = block.ingress || valgt?.ingress || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.';
     const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : '/veiledning');
-    const image = (block.illustrasjon ? getMediaUrl(block.illustrasjon) : (valgt?.seoBilde ? getMediaUrl(valgt.seoBilde) : undefined)) ?? '/people-workshopping.svg';
+    const image = block.illustrasjon ? getMediaUrl(block.illustrasjon) : (valgt?.seoBilde ? getMediaUrl(valgt.seoBilde) : undefined);
     return (
       <section class="veiledning-section" data-layout-block="edge">
         <div data-layout-block="content">
@@ -202,7 +202,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
       <section class="sandkasse-section" data-layout-block="content">
         <div class="sandkasse-card" data-clickdelegatefor={sandkasseLinkId}>
           <div class="sandkasse-card-image">
-            <img src={block.illustrasjon ? getMediaUrl(block.illustrasjon) : '/people-working.svg'} alt="" loading="lazy" decoding="async" />
+            {block.illustrasjon && <img src={getMediaUrl(block.illustrasjon)} alt="" loading="lazy" decoding="async" />}
           </div>
           <div class="sandkasse-card-text">
             <h2 class="sandkasse-title">
