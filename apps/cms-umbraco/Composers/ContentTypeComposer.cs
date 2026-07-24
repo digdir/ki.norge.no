@@ -1952,16 +1952,29 @@ public class ContentTypeComponent : IAsyncComponent
     /// </summary>
     private void EnsureSlugOptional()
     {
-        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss", "side", "stegartikkel" })
+        // veiledningGuide/veiledningSteg manglet her, så slug var obligatorisk der -> redaktør
+        // MÅTTE skrive den for hånd og bommet (innhold forsvant). ContentSlugHandler auto-genererer
+        // fra tittel når feltet er tomt, så non-mandatory + en tydelig beskrivelse er nok.
+        const string autoDesc = "URL-vennlig identifikator. La stå tom for å generere automatisk fra tittelen.";
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss", "side", "stegartikkel", "veiledningGuide", "veiledningSteg" })
         {
             var ct = _contentTypeService.Get(alias);
             if (ct == null) continue;
             var slug = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "slug");
-            if (slug != null && slug.Mandatory)
+            if (slug == null) continue;
+            bool changed = false;
+            if (slug.Mandatory) { slug.Mandatory = false; changed = true; }
+            // Sett hjelpetekst kun når den er tom eller den gamle standarden (ikke overskriv tilpasset).
+            if ((string.IsNullOrWhiteSpace(slug.Description) || slug.Description == "URL-vennlig identifikator.")
+                && slug.Description != autoDesc)
             {
-                slug.Mandatory = false;
+                slug.Description = autoDesc;
+                changed = true;
+            }
+            if (changed)
+            {
                 _contentTypeService.Save(ct);
-                Console.WriteLine($"ContentTypeComposer: slug satt ikke-obligatorisk på '{alias}'");
+                Console.WriteLine($"ContentTypeComposer: slug ikke-obligatorisk + hjelpetekst på '{alias}'");
             }
         }
     }
@@ -2299,7 +2312,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("stegGruppeTittler", "Stegtitler", _textAreaDt, description: "Tittel per steg-gruppe, én per linje.", sortOrder: 4), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, description: "URL-vennlig identifikator. La stå tom for å generere automatisk fra tittelen.", sortOrder: 1), "innstillinger");
 
         ct.AddPropertyGroup("seo", "SEO");
         ct.AddPropertyType(Prop("seoTittel", "SEO-tittel", _textStringDt), "seo");
@@ -2347,7 +2360,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("innholdBlokker", "Innhold", _blockListVeiledningStegDt, description: "Moduler som utgjør innholdet i steget (tekst, info, eksempel, obs, trekkspill).", sortOrder: 3), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
-        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
+        ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, description: "URL-vennlig identifikator. La stå tom for å generere automatisk fra tittelen.", sortOrder: 1), "innstillinger");
         ct.AddPropertyType(Prop("guideSlug", "Guide-slug", _textStringDt, description: "Settes automatisk fra guiden ved lagring. Trenger ikke fylles ut.", sortOrder: 2), "innstillinger");
         ct.AddPropertyType(Prop("steg", "Steg", _numericDt, mandatory: true, description: "Stegnummer (1, 2, 3...)", sortOrder: 3), "innstillinger");
         ct.AddPropertyType(Prop("understeg", "Understeg", _numericDt, mandatory: true, description: "Understeg-nummer (1, 2, 3...)", sortOrder: 4), "innstillinger");
