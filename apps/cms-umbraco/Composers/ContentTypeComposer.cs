@@ -2899,10 +2899,11 @@ public class ContentTypeComponent : IAsyncComponent
             IsElement = true,
         };
         ct.AddPropertyGroup("innhold", "Innhold");
-        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true), "innhold");
-        ct.AddPropertyType(Prop("beskrivelse", "Beskrivelse", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("url", "URL", _textStringDt), "innhold");
-        ct.AddPropertyType(Prop("ikon", "Ikon", _textStringDt, description: "Ikonnavn fra Aksel (f.eks. HandHeart, Package)"), "innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, sortOrder: 0), "innhold");
+        ct.AddPropertyType(Prop("beskrivelse", "Beskrivelse", _textStringDt, sortOrder: 1), "innhold");
+        ct.AddPropertyType(Prop("lenke", "Lenke", _contentPickerDt, description: "Velg veiledning, artikkel eller eksempel. Overstyrer URL-feltet. Bruk URL for eksterne lenker.", sortOrder: 2), "innhold");
+        ct.AddPropertyType(Prop("url", "URL (ekstern lenke)", _textStringDt, sortOrder: 3), "innhold");
+        ct.AddPropertyType(Prop("ikon", "Ikon", _textStringDt, description: "Ikonnavn fra Aksel (f.eks. HandHeart, Package)", sortOrder: 4), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -2911,9 +2912,28 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("veiledningKort");
         if (ct == null) return;
-        if (ct.PropertyTypeExists("ikon")) return;
-        ct.AddPropertyType(Prop("ikon", "Ikon", _textStringDt, description: "Ikonnavn fra Aksel (f.eks. HandHeart, Package)"), "innhold");
-        _contentTypeService.Save(ct);
+        bool changed = false;
+        if (!ct.PropertyTypeExists("ikon"))
+        {
+            ct.AddPropertyType(Prop("ikon", "Ikon", _textStringDt, description: "Ikonnavn fra Aksel (f.eks. HandHeart, Package)"), "innhold");
+            changed = true;
+        }
+        // Lenke-picker så redaktør kan klikke seg til intern veiledning/artikkel/eksempel
+        // i stedet for å lime inn URL (#513). Additivt: URL-feltet og verdiene beholdes.
+        if (!ct.PropertyTypeExists("lenke"))
+        {
+            ct.AddPropertyType(Prop("lenke", "Lenke", _contentPickerDt, description: "Velg veiledning, artikkel eller eksempel. Overstyrer URL-feltet. Bruk URL for eksterne lenker."), "innhold");
+            changed = true;
+        }
+        var url = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "url");
+        if (url != null && url.Name != "URL (ekstern lenke)") { url.Name = "URL (ekstern lenke)"; changed = true; }
+        // Kanonisk rekkefølge (picker rett over URL) så backoffice ser likt ut på ferske og migrerte noder.
+        foreach (var (alias, order) in new[] { ("tittel", 0), ("beskrivelse", 1), ("lenke", 2), ("url", 3), ("ikon", 4) })
+        {
+            var pt = ct.PropertyTypes.FirstOrDefault(p => p.Alias == alias);
+            if (pt != null && pt.SortOrder != order) { pt.SortOrder = order; changed = true; }
+        }
+        if (changed) _contentTypeService.Save(ct);
     }
 
     private IContentType CreateVerktoyKortElement()
