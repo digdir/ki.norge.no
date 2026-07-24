@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.6.0",
-    "@astrojs/node": "10.1.4",
+    "@astrojs/node": "11.0.2",
     "@astrojs/react": "5.0.7",
     "@digdir/designsystemet-css": "^1.15.0",
     "@digdir/designsystemet-react": "^1.15.0",
