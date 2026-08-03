@@ -135,6 +135,8 @@ const formattedDate = date
 
   .news-card--image .news-card-image {
     aspect-ratio: 4 / 3;
+    min-height: 220px;
+    max-height: 300px;
     overflow: hidden;
     background-color: var(--image-fallback-bg, #d9d9d9);
   }
@@ -168,8 +170,11 @@ const formattedDate = date
   }
 
   .news-card--featured .news-card-image {
-    flex: 0 0 45%;
-    aspect-ratio: 4 / 3;
+    /* Bildet går helt til midten av kortet, og høyden følger teksten
+       innenfor 220-300px (#584). */
+    flex: 0 0 50%;
+    min-height: 220px;
+    max-height: 300px;
     overflow: hidden;
   }
 
