@@ -84,7 +84,7 @@ const simpleLinks = (cmsData?.seksjon3Kort?.length ?? 0) > 0
     ];
 
 // Case cards — "Lær av andre"
-const eksempelTag = cmsData?.eksempelKortTag || 'Eksempel';
+const eksempelTag = cmsData?.eksempelKortTag;
 const caseCards = cases.data.length > 0
   ? cases.data.slice(0, 2).map(c => ({
       title: c.tittel,

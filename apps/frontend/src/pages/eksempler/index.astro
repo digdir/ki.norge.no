@@ -109,7 +109,7 @@ const seksjoner = oversikt?.seksjoner?.length ? oversikt.seksjoner : fallbackSek
               <ExampleLinkCards cards={items.map((e, i) => ({
                 href: `/eksempler/${e.slug}`,
                 title: e.tittel,
-                tag: s.kortTag || 'Eksempel',
+                tag: s.kortTag,
                 variant: s.kortFarger?.[i],
               }))} />
             </div>
