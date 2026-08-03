@@ -32,8 +32,8 @@ try {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
-const heroTitle = cmsData?.heroTittel || 'Veiledning og guider';
-const heroText = cmsData?.heroTekst || 'Lurer du på hva det er lurt å tenke på når du bruker KI eller lager KI-løsninger? Her finner du veiledninger laget og kvalitetssikret av jurister og andre fagfolk.';
+const heroTitle = cmsData?.heroTittel;
+const heroText = cmsData?.heroTekst;
 const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde, MEDIA_WIDTH.hero) : undefined;
 
 // Redaktørvalgt lenke (content-picker, #513) løses mot hentede pools så vi bruker
@@ -47,8 +47,8 @@ const resolveLenke = (kort?: { lenkeId?: string; url?: string }): string | undef
   (kort?.lenkeId ? lenkeById.get(kort.lenkeId) : undefined) ?? kort?.url ?? undefined;
 
 // Featured article — "Kom i gang"
-const featuredTitle = cmsData?.seksjon1Kort?.[0]?.tittel || 'Hva er KI og hva kan du bruke det til?';
-const featuredDesc = cmsData?.seksjon1Kort?.[0]?.beskrivelse || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.';
+const featuredTitle = cmsData?.seksjon1Kort?.[0]?.tittel;
+const featuredDesc = cmsData?.seksjon1Kort?.[0]?.beskrivelse;
 const featuredHref = resolveLenke(cmsData?.seksjon1Kort?.[0]) || '/veiledning/kom-i-gang';
 // Ingen hardkodet fallback: redaktøren skal kunne fjerne tittelen helt (#494).
 // TextWithImage skjuler label-feltet når det er tomt.
@@ -103,16 +103,18 @@ const seoDesc = cmsData?.seoBeskrivelse || heroText;
 <Layout title={seoTitle} description={seoDesc} ogImage={cmsData?.seoBilde?.url}>
   <!-- Hero -->
   <section class="veil-hero" data-layout-block="content">
-    <h1 class="ds-heading" data-size="xl">{heroTitle}</h1>
-    <p class="ds-paragraph veil-hero-text" data-size="xl">{heroText}</p>
+    {heroTitle && <h1 class="ds-heading" data-size="xl">{heroTitle}</h1>}
+    {heroText && <p class="ds-paragraph veil-hero-text" data-size="xl">{heroText}</p>}
   </section>
 
   <!-- Kom i gang — Featured article with illustration -->
-  <section class="veil-featured" data-layout-block="content">
-    <TextWithImage title={featuredTitle} href={featuredHref} image={featuredImage} imageAlt="" label={featuredLabel}>
-      <p slot="body">{featuredDesc}</p>
-    </TextWithImage>
-  </section>
+  {featuredTitle && (
+    <section class="veil-featured" data-layout-block="content">
+      <TextWithImage title={featuredTitle} href={featuredHref} image={featuredImage} imageAlt="" label={featuredLabel}>
+        {featuredDesc && <p slot="body">{featuredDesc}</p>}
+      </TextWithImage>
+    </section>
+  )}
 
   <!-- Steg for steg — Rich link list -->
   {richLinks.length > 0 && (

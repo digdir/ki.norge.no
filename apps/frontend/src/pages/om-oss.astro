@@ -20,7 +20,7 @@ try {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
-const tittel = omOss?.tittel || 'Om KI Norge';
+const tittel = omOss?.tittel;
 const seoTitle = omOss?.seoTittel || 'Om oss';
 const seoDesc = omOss?.seoBeskrivelse || omOss?.ingress || 'Om KI Norge – en nasjonal satsing for ansvarlig bruk av kunstig intelligens.';
 const seoImage = omOss?.seoBilde?.url || omOss?.artikkelBilde?.url;
@@ -41,7 +41,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   <section class="article-hero" data-layout-block="edge">
     <div class="article-hero-inner">
       <div class="article-hero-text">
-        <h1 class="ds-heading article-title" data-size="xl">{tittel}</h1>
+        {tittel && <h1 class="ds-heading article-title" data-size="xl">{tittel}</h1>}
       </div>
     </div>
   </section>

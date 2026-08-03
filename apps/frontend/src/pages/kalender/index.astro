@@ -16,8 +16,8 @@ try {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
-const tittel = kalender?.tittel || 'Kalender';
-const ingress = kalender?.ingress || 'Her finner du arrangementer om KI fra private og offentlige aktører.';
+const tittel = kalender?.tittel;
+const ingress = kalender?.ingress;
 const seoTitle = kalender?.seoTittel || tittel;
 const seoDesc = kalender?.seoBeskrivelse || ingress;
 
@@ -54,7 +54,7 @@ const tidligere = hendelser
 ---
 <Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde?.url}>
   <header class="kalender-header" data-layout-block="content">
-    <h1 class="ds-heading" data-size="xl">{tittel}</h1>
+    {tittel && <h1 class="ds-heading" data-size="xl">{tittel}</h1>}
     {ingress && <p class="kalender-ingress">{ingress}</p>}
   </header>
 
