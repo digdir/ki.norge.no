@@ -4,7 +4,7 @@ import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.ast
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
-import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, MEDIA_WIDTH, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
+import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, MEDIA_WIDTH, type Eksempel, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -29,7 +29,7 @@ try {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
-const heroTittel = oversikt?.heroTittel || 'Eksempler';
+const heroTittel = oversikt?.heroTittel;
 const seoTitle = oversikt?.seoTittel || heroTittel;
 const seoDesc = oversikt?.seoBeskrivelse || 'Lær av andre offentlige virksomheters erfaringer med kunstig intelligens.';
 
@@ -38,35 +38,13 @@ const relatertById = new Map<string, Artikkel | VeiledningGuide>();
 artikler.forEach(a => relatertById.set(a.id, a));
 guider.forEach(g => relatertById.set(g.id, g));
 
-// Hard-coded seksjoner som matcher Figma-designet. Refererer til eksempler og artikler
-// fra mock-fixturen via ID. Brukes når CMS ikke leverer seksjoner.
-const eksempelIder = eksempler.map(e => e.id);
-const artikkelIder = artikler.map(a => a.id);
-
-const fallbackSeksjoner: EksemplerSeksjon[] = [
-  // 1) Featured eksempel
-  { contentType: 'eksempelFeatured', id: 'fallback-featured', eksempelId: eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
-  // 2) 2x2 grid (4 kort) — farger fra standardmønsteret i ExampleLinkCards (#461)
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-1', eksempelIds: eksempelIder.slice(0, 4) },
-  // 3) 3-kolonne grid (3 kort)
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-2', antallKolonner: 3, eksempelIds: eksempelIder.slice(0, 3) },
-  // 4) Enda en featured
-  { contentType: 'eksempelFeatured', id: 'fallback-featured-2', eksempelId: eksempelIder[1] || eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
-  // 5) 2 kort
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-3', eksempelIds: eksempelIder.slice(0, 2) },
-  // 6) Relatert innhold (3 artikler)
-  { contentType: 'eksempelRelatert', id: 'fallback-relatert', relatertIds: artikkelIder.slice(0, 3), relatertTags: ['Digitaliseringsstrategien', 'Offentlig sektor', 'Arbeidsmarkedet'] },
-  // 7) Kontakt-seksjon
-  { contentType: 'eksempelKontakt', id: 'fallback-kontakt', tittel: 'Ønsker du å dele et eksempel?', navn: 'Navn Navnesen', epost: 'navn@digdir.no', stilling: 'Rådgiver i Digitaliseringsdirektoratet' },
-];
-
-const seksjoner = oversikt?.seksjoner?.length ? oversikt.seksjoner : fallbackSeksjoner;
+const seksjoner = oversikt?.seksjoner ?? [];
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde?.url}>
   <div class="eksempler-page">
     <header class="eksempler-header" data-layout-block="content">
-      <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>
+      {heroTittel && <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>}
     </header>
 
     {seksjoner.length === 0 && eksempler.length > 0 && (

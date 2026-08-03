@@ -11,7 +11,7 @@ import '../../styles/search-dialog.css';
 import './header.css';
 
   interface Props {
-  title: string;
+  title?: string;
   description?: string;
   ogType?: 'website' | 'article';
   ogImage?: string;
@@ -36,7 +36,8 @@ const currentPath = Astro.url.pathname;
 // origin since it returns localhost when behind Azure's reverse proxy.
 const siteUrl = Astro.site?.href.replace(/\/$/, '') || 'https://ki.norge.no';
 const canonicalUrl = `${siteUrl}${currentPath}`;
-const fullTitle = `${title} | KI Norge`;
+// Mangler CMS-tittelen, faller vi tilbake til bare nettstedsnavnet (aldri "undefined | KI Norge").
+const fullTitle = title ? `${title} | KI Norge` : 'KI Norge';
 // Version query busts stale link-preview thumbnail caches without changing the asset path.
 const DEFAULT_OG_IMAGE = '/og-image.png?v=3c5667a2';
 // CMS-media (/media/...) gjores absolutt mot CMS-hosten; ellers prefikses

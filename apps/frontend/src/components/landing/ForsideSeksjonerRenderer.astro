@@ -81,13 +81,13 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     return (
       <section class="aktuelt" data-layout-block="edge">
         <div data-layout-block="content">
-          <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Aktuelt'}</h2>
+          {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
           {featured && (
             <NewsCard
               href={`/artikler/${featured.slug}`}
               title={featured.tittel}
               tagColor="brand1"
-              lead={featured.lead || 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.'}
+              lead={featured.lead}
               image={featured.image}
               imageAlt=""
               variant="featured"
@@ -118,7 +118,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     return (
       <section class="arrangementer" data-layout-block="edge">
         <div class="arrangementer-section" data-layout-block="content">
-          <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Kommende arrangementer'}</h2>
+          {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
           {valgt && (
             <EventCard {...hendelseTilEventCard(valgt)} />
           )}
@@ -131,10 +131,12 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   if (block.contentType === 'forsideVeiledning') {
     // Redaktørvalgt veiledning gir standardverdier; tekstfeltene overstyrer.
     const valgt = block.veiledningId ? veiledninger.find((v) => v.id === block.veiledningId) : undefined;
-    const tittel = block.tittel || valgt?.tittel || 'Gjør dataene KI-klare';
-    const ingress = block.ingress || valgt?.ingress || 'Lær om hva kunstig intelligens er, hva du kan bruke det til og hvordan du kommer i gang.';
+    const tittel = block.tittel || valgt?.tittel;
+    const ingress = block.ingress || valgt?.ingress;
     const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : '/veiledning');
     const image = block.illustrasjon ? getMediaUrl(block.illustrasjon) : (valgt?.seoBilde ? getMediaUrl(valgt.seoBilde) : undefined);
+    // Uten tittel har seksjonen ikke noe innhold å vise, og TextWithImage krever den.
+    if (!tittel) return null;
     return (
       <section class="veiledning-section" data-layout-block="edge">
         <div data-layout-block="content">
@@ -143,9 +145,9 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
             href={href}
             image={image}
             imageAlt="Illustrasjon"
-            label={block.label || 'Veiledning'}
+            label={block.label}
           >
-            <p slot="body">{ingress}</p>
+            {ingress && <p slot="body">{ingress}</p>}
           </TextWithImage>
         </div>
       </section>
@@ -158,7 +160,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     const kort = valgte.length > 0 ? valgte : eksempelKort;
     return (
       <section data-layout-block="content" class="examples-section">
-        <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Lær av andre'}</h2>
+        {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
         <ExampleLinkCards cards={kort.filter((c): c is { href: string; title: string } => 'href' in c && 'title' in c).map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
         <ArrowLink href={block.lenkeUrl || '/eksempler'} text={block.lenketekst || 'Se alle eksempler'} />
       </section>
@@ -178,7 +180,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     if (lenker.length === 0) return null;
     return (
       <section class="forsta-section" data-layout-block="content">
-        <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift || 'Forstå regelverket'}</h2>
+        {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
         <ul class="forsta-liste">
           {lenker.map((l) => (
             <li>
@@ -196,7 +198,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   if (block.contentType === 'forsideSandkasse') {
     const sandkasseLinkId = `sandkasse-link-${block.id}`;
     // Pilen limes til siste ord så den ikke brekker alene (#464)
-    const sandkasseTittel = splitLastWord(block.overskrift || 'Den regulatoriske sandkassen');
+    const sandkasseTittel = splitLastWord(block.overskrift ?? '');
     return (
       <section class="sandkasse-section" data-layout-block="content">
         <div class="sandkasse-card" data-clickdelegatefor={sandkasseLinkId}>

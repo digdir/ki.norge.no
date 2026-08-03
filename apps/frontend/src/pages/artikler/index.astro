@@ -23,7 +23,7 @@ try {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
-const heroTittel = oversikt?.heroTittel || 'Aktuelt';
+const heroTittel = oversikt?.heroTittel;
 const heroSubtittel = oversikt?.heroSubtittel || '';
 const seoTitle = oversikt?.seoTittel || heroTittel;
 const seoDesc = oversikt?.seoBeskrivelse || 'Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.';
@@ -67,7 +67,7 @@ const remaining = rest.slice(9);
 <Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde?.url}>
   <section data-layout-block="content" class="artikler-page">
     <header class="artikler-header">
-      <h1 class="ds-heading" data-size="xl">{heroTittel}</h1>
+      {heroTittel && <h1 class="ds-heading" data-size="xl">{heroTittel}</h1>}
       {heroSubtittel && <p class="artikler-subtitle">{heroSubtittel}</p>}
     </header>
 
