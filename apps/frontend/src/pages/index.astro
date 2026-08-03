@@ -11,7 +11,7 @@ let latestArticles: any[] = [];
 let eksempler: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
 let veiledninger: VeiledningGuide[] = [];
-let eksempelKort: { href: string; title: string; tag: string }[] = [];
+let eksempelKort: { href: string; title: string; tag?: string }[] = [];
 try {
   // Preview gjelder kun forsidens egen kladd (struktur/overskrifter/pins). Kortene henter
   // alltid PUBLISERT innhold, slik at preview matcher det publikum ser (ingen upubliserte lekker inn).
@@ -29,7 +29,6 @@ try {
   eksempelKort = eksempler.slice(0, 2).map((c: any) => ({
     href: `/eksempler/${c.slug}`,
     title: c.tittel,
-    tag: 'Eksempel',
   }));
   const veiledningerRes = await getVeiledningGuider({ preview: isPreview });
   veiledninger = veiledningerRes.data;
