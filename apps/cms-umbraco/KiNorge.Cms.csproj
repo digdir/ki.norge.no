@@ -41,6 +41,20 @@
   </ItemGroup>
 
   <!--
+    Skjemafilene uSync importerer må ligge i imaget, ellers har prod ingenting å
+    importere den dagen uSync overtar skjemaeierskapet fra ContentTypeComposer.
+    Innhold og media kopieres bevisst IKKE, de transporteres med
+    scripts/sync-prod-til-tt02.sh. Globen treffer ingenting før en prod-eksport
+    er committet, se docs/usync-skjema-prereq.md.
+  -->
+  <ItemGroup>
+    <None Include="uSync/v17/ContentTypes/**/*.config;uSync/v17/DataTypes/**/*.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--
     Regenererer det git-ignorerte speilet av /shared/content-routes.json fra
     kilden før build/publish, slik at `dotnet run`/`dotnet build` alltid er i
     synk uten et eget pre-steg. Condition-en skrur targeten av når /shared ikke
