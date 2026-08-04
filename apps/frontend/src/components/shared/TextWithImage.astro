@@ -42,14 +42,15 @@ const titleParts = splitLastWord(title);
     gap: var(--ds-size-12);
 
     @media (min-width: 768px) {
-      grid-template-columns: 2fr 1fr;
+      /* Smalere tekstkolonne gir illustrasjonen mer plass (#585). */
+      grid-template-columns: 1fr 1fr;
       align-items: center;
       gap: var(--ds-size-22);
     }
 
     &[data-image-position='left'] {
       @media (min-width: 768px) {
-        grid-template-columns: 1fr 2fr;
+        grid-template-columns: 1fr 1fr;
 
         & .illustration {
           order: -1;
