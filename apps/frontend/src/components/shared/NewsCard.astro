@@ -190,7 +190,8 @@ const formattedDate = date
     gap: var(--ds-size-4);
     flex: 1;
     justify-content: center;
-    padding-block: var(--ds-size-8);
+    /* Holder kortet innenfor bildets tak på 300px, så bunnkantene flukter (#584). */
+    padding-block: var(--ds-size-4);
 
     @media (max-width: 767px) {
       padding-block: 0;
