@@ -56,6 +56,11 @@ patches:
         value:
           name: uSync__Settings__DefaultSet
           value: Speiling
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: USYNC_OWNS_SCHEMA
+          value: "true"
   - target:
       kind: HTTPRoute
       name: umbraco

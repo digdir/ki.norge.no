@@ -110,6 +110,15 @@ public class ContentTypeComponent : IAsyncComponent
     {
         if (_runtimeState.Level < RuntimeLevel.Run) return Task.CompletedTask;
 
+        // Når uSync eier skjemaet (kun tt02-piloten) må composeren ikke asserte content-typer,
+        // ellers racer den uSync-importen og gir typene tilfeldige nøkler. Fraværende env-var =
+        // uendret oppførsel, så prod er urørt.
+        if (string.Equals(Environment.GetEnvironmentVariable("USYNC_OWNS_SCHEMA"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine("ContentTypeComposer: USYNC_OWNS_SCHEMA=true, hopper over skjema-asserting (uSync eier skjemaet).");
+            return Task.CompletedTask;
+        }
+
         try
         {
             Step("resolveDataTypes", () => ResolveDataTypes());
