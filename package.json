@@ -17,6 +17,7 @@
     "frontend:build:tt02": "cd apps/frontend && pnpm run build:tt02",
     "frontend:build:prod": "cd apps/frontend && pnpm run build:prod",
     "frontend:preview": "cd apps/frontend && pnpm run preview",
+    "backup:prod": "bash scripts/backup-prod.sh",
     "frontend:deploy": "cd apps/frontend && pnpm run deploy",
     "frontend:deploy:tt02": "cd apps/frontend && pnpm run deploy:tt02",
     "frontend:deploy:prod": "cd apps/frontend && pnpm run deploy:prod",
