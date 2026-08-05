@@ -1,7 +1,7 @@
 {
   "name": "ki-norge",
   "private": true,
-  "packageManager": "pnpm@11.10.0+sha512.0b7f8b98060031904c017e3a41eb187a16d40eeb829b95c4f8cb03681761fc4ab53dd219115b9b447f4dce1a05a214764461e7d3703392a9f32f9511ce8c86c8",
+  "packageManager": "pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce",
   "scripts": {
     "sync:content-routes": "node scripts/sync-content-routes.js",
     "cms:dev": "node scripts/sync-content-routes.js && cd apps/cms-umbraco && dotnet run",
