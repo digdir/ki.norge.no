@@ -61,6 +61,14 @@ patches:
         value:
           name: USYNC_OWNS_SCHEMA
           value: "true"
+      # Naar uSync eier skjemaet maa noe reconcilere det mot filene ved oppstart,
+      # slik composeren gjorde. Kun Settings-gruppa: innhold og media er
+      # eksport-only i settet, saa de hoppes over uansett.
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: uSync__Settings__ImportAtStartup
+          value: Settings
   - target:
       kind: HTTPRoute
       name: umbraco
