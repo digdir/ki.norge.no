@@ -9,3 +9,8 @@
 /apps/cms-umbraco/                 @larsekhansen
 /scripts/                          @larsekhansen
 /.github/                          @larsekhansen
+
+# Prod sitt skjema. En eksport tatt fra feil database re-nøkler prod og gjør alt
+# blokkinnhold «Unsupported». Skal aldri merges uten review.
+# Se apps/cms-umbraco/uSync/README.md
+/apps/cms-umbraco/uSync/           @larsekhansen

@@ -98,6 +98,20 @@ for i in $(seq 1 40); do
     -H "Accept: application/json" 2>/dev/null | grep -oE '"total":[0-9]+' | grep -oE '[0-9]+' | head -1)
   echo "  [$i] frontend=$fe  delivery-api-total=${total:-?}"
   if [ "$fe" = "200" ] && [ -n "$total" ]; then
+    # uSync skal reconcilere skjemaet til NULL endringer. Endret den noe, er filene
+    # ute av sync med databasen, og i verste fall er typene re-noeklet. Se
+    # apps/cms-umbraco/uSync/README.md.
+    if command -v kubectl >/dev/null && kubectl --context "$KCTX" -n "$KNS" get pods --request-timeout=20s >/dev/null 2>&1; then
+      changed=$(kubectl --context "$KCTX" -n "$KNS" logs deploy/umbraco -c umbraco --tail=400 --request-timeout=25s 2>/dev/null \
+        | grep -c "uSync-import endret skjema" || true)
+      if [ "${changed:-0}" -gt 0 ]; then
+        echo "" >&2
+        kubectl --context "$KCTX" -n "$KNS" logs deploy/umbraco -c umbraco --tail=400 --request-timeout=25s 2>/dev/null \
+          | grep "uSync-import endret skjema" | tail -2 >&2
+        fail "uSync-importen ENDRET skjemaet i $ENV. Forventet 0 endringer. Sjekk om filene i uSync/v17 kommer fra riktig database."
+      fi
+      note "uSync-import: ingen skjemaendringer."
+    fi
     note "OK: $ENV frisk etter rollout (image $TAG). Bekreft selve endringen mot Delivery API, og kjor evt: bash scripts/smoke-test.sh"
     exit 0
   fi
