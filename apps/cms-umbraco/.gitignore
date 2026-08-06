@@ -21,6 +21,7 @@ uSync/*
 !uSync/README.md
 !uSync/v17
 uSync/v17/*
+!uSync/v17/.origin
 !uSync/v17/ContentTypes
 !uSync/v17/DataTypes
 

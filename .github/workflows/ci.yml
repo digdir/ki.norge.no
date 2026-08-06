@@ -146,6 +146,24 @@ jobs:
             /tmp/frontend.log
           retention-days: 7
 
+  usync-schema-guard:
+    name: uSync schema guard
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      # Trenger full historikk for aa sammenligne mot base-branchen.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Sjekk uSync-skjemafilene
+        env:
+          # Labelen schema-rekey-approved er den eksplisitte overstyringen.
+          USYNC_REKEY_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'schema-rekey-approved') }}
+        run: |
+          git fetch -q origin "${{ github.base_ref }}"
+          bash scripts/check-usync-schema.sh "origin/${{ github.base_ref }}"
+
   trivy-fs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
