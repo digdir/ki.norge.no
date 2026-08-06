@@ -51,6 +51,22 @@ patches:
         value:
           name: Cloudflare__SiteBaseUrl
           value: https://ki.norge.no
+      # uSync overtar skjemaet fra ContentTypeComposer. Composeren staar igjen i
+      # koden, men hopper over skjema-asserting naar denne er satt, saa rollback
+      # er aa fjerne disse to blokkene og deploye paa nytt.
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: USYNC_OWNS_SCHEMA
+          value: "true"
+      # Reconcilerer skjemaet mot de committede filene ved hver oppstart, slik
+      # composeren gjorde. Kun Settings-gruppa: innhold og media er eksport-only
+      # i Default-settet, saa de hoppes over uansett.
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: uSync__Settings__ImportAtStartup
+          value: Settings
   - target:
       kind: HTTPRoute
       name: umbraco

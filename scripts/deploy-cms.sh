@@ -15,10 +15,11 @@ set -uo pipefail
 
 ENV="${1:-}"; TAG="${2:-}"
 case "$ENV" in
-  tt02) CMS="https://kinorgeportal.tt02.dis-core.altinn.cloud"; FE="https://ki-norge-frontend-tt02.digitaliseringsdirektoratet.workers.dev" ;;
-  prod) CMS="https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev"; FE="https://ki.norge.no" ;;
+  tt02) KCTX="dis-core-tt02-aks"; CMS="https://kinorgeportal.tt02.dis-core.altinn.cloud"; FE="https://ki-norge-frontend-tt02.digitaliseringsdirektoratet.workers.dev" ;;
+  prod) KCTX="dis-core-prod-aks"; CMS="https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev"; FE="https://ki.norge.no" ;;
   *) echo "Bruk: bash scripts/deploy-cms.sh <tt02|prod> [image-tag]"; exit 1 ;;
 esac
+KNS="product-kinorgeportal"
 fail() { echo "FEIL: $*" >&2; exit 1; }
 note() { echo "▸ $*"; }
 
@@ -66,13 +67,51 @@ gh workflow run publish-syncroot-main.yaml --field environment="$ENV" --field im
   || fail "syncroot start feilet."
 watch_run publish-syncroot-main.yaml "syncroot" || fail "Syncroot-publisering feilet."
 
-note "3/3 Venter paa flux-rollout + verifiserer helse…"
+# Flux henter syncroot-artefakten paa intervall (5 min), saa den nye taggen er
+# IKKE ute i det oyeblikket publish-jobben er gronn. Uten dette sjekket rapporterte
+# scriptet suksess mens klyngen fortsatt kjorte forrige image.
+note "3/3 Venter paa at image $TAG faktisk kjorer…"
+if command -v kubectl >/dev/null && kubectl --context "$KCTX" -n "$KNS" get pods --request-timeout=20s >/dev/null 2>&1; then
+  ROLLED=0
+  for i in $(seq 1 60); do
+    running=$(kubectl --context "$KCTX" -n "$KNS" get pods \
+      -o jsonpath='{.items[0].spec.containers[?(@.name=="umbraco")].image}' \
+      --request-timeout=20s 2>/dev/null | sed 's/.*://')
+    ready=$(kubectl --context "$KCTX" -n "$KNS" get pods \
+      -o jsonpath='{.items[0].status.containerStatuses[?(@.name=="umbraco")].ready}' \
+      --request-timeout=20s 2>/dev/null)
+    echo "  [$i] kjorende image=${running:-?} ready=${ready:-?}"
+    if [ "$running" = "$TAG" ] && [ "$ready" = "true" ]; then ROLLED=1; break; fi
+    sleep 15
+  done
+  [ "$ROLLED" = "1" ] || fail "Image $TAG kjorer fortsatt ikke i $ENV etter ~15 min. Sjekk flux: kubectl --context $KCTX -n $KNS get ocirepository,kustomization"
+  note "Image $TAG bekreftet kjorende."
+else
+  echo "  ADVARSEL: naar ikke klyngen (kubectl/VPN), kan IKKE bekrefte at image $TAG faktisk kjorer."
+  echo "  Helsesjekken under sier bare at NOE svarer, ikke at det er den nye versjonen."
+fi
+
+note "Verifiserer helse…"
 for i in $(seq 1 40); do
   fe=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$FE/" 2>/dev/null)
   total=$(curl -s --max-time 15 "$CMS/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1" \
     -H "Accept: application/json" 2>/dev/null | grep -oE '"total":[0-9]+' | grep -oE '[0-9]+' | head -1)
   echo "  [$i] frontend=$fe  delivery-api-total=${total:-?}"
   if [ "$fe" = "200" ] && [ -n "$total" ]; then
+    # uSync skal reconcilere skjemaet til NULL endringer. Endret den noe, er filene
+    # ute av sync med databasen, og i verste fall er typene re-noeklet. Se
+    # apps/cms-umbraco/uSync/README.md.
+    if command -v kubectl >/dev/null && kubectl --context "$KCTX" -n "$KNS" get pods --request-timeout=20s >/dev/null 2>&1; then
+      changed=$(kubectl --context "$KCTX" -n "$KNS" logs deploy/umbraco -c umbraco --tail=400 --request-timeout=25s 2>/dev/null \
+        | grep -c "uSync-import endret skjema" || true)
+      if [ "${changed:-0}" -gt 0 ]; then
+        echo "" >&2
+        kubectl --context "$KCTX" -n "$KNS" logs deploy/umbraco -c umbraco --tail=400 --request-timeout=25s 2>/dev/null \
+          | grep "uSync-import endret skjema" | tail -2 >&2
+        fail "uSync-importen ENDRET skjemaet i $ENV. Forventet 0 endringer. Sjekk om filene i uSync/v17 kommer fra riktig database."
+      fi
+      note "uSync-import: ingen skjemaendringer."
+    fi
     note "OK: $ENV frisk etter rollout (image $TAG). Bekreft selve endringen mot Delivery API, og kjor evt: bash scripts/smoke-test.sh"
     exit 0
   fi
