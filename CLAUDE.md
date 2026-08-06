@@ -85,6 +85,8 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 
 **Innholdsskriving fra kode = anti-pattern**: Skjema (content types) settes i kode via `ContentTypeComposer`, men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se `docs/seeder-content-write-audit.md`.
 
+**uSync eier skjemaet i prod. IKKE regenerer `apps/cms-umbraco/uSync/`**: filene der er prod sitt skjema og importeres ved hver oppstart. uSync re-nøkler ved import, og content-typene har tilfeldige GUID-er per database. En eksport tatt fra lokal maskin eller tt02, committet inn, gir prod-typene nye nøkler og gjør ALT blokkinnhold «Unsupported». Skal du eksportere eller committe noe der: **stopp og spør Lars først**, og si fra om konsekvensen. Eksporten skal alltid tas fra prod. `SchemaRekeyGuard` avbryter en import som ville re-nøklet, men den er en sikring, ikke en tillatelse. Se `apps/cms-umbraco/uSync/README.md`.
+
 ## Deploy
 
 - **CMS:** dis-core via GitHub Actions («Docker build and publish» + «Publish Syncroot artifacts», miljø tt02/prod).

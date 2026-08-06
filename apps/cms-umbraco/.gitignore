@@ -18,6 +18,7 @@ wwwroot/media/*
 ## Skjema (ContentTypes/DataTypes) SKAL committes når uSync overtar skjemaeierskapet,
 ## men bare en eksport tatt fra PROD. Se docs/usync-skjema-prereq.md.
 uSync/*
+!uSync/README.md
 !uSync/v17
 uSync/v17/*
 !uSync/v17/ContentTypes
