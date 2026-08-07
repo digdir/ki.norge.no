@@ -52,34 +52,10 @@ test.describe('Visual regression tests', () => {
     });
   });
 
-  test.describe('Dark mode', () => {
-    test.beforeEach(async ({ page }) => {
-      // Set dark mode via localStorage before navigation
-      await page.addInitScript(() => {
-        localStorage.setItem('theme', 'dark');
-      });
-    });
-
-    test('homepage in dark mode', async ({ page }) => {
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
-
-      // Verify dark mode is active
-      const html = page.locator('html');
-      await expect(html).toHaveClass(/dark/);
-
-      await expect(page).toHaveScreenshot('homepage-dark.png', {
-        fullPage: true,
-      });
-    });
-
-    test('header in dark mode', async ({ page }) => {
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
-      const header = page.locator('header.header');
-      await expect(header).toHaveScreenshot('header-dark.png');
-    });
-  });
+  // Dark mode-testene er FJERNET (2026-08-07). Siden har ikke dark mode:
+  // Layout.astro hardkoder data-color-scheme="light", og CLAUDE.md fører opp
+  // «Ingen dark mode (bevisst valg)». Testen ventet class=/dark/ på <html>,
+  // noe som aldri kan bli sant.
 });
 
 test.describe('Responsive layouts', () => {

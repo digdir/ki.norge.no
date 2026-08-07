@@ -29,6 +29,12 @@ jobs:
         working-directory: apps/frontend
         run: pnpm run build
 
+      # Enhetstestene fantes, men kjørte ingen steder. Derfor kunne de råtne i
+      # stillhet. De tar under to sekunder, så det er ingen grunn til å la dem stå utenfor.
+      - name: Enhetstester
+        working-directory: apps/frontend
+        run: pnpm run test:unit
+
   cms-build:
     name: CMS (Umbraco/.NET) build
     runs-on: ubuntu-latest

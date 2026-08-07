@@ -34,13 +34,6 @@ module.exports = defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
     {
-      name: 'chromium-dark',
-      use: {
-        ...devices['Desktop Chrome'],
-        colorScheme: 'dark',
-      },
-    },
-    {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
     },
