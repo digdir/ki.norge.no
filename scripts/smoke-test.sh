@@ -15,7 +15,9 @@ if [ "$MODE" = "--local" ]; then
   CMS="http://localhost:5000"
 else
   FRONTEND="https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev"
-  CMS="https://kinorgeportal.prod.dis-core.altinn.cloud"
+  # Proxy-hosten, ikke dis-core direkte: dis-core krever Altinn-VPN og er derfor
+  # ikke nabar fra en GitHub-runner. Proxyen star foran samme instans.
+  CMS="https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev"
 fi
 
 API_KEY="ki-norge-delivery-key-2025"
@@ -50,6 +52,14 @@ check() {
   fi
 }
 
+# En sjekk som ikke lot seg kjore er IKKE en bestatt sjekk. Teller som feil,
+# ellers leses en tom testkjoring som gronn.
+skip() {
+  echo "  SKIP  $1  ($2)"
+  FAIL=$((FAIL+1))
+  FAILURES+=("$1: hoppet over ($2)")
+}
+
 echo "=== Frontend pages ($FRONTEND) ==="
 check "Forside"           "$FRONTEND/"
 check "Artikler list"     "$FRONTEND/artikler"
@@ -62,10 +72,16 @@ echo ""
 echo "=== Frontend detail pages (sample one of each) ==="
 # Find a real article slug from the API and hit its page
 SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1" -H "Api-Key: $API_KEY" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
-[ -n "$SLUG" ] && check "Artikkel detail"  "$FRONTEND/artikler/$SLUG"
+if [ -n "$SLUG" ]; then check "Artikkel detail"  "$FRONTEND/artikler/$SLUG"; else skip "Artikkel detail" "fant ingen slug via Delivery API"; fi
 
 SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1" -H "Api-Key: $API_KEY" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
-[ -n "$SLUG" ] && check "Eksempel detail"  "$FRONTEND/eksempler/$SLUG"
+if [ -n "$SLUG" ]; then check "Eksempel detail"  "$FRONTEND/eksempler/$SLUG"; else skip "Eksempel detail" "fant ingen slug via Delivery API"; fi
+
+echo ""
+echo "=== Regresjonsvakter ==="
+# En ukjent kalender-slug rendret tidligere et oppdiktet arrangement (#636).
+# Skal redirecte til oversikten, ikke svare 200 med innhold.
+check "Ukjent kalender-slug redirecter" "$FRONTEND/kalender/finnes-ikke-smoke-test" "302" "0"
 
 echo ""
 echo "=== Delivery API ($CMS) ==="
@@ -89,6 +105,6 @@ if [ "$FAIL" -gt 0 ]; then
   echo ""
   echo "Failures:"
   for f in "${FAILURES[@]}"; do echo "  - $f"; done
-  exit 0
+  exit 1
 fi
 exit 0
