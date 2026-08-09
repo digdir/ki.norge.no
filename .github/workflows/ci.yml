@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
 
+# Ingen jobb her skriver til repoet. Uten dette arver de repo-standarden, som
+# CodeQL flagger.
+permissions:
+  contents: read
+
 jobs:
   frontend-build:
     name: Frontend (Astro/Node) build
