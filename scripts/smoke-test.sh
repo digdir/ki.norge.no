@@ -60,6 +60,54 @@ skip() {
   FAILURES+=("$1: hoppet over ($2)")
 }
 
+# Blokk-regresjonsvakt. Blir content-typene re-noklet (f.eks. av en uSync-import
+# med skjemafiler fra feil database) faller alt blokkinnhold til «Unsupported».
+# Delivery API svarer da fortsatt 200, og hver side rendrer fortsatt, bare uten
+# innhold. En ren statuskode-sjekk ville altsa vaert gronn gjennom hele utfallet.
+# Derfor teller vi blokkene og krever at hver enkelt har en contentType.
+check_blocks() {
+  local label="$1" ct="$2" prop="$3"
+  local out
+  out=$(curl -sS --max-time 15 -H "Api-Key: $API_KEY" \
+    "$CMS/umbraco/delivery/api/v2/content?filter=contentType:$ct&take=10" 2>/dev/null \
+    | python3 -c "
+import sys, json
+try:
+    items = json.load(sys.stdin).get('items', [])
+except Exception:
+    print('PARSE_ERROR'); raise SystemExit
+total = bad = 0
+for it in items:
+    for b in (it.get('properties', {}).get('$prop') or {}).get('items', []):
+        total += 1
+        if not (b.get('content') or {}).get('contentType'):
+            bad += 1
+print(total, bad)
+" 2>/dev/null)
+
+  if [ -z "$out" ] || [ "$out" = "PARSE_ERROR" ]; then
+    skip "$label" "kunne ikke lese Delivery API"
+    return
+  fi
+
+  local total bad
+  total=$(echo "$out" | cut -d' ' -f1)
+  bad=$(echo "$out" | cut -d' ' -f2)
+
+  if [ "$total" -eq 0 ]; then
+    echo "  FAIL  $label  (fant null blokker i $ct.$prop)"
+    FAIL=$((FAIL+1))
+    FAILURES+=("$label: null blokker, skjemaet kan vaere re-noklet")
+  elif [ "$bad" -gt 0 ]; then
+    echo "  FAIL  $label  ($bad av $total blokker mangler contentType)"
+    FAIL=$((FAIL+1))
+    FAILURES+=("$label: $bad av $total blokker er Unsupported")
+  else
+    echo "  PASS  $label  ($total blokker, alle med contentType)"
+    PASS=$((PASS+1))
+  fi
+}
+
 echo "=== Frontend pages ($FRONTEND) ==="
 check "Forside"           "$FRONTEND/"
 check "Artikler list"     "$FRONTEND/artikler"
@@ -82,6 +130,9 @@ echo "=== Regresjonsvakter ==="
 # En ukjent kalender-slug rendret tidligere et oppdiktet arrangement (#636).
 # Skal redirecte til oversikten, ikke svare 200 med innhold.
 check "Ukjent kalender-slug redirecter" "$FRONTEND/kalender/finnes-ikke-smoke-test" "302" "0"
+
+check_blocks "Artikkelblokker har contentType" "artikkel"  "innhold"
+check_blocks "Eksempelblokker har contentType" "eksempel"  "innhold"
 
 echo ""
 echo "=== Delivery API ($CMS) ==="
