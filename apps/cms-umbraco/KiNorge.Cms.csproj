@@ -17,6 +17,14 @@
     <!-- Transitiv via Umbraco. Pinnet over sårbar 2.4.1 (GHSA-v5pm-xwqc-g5wc);
          fjern når Umbraco selv drar >= 2.7.5. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+    <!-- Transitiv via Umbraco -> Microsoft.Data.Sqlite. 2.1.11 pakker en sårbar
+         SQLite-binær (GHSA-2m69-gcr7-jv3q, HIGH). Hele familien pinnes samlet så
+         core/provider/lib ikke kommer i utakt. Fjern når Umbraco drar 2.1.12
+         selv. Treffer bare lokal dev, prod kjører Azure SQL. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+    <PackageReference Include="SQLitePCLRaw.core" Version="2.1.12" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12" />
+    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.12" />
     <PackageReference Include="Umbraco.Cms" Version="17.5.3" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.5.3" />
     <PackageReference Include="uSync" Version="17.3.6" />
