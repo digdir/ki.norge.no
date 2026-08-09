@@ -60,12 +60,21 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 ## CMS (Umbraco)
 
 **Nøkkelfiler**
-- `Composers/ContentTypeComposer.cs` — oppretter alle document types og element types ved oppstart. Registrerer Block List data types.
+- `Composers/ContentTypeComposer.cs` — oppretter alle document types og element types ved oppstart. Registrerer Block List data types. **Kjører ikke i prod eller tt02**, se advarselen under.
 - `Program.cs` — startup med instance guard (forhindrer dobbel-start som ødelegger SQLite)
 - `appsettings.Development.json` — lokal config med connection string, Delivery API key, preview secret
 - `appsettings.json` — prod config, tom connection string (overrides fra env vars i Azure)
 
-**Legge til en ny Block List-modul (element type)**
+**Skjemaendringer nås IKKE lenger via composeren i drift.** Både `syncroot/prod/` og
+`syncroot/tt02/` setter `USYNC_OWNS_SCHEMA=true`, og `ContentTypeComposer` hopper da over
+hele skjema-assertingen (`ContentTypeComposer.cs:116`). Den kjører fortsatt lokalt, der
+env-varen mangler. Et nytt felt lagt til i composeren blir altså grønt lokalt og i CI, og
+dukker aldri opp i prod. Skjemaet i drift kommer fra `.config`-filene under
+`apps/cms-umbraco/uSync/`, som skal eksporteres fra prod. **Spør Lars før du planlegger en
+skjemaendring** — flyten er under omlegging (stage 2 fjerner composeren).
+
+**Legge til en ny Block List-modul (element type)** — trinn 1-2 gjelder bare lokal dev
+inntil skjemaflyten er avklart, se advarselen over.
 1. I `ContentTypeComposer.cs`: lag en ny metode som oppretter element type med felter
 2. Registrer den i `InitializeAsync` og legg den til i riktig Block List data type
 3. I `umbraco.ts`: legg til interface, mapping i mapItem() eller mapArtikkelBlocks()
@@ -83,7 +92,7 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 
 **Database:** Prod kjører Azure SQL via dis-core, som erstattet SQLite + Litestream (de ga lock-contention på multi-editor-bruk). Lokal dev bruker fortsatt SQLite. Historisk migrasjonsplan: `docs/sql-server-migration-plan.md`.
 
-**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) settes i kode via `ContentTypeComposer`, men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se `docs/seeder-content-write-audit.md`.
+**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) ble satt i kode via `ContentTypeComposer` (nå avslått i drift, se over), men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se `docs/seeder-content-write-audit.md`.
 
 **uSync eier skjemaet i prod. IKKE regenerer `apps/cms-umbraco/uSync/`**: filene der er prod sitt skjema og importeres ved hver oppstart. uSync re-nøkler ved import, og content-typene har tilfeldige GUID-er per database. En eksport tatt fra lokal maskin eller tt02, committet inn, gir prod-typene nye nøkler og gjør ALT blokkinnhold «Unsupported». Skal du eksportere eller committe noe der: **stopp og spør Lars først**, og si fra om konsekvensen. Eksporten skal alltid tas fra prod. `SchemaRekeyGuard` avbryter en import som ville re-nøklet, men den er en sikring, ikke en tillatelse. Se `apps/cms-umbraco/uSync/README.md`.
 
