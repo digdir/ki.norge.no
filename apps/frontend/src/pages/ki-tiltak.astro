@@ -1,0 +1,26 @@
+---
+import Layout from '../components/layout/Layout.astro';
+import KiTiltakOverview from '../components/ki-tiltak/KiTiltakOverview';
+import { kiTiltak } from '../lib/ki-tiltak';
+import '../styles/ki-tiltak.css';
+
+const seoTitle = 'Offentlige KI-tiltak';
+const seoDesc = `Oversikt over ${kiTiltak.length} KI-tiltak i norsk offentlig sektor. Se hvordan offentlig sektor bruker kunstig intelligens, finn samarbeidspartnere og la deg inspirere.`;
+---
+
+<Layout title={seoTitle} description={seoDesc}>
+  <section data-layout-block="edge" class="tiltak-hero">
+    <div data-layout-block="content">
+      <h1 class="ds-heading tiltak-hero-tittel" data-size="2xl">Offentlige KI&#8209;tiltak</h1>
+      <p class="ds-paragraph tiltak-hero-ingress" data-size="lg">
+        Se hvordan offentlig sektor bruker kunstig intelligens. Tiltakene er fra Digdirs
+        oversikt over digitaliseringstiltak i offentlig sektor. Oversikten er ikke
+        komplett, vi legger til nye tiltak fortløpende.
+      </p>
+    </div>
+  </section>
+
+  <section data-layout-block="content" class="tiltak-innhold">
+    <KiTiltakOverview client:load />
+  </section>
+</Layout>
