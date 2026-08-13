@@ -27,6 +27,13 @@ Fixturene får parent `cadd506a-4470-4f3d-9a66-3a4369bdc238` (Artikler) og dukke
 artikkellista på tt02. Nøklene starter alle med `7e57f1c0`, så de er lette å kjenne igjen og
 kan ikke kollidere med ekte innhold.
 
+De ligger på frontenden under `/artikler/<slug>`, for eksempel
+`https://ki.test.norge.no/artikler/testfixtur-alle-moduler/`. Delivery API-et rapporterer
+rota (`/testfixtur-alle-moduler/`), men den ruta finnes ikke i Astro.
+
+Verifisert 2026-08-13: alle 8 blokktypene rendrer, ingen faller ut, og Delivery API-et er
+friskt på `take=100` etter at fixturene lå inne.
+
 Prod kan ikke importere innhold uansett (`Default`-settet er eksport-only), og scriptet nekter
 å kjøre mot en prod-kontekst.
 
