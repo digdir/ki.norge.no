@@ -1,0 +1,3 @@
+# Filer i public/ som ikke skal lastes opp som statiske assets til Workers.
+.DS_Store
+**/README.md

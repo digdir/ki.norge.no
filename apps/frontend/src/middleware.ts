@@ -42,10 +42,13 @@ const LAUNCH_MODE = process.env.LAUNCH_MODE || import.meta.env.LAUNCH_MODE || ''
 const PUBLIC_ASSET_PATHS = new Set([
   '/og-image.png',
   '/og-image.svg',
-  '/favicon.svg',
   '/favicon.ico',
   '/manifest.webmanifest',
 ]);
+
+// Ikonvariantene ligger samlet under /favicon/. Prefiks framfor å liste hver
+// enkelt størrelse, så en ny variant ikke blir gated ved et uhell.
+const PUBLIC_ASSET_PREFIXES = ['/favicon/'];
 
 const COMING_SOON_HTML = `<!doctype html>
 <html lang="no">
@@ -107,7 +110,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (isComingSoon) {
     const isApiRoute = url.pathname.startsWith('/api/');
     const hasAdminCookie = cookies.has('ki_admin');
-    const isPublicAsset = PUBLIC_ASSET_PATHS.has(url.pathname);
+    const isPublicAsset =
+      PUBLIC_ASSET_PATHS.has(url.pathname) ||
+      PUBLIC_ASSET_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
 
     if (!isApiRoute && !hasAdminCookie && !isPublicAsset) {
       return new Response(COMING_SOON_HTML, {
