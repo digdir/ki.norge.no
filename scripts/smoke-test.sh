@@ -2,8 +2,11 @@
 # Smoke test: hit every public frontend URL + critical Delivery API endpoints,
 # fail loud on non-2xx or empty body. Run after deploys, optionally in CI.
 #
-# Usage: bash scripts/smoke-test.sh [--prod | --local]
+# Usage: bash scripts/smoke-test.sh [--prod | --tt02 | --local]
 #   --prod (default): tests https://ki-norge-frontend... and the prod CMS
+#   --tt02:            tests ki.test.norge.no + tt02-CMS, krever Altinn-VPN.
+#                      Kjor denne etter en speiling: check_blocks fanger innhold
+#                      som har falt til Unsupported paa vei over.
 #   --local:           tests http://localhost:4321 + http://localhost:5000
 
 set -uo pipefail
@@ -13,6 +16,10 @@ MODE="${1:---prod}"
 if [ "$MODE" = "--local" ]; then
   FRONTEND="http://localhost:4321"
   CMS="http://localhost:5000"
+elif [ "$MODE" = "--tt02" ]; then
+  FRONTEND="https://ki.test.norge.no"
+  # Ingen proxy foran tt02, saa denne modusen gaar bare over Altinn-VPN.
+  CMS="https://kinorgeportal.tt02.dis-core.altinn.cloud"
 else
   FRONTEND="https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev"
   # Proxy-hosten, ikke dis-core direkte: dis-core krever Altinn-VPN og er derfor

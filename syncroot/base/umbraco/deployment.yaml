@@ -64,6 +64,13 @@ spec:
           volumeMounts:
             - name: umbraco-data
               mountPath: /app/umbraco/Data
+            # uSync-mappa ligger ellers paa containerens skrivelag og forsvinner ved
+            # hver restart. Skjemaet taaler det (ContentTypes/DataTypes bakes inn i
+            # imaget og er tilbake ved boot), men innholdseksporten gjoer ikke det.
+            # Gjenbruker umbraco-data via subPath, saa ingen ny PVC trengs.
+            - name: umbraco-data
+              mountPath: /app/uSync/v17/Content
+              subPath: uSync-content
             - name: umbraco-media
               mountPath: /app/wwwroot/media
             - name: umbraco-logs

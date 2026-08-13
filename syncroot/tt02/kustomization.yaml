@@ -62,13 +62,16 @@ patches:
           name: USYNC_OWNS_SCHEMA
           value: "true"
       # Naar uSync eier skjemaet maa noe reconcilere det mot filene ved oppstart,
-      # slik composeren gjorde. Kun Settings-gruppa: innhold og media er
-      # eksport-only i settet, saa de hoppes over uansett.
+      # slik composeren gjorde. Content er med i tillegg fordi tt02 skal speile
+      # prod: innholdsmappa er varig (subPath i base-deploymentet), saa hver boot
+      # legger siste transporterte prod-snapshot tilbake. Bivirkning: det som
+      # redigeres i tt02-backoffice nullstilles ved neste restart. Skal tt02
+      # heller vaere et sted aa proeve ting, sett denne tilbake til Settings.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: uSync__Settings__ImportAtStartup
-          value: Settings
+          value: Settings,Content
   - target:
       kind: HTTPRoute
       name: umbraco
