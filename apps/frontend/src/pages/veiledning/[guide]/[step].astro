@@ -80,10 +80,14 @@ const steps = Array.from(stepMap.entries()).map(([num, data]) => ({
     margin-block-end: var(--ds-size-6);
   }
 
+  /* Brødsmule, tittel, piller og brødtekst deler spalte. Før lå de tre første
+     i 1050-containeren mens brødteksten var sentrert i 680, med 169px sprik. */
+  .step-page {
+    max-width: calc(680px + 2 * var(--layout-content-padding));
+  }
+
   .step-content {
-    max-width: 680px;
-    margin-inline: auto;
-    margin-block-start: var(--ds-size-18); 
+    margin-block-start: var(--ds-size-18);
 
     & :global(h2), & :global(h3) {
       font-family: var(--ds-font-family);

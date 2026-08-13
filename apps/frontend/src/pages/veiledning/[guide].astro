@@ -125,7 +125,7 @@ if (guideData) {
   </Layout>
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde?.url} bodyColor="brand1">
-    <div class="guide-header">
+    <div class="guide-header" data-layout-block="content">
       <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
       {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
     </div>
@@ -147,28 +147,25 @@ if (guideData) {
 
 <style>
 
+  /* Tittel, ingress og brødtekst deler spalte, slik artikkel- og
+     eksempelsidene gjør det. max-width teller med paddingen fra
+     data-layout-block="content", derfor calc og ikke naken 680. */
+  .guide-header,
+  .article-page {
+    max-width: calc(680px + 2 * var(--layout-content-padding));
+  }
+
   .guide-header {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-3);
     margin-block-end: var(--ds-size-8);
-    max-width: 1000px;
-    margin-inline: auto;
-    padding-inline: var(--ds-size-4);
   }
 
   .guide-ingress {
     margin: 0;
     font-size: var(--ds-body-lg-font-size);
     line-height: var(--ds-body-lg-line-height);
-  }
-
-  /* data-layout-block="content" gir border-box og padding-inline, så en naken
-     max-width: 680px ble en tekstspalte på 648. Legg til paddingen for å treffe
-     de 680 artikkel-, eksempel- og stegsidene bruker. */
-  .article-page {
-    max-width: calc(680px + 2 * var(--layout-content-padding));
-    margin-inline: auto;
   }
 
   .article-hero:has(.article-hero-image) {
