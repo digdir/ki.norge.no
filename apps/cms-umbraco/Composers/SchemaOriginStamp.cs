@@ -10,7 +10,7 @@ using uSync.BackOffice;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Stempler hver uSync-eksport med hvilken database den kom fra.
+/// Stempler hver uSync-eksport med hvilket miljø den kom fra.
 ///
 /// Skjemafilene som committes SKAL være tatt fra prod. Uten et merke i selve
 /// eksporten er det umulig å se i etterkant hvor filene kom fra, og en eksport fra
@@ -55,7 +55,6 @@ public class SchemaOriginStamp : INotificationHandler<uSyncExportCompletedNotifi
         {
             environment = DeriveEnvironment(appUrl),
             applicationUrl = appUrl,
-            database = DeriveDatabaseHost(),
             exportedAtUtc = DateTime.UtcNow.ToString("o"),
         };
 
@@ -80,14 +79,4 @@ public class SchemaOriginStamp : INotificationHandler<uSyncExportCompletedNotifi
         var u when u.Contains("prod", StringComparison.OrdinalIgnoreCase) => "prod",
         _ => "local",
     };
-
-    /// <summary>Kun servernavnet. Connection stringen har ingen passord (workload identity),
-    /// men vi tar med minst mulig uansett.</summary>
-    private string DeriveDatabaseHost()
-    {
-        var cs = _config.GetConnectionString("umbracoDbDSN") ?? "";
-        var server = cs.Split(';')
-            .FirstOrDefault(p => p.TrimStart().StartsWith("Server=", StringComparison.OrdinalIgnoreCase));
-        return server?.Split('=', 2).ElementAtOrDefault(1)?.Trim() ?? "(ukjent)";
-    }
 }
