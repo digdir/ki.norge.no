@@ -53,8 +53,9 @@ test.describe('Landemerker og struktur', () => {
       // Nøyaktig én h1 per side
       await expect(page.locator('main h1'), url).toHaveCount(1);
 
-      // Språk satt på html-elementet
-      await expect(page.locator('html'), url).toHaveAttribute('lang', 'nb');
+      // Språk satt på html-elementet. "no" (makrospråket), ikke "nb" — bevisst
+      // endret i #487. Testen ble ikke oppdatert den gangen og har feilet siden.
+      await expect(page.locator('html'), url).toHaveAttribute('lang', 'no');
     }
   });
 

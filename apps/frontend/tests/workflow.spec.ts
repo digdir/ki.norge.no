@@ -22,6 +22,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const CMS = process.env.UMBRACO_URL ?? 'http://localhost:5000';
 
+// Hele denne fila snakker med et Umbraco som må kjøre. Uten det feilet den før
+// med 24 x ECONNREFUSED, som ser ut som ekte testfeil og gjorde at ingen kjørte
+// suiten. Nå hoppes den heller over med en tydelig begrunnelse.
+test.beforeAll(async ({ request }) => {
+  try {
+    const res = await request.get(`${CMS}/umbraco/delivery/api/v2/content?take=1`, {
+      ignoreHTTPSErrors: true,
+      timeout: 5000,
+    });
+    if (!res.ok()) throw new Error(`status ${res.status()}`);
+  } catch {
+    test.skip(true, `Ingen Umbraco på ${CMS}. Start med "pnpm run cms:dev", eller sett UMBRACO_URL.`);
+  }
+});
+
 // ── Database helper ─────────────────────────────────────────────
 
 const DB_PATH =
@@ -444,127 +459,14 @@ test.describe('Document types', () => {
   });
 });
 
-// ── Seeded content ──────────────────────────────────────────────
+// Seeded content-testene er FJERNET (2026-08-07). De asserterte innhold fra
+// ContentSeeder (4 artikler, 5 FAQ-elementer, 8 merkelapper osv.), og seederen
+// ble slettet helt fordi innholdsskriving fra oppstartskode ga tre prod-incidenter.
+// Innhold lages nå av redaktører, så antall og titler er ikke noe testene skal
+// låse fast. Målt mot prod da de ble fjernet: artikkel=6 (testen krevde 4),
+// faq=0 (krevde 5), merkelapp=0 (krevde 8). De kunne aldri passert igjen.
+// Se docs/seeder-content-write-audit.md.
 
-test.describe('Seeded content', () => {
-  const api = `${CMS}/umbraco/delivery/api/v2/content`;
-
-  test('4 articles are published', async ({ request }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:artikkel' },
-      ignoreHTTPSErrors: true,
-    });
-    const { total, items } = await res.json();
-    expect(total).toBe(4);
-
-    const titles = items.map((i: any) => i.properties.tittel);
-    expect(titles).toContain('Ny nasjonal strategi for kunstig intelligens');
-    expect(titles).toContain(
-      'Kommuner tar i bruk KI for bedre innbyggertjenester'
-    );
-    expect(titles).toContain(
-      'EUs AI Act og konsekvenser for norsk offentlig sektor'
-    );
-  });
-
-  test('2 pages are published (Om oss, Sandkasse)', async ({
-    request,
-  }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:side' },
-      ignoreHTTPSErrors: true,
-    });
-    const { total, items } = await res.json();
-    expect(total).toBe(2);
-
-    const slugs = items.map((i: any) => i.properties.slug);
-    expect(slugs).toContain('om-oss');
-    expect(slugs).toContain('sandkasse');
-  });
-
-  test('4 examples are published', async ({ request }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:eksempel' },
-      ignoreHTTPSErrors: true,
-    });
-    const { total, items } = await res.json();
-    expect(total).toBe(4);
-
-    const orgs = items.map((i: any) => i.properties.organisasjon);
-    expect(orgs).toContain('Trondheim kommune');
-    expect(orgs).toContain('Stavanger kommune');
-    expect(orgs).toContain('Bergen kommune');
-    expect(orgs).toContain('Digitaliseringsdirektoratet');
-  });
-
-  test('5 FAQ items are published', async ({ request }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:faq' },
-      ignoreHTTPSErrors: true,
-    });
-    const { total, items } = await res.json();
-    expect(total).toBe(5);
-
-    const questions = items.map((i: any) => i.properties.sporsmal);
-    expect(questions).toContain('Hva er kunstig intelligens?');
-    expect(questions).toContain('Kan KI erstatte saksbehandlere?');
-  });
-
-  test('3 veiledninger are published', async ({ request }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:veiledning' },
-      ignoreHTTPSErrors: true,
-    });
-    const { total, items } = await res.json();
-    expect(total).toBe(3);
-
-    const titles = items.map((i: any) => i.properties.tittel);
-    expect(titles).toContain('Kom i gang med KI i din virksomhet');
-    expect(titles).toContain('Ansvarlig bruk av KI');
-  });
-
-  test('8 merkelapper are published', async ({ request }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:merkelapp' },
-      ignoreHTTPSErrors: true,
-    });
-    const { total, items } = await res.json();
-    expect(total).toBe(8);
-
-    const names = items.map((i: any) => i.properties.navn);
-    expect(names).toContain('Maskinlæring');
-    expect(names).toContain('Personvern');
-    expect(names).toContain('Etikk');
-  });
-
-  test('examples have correct status values', async ({ request }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:eksempel' },
-      ignoreHTTPSErrors: true,
-    });
-    const { items } = await res.json();
-
-    const statuses = items.map((i: any) => i.properties.status);
-    expect(statuses).toContain('i_drift');
-    expect(statuses).toContain('pilot');
-  });
-
-  test('examples have tools (verktoy) as parseable JSON arrays', async ({
-    request,
-  }) => {
-    const res = await request.get(api, {
-      params: { filter: 'contentType:eksempel' },
-      ignoreHTTPSErrors: true,
-    });
-    const { items } = await res.json();
-
-    for (const item of items) {
-      const tools = JSON.parse(item.properties.verktoy);
-      expect(Array.isArray(tools)).toBe(true);
-      expect(tools.length).toBeGreaterThan(0);
-    }
-  });
-});
 
 // ── Delivery API edge cases ─────────────────────────────────────
 
