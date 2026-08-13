@@ -2,15 +2,14 @@
 # Laster testfixturene i apps/cms-umbraco/uSync-testinnhold inn i tt02.
 #
 # Fixturene er artikler som presser skjemaet: alle blokktyper på én gang,
-# bare påkrevde felt, fiendtlige strenger, og brutte referanser. De ligger i
-# git nettopp fordi løse testnoder i et delt miljø råtner og blir feid vekk.
+# bare påkrevde felt, og fiendtlige strenger. De ligger i git nettopp fordi
+# løse testnoder i et delt miljø råtner og blir feid vekk.
 #
 # Scriptet kopierer .config-filene inn i tt02-poddens uSync-mappe. Selve
 # importen gjøres i backoffice, som for all annen uSync-import.
 #
 # Bruk:
-#   scripts/last-testfixturer-tt02.sh              alle fixturer utenom brutte referanser
-#   scripts/last-testfixturer-tt02.sh --alle       ogsaa brutte referanser
+#   scripts/last-testfixturer-tt02.sh              last fixturene
 #   scripts/last-testfixturer-tt02.sh --sjekk      vis hva som ville blitt kopiert
 #
 # Krever kubectl med Altinn-VPN. Kjoerer aldri mot prod, se vakten under.
@@ -24,12 +23,10 @@ CONTAINER="${CONTAINER:-umbraco}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$ROOT/apps/cms-umbraco/uSync-testinnhold/v17/Content"
-BRUTTE="testfixtur-brutte-referanser.config"
 
-ALLE=0; SJEKK=0
+SJEKK=0
 for arg in "$@"; do
   case "$arg" in
-    --alle)            ALLE=1 ;;
     --sjekk|--dry-run) SJEKK=1 ;;
     *) echo "Ukjent flagg: $arg" >&2; exit 1 ;;
   esac
@@ -46,8 +43,6 @@ command -v kubectl >/dev/null || { echo "Fant ikke kubectl i PATH." >&2; exit 1;
 
 filer=()
 while IFS= read -r f; do
-  navn="$(basename "$f")"
-  if [ "$navn" = "$BRUTTE" ] && [ "$ALLE" -eq 0 ]; then continue; fi
   filer+=("$f")
 done < <(find "$SRC" -name "*.config" | sort)
 
@@ -56,9 +51,6 @@ done < <(find "$SRC" -name "*.config" | sort)
 echo "Maal:  $TT02_CTX  $NS/$POD:$CONTAINER"
 echo "Filer:"
 for f in "${filer[@]}"; do echo "  $(basename "$f")"; done
-if [ "$ALLE" -eq 0 ]; then
-  echo "  (hopper over $BRUTTE, bruk --alle for aa ta den med)"
-fi
 echo
 
 if [ "$SJEKK" -eq 1 ]; then echo "Sjekk-modus, ingenting kopiert."; exit 0; fi
