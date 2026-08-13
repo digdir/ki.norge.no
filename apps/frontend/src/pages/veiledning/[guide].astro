@@ -163,8 +163,11 @@ if (guideData) {
     line-height: var(--ds-body-lg-line-height);
   }
 
+  /* data-layout-block="content" gir border-box og padding-inline, så en naken
+     max-width: 680px ble en tekstspalte på 648. Legg til paddingen for å treffe
+     de 680 artikkel-, eksempel- og stegsidene bruker. */
   .article-page {
-    max-width: 680px;
+    max-width: calc(680px + 2 * var(--layout-content-padding));
     margin-inline: auto;
   }
 
