@@ -15,8 +15,7 @@ dem ved et uhell.
 ## Bruk
 
 ```bash
-scripts/last-testfixturer-tt02.sh          # alle utenom brutte referanser
-scripts/last-testfixturer-tt02.sh --alle   # også brutte referanser
+scripts/last-testfixturer-tt02.sh          # last fixturene
 scripts/last-testfixturer-tt02.sh --sjekk  # vis hva som ville blitt kopiert
 ```
 
@@ -44,18 +43,11 @@ Prod kan ikke importere innhold uansett (`Default`-settet er eksport-only), og s
 | `testfixtur-alle-moduler.config` | Hver av de 8 blokktypene `artikkel.innhold` tillater, i én artikkel. Regresjonsvakt mot at en modul faller til Unsupported. |
 | `testfixtur-minimal.config` | Bare påkrevde felt. Fanger rendering som antar at valgfrie felt finnes. |
 | `testfixtur-fiendtlig-innhold.config` | Ekstremt lang tittel, emoji og kombinerende tegn, RTL, nullbredde-tegn, rå HTML limt inn fra Word/Teams, script- og iframe-tagger, tabell uten thead, tre nivåer nøstet liste, tomme avsnitt, ugyldig e-post, tomme valgfrie felt i blokker. |
-| `testfixtur-brutte-referanser.config` | Mediepeker og lenke til nøkler som ikke finnes. |
 
-### Om brutte referanser
-
-Den siste lastes bare med `--alle`, og det er med vilje. Vi vet fra 13. august at én ødelagt
-property inne i en Block List kan velte hele Delivery API-responsen med HTTP 500, ikke bare
-den ene noden. Da ga en dropdown med rå streng i stedet for JSON 500 på alle spørringer med
-`take>=50`.
-
-Å finne ut om en brutt mediepeker gjør det samme er nettopp poenget med fixturen, men vær
-forberedt: skjer det, blir tt02s Delivery API delvis nede til du sletter noden i backoffice.
-Frontenden tåler det bedre enn API-et, siden den henter i mindre porsjoner.
+Alle tre er trygge å laste. Skal du lage en fixtur med brutte referanser, altså mediepekere
+eller lenker til nøkler som ikke finnes, husk at én ødelagt property inne i en Block List kan
+velte hele Delivery API-responsen med HTTP 500, ikke bare den ene noden. Det skjedde 13. august
+da en dropdown lå med rå streng i stedet for JSON, og ga 500 på alle spørringer med `take>=50`.
 
 ## Legge til en fixtur
 
