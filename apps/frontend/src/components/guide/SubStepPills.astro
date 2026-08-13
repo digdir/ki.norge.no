@@ -1,4 +1,6 @@
 ---
+import AkselIcon from '../shared/AkselIcon.astro';
+
 interface SubStep {
   title: string;
   slug: string;
@@ -10,7 +12,11 @@ interface Props {
 }
 const { substeps, guideSlug } = Astro.props;
 ---
-<nav aria-label="Del-steg i dette steget">
+<nav class="substeps" aria-label="Del-steg i dette steget">
+  <button type="button" class="substeps-arrow" data-substep-scroll="-1" aria-label="Vis tidligere del-steg" hidden>
+    <AkselIcon name="ArrowLeft" size={20} />
+  </button>
+
   <ol class="substep-pills">
     {substeps.map((sub) => (
       <li class="substep-pill-item">
@@ -23,18 +29,33 @@ const { substeps, guideSlug } = Astro.props;
       </li>
     ))}
   </ol>
+
+  <button type="button" class="substeps-arrow" data-substep-scroll="1" aria-label="Vis flere del-steg" hidden>
+    <AkselIcon name="ArrowRight" size={20} />
+  </button>
 </nav>
 
 <style>
+  .substeps {
+    position: relative;
+  }
+
   .substep-pills {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     column-gap: var(--ds-size-2);
-    row-gap: var(--ds-size-4);
     list-style: none;
     margin: 0;
-    padding: 0;
+    /* Loddrett luft så fokusringen på pillene ikke klippes av overflow-x. */
+    padding: var(--ds-size-1) 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .substep-pills::-webkit-scrollbar {
+    display: none;
   }
 
   .substep-pill-item {
@@ -44,6 +65,10 @@ const { substeps, guideSlug } = Astro.props;
   .substep-pill {
     border-radius: var(--ds-border-radius-full) !important;
     text-decoration: none;
+    white-space: nowrap;
+    /* Uten dette krymper pillene til de passer i stedet for å flyte over,
+       og da blir det ingenting å scrolle. */
+    flex: 0 0 auto;
 
     &[aria-current="page"] {
       background-color: var(--ds-color-base-active);
@@ -68,4 +93,85 @@ const { substeps, guideSlug } = Astro.props;
     mask-size: contain;
     flex-shrink: 0;
   }
+
+  /* Pilene er en musaffordans. Touch swiper, tastatur tabber gjennom lenkene
+     og nettleseren scroller dem selv i syne. */
+  .substeps-arrow {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .substeps-arrow {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      translate: 0 -50%;
+      display: grid;
+      place-items: center;
+      width: var(--ds-size-10);
+      height: var(--ds-size-10);
+      padding: 0;
+      border: none;
+      border-radius: var(--ds-border-radius-full);
+      background-color: var(--ds-color-base-active);
+      color: var(--ds-color-base-contrast-default);
+      cursor: pointer;
+
+      &[hidden] {
+        display: none;
+      }
+
+      &:hover {
+        background-color: var(--ds-color-base-hover);
+      }
+
+      &[data-substep-scroll="-1"] {
+        left: 0;
+      }
+
+      &[data-substep-scroll="1"] {
+        right: 0;
+      }
+    }
+  }
 </style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.substeps').forEach((nav) => {
+    const list = nav.querySelector<HTMLElement>('.substep-pills');
+    if (!list) return;
+    const arrows = nav.querySelectorAll<HTMLButtonElement>('[data-substep-scroll]');
+
+    const syncArrows = () => {
+      const max = list.scrollWidth - list.clientWidth;
+      arrows.forEach((arrow) => {
+        const forward = arrow.dataset.substepScroll === '1';
+        arrow.hidden = forward ? list.scrollLeft >= max - 1 : list.scrollLeft <= 1;
+      });
+    };
+
+    // Sentrer det aktive del-steget. scrollLeft settes direkte i stedet for
+    // scrollIntoView, som ville rullet hele siden loddrett ved innlasting.
+    const active = list.querySelector<HTMLElement>('[aria-current="page"]');
+    const centerActive = () => {
+      if (!active) return;
+      list.scrollLeft = active.offsetLeft - (list.clientWidth - active.offsetWidth) / 2;
+    };
+    centerActive();
+    // Nettfonten laster etter at skriptet kjører og gjør pillene bredere.
+    // Uten denne runden havner det aktive del-steget utenfor på smale skjermer.
+    document.fonts?.ready.then(centerActive);
+
+    arrows.forEach((arrow) => {
+      arrow.addEventListener('click', () => {
+        const dir = Number(arrow.dataset.substepScroll);
+        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        list.scrollBy({ left: dir * list.clientWidth * 0.8, behavior: smooth ? 'smooth' : 'auto' });
+      });
+    });
+
+    list.addEventListener('scroll', syncArrows, { passive: true });
+    new ResizeObserver(syncArrows).observe(list);
+    syncArrows();
+  });
+</script>
