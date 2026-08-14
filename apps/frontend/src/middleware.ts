@@ -1,4 +1,11 @@
 import { defineMiddleware } from 'astro:middleware';
+import {
+  htmlToMarkdown,
+  prefersMarkdown,
+  markdownPathFor,
+  pathFromMarkdownPath,
+} from './lib/html-to-markdown';
+import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 
 /**
  * Edge caching middleware.
@@ -28,6 +35,10 @@ const CACHE_MAX_AGE = 60 * 10; // 10 minutes edge cache (s-maxage)
 // *.workers.dev preview URLs and localhost are intentionally NOT listed, so
 // CMS preview and editor access stay open without a key.
 const GATED_HOSTS = new Set(['ki.norge.no', 'ki.test.norge.no']);
+
+// Ruter som krever ki_admin-cookie. Statussiden og API-et den henter fra hører
+// sammen: beskytter du bare siden, ligger dataene fortsatt åpne på API-ruta.
+const ADMIN_ONLY_PATHS = new Set(['/status', '/api/status-checks']);
 
 // Launch switch. Gated hosts show the holding page UNLESS LAUNCH_MODE is "live".
 // Fail-safe: any other value (or unset) keeps them gated, so a misconfigured
@@ -75,6 +86,52 @@ const COMING_SOON_HTML = `<!doctype html>
 </body>
 </html>`;
 
+/**
+ * Markdown for agenter, i to former.
+ *
+ * `/veiledning.md` er den pålitelige: egen URL, egen cache-nøkkel, cachebar som
+ * alt annet.
+ *
+ * `Accept: text/markdown` på den vanlige URL-en er et tillegg, og det er kun
+ * best effort. Cloudflare bryr seg ikke om Vary på annet enn Accept-Encoding, så
+ * ligger HTML-en allerede i edge-cachen blir den servert uten at Workeren kjører
+ * i det hele tatt, og agenten får HTML. Derfor markeres markdown fra denne veien
+ * som no-store: uten det ville en agent som traff en kald cache lagt markdown i
+ * den, og alle nettleserne etterpå hadde fått rå markdown i stedet for siden.
+ * Målt på tt02 før det ble fikset.
+ */
+async function toMarkdownResponse(
+  response: Response,
+  requestUrl: URL,
+  { cacheable }: { cacheable: boolean },
+): Promise<Response> {
+  if (response.status !== 200) return response;
+  if (!response.headers.get('Content-Type')?.startsWith('text/html')) return response;
+
+  // Samme regel som sitemap og llms.txt: lest fra workers.dev-hosten skal
+  // lenkene i markdownen peke på det kanoniske domenet.
+  const base = isProdHost(requestUrl.hostname) ? CANONICAL_SITE_URL : requestUrl.origin;
+
+  try {
+    const page = htmlToMarkdown(await response.clone().text(), base);
+    if (!page) return response;
+
+    const markdown = new Response(page.markdown, {
+      status: 200,
+      headers: response.headers,
+    });
+    markdown.headers.set('Content-Type', 'text/markdown; charset=utf-8');
+    // Arvet fra HTML-svaret og gjelder ikke lenger for denne kroppen.
+    markdown.headers.delete('Content-Length');
+    markdown.headers.delete('Content-Encoding');
+    if (!cacheable) markdown.headers.set('Cache-Control', 'private, no-store');
+    return markdown;
+  } catch (error) {
+    console.error('[markdown] konvertering feilet', error);
+    return response;
+  }
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies } = context;
 
@@ -94,8 +151,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return new Response('Ugyldig nøkkel', { status: 401 });
   }
 
-  // Status page requires admin cookie
-  if (url.pathname === '/status' && !cookies.has('ki_admin')) {
+  // Statussiden og datakilden bak den krever admin-cookie. /api/status-checks
+  // sto utenfor og var offentlig lesbar på prod, selv om ruta selv dokumenterte
+  // at middlewaren beskyttet den. Den svarer med interne vertsnavn i dis-core.
+  if (ADMIN_ONLY_PATHS.has(url.pathname) && !cookies.has('ki_admin')) {
     return new Response('Ikke autorisert. Trenger ki_admin-cookie. Bruk /admin-tilgang?key=<secret>', {
       status: 401,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -125,9 +184,45 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isPreview =
     url.searchParams.has('preview') || cookies.has('preview');
   const isApiRoute = url.pathname.startsWith('/api/');
-  const isAdminRoute = url.pathname === '/status' || url.pathname === '/admin-tilgang';
+  const isAdminRoute = ADMIN_ONLY_PATHS.has(url.pathname) || url.pathname === '/admin-tilgang';
 
-  const response = await next();
+  const isReadRequest = context.request.method === 'GET' || context.request.method === 'HEAD';
+  const isPage = !isApiRoute && !isAdminRoute && isReadRequest;
+
+  // `/veiledning.md` rendrer den vanlige siden og leverer den som markdown. Egen
+  // URL gir egen cache-nøkkel, og det er det som gjør denne veien pålitelig.
+  const markdownRoute = isPage ? pathFromMarkdownPath(url.pathname) : null;
+
+  let response = markdownRoute ? await next(markdownRoute) : await next();
+
+  const isHtml = response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
+  const wantsMarkdownByAccept =
+    isPage && !markdownRoute && isHtml && prefersMarkdown(context.request.headers.get('Accept'));
+
+  if (markdownRoute || wantsMarkdownByAccept) {
+    response = await toMarkdownResponse(response, url, { cacheable: Boolean(markdownRoute) });
+
+    // Ingen markdown ut betyr at siden ikke hadde hovedinnhold å konvertere.
+    // På .md-ruta finnes da ingen variant, og HTML ville vært feil svar der.
+    if (markdownRoute && !response.headers.get('Content-Type')?.startsWith('text/markdown')) {
+      response = new Response('Ingen markdown-variant for denne siden.', {
+        status: 404,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }
+  } else if (isPage && isHtml) {
+    // Vary er korrekt HTTP, og nettlesercacher og proxyer respekterer det.
+    // Cloudflare gjør det ikke, og det er derfor .md-ruta finnes.
+    response.headers.append('Vary', 'Accept');
+    // Kun på sider som faktisk finnes. Uten statussjekken lovet 404-siden en
+    // markdown-variant av alt som ble spurt etter, som /openapi.json.md.
+    if (response.status === 200) {
+      response.headers.append(
+        'Link',
+        `<${markdownPathFor(url.pathname)}>; rel="alternate"; type="text/markdown"`,
+      );
+    }
+  }
 
   // ── Security headers (apply to all responses) ──
   // Defends against clickjacking, MIME sniffing, leaking referrer to other origins,

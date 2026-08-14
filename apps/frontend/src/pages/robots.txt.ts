@@ -1,41 +1,50 @@
 import type { APIRoute } from 'astro';
 import { isProdHost } from '../lib/prod-hosts';
+import { AI_CRAWLERS, CONTENT_SIGNAL, DISALLOWED_PATHS } from '../lib/robots';
+
+function group(userAgents: string[]): string {
+  return [
+    ...userAgents.map((agent) => `User-agent: ${agent}`),
+    `Content-Signal: ${CONTENT_SIGNAL}`,
+    '',
+    '# Ressurser som må hentes for at siden skal rendres riktig',
+    'Allow: /*.css$',
+    'Allow: /*.js$',
+    'Allow: /*.png$',
+    'Allow: /*.jpg$',
+    'Allow: /*.jpeg$',
+    'Allow: /*.webp$',
+    'Allow: /*.svg$',
+    '',
+    '# Mediebibliotek, admin og interne ruter',
+    ...DISALLOWED_PATHS.map((path) => `Disallow: ${path}`),
+  ].join('\n');
+}
 
 export const GET: APIRoute = ({ url }) => {
-  const isProd = isProdHost(url.hostname);
-
-  const body = isProd
+  const body = isProdHost(url.hostname)
     ? `# Robots.txt for https://ki.norge.no/
-# Updated: 2026-06-11 — optimized for SEO, security and AI search
+#
+# Content-Signal sier hva innholdet kan brukes til. KI Norge er offentlig
+# informasjon som er ment å spres, derfor ja på alle tre.
+#
+# AI-crawlerne står i en egen gruppe fordi robots.txt-grupper ikke slås sammen:
+# en agent som matcher sitt eget navn ser aldri reglene under "*". Gruppen må
+# derfor gjenta de samme Disallow-linjene.
 
-User-agent: *
+${group(['*'])}
 
-# Allow resources required for correct rendering and Core Web Vitals measurements
-Allow: /*.css$
-Allow: /*.js$
-Allow: /*.png$
-Allow: /*.jpg$
-Allow: /*.jpeg$
-Allow: /*.webp$
-Allow: /*.svg$
-
-# --- Media library (Umbraco media files) ---
-Disallow: /media/
-
-# --- Admin and internal routes ---
-Disallow: /admin-tilgang
-Disallow: /preview-tilgang
-Disallow: /status
-Disallow: /api/
-Disallow: /503
-Disallow: /404
+${group(AI_CRAWLERS)}
 
 Sitemap: https://ki.norge.no/sitemap.xml
 
-# Human/LLM-readable route expectations for automated testing:
-# See /llm.txt
+# Nettstedsoversikt for språkmodeller og agenter
+# https://ki.norge.no/llms.txt
+#
+# Alle sider kan hentes som markdown med Accept: text/markdown
 `
-    : `# Non-production environment — disallow all (crawling on test would give bad content for Search Engines and give false results for Siteimprove)
+    : `# Testmiljø. Crawling her ville gitt søkemotorene feil innhold og
+# Siteimprove falske resultater.
 
 User-agent: *
 Disallow: /

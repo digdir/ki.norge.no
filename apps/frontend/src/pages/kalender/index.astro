@@ -3,6 +3,7 @@ import Layout from '../../components/layout/Layout.astro';
 import EventCard from '../../components/shared/EventCard.astro';
 import { getKalender, getKalenderhendelser, type Kalenderhendelse } from '../../lib/umbraco';
 import { hendelseTilEventCard } from '../../lib/kalender';
+import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 let kalender = null;
 let hendelser: Kalenderhendelse[] = [];
@@ -51,8 +52,26 @@ const tidligere = hendelser
   .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
+
+// Kommende først, så tidligere. Det er rekkefølgen som er nyttig for en agent
+// som spør "hva skjer framover".
+const collectionJsonLd = collectionPageSchema({
+  name: tittel || seoTitle || 'Kalender',
+  description: seoDesc,
+  url: '/kalender',
+  items: [...allKommende, ...hendelser.filter(h => effectiveEnd(h) < now).sort((a, b) => sortByStart(b, a))]
+    .map(h => ({ name: h.tittel, url: `/kalender/${h.slug}` })),
+});
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: 'Hjem', url: '/' },
+  { name: tittel || 'Kalender', url: '/kalender' },
+]);
 ---
 <Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde?.url}>
+  {hendelser.length > 0 && (
+    <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
+  )}
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   <header class="kalender-header" data-layout-block="content">
     {tittel && <h1 class="ds-heading" data-size="xl">{tittel}</h1>}
     {ingress && <p class="kalender-ingress">{ingress}</p>}

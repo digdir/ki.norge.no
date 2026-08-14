@@ -1,4 +1,10 @@
-const SITE_URL = import.meta.env.SITE_URL || 'https://ki.norge.no';
+import { CANONICAL_SITE_URL } from './prod-hosts';
+
+// Leste tidligere import.meta.env.SITE_URL. Den settes til http://localhost:4321
+// i dev og bakes inn i prod-bygget, så all strukturert data i produksjon pekte på
+// localhost. Det kanoniske domenet er det samme uansett miljø, og bor derfor i
+// prod-hosts.ts sammen med den samme advarselen.
+const SITE_URL = CANONICAL_SITE_URL;
 const SITE_NAME = 'KI Norge';
 
 const publisher = {
@@ -77,6 +83,41 @@ export function eksempelSchema(opts: {
     data.about = { '@type': 'Organization', name: opts.organization };
   }
   return data;
+}
+
+/**
+ * CollectionPage med ItemList for oversiktssidene (/veiledning, /artikler,
+ * /eksempler, /kalender). Detaljsidene hadde Article + BreadcrumbList, mens
+ * oversiktene stod uten strukturert data i det hele tatt. For en agent er det
+ * nettopp oversikten som svarer på "hva finnes her", så lista over medlemmer er
+ * den nyttige delen.
+ */
+export function collectionPageSchema(opts: {
+  name: string;
+  description?: string;
+  url: string;
+  items: { name: string; url: string }[];
+}) {
+  const absolute = (url: string) => (url.startsWith('http') ? url : `${SITE_URL}${url}`);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: opts.name,
+    ...(opts.description ? { description: opts.description } : {}),
+    url: absolute(opts.url),
+    isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+    publisher,
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: opts.items.length,
+      itemListElement: opts.items.map((item, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: item.name,
+        url: absolute(item.url),
+      })),
+    },
+  };
 }
 
 /**

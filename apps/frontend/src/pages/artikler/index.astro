@@ -2,6 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 import { getArtikler, getArtiklerOversikt, getVeiledningGuider, getPlainText, getMediaUrl, MEDIA_WIDTH, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
+import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -62,9 +63,25 @@ const imageGridTop = rest.slice(3, 6);
 const imageGridBottom = rest.slice(6, 8);
 const bottomFeatured = rest[8];
 const remaining = rest.slice(9);
+
+const collectionJsonLd = collectionPageSchema({
+  name: heroTittel || seoTitle || 'Artikler',
+  description: seoDesc,
+  url: '/artikler',
+  items: articles.map((a) => ({ name: a.tittel, url: `/artikler/${a.slug}` })),
+});
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: 'Hjem', url: '/' },
+  { name: heroTittel || 'Artikler', url: '/artikler' },
+]);
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde?.url}>
+  {articles.length > 0 && (
+    <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
+  )}
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+
   <section data-layout-block="content" class="artikler-page">
     <header class="artikler-header">
       {heroTittel && <h1 class="ds-heading" data-size="xl">{heroTittel}</h1>}

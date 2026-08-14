@@ -113,6 +113,11 @@ const ogImageUrl = resolvedOg
         }
       });
     </script>
+    <script>
+      // WebMCP. No-op i nettlesere uten modelContext, som er de aller fleste.
+      import { registerWebMcpTools } from '../../lib/webmcp';
+      void registerWebMcpTools();
+    </script>
   </body>
 </html>
 
