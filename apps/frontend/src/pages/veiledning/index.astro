@@ -11,6 +11,7 @@ import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
 import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getArtikler, getMediaUrl, MEDIA_WIDTH } from '../../lib/umbraco';
 import { splitLastWord } from '../../lib/text';
+import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -98,9 +99,33 @@ const caseCards = cases.data.length > 0
 
 const seoTitle = cmsData?.seoTittel || 'Veiledning og guider';
 const seoDesc = cmsData?.seoBeskrivelse || heroText;
+
+// Bygges av lenkene siden faktisk viser, ikke av guide-lista alene: veiledningen
+// består av både guider (seksjon2) og enkeltveiledninger (seksjon3), og bare
+// guidene ville underrapportert hva som finnes. Uoppløste redaktørlenker ("#")
+// og eksterne lenker hører ikke hjemme i samlingen.
+const collectionItems = [...richLinks, ...simpleLinks]
+  .filter((l) => l.href.startsWith('/'))
+  .map((l) => ({ name: l.title, url: l.href }));
+
+const collectionJsonLd = collectionPageSchema({
+  name: heroTitle || seoTitle,
+  description: seoDesc,
+  url: '/veiledning',
+  items: collectionItems,
+});
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: 'Hjem', url: '/' },
+  { name: heroTitle || 'Veiledning', url: '/veiledning' },
+]);
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogImage={cmsData?.seoBilde?.url}>
+  {collectionItems.length > 0 && (
+    <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
+  )}
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+
   <!-- Hero -->
   <section class="veil-hero" data-layout-block="content">
     {heroTitle && <h1 class="ds-heading" data-size="xl">{heroTitle}</h1>}

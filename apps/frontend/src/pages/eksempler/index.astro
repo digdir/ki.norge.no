@@ -5,6 +5,7 @@ import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
 import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getMediaUrl, MEDIA_WIDTH, type Eksempel, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
+import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -39,9 +40,25 @@ artikler.forEach(a => relatertById.set(a.id, a));
 guider.forEach(g => relatertById.set(g.id, g));
 
 const seksjoner = oversikt?.seksjoner ?? [];
+
+const collectionJsonLd = collectionPageSchema({
+  name: heroTittel || seoTitle || 'Eksempler',
+  description: seoDesc,
+  url: '/eksempler',
+  items: eksempler.map((e) => ({ name: e.tittel, url: `/eksempler/${e.slug}` })),
+});
+const breadcrumbJsonLd = breadcrumbSchema([
+  { name: 'Hjem', url: '/' },
+  { name: heroTittel || 'Eksempler', url: '/eksempler' },
+]);
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde?.url}>
+  {eksempler.length > 0 && (
+    <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
+  )}
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+
   <div class="eksempler-page">
     <header class="eksempler-header" data-layout-block="content">
       {heroTittel && <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>}

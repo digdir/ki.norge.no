@@ -51,7 +51,7 @@ const PUBLIC_ASSET_PATHS = new Set([
 const PUBLIC_ASSET_PREFIXES = ['/favicon/'];
 
 const COMING_SOON_HTML = `<!doctype html>
-<html lang="no">
+<html lang="nb">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
