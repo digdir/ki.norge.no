@@ -173,13 +173,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
     !isAdminRoute;
 
   if (canNegotiate) {
-    if (prefersMarkdown(context.request.headers.get('Accept'))) {
-      response = await negotiateMarkdown(response, url);
+    // Bare HTML-sider har to representasjoner. robots.txt, sitemap.xml og
+    // llms.txt svarer likt uansett Accept, og skal ikke fragmentere cachen.
+    const isHtmlPage = response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
+
+    if (isHtmlPage) {
+      if (prefersMarkdown(context.request.headers.get('Accept'))) {
+        response = await negotiateMarkdown(response, url);
+      }
+      // Uten Vary ville edge-cachen servert den ene representasjonen til alle:
+      // en agent som varmer cachen med markdown ville gitt nettleserne markdown.
+      // Prisen er at cachen fragmenteres per Accept-variant.
+      response.headers.append('Vary', 'Accept');
     }
-    // Uten Vary ville edge-cachen servert den ene representasjonen til alle:
-    // en agent som varmer cachen med markdown ville gitt nettleserne markdown.
-    // Prisen er at cachen fragmenteres per Accept-variant.
-    response.headers.append('Vary', 'Accept');
   }
 
   // ── Security headers (apply to all responses) ──
