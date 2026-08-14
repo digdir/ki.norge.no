@@ -36,6 +36,10 @@ const CACHE_MAX_AGE = 60 * 10; // 10 minutes edge cache (s-maxage)
 // CMS preview and editor access stay open without a key.
 const GATED_HOSTS = new Set(['ki.norge.no', 'ki.test.norge.no']);
 
+// Ruter som krever ki_admin-cookie. Statussiden og API-et den henter fra hører
+// sammen: beskytter du bare siden, ligger dataene fortsatt åpne på API-ruta.
+const ADMIN_ONLY_PATHS = new Set(['/status', '/api/status-checks']);
+
 // Launch switch. Gated hosts show the holding page UNLESS LAUNCH_MODE is "live".
 // Fail-safe: any other value (or unset) keeps them gated, so a misconfigured
 // deploy can never accidentally expose the site.
@@ -147,8 +151,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return new Response('Ugyldig nøkkel', { status: 401 });
   }
 
-  // Status page requires admin cookie
-  if (url.pathname === '/status' && !cookies.has('ki_admin')) {
+  // Statussiden og datakilden bak den krever admin-cookie. /api/status-checks
+  // sto utenfor og var offentlig lesbar på prod, selv om ruta selv dokumenterte
+  // at middlewaren beskyttet den. Den svarer med interne vertsnavn i dis-core.
+  if (ADMIN_ONLY_PATHS.has(url.pathname) && !cookies.has('ki_admin')) {
     return new Response('Ikke autorisert. Trenger ki_admin-cookie. Bruk /admin-tilgang?key=<secret>', {
       status: 401,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -178,7 +184,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isPreview =
     url.searchParams.has('preview') || cookies.has('preview');
   const isApiRoute = url.pathname.startsWith('/api/');
-  const isAdminRoute = url.pathname === '/status' || url.pathname === '/admin-tilgang';
+  const isAdminRoute = ADMIN_ONLY_PATHS.has(url.pathname) || url.pathname === '/admin-tilgang';
 
   const isReadRequest = context.request.method === 'GET' || context.request.method === 'HEAD';
   const isPage = !isApiRoute && !isAdminRoute && isReadRequest;
@@ -208,10 +214,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // Vary er korrekt HTTP, og nettlesercacher og proxyer respekterer det.
     // Cloudflare gjør det ikke, og det er derfor .md-ruta finnes.
     response.headers.append('Vary', 'Accept');
-    response.headers.append(
-      'Link',
-      `<${markdownPathFor(url.pathname)}>; rel="alternate"; type="text/markdown"`,
-    );
+    // Kun på sider som faktisk finnes. Uten statussjekken lovet 404-siden en
+    // markdown-variant av alt som ble spurt etter, som /openapi.json.md.
+    if (response.status === 200) {
+      response.headers.append(
+        'Link',
+        `<${markdownPathFor(url.pathname)}>; rel="alternate"; type="text/markdown"`,
+      );
+    }
   }
 
   // ── Security headers (apply to all responses) ──
