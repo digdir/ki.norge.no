@@ -875,8 +875,11 @@ export async function resolveContentUrl(
 }
 
 // Minimal projection of a published node, enough to resolve its sitemap URL.
+// `name` er nodenavnet i Umbraco, brukt som tittel-fallback i llms.txt når
+// typen mangler et `tittel`-felt (oversiktssidene har bare heroTittel).
 export interface RawContentNode {
   id: string;
+  name?: string;
   contentType: string;
   updateDate?: string;
   properties?: Record<string, unknown>;
@@ -902,6 +905,7 @@ export async function fetchAllPublishedContent(options: FetchOptions = {}): Prom
     for (const item of items) {
       all.push({
         id: item.id,
+        name: item.name,
         contentType: item.contentType,
         updateDate: item.updateDate,
         properties: item.properties,
