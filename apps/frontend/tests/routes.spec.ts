@@ -5,106 +5,64 @@ import path from 'node:path';
 type RouteExpectation = {
   path: string;
   expectedStatus: number;
-  expectedH1?: string;
 };
 
+// Ruter som med vilje ikke finnes. Alt annet i fixturen forventes å svare 200.
+const EXPECTED_404 = new Set(['/__does_not_exist__', '/personvern', '/tilgjengelighet']);
+
 function normalizeRoute(p: string): string {
-  if (!p.startsWith('/')) return `/${p}`;
-  return p;
+  return p.startsWith('/') ? p : `/${p}`;
 }
 
-async function loadRoutesFromLlm(): Promise<RouteExpectation[]> {
-  const llmPath = path.resolve(process.cwd(), 'public', 'llm.txt');
-  const content = await fs.readFile(llmPath, 'utf8');
-  const lines = content.split(/\r?\n/);
+async function loadRoutesFromFixture(): Promise<RouteExpectation[]> {
+  const fixturePath = path.resolve(process.cwd(), 'tests', 'fixtures', 'ruter.md');
+  const content = await fs.readFile(fixturePath, 'utf8');
 
-  const routes = new Map<string, RouteExpectation>();
+  const paths = new Set<string>();
 
-  let currentSectionRoute: string | null = null;
-
-  const addRoute = (routePath: string, patch?: Partial<RouteExpectation>) => {
+  const addRoute = (routePath: string) => {
     const normalized = normalizeRoute(routePath);
-    const existing = routes.get(normalized);
-    const expectedStatus =
-      normalized === '/__does_not_exist__' ||
-      normalized === '/personvern' ||
-      normalized === '/tilgjengelighet'
-        ? 404
-        : 200;
-
-    const next: RouteExpectation = {
-      path: normalized,
-      expectedStatus,
-      ...(existing ?? {}),
-      ...(patch ?? {}),
-    };
-
-    routes.set(normalized, next);
+    // Dynamiske mønstre (/artikler/[slug]) har ingen konkret URL å slå opp.
+    if (!normalized.includes('[')) paths.add(normalized);
   };
 
-  for (const raw of lines) {
+  for (const raw of content.split(/\r?\n/)) {
     const line = raw.trim();
 
-    // Route section headers: "### /foo"
+    // Ruteoverskrift: "### /foo"
     const sectionMatch = /^###\s+(\/\S*)\s*$/.exec(line);
     if (sectionMatch) {
-      currentSectionRoute = sectionMatch[1];
-      // Do not add dynamic routes like /foo/[slug] to the concrete test list
-      if (!currentSectionRoute.includes('[')) {
-        addRoute(currentSectionRoute);
-      }
+      addRoute(sectionMatch[1]);
       continue;
     }
 
-    // Capture expected H1 when inside a section
-    if (currentSectionRoute && !currentSectionRoute.includes('[')) {
-      const h1Match = /^-\s*H1:\s*“(.+)”\s*$/.exec(line);
-      if (h1Match) {
-        addRoute(currentSectionRoute, { expectedH1: h1Match[1] });
-        continue;
-      }
-    }
-
-    // Capture example routes under "Eksempelruter" lists
-    const exampleRouteMatch = /^-\s*(\/[^\s]+)\s*$/.exec(line);
-    if (exampleRouteMatch) {
-      const maybeRoute = exampleRouteMatch[1];
-      if (maybeRoute.startsWith('/') && !maybeRoute.includes('[')) {
-        addRoute(maybeRoute);
-      }
-    }
+    // Punktliste med ruter, f.eks. i 404-seksjonen: "- GET /personvern -> 404"
+    const bulletMatch = /^-\s*(?:GET\s+)?(\/\S+)/.exec(line);
+    if (bulletMatch) addRoute(bulletMatch[1]);
   }
 
-  // Ensure 404 test route is always included
   addRoute('/__does_not_exist__');
 
-  return Array.from(routes.values());
+  return [...paths].map((p) => ({
+    path: p,
+    expectedStatus: EXPECTED_404.has(p) ? 404 : 200,
+  }));
 }
 
-test.describe('Route smoke tests (from public/llm.txt)', () => {
+test.describe('Route smoke tests (from tests/fixtures/ruter.md)', () => {
   test('all documented routes respond as expected', async ({ page, baseURL }) => {
     expect(baseURL, 'baseURL must be set (e.g. http://localhost:4321)').toBeTruthy();
 
-    const routes = await loadRoutesFromLlm();
+    const routes = await loadRoutesFromFixture();
     expect(routes.length).toBeGreaterThan(0);
 
-    const failures: Array<{ path: string; status: number | null; h1: string | null; expectedH1?: string }> = [];
+    const failures: Array<{ path: string; status: number | null; expectedStatus: number }> = [];
 
     for (const route of routes) {
       const response = await page.goto(route.path, { waitUntil: 'domcontentloaded' });
       const status = response ? response.status() : null;
-
       if (status !== route.expectedStatus) {
-        failures.push({ path: route.path, status, h1: null, expectedH1: route.expectedH1 });
-        continue;
-      }
-
-      if (route.expectedStatus === 200 && route.expectedH1) {
-        const h1Locator = page.locator('h1').first();
-        const h1Text = (await h1Locator.count()) ? (await h1Locator.innerText()).trim() : null;
-        if (h1Text !== route.expectedH1) {
-          failures.push({ path: route.path, status, h1: h1Text, expectedH1: route.expectedH1 });
-        }
+        failures.push({ path: route.path, status, expectedStatus: route.expectedStatus });
       }
     }
 

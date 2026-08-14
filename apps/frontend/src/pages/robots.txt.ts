@@ -32,8 +32,8 @@ Disallow: /404
 
 Sitemap: https://ki.norge.no/sitemap.xml
 
-# Human/LLM-readable route expectations for automated testing:
-# See /llm.txt
+# Nettstedsoversikt for språkmodeller og agenter
+# https://ki.norge.no/llms.txt
 `
     : `# Non-production environment — disallow all (crawling on test would give bad content for Search Engines and give false results for Siteimprove)
 
