@@ -1,5 +1,10 @@
 import { defineMiddleware } from 'astro:middleware';
-import { htmlToMarkdown, prefersMarkdown } from './lib/html-to-markdown';
+import {
+  htmlToMarkdown,
+  prefersMarkdown,
+  markdownPathFor,
+  pathFromMarkdownPath,
+} from './lib/html-to-markdown';
 import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 
 /**
@@ -78,12 +83,24 @@ const COMING_SOON_HTML = `<!doctype html>
 </html>`;
 
 /**
- * Bytter et HTML-svar mot markdown når klienten har bedt om det.
+ * Markdown for agenter, i to former.
  *
- * Klarer ikke konverteringen å finne hovedinnhold, beholdes HTML-svaret. Et
- * tomt markdown-dokument er verre enn HTML en agent kan lese selv.
+ * `/veiledning.md` er den pålitelige: egen URL, egen cache-nøkkel, cachebar som
+ * alt annet.
+ *
+ * `Accept: text/markdown` på den vanlige URL-en er et tillegg, og det er kun
+ * best effort. Cloudflare bryr seg ikke om Vary på annet enn Accept-Encoding, så
+ * ligger HTML-en allerede i edge-cachen blir den servert uten at Workeren kjører
+ * i det hele tatt, og agenten får HTML. Derfor markeres markdown fra denne veien
+ * som no-store: uten det ville en agent som traff en kald cache lagt markdown i
+ * den, og alle nettleserne etterpå hadde fått rå markdown i stedet for siden.
+ * Målt på tt02 før det ble fikset.
  */
-async function negotiateMarkdown(response: Response, requestUrl: URL): Promise<Response> {
+async function toMarkdownResponse(
+  response: Response,
+  requestUrl: URL,
+  { cacheable }: { cacheable: boolean },
+): Promise<Response> {
   if (response.status !== 200) return response;
   if (!response.headers.get('Content-Type')?.startsWith('text/html')) return response;
 
@@ -103,6 +120,7 @@ async function negotiateMarkdown(response: Response, requestUrl: URL): Promise<R
     // Arvet fra HTML-svaret og gjelder ikke lenger for denne kroppen.
     markdown.headers.delete('Content-Length');
     markdown.headers.delete('Content-Encoding');
+    if (!cacheable) markdown.headers.set('Cache-Control', 'private, no-store');
     return markdown;
   } catch (error) {
     console.error('[markdown] konvertering feilet', error);
@@ -162,30 +180,38 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isApiRoute = url.pathname.startsWith('/api/');
   const isAdminRoute = url.pathname === '/status' || url.pathname === '/admin-tilgang';
 
-  let response = await next();
+  const isReadRequest = context.request.method === 'GET' || context.request.method === 'HEAD';
+  const isPage = !isApiRoute && !isAdminRoute && isReadRequest;
 
-  // Markdown for agenter. Gjelder sidene, ikke API-ene (som svarer JSON) eller
-  // admin-rutene. HEAD regnes med: svaret må ha de samme hodene som GET, ellers
-  // ser en mellomliggende cache ikke at representasjonen varierer.
-  const canNegotiate =
-    (context.request.method === 'GET' || context.request.method === 'HEAD') &&
-    !isApiRoute &&
-    !isAdminRoute;
+  // `/veiledning.md` rendrer den vanlige siden og leverer den som markdown. Egen
+  // URL gir egen cache-nøkkel, og det er det som gjør denne veien pålitelig.
+  const markdownRoute = isPage ? pathFromMarkdownPath(url.pathname) : null;
 
-  if (canNegotiate) {
-    // Bare HTML-sider har to representasjoner. robots.txt, sitemap.xml og
-    // llms.txt svarer likt uansett Accept, og skal ikke fragmentere cachen.
-    const isHtmlPage = response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
+  let response = markdownRoute ? await next(markdownRoute) : await next();
 
-    if (isHtmlPage) {
-      if (prefersMarkdown(context.request.headers.get('Accept'))) {
-        response = await negotiateMarkdown(response, url);
-      }
-      // Uten Vary ville edge-cachen servert den ene representasjonen til alle:
-      // en agent som varmer cachen med markdown ville gitt nettleserne markdown.
-      // Prisen er at cachen fragmenteres per Accept-variant.
-      response.headers.append('Vary', 'Accept');
+  const isHtml = response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
+  const wantsMarkdownByAccept =
+    isPage && !markdownRoute && isHtml && prefersMarkdown(context.request.headers.get('Accept'));
+
+  if (markdownRoute || wantsMarkdownByAccept) {
+    response = await toMarkdownResponse(response, url, { cacheable: Boolean(markdownRoute) });
+
+    // Ingen markdown ut betyr at siden ikke hadde hovedinnhold å konvertere.
+    // På .md-ruta finnes da ingen variant, og HTML ville vært feil svar der.
+    if (markdownRoute && !response.headers.get('Content-Type')?.startsWith('text/markdown')) {
+      response = new Response('Ingen markdown-variant for denne siden.', {
+        status: 404,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
     }
+  } else if (isPage && isHtml) {
+    // Vary er korrekt HTTP, og nettlesercacher og proxyer respekterer det.
+    // Cloudflare gjør det ikke, og det er derfor .md-ruta finnes.
+    response.headers.append('Vary', 'Accept');
+    response.headers.append(
+      'Link',
+      `<${markdownPathFor(url.pathname)}>; rel="alternate"; type="text/markdown"`,
+    );
   }
 
   // ── Security headers (apply to all responses) ──

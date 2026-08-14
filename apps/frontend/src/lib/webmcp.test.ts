@@ -88,15 +88,14 @@ describe('search_ki_norge', () => {
 });
 
 describe('get_page_content', () => {
-  test('henter gjeldende URL med Accept: text/markdown', async () => {
+  test('henter .md-varianten, ikke gjeldende URL med Accept-header', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => '# Veiledning' });
     vi.stubGlobal('fetch', fetchMock);
 
     const result = await toolNamed('get_page_content').execute({});
 
-    expect(fetchMock).toHaveBeenCalledWith('https://ki.norge.no/veiledning', {
-      headers: { Accept: 'text/markdown' },
-    });
+    // Accept alene kan bli servert fra edge-cachen som HTML.
+    expect(String(fetchMock.mock.calls[0][0])).toBe('https://ki.norge.no/veiledning.md');
     expect(result.content[0].text).toBe('# Veiledning');
   });
 });

@@ -11,6 +11,8 @@
  * agenter, ikke av oss.
  */
 
+import { markdownPathFor } from './html-to-markdown';
+
 export interface WebMcpTool {
   name: string;
   title?: string;
@@ -106,8 +108,12 @@ export function createTools(): WebMcpTool[] {
       inputSchema: { type: 'object', properties: {} },
       annotations: { readOnlyHint: true },
       async execute() {
+        // .md-varianten, ikke Accept-headeren: den siste kan bli servert fra
+        // edge-cachen som HTML uten at Workeren kjører.
+        const url = new URL(location.href);
+        url.pathname = markdownPathFor(url.pathname);
         try {
-          const res = await fetch(location.href, { headers: { Accept: 'text/markdown' } });
+          const res = await fetch(url, { headers: { Accept: 'text/markdown' } });
           if (!res.ok) return failure(`Could not read the page (status ${res.status}).`);
           return text(await res.text());
         } catch (error) {
