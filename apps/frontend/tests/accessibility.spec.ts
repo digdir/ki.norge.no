@@ -53,8 +53,9 @@ test.describe('Landemerker og struktur', () => {
       // Nøyaktig én h1 per side
       await expect(page.locator('main h1'), url).toHaveCount(1);
 
-      // Språk satt på html-elementet. "no" (makrospråket), ikke "nb" — bevisst
-      // endret i #487. Testen ble ikke oppdatert den gangen og har feilet siden.
+      // Språk satt på html-elementet. "no" (makrospråket), ikke "nb": sidene
+      // blander bokmål og nynorsk, og språket kan ikke merkes per side fra
+      // CMS-et, så en bokmålstagg ville vært feil på nynorsksidene (#487).
       await expect(page.locator('html'), url).toHaveAttribute('lang', 'no');
     }
   });
