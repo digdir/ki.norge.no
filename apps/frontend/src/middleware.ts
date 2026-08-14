@@ -1,4 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
+import { htmlToMarkdown, prefersMarkdown } from './lib/html-to-markdown';
+import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 
 /**
  * Edge caching middleware.
@@ -75,6 +77,39 @@ const COMING_SOON_HTML = `<!doctype html>
 </body>
 </html>`;
 
+/**
+ * Bytter et HTML-svar mot markdown når klienten har bedt om det.
+ *
+ * Klarer ikke konverteringen å finne hovedinnhold, beholdes HTML-svaret. Et
+ * tomt markdown-dokument er verre enn HTML en agent kan lese selv.
+ */
+async function negotiateMarkdown(response: Response, requestUrl: URL): Promise<Response> {
+  if (response.status !== 200) return response;
+  if (!response.headers.get('Content-Type')?.startsWith('text/html')) return response;
+
+  // Samme regel som sitemap og llms.txt: lest fra workers.dev-hosten skal
+  // lenkene i markdownen peke på det kanoniske domenet.
+  const base = isProdHost(requestUrl.hostname) ? CANONICAL_SITE_URL : requestUrl.origin;
+
+  try {
+    const page = htmlToMarkdown(await response.clone().text(), base);
+    if (!page) return response;
+
+    const markdown = new Response(page.markdown, {
+      status: 200,
+      headers: response.headers,
+    });
+    markdown.headers.set('Content-Type', 'text/markdown; charset=utf-8');
+    // Arvet fra HTML-svaret og gjelder ikke lenger for denne kroppen.
+    markdown.headers.delete('Content-Length');
+    markdown.headers.delete('Content-Encoding');
+    return markdown;
+  } catch (error) {
+    console.error('[markdown] konvertering feilet', error);
+    return response;
+  }
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies } = context;
 
@@ -127,7 +162,25 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isApiRoute = url.pathname.startsWith('/api/');
   const isAdminRoute = url.pathname === '/status' || url.pathname === '/admin-tilgang';
 
-  const response = await next();
+  let response = await next();
+
+  // Markdown for agenter. Gjelder sidene, ikke API-ene (som svarer JSON) eller
+  // admin-rutene. HEAD regnes med: svaret må ha de samme hodene som GET, ellers
+  // ser en mellomliggende cache ikke at representasjonen varierer.
+  const canNegotiate =
+    (context.request.method === 'GET' || context.request.method === 'HEAD') &&
+    !isApiRoute &&
+    !isAdminRoute;
+
+  if (canNegotiate) {
+    if (prefersMarkdown(context.request.headers.get('Accept'))) {
+      response = await negotiateMarkdown(response, url);
+    }
+    // Uten Vary ville edge-cachen servert den ene representasjonen til alle:
+    // en agent som varmer cachen med markdown ville gitt nettleserne markdown.
+    // Prisen er at cachen fragmenteres per Accept-variant.
+    response.headers.append('Vary', 'Accept');
+  }
 
   // ── Security headers (apply to all responses) ──
   // Defends against clickjacking, MIME sniffing, leaking referrer to other origins,
