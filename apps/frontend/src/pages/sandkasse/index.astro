@@ -43,7 +43,9 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       )}
     </div>
   </section>
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
 
   <ArticleLayout publishedAt={sandkasse.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
     {sandkasse.ingress && (

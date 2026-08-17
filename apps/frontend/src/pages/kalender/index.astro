@@ -68,10 +68,12 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ]);
 ---
 <Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde?.url}>
-  {hendelser.length > 0 && (
-    <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
-  )}
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+    {hendelser.length > 0 && (
+      <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
+    )}
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
   <header class="kalender-header" data-layout-block="content">
     {tittel && <h1 class="ds-heading" data-size="xl">{tittel}</h1>}
     {ingress && <p class="kalender-ingress">{ingress}</p>}

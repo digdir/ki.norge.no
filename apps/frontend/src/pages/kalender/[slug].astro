@@ -57,7 +57,9 @@ const påmeldingUrl = hendelse.lenke || '#';
       {timeDisplay && <span class="event-time">{timeDisplay}</span>}
     </p>
   </section>
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
 
   <ArticleLayout>
     <Fragment slot="sidebar">

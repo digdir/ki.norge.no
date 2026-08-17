@@ -29,7 +29,9 @@ const breadcrumbJsonLd = breadcrumbSchema([
   <div class="article-page u-rich-text" data-layout-block="content">
     <ArticleBlocksRenderer blocks={page.innhold} defaultDate={page.publishedAt} />
   </div>
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
 </Layout>
 
 <style>

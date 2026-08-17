@@ -55,5 +55,7 @@ const websiteJsonLd = websiteSchema(seoDescription);
     veiledninger={veiledninger}
     eksempelKort={eksempelKort}
     />
-    <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+      <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
 </Layout>

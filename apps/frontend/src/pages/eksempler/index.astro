@@ -54,10 +54,12 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde?.url}>
-  {eksempler.length > 0 && (
-    <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
-  )}
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+    {eksempler.length > 0 && (
+      <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
+    )}
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
 
   <div class="eksempler-page">
     <header class="eksempler-header" data-layout-block="content">

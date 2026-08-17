@@ -106,8 +106,10 @@ if (guideData) {
       </div>
     </section>
 
-    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.articleJsonLd).replace(/</g, '\\u003c')} />
-    <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+    <Fragment slot="head">
+      <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.articleJsonLd).replace(/</g, '\\u003c')} />
+      <script type="application/ld+json" set:html={JSON.stringify(enkelCtx.breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+    </Fragment>
 
     <ArticleLayout publishedAt={enkel.publishedAt}>
       {enkelCtx.heroImage && (
