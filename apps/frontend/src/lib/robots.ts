@@ -15,6 +15,11 @@
  * KI-kunnskap tilgjengelig. Derfor ja på alle tre. Skal dette endres, er det
  * Sara og Marie som eier avgjørelsen, ikke koden.
  *
+ * SENDES SOM HTTP-HEADER, ikke i robots.txt. Direktivet lå i robots.txt fram til
+ * august 2026, men står ikke i robots.txt-spesifikasjonen, så Lighthouse og
+ * Search Console forkastet hele fila som ugyldig og SEO-scoren falt til 92.
+ * Headeren settes i middleware.ts, kun for prod-hostene.
+ *
  * https://contentsignals.org/
  */
 export const CONTENT_SIGNAL = 'search=yes, ai-input=yes, ai-train=yes';
