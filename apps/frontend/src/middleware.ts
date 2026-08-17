@@ -69,12 +69,11 @@ const COMING_SOON_HTML = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>KI Norge</title>
   <meta name="robots" content="noindex" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+    /* Systemfont. Denne siden er noindex og står alene uten bundlet CSS, så den
+       skal ikke dra inn en fontfil. Hentet Inter fra Google fram til nå. */
     * { margin: 0; box-sizing: border-box; }
-    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', system-ui, sans-serif; background: var(--ds-color-background-default); color: #1e293b; }
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--ds-color-background-default); color: #1e293b; }
     .card { text-align: center; padding: 3rem 2rem; max-width: 600px; }
     h1 { font-size: 2rem; font-weight: 600; margin-bottom: 1rem; }
     p { font-size: 1.1rem; line-height: 1.6; color: #475569; }
@@ -257,15 +256,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   if (!response.headers.has('Content-Security-Policy')) {
-    // Loose CSP — allows inline styles (Astro), Google Fonts, and same-origin scripts.
+    // Loose CSP — allows inline styles (Astro) and same-origin scripts.
     // Tighten by removing 'unsafe-inline' from style-src once Astro can be configured to nonce.
+    // Google Fonts er fjernet fra style-src og font-src fordi fontene na er selvhostet.
     response.headers.set(
       'Content-Security-Policy',
       [
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' https://survey.skyra.no https://siteimproveanalytics.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://altinncdn.no https://survey.skyra.no",
-        "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://altinncdn.no data:",
+        "style-src 'self' 'unsafe-inline' https://altinncdn.no https://survey.skyra.no",
+        "font-src 'self' https://altinncdn.no data:",
         // CMS-hoster (union av alle reelle origins). Frontend henter media fra CMS,
         // sa img-src/connect-src ma tillate dem ellers blokkeres bildene. Den dode
         // Container Apps-hosten er fjernet.

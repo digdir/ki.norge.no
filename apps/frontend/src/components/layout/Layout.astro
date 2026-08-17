@@ -87,11 +87,23 @@ const ogImageUrl = resolvedOg
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="twitter:image:alt" content="KI Norge" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- TODO: Don't use google cdn -->
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <!-- Fontene er selvhostet, se src/styles/fonts.css. Bare de to latin-filene
+         som trengs over skjermkanten preloades: brødtekst og overskrifter.
+         crossorigin er påkrevd selv for samme opphav, fonter hentes i CORS-modus. -->
+    <link
+      rel="preload"
+      href="/fonts/instrument-sans-400-700-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/pt-serif-700-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
