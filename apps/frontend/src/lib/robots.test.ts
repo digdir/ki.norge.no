@@ -19,15 +19,25 @@ function groupFor(body: string, userAgent: string): string | null {
 }
 
 describe('robots.txt i produksjon', () => {
-  test('wildcard-gruppen har Content-Signal og alle Disallow-linjene', async () => {
+  test('wildcard-gruppen har alle Disallow-linjene', async () => {
     const body = await robotsFor('ki.norge.no');
     const group = groupFor(body, '*');
 
     expect(group).not.toBeNull();
-    expect(group).toContain(`Content-Signal: ${CONTENT_SIGNAL}`);
     for (const path of DISALLOWED_PATHS) {
       expect(group).toContain(`Disallow: ${path}`);
     }
+  });
+
+  // Content-Signal er en HTTP-header, ikke et robots.txt-direktiv. Det lå her
+  // fram til august 2026, men står ikke i robots.txt-spesifikasjonen, så
+  // Lighthouse og Search Console forkastet hele fila som ugyldig. Havner det inn
+  // igjen, faller SEO-scoren tilbake til 92 uten at noe annet ser galt ut.
+  test('sender ikke Content-Signal som robots.txt-direktiv', async () => {
+    const body = await robotsFor('ki.norge.no');
+
+    expect(body).not.toContain('Content-Signal:');
+    expect(body).not.toContain(CONTENT_SIGNAL);
   });
 
   test('hver AI-crawler har en gruppe som gjentar de samme reglene', async () => {
@@ -36,7 +46,6 @@ describe('robots.txt i produksjon', () => {
     for (const crawler of AI_CRAWLERS) {
       const group = groupFor(body, crawler);
       expect(group, `mangler gruppe for ${crawler}`).not.toBeNull();
-      expect(group).toContain(`Content-Signal: ${CONTENT_SIGNAL}`);
       // Uten dette ville en navngitt crawler fått crawle /api/ og /status fritt.
       for (const path of DISALLOWED_PATHS) {
         expect(group, `${crawler} mangler Disallow: ${path}`).toContain(`Disallow: ${path}`);

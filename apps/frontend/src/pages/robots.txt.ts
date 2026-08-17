@@ -1,11 +1,10 @@
 import type { APIRoute } from 'astro';
 import { isProdHost } from '../lib/prod-hosts';
-import { AI_CRAWLERS, CONTENT_SIGNAL, DISALLOWED_PATHS } from '../lib/robots';
+import { AI_CRAWLERS, DISALLOWED_PATHS } from '../lib/robots';
 
 function group(userAgents: string[]): string {
   return [
     ...userAgents.map((agent) => `User-agent: ${agent}`),
-    `Content-Signal: ${CONTENT_SIGNAL}`,
     '',
     '# Ressurser som må hentes for at siden skal rendres riktig',
     'Allow: /*.css$',
@@ -25,8 +24,10 @@ export const GET: APIRoute = ({ url }) => {
   const body = isProdHost(url.hostname)
     ? `# Robots.txt for https://ki.norge.no/
 #
-# Content-Signal sier hva innholdet kan brukes til. KI Norge er offentlig
-# informasjon som er ment å spres, derfor ja på alle tre.
+# Content-Signal sier hva innholdet kan brukes til, og sendes som HTTP-header
+# på hvert svar. Direktivet sto her fram til august 2026, men står ikke i
+# robots.txt-spesifikasjonen, så validatorer som Lighthouse og Search Console
+# rapporterte hele fila som ugyldig. Se CONTENT_SIGNAL i lib/robots.ts.
 #
 # AI-crawlerne står i en egen gruppe fordi robots.txt-grupper ikke slås sammen:
 # en agent som matcher sitt eget navn ser aldri reglene under "*". Gruppen må

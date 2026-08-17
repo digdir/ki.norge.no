@@ -6,6 +6,7 @@ import {
   pathFromMarkdownPath,
 } from './lib/html-to-markdown';
 import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
+import { CONTENT_SIGNAL } from './lib/robots';
 
 /**
  * Edge caching middleware.
@@ -237,6 +238,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // frame-ancestors below is the modern replacement and lets the CMS embed us.
   if (!response.headers.has('X-Content-Type-Options')) {
     response.headers.set('X-Content-Type-Options', 'nosniff');
+  }
+  // Content-Signal sier hva innholdet kan brukes til. Lag fra robots.txt hit
+  // fordi direktivet ikke finnes i robots.txt-spesifikasjonen, og validatorer
+  // derfor forkastet HELE robots.txt som ugyldig. Kun prod-hostene signaliserer:
+  // testmiljoene svarer allerede Disallow: / og har ingenting a signalisere om.
+  if (isProdHost(url.hostname) && !response.headers.has('Content-Signal')) {
+    response.headers.set('Content-Signal', CONTENT_SIGNAL);
   }
   if (!response.headers.has('Referrer-Policy')) {
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
