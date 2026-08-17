@@ -1,3 +1,4 @@
+@import './fonts.css';
 @import '@digdir/designsystemet-css';
 @import '../../../../design-tokens-build/theme.css';
 @import './rich-text.css';
