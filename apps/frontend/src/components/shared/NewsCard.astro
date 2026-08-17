@@ -1,6 +1,7 @@
 ---
 import AkselIcon from './AkselIcon.astro';
 import { splitLastWord } from '../../lib/text';
+import type { CardImage } from '../../lib/umbraco';
 
 interface Props {
   href: string;
@@ -9,7 +10,9 @@ interface Props {
   tagColor?: 'brand1' | 'brand2' | 'brand3' | 'neutral';
   date?: string;
   lead?: string;
-  image?: string;
+  // Streng for statiske bilder som placeholderen. CardImage fra getCardImage()
+  // for CMS-media, som i tillegg gir srcset, sizes og sideforhold.
+  image?: string | CardImage;
   imageAlt?: string;
   variant?: 'small' | 'image' | 'featured';
 }
@@ -27,6 +30,12 @@ const {
 
 const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
 
+// Placeholderen har ingen kjente dimensjoner, så den får bare src.
+const cardImage: CardImage =
+  typeof image === 'string'
+    ? { src: image }
+    : (image ?? { src: '/article_placeholder.png' });
+
 // Pilen i featured-varianten limes til siste ord så den ikke brekker alene (#464)
 const titleParts = splitLastWord(title);
 
@@ -39,7 +48,11 @@ const formattedDate = date
   {variant === 'featured' && (
     <div class="news-card-image">
       <img
-        src={image ?? '/article_placeholder.png'}
+        src={cardImage.src}
+        srcset={cardImage.srcset}
+        sizes={cardImage.sizes}
+        width={cardImage.width}
+        height={cardImage.height}
         alt={imageAlt}
         loading="lazy"
         decoding="async"
@@ -49,7 +62,11 @@ const formattedDate = date
   {variant === 'image' && (
     <div class="news-card-image">
       <img
-        src={image ?? '/article_placeholder.png'}
+        src={cardImage.src}
+        srcset={cardImage.srcset}
+        sizes={cardImage.sizes}
+        width={cardImage.width}
+        height={cardImage.height}
         alt={imageAlt}
         loading="lazy"
         decoding="async"

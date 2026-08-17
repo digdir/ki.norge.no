@@ -1,17 +1,23 @@
 ---
 import AkselIcon from './AkselIcon.astro';
 import { splitLastWord } from '../../lib/text';
+import type { CardImage } from '../../lib/umbraco';
 
 interface Props {
   title: string;
   href: string;
-  image?: string;
+  // Streng for statiske bilder. CardImage fra getCardImage() for CMS-media,
+  // som i tillegg gir srcset, sizes og sideforhold.
+  image?: string | CardImage;
   imageAlt?: string;
   imagePosition?: 'left' | 'right';
   label?: string;
 }
 
 const { title, href, image, imageAlt = '', imagePosition = 'right', label } = Astro.props;
+
+const illustrasjon: CardImage | undefined =
+  typeof image === 'string' ? { src: image } : image;
 
 // Pilen limes til siste ord så den ikke brekker alene (#464)
 const titleParts = splitLastWord(title);
@@ -28,9 +34,16 @@ const titleParts = splitLastWord(title);
       <slot name="body" />
     </div>
   </div>
-  {image && (
+  {illustrasjon && (
     <div class="illustration">
-      <img src={image} alt={imageAlt} />
+      <img
+        src={illustrasjon.src}
+        srcset={illustrasjon.srcset}
+        sizes={illustrasjon.sizes}
+        width={illustrasjon.width}
+        height={illustrasjon.height}
+        alt={imageAlt}
+      />
     </div>
   )}
 </div>

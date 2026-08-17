@@ -1809,6 +1809,53 @@ export function getMediaUrl(media?: UmbracoMedia, width: number = MEDIA_WIDTH.co
   return toAbsoluteMediaUrl(media?.url, width);
 }
 
+// Kandidatbredder for kortbilder. Nettleseren velger selv ut fra sizes og
+// skjermtetthet, framfor at vi gjetter en enkelt bredde som passer alle.
+export const CARD_SRCSET_WIDTHS = [400, 600, 800, 1200] as const;
+
+export interface CardImage {
+  src: string;
+  srcset?: string;
+  sizes?: string;
+  width?: number;
+  height?: number;
+}
+
+/**
+ * Bildeattributter for et CMS-media i kort-kontekst.
+ *
+ * Returnerer undefined nar mediet mangler URL. Det er ikke en teoretisk sak:
+ * Delivery API sender picker-objekter som FINNES men har tomme properties, sa
+ * monsteret `media && <img src={getMediaUrl(media)}>` slipper gjennom vakta og
+ * rendrer src="". Sjekk resultatet av denne i stedet for a sjekke mediet.
+ *
+ * SVG og GIF far ingen srcset. ImageSharp rasterer ikke vektor og hopper over
+ * dem i withImageParams, sa alle kandidatene ville pekt pa samme fil.
+ *
+ * width/height er originalens dimensjoner fra CMS. Nettleseren bruker dem bare
+ * som sideforhold nar CSS styrer selve storrelsen, sa de trenger ikke stemme
+ * med den leverte bredden.
+ */
+export function getCardImage(media?: UmbracoMedia): CardImage | undefined {
+  const src = getMediaUrl(media, MEDIA_WIDTH.card);
+  if (!src) return undefined;
+
+  const isVector = /\.(svg|gif)(\?|$)/i.test(media?.url ?? '');
+  const srcset = isVector
+    ? undefined
+    : CARD_SRCSET_WIDTHS.map((w) => `${toAbsoluteMediaUrl(media?.url, w)} ${w}w`).join(', ');
+
+  return {
+    src,
+    srcset,
+    // Full bredde pa mobil. Over 768px ligger kortene i et rutenett inne i en
+    // spalte pa maks 1050px, sa to kolonner blir rundt 510px og tre rundt 330px.
+    sizes: srcset ? '(max-width: 767px) 100vw, 520px' : undefined,
+    width: media?.width,
+    height: media?.height,
+  };
+}
+
 /**
  * Normaliser bakgrunn-verdien fra CMS til en nokkel.
  * Dropdown gir en streng ("accent"); ColorPicker med labels gir { label, value }.
