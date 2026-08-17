@@ -10,7 +10,7 @@ import ArrowLink from '../shared/ArrowLink.astro';
 import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
-import { getMediaUrl, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
+import { getMediaUrl, getCardImage, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
 import { hendelseTilEventCard } from '../../lib/kalender';
 import { splitLastWord } from '../../lib/text';
 
@@ -31,7 +31,7 @@ const artikkelTilKort = (a: any, ingressOverride?: string) => ({
   tittel: a.tittel,
   slug: a.slug,
   lead: ingressOverride || a.lead || a.ingress,
-  image: a.image || getMediaUrl(a.artikkelBilde, MEDIA_WIDTH.card),
+  image: a.image || getCardImage(a.artikkelBilde),
   publishedAt: a.publishedAt,
 });
 
@@ -134,7 +134,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     const tittel = block.tittel || valgt?.tittel;
     const ingress = block.ingress || valgt?.ingress;
     const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : '/veiledning');
-    const image = block.illustrasjon ? getMediaUrl(block.illustrasjon) : (valgt?.seoBilde ? getMediaUrl(valgt.seoBilde) : undefined);
+    const image = getCardImage(block.illustrasjon) ?? getCardImage(valgt?.seoBilde);
     // Uten tittel har seksjonen ikke noe innhold å vise, og TextWithImage krever den.
     if (!tittel) return null;
     return (
@@ -199,11 +199,26 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     const sandkasseLinkId = `sandkasse-link-${block.id}`;
     // Pilen limes til siste ord så den ikke brekker alene (#464)
     const sandkasseTittel = splitLastWord(block.overskrift ?? '');
+    // Vakta må stå på den ferdige URLen, ikke på mediet. Delivery API sender
+    // picker-objekter som finnes men er tomme, så `block.illustrasjon &&` slapp
+    // gjennom og rendret <img src="">.
+    const sandkasseBilde = getCardImage(block.illustrasjon);
     return (
       <section class="sandkasse-section" data-layout-block="content">
         <div class="sandkasse-card" data-clickdelegatefor={sandkasseLinkId}>
           <div class="sandkasse-card-image">
-            {block.illustrasjon && <img src={getMediaUrl(block.illustrasjon)} alt="" loading="lazy" decoding="async" />}
+            {sandkasseBilde && (
+              <img
+                src={sandkasseBilde.src}
+                srcset={sandkasseBilde.srcset}
+                sizes={sandkasseBilde.sizes}
+                width={sandkasseBilde.width}
+                height={sandkasseBilde.height}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            )}
           </div>
           <div class="sandkasse-card-text">
             <h2 class="sandkasse-title">

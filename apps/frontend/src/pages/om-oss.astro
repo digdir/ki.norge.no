@@ -3,7 +3,7 @@ import Layout from '../components/layout/Layout.astro';
 import ArticleLayout from '../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../components/shared/NewsCard.astro';
-import { getOmOss, getArtikler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakgrunnSurface } from '../lib/umbraco';
+import { getOmOss, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_WIDTH, bakgrunnSurface } from '../lib/umbraco';
 import { breadcrumbSchema } from '../lib/seo';
 
 // Om Oss er rik artikkelmal (#362): artikkelhode (tittel/ingress/hovedbilde) + innhold-blokkliste.
@@ -70,7 +70,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={article.tittel}
             date={article.publishedAt}
             lead={getPlainText(article.innhold, 80)}
-            image={getMediaUrl(article.artikkelBilde, MEDIA_WIDTH.card)}
+            image={getCardImage(article.artikkelBilde)}
             variant="image"
           />
         ))}
