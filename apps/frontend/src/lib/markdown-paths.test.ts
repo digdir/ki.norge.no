@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { markdownPathFor, pathFromMarkdownPath } from './html-to-markdown';
+import { markdownPathFor, pathFromMarkdownPath } from './markdown-paths';
 
 describe('markdownPathFor', () => {
   test.each([

@@ -11,7 +11,10 @@
  * agenter, ikke av oss.
  */
 
-import { markdownPathFor } from './html-to-markdown';
+// Fra markdown-paths, IKKE html-to-markdown. Sistnevnte importerer linkedom, og
+// denne modulen kjører i nettleseren, så importen sendte en hel DOM-implementasjon
+// til hver besøkende for å bruke én strengfunksjon.
+import { markdownPathFor } from './markdown-paths';
 
 export interface WebMcpTool {
   name: string;
