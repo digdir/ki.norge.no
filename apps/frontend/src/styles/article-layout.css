@@ -35,6 +35,15 @@
   background-color: var(--ds-color-background-default);
   padding-block: var(--ds-size-12);
   padding-inline: 0;
+  /* En lang streng uten brytepunkter, en URL eller en rad understreker fra
+     redaktør, satte min-content-bredden til hele artikkelkolonnen. Mobilgridet
+     bruker 1fr, som har min-content som minimum, så kolonnen vokste til 672px
+     i et 390px vindu og HELE siden fikk vannrett rulling.
+
+     Må være anywhere og ikke break-word: bare anywhere teller med i
+     min-content-beregningen. Målt på begge. minmax(0, 1fr) på gridet hjelper
+     ikke alene, for avsnittet flyter da fortsatt ut av sin egen boks. */
+  overflow-wrap: anywhere;
 }
 
 .article-layout:has(.article-layout__grid:last-child:is([data-layout-block="edge"])) {
