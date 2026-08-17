@@ -34,6 +34,11 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
         {
             OnAutoLinking = (autoLinkUser, loginInfo) =>
             {
+                // Uten denne opprettes brukeren ikke-godkjent og kastes tilbake til
+                // login-skjermen. Hører hjemme her, ikke i OnExternalLogin, som ville
+                // gjenopplivet brukere man bevisst har deaktivert ved offboarding.
+                autoLinkUser.IsApproved = true;
+
                 var nameClaim = loginInfo.Principal.FindFirst("name");
                 if (nameClaim != null)
                 {
