@@ -8,6 +8,7 @@
     "cms:restart": "node scripts/sync-content-routes.js && (pkill -f KiNorge.Cms 2>/dev/null; sleep 2; cd apps/cms-umbraco && dotnet run)",
     "cms:build": "node scripts/sync-content-routes.js && cd apps/cms-umbraco && dotnet build -c Release",
     "cms:restore": "cd apps/cms-umbraco && dotnet restore",
+    "cms:add-user": "bash scripts/cms-add-user.sh",
     "frontend:dev": "cd apps/frontend && pnpm run dev",
     "frontend:dev:mock": "node apps/frontend/tools/mock-cms/dev.mjs",
     "mock-cms": "node apps/frontend/tools/mock-cms/server.mjs",
