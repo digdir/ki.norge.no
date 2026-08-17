@@ -160,6 +160,7 @@ async function generateUncached(baseUrl: string): Promise<string> {
     '',
     `- [Sitemap](${new URL('/sitemap.xml', baseUrl)}): alle publiserte URL-er med lastmod`,
     `- [robots.txt](${new URL('/robots.txt', baseUrl)}): crawl-regler og innholdssignaler`,
+    `- [Agent skills](${new URL('/.well-known/agent-skills/index.json', baseUrl)}): veiledningene som maskinlesbare skills`,
     '',
   ].join('\n');
 }
