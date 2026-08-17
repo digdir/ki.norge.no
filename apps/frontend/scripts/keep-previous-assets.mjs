@@ -1,4 +1,4 @@
-// Beholder hash-navngitte filer fra tidligere builds i dist/_astro før deploy.
+// Beholder hash-navngitte filer fra tidligere builds i _astro-mappa før deploy.
 //
 // En deploy sletter forrige builds _astro-filer. HTML som allerede er ute
 // (åpne faner, Safari-sesjonsgjenoppretting, senere edge-cache) peker fortsatt
@@ -17,12 +17,24 @@ import os from 'node:os';
 const PRUNE_DAYS = 14;
 
 const env = process.argv[2] || 'default';
-const distDir = path.resolve('dist/_astro');
 const archiveDir = path.join(os.homedir(), '.cache', 'ki-norge-frontend', 'astro-assets', env);
 
-if (!fs.existsSync(distDir)) {
-  console.log(`[keep-previous-assets] ${distDir} finnes ikke, hopper over (kjøres etter astro build)`);
-  process.exit(0);
+// Cloudflare-adapteren legger klientassets under dist/client. Skriptet lette
+// bare i dist/_astro, som ikke har eksistert på en stund, og hoppet derfor
+// stille over på hver eneste deploy. Beskyttelsen mot ustylede sider var altså
+// avslått uten at noe sa fra. Begge plasseringer sjekkes nå.
+const CANDIDATE_DIRS = ['dist/client/_astro', 'dist/_astro'];
+const distDir = CANDIDATE_DIRS.map((dir) => path.resolve(dir)).find((dir) => fs.existsSync(dir));
+
+// Hardt stopp, ikke stille hopp. Finner vi ingen av dem etter et bygg, har
+// utdata-strukturen flyttet seg igjen, og da skal deployen stanse framfor å
+// late som beskyttelsen virker.
+if (!distDir) {
+  console.error(
+    `[keep-previous-assets] fant ingen _astro-mappe (lette i ${CANDIDATE_DIRS.join(', ')}).\n` +
+      'Har byggets utdata flyttet seg? Uten denne mappa er vernet mot ustylede sider (#428) ute av drift.',
+  );
+  process.exit(1);
 }
 
 fs.mkdirSync(archiveDir, { recursive: true });
