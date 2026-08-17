@@ -187,7 +187,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isAdminRoute = ADMIN_ONLY_PATHS.has(url.pathname) || url.pathname === '/admin-tilgang';
 
   const isReadRequest = context.request.method === 'GET' || context.request.method === 'HEAD';
-  const isPage = !isApiRoute && !isAdminRoute && isReadRequest;
+  // /.well-known/ er maskin-endepunkter med egne ruter, ikke sider. Uten dette
+  // kapret .md-omskrivingen /.well-known/agent-skills/<navn>/SKILL.md, som er en
+  // ekte rute og ikke markdown-varianten av noen side.
+  const isWellKnown = url.pathname.startsWith('/.well-known/');
+  const isPage = !isApiRoute && !isAdminRoute && !isWellKnown && isReadRequest;
 
   // `/veiledning.md` rendrer den vanlige siden og leverer den som markdown. Egen
   // URL gir egen cache-nøkkel, og det er det som gjør denne veien pålitelig.
