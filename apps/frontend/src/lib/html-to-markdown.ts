@@ -263,25 +263,11 @@ export interface MarkdownPage {
   title: string;
 }
 
-/**
- * Stien en agent kan hente som markdown med sin egen cache-nøkkel.
- * `/veiledning` -> `/veiledning.md`, forsiden -> `/index.md`.
- */
-export function markdownPathFor(pathname: string): string {
-  const clean = pathname.replace(/\/+$/, '');
-  return clean ? `${clean}.md` : '/index.md';
-}
-
-/**
- * Motsatt vei. Returnerer null når stien ikke er en markdown-variant, slik at
- * middleware kan la alt annet gå urørt.
- */
-export function pathFromMarkdownPath(pathname: string): string | null {
-  if (!pathname.endsWith('.md')) return null;
-  const stripped = pathname.slice(0, -3);
-  if (stripped === '' || stripped === '/index') return '/';
-  return stripped;
-}
+// Stifunksjonene bor i markdown-paths.ts, som ikke importerer noe. Ligger de her,
+// drar en klient-import av dem hele linkedom med seg inn i nettleser-bundlen.
+// Re-eksporten står for at serverkode som allerede henter dem herfra virker som
+// før; klientkode MÅ importere fra markdown-paths direkte.
+export { markdownPathFor, pathFromMarkdownPath } from './markdown-paths';
 
 type MediaRange = { type: string; q: number };
 
