@@ -95,6 +95,12 @@ const ogImageUrl = resolvedOg
 
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
+
+    <!-- Sidespesifikk metadata, i praksis JSON-LD. Må ligge her og ikke i main:
+         main har negativ toppmargin, og kompensasjonen treffer main > :first-child.
+         Et <script> som første barn rendres ikke, så padding-en forsvant og
+         overskriften la seg oppå headeren. -->
+    <slot name="head" />
   </head>
   <body data-color-scheme="light" data-color={bodyColor} class:list={[hideLogo && 'hide-header-logo']}>
     <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>

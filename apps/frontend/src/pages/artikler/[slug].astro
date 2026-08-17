@@ -52,8 +52,10 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     </div>
   </section>
 
-  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd).replace(/</g, '\\u003c')} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
 
   <ArticleLayout publishedAt={article.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
     {heroImage?.url && (

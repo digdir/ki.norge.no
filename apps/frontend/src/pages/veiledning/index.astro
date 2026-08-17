@@ -121,10 +121,12 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogImage={cmsData?.seoBilde?.url}>
-  {collectionItems.length > 0 && (
-    <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
-  )}
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  <Fragment slot="head">
+    {collectionItems.length > 0 && (
+      <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />
+    )}
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
+  </Fragment>
 
   <!-- Hero -->
   <section class="veil-hero" data-layout-block="content">
