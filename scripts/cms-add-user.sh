@@ -12,9 +12,12 @@
 #   pnpm run cms:add-user <e-post> redaktor                 redaktør i prod
 #   pnpm run cms:add-user <e-post> admin                    administrator i prod
 #   pnpm run cms:add-user <e-post> redaktor --dev           samme, men tt02
-#   pnpm run cms:add-user <e-post> redaktor --inviter       inviter som gjest hvis hun mangler
-#   pnpm run cms:add-user <e-post> redaktor --inviter --uten-epost
-#   pnpm run cms:add-user <e-post> redaktor -y              hopp over bekreftelsen
+#   pnpm run cms:add-user <e-post> redaktor --uten-epost    inviter uten e-post til personen
+#   pnpm run cms:add-user <e-post> redaktor -y --inviter    uten tilsyn, se under
+#
+#   Mangler personen i tenanten, tilbyr scriptet å invitere henne som B2B-gjest.
+#   Det trengs ikke noe flagg for det, bekreftelsen viser adressen. Kjører du
+#   med -y må du legge til --inviter, siden ingen da ser adressen først.
 #
 # Fallgruver scriptet håndterer, alle lært den harde veien:
 #   - Digdir-folk er B2B-gjester i ai-dev-tenanten med UPN på formen
@@ -23,7 +26,7 @@
 #   - Samme person kan ha en aas-*-adminkonto ved siden av gjestekontoen. Treffer
 #     e-posten flere kontoer, stopper scriptet og lister dem heller enn å gjette.
 #   - Personen finnes kanskje ikke i tenanten i det hele tatt. Da trengs en
-#     B2B-invitasjon først, ikke bare et gruppemedlemskap.
+#     B2B-invitasjon først, ikke bare et gruppemedlemskap. Scriptet tilbyr den.
 #
 # Digdir og ai-dev har automatisk innløsning av gjesteinvitasjoner, så en invitert
 # konto står som Accepted med én gang. Personen trenger ikke gjøre noe med
@@ -46,7 +49,7 @@ EPOST=""
 ROLLE=""
 
 bruk() {
-    awk '/^# Bruk:/,/^#$/' "$0" | sed 's/^# \{0,1\}//'
+    awk '/^# Bruk:/{v=1} v{if (/^#$/ && !blank) {blank=1} else if (/^# [^ ]/ && blank) exit; print}' "$0" | sed 's/^# \{0,1\}//'
     exit "${1:-1}"
 }
 
@@ -135,16 +138,24 @@ if [[ "$ANTALL_TREFF" -gt 1 ]]; then
 fi
 
 if [[ -z "$TREFF" ]]; then
-    if [[ "$INVITER" -eq 0 ]]; then
+    # Finnes ikke personen i tenanten, er en B2B-invitasjon eneste vei videre.
+    # Da tilbyr scriptet den framfor å avbryte og be deg kjøre på nytt med et
+    # flagg. Bekreftelsen under viser adressen, og det er den som fanger en
+    # skrivefeil, ikke et flagg du uansett ville satt.
+    #
+    # Unntaket er -y. Da ser ingen adressen før den brukes, og en skrivefeil
+    # ville opprettet en gjestekonto for en fremmed og sendt vedkommende
+    # e-post. Uten tilsyn kreves derfor --inviter som et eksplisitt ja.
+    if [[ "$BEKREFT" -eq 0 && "$INVITER" -eq 0 ]]; then
         echo "Fant ingen bruker med e-post ${EPOST} i ai-dev-tenanten." >&2
         echo >&2
-        echo "Personen må inviteres som B2B-gjest først. Kjør på nytt med --inviter" >&2
-        echo "for å sende invitasjonen, eller --inviter --uten-epost for å opprette" >&2
-        echo "gjestekontoen uten at det sendes noen e-post." >&2
+        echo "Med -y inviterer scriptet ikke på egen hånd, siden ingen får se" >&2
+        echo "adressen før den brukes. Er den riktig, legg til --inviter." >&2
         exit 1
     fi
 
-    echo "Fant ingen bruker med e-post ${EPOST}. Inviterer som B2B-gjest."
+    echo "Fant ingen bruker med e-post ${EPOST} i ai-dev-tenanten."
+    echo "Personen må inviteres som B2B-gjest for å kunne logge inn."
     if [[ "$SEND_EPOST" -eq 1 ]]; then
         echo "Det sendes en invitasjons-e-post fra Microsoft til ${EPOST}."
     else
