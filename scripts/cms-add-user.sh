@@ -13,11 +13,16 @@
 #   pnpm run cms:add-user <e-post> admin                    administrator i prod
 #   pnpm run cms:add-user <e-post> redaktor --dev           samme, men tt02
 #   pnpm run cms:add-user <e-post> redaktor --uten-epost    inviter uten e-post til personen
+#   pnpm run cms:add-user <e-post> redaktor --navn="Fornavn Etternavn"
 #   pnpm run cms:add-user <e-post> redaktor -y --inviter    uten tilsyn, se under
 #
 #   Mangler personen i tenanten, tilbyr scriptet å invitere henne som B2B-gjest.
 #   Det trengs ikke noe flagg for det, bekreftelsen viser adressen. Kjører du
 #   med -y må du legge til --inviter, siden ingen da ser adressen først.
+#
+#   Visningsnavnet utledes fra e-posten (asli.aydemir -> Asli Aydemir) og kan
+#   KUN settes idet gjesten opprettes. Å rette det etterpå krever
+#   directory-rettigheter vi ikke har. Stemmer ikke gjetningen, bruk --navn=.
 #
 # Fallgruver scriptet håndterer, alle lært den harde veien:
 #   - Digdir-folk er B2B-gjester i ai-dev-tenanten med UPN på formen
@@ -42,6 +47,7 @@ set -euo pipefail
 TENANT="cd0026d8-283b-4a55-9bfa-d0ef4a8ba21c"
 
 MILJO="prod"
+NAVN=""
 INVITER=0
 SEND_EPOST=1
 BEKREFT=1
@@ -59,6 +65,7 @@ for arg in "$@"; do
         --prod) MILJO="prod" ;;
         --inviter) INVITER=1 ;;
         --uten-epost) SEND_EPOST=0 ;;
+        --navn=*) NAVN="${arg#--navn=}" ;;
         -y|--ja) BEKREFT=0 ;;
         -h|--help) bruk 0 ;;
         -*) echo "Ukjent flagg: $arg" >&2; exit 1 ;;
@@ -73,6 +80,20 @@ done
 
 [[ -z "$EPOST" || -z "$ROLLE" ]] && bruk 1
 [[ "$EPOST" != *@* ]] && { echo "Ser ikke ut som en e-postadresse: $EPOST" >&2; exit 1; }
+
+# Visningsnavnet kan KUN settes idet gjesten inviteres. Uten det havner
+# "fornavn.etternavn" i katalogen, og det navnet følger med inn i Umbraco via
+# name-claimet. Å rette det etterpå krever directory-rettigheter Lars ikke har,
+# så gjetningen her er eneste sjanse. Overstyres med --navn="Fornavn Etternavn".
+if [[ -z "$NAVN" ]]; then
+    NAVN=$(python3 - "$EPOST" <<'PYNAVN'
+import sys
+lokal = sys.argv[1].split("@")[0]
+deler = [d for d in lokal.replace("_", ".").split(".") if d]
+print(" ".join(d[:1].upper() + d[1:] for d in deler))
+PYNAVN
+)
+fi
 
 case "$ROLLE" in
     redaktor|redaktør|editor) GRUPPE_ROLLE="Redaktør"; UMBRACO_GRUPPE="editor" ;;
@@ -156,6 +177,8 @@ if [[ -z "$TREFF" ]]; then
 
     echo "Fant ingen bruker med e-post ${EPOST} i ai-dev-tenanten."
     echo "Personen må inviteres som B2B-gjest for å kunne logge inn."
+    echo "Visningsnavn blir \"${NAVN}\". Det kan IKKE endres etterpå; bruk"
+    echo "--navn=\"Fornavn Etternavn\" hvis dette er feil."
     if [[ "$SEND_EPOST" -eq 1 ]]; then
         echo "Det sendes en invitasjons-e-post fra Microsoft til ${EPOST}."
     else
@@ -174,6 +197,7 @@ if [[ -z "$TREFF" ]]; then
         cat >"$INVITASJON" <<JSON
 {
   "invitedUserEmailAddress": "${EPOST}",
+  "invitedUserDisplayName": "${NAVN}",
   "inviteRedirectUrl": "${CMS_URL}",
   "sendInvitationMessage": true,
   "invitedUserMessageInfo": {
@@ -186,6 +210,7 @@ JSON
         cat >"$INVITASJON" <<JSON
 {
   "invitedUserEmailAddress": "${EPOST}",
+  "invitedUserDisplayName": "${NAVN}",
   "inviteRedirectUrl": "${CMS_URL}",
   "sendInvitationMessage": false
 }
