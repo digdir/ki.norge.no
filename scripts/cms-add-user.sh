@@ -12,9 +12,17 @@
 #   pnpm run cms:add-user <e-post> redaktor                 redaktør i prod
 #   pnpm run cms:add-user <e-post> admin                    administrator i prod
 #   pnpm run cms:add-user <e-post> redaktor --dev           samme, men tt02
-#   pnpm run cms:add-user <e-post> redaktor --inviter       inviter som gjest hvis hun mangler
-#   pnpm run cms:add-user <e-post> redaktor --inviter --uten-epost
-#   pnpm run cms:add-user <e-post> redaktor -y              hopp over bekreftelsen
+#   pnpm run cms:add-user <e-post> redaktor --uten-epost    inviter uten e-post til personen
+#   pnpm run cms:add-user <e-post> redaktor --navn="Fornavn Etternavn"
+#   pnpm run cms:add-user <e-post> redaktor -y --inviter    uten tilsyn, se under
+#
+#   Mangler personen i tenanten, tilbyr scriptet å invitere henne som B2B-gjest.
+#   Det trengs ikke noe flagg for det, bekreftelsen viser adressen. Kjører du
+#   med -y må du legge til --inviter, siden ingen da ser adressen først.
+#
+#   Visningsnavnet utledes fra e-posten (asli.aydemir -> Asli Aydemir) og kan
+#   KUN settes idet gjesten opprettes. Å rette det etterpå krever
+#   directory-rettigheter vi ikke har. Stemmer ikke gjetningen, bruk --navn=.
 #
 # Fallgruver scriptet håndterer, alle lært den harde veien:
 #   - Digdir-folk er B2B-gjester i ai-dev-tenanten med UPN på formen
@@ -23,7 +31,7 @@
 #   - Samme person kan ha en aas-*-adminkonto ved siden av gjestekontoen. Treffer
 #     e-posten flere kontoer, stopper scriptet og lister dem heller enn å gjette.
 #   - Personen finnes kanskje ikke i tenanten i det hele tatt. Da trengs en
-#     B2B-invitasjon først, ikke bare et gruppemedlemskap.
+#     B2B-invitasjon først, ikke bare et gruppemedlemskap. Scriptet tilbyr den.
 #
 # Digdir og ai-dev har automatisk innløsning av gjesteinvitasjoner, så en invitert
 # konto står som Accepted med én gang. Personen trenger ikke gjøre noe med
@@ -39,6 +47,7 @@ set -euo pipefail
 TENANT="cd0026d8-283b-4a55-9bfa-d0ef4a8ba21c"
 
 MILJO="prod"
+NAVN=""
 INVITER=0
 SEND_EPOST=1
 BEKREFT=1
@@ -46,7 +55,7 @@ EPOST=""
 ROLLE=""
 
 bruk() {
-    awk '/^# Bruk:/,/^#$/' "$0" | sed 's/^# \{0,1\}//'
+    awk '/^# Bruk:/{v=1} v{if (/^#$/ && !blank) {blank=1} else if (/^# [^ ]/ && blank) exit; print}' "$0" | sed 's/^# \{0,1\}//'
     exit "${1:-1}"
 }
 
@@ -56,6 +65,7 @@ for arg in "$@"; do
         --prod) MILJO="prod" ;;
         --inviter) INVITER=1 ;;
         --uten-epost) SEND_EPOST=0 ;;
+        --navn=*) NAVN="${arg#--navn=}" ;;
         -y|--ja) BEKREFT=0 ;;
         -h|--help) bruk 0 ;;
         -*) echo "Ukjent flagg: $arg" >&2; exit 1 ;;
@@ -70,6 +80,20 @@ done
 
 [[ -z "$EPOST" || -z "$ROLLE" ]] && bruk 1
 [[ "$EPOST" != *@* ]] && { echo "Ser ikke ut som en e-postadresse: $EPOST" >&2; exit 1; }
+
+# Visningsnavnet kan KUN settes idet gjesten inviteres. Uten det havner
+# "fornavn.etternavn" i katalogen, og det navnet følger med inn i Umbraco via
+# name-claimet. Å rette det etterpå krever directory-rettigheter Lars ikke har,
+# så gjetningen her er eneste sjanse. Overstyres med --navn="Fornavn Etternavn".
+if [[ -z "$NAVN" ]]; then
+    NAVN=$(python3 - "$EPOST" <<'PYNAVN'
+import sys
+lokal = sys.argv[1].split("@")[0]
+deler = [d for d in lokal.replace("_", ".").split(".") if d]
+print(" ".join(d[:1].upper() + d[1:] for d in deler))
+PYNAVN
+)
+fi
 
 case "$ROLLE" in
     redaktor|redaktør|editor) GRUPPE_ROLLE="Redaktør"; UMBRACO_GRUPPE="editor" ;;
@@ -121,8 +145,9 @@ fi
 # Oppslag på mail, ikke UPN. Gjestekontoer har UPN navn_digdir.no#EXT#@... og
 # `az ad user show --id navn@digdir.no` finner dem ikke.
 
+# Array-projeksjon, ikke dict: den garanterer kolonnerekkefølgen cut leser under.
 TREFF=$(az ad user list --filter "mail eq '${EPOST}'" \
-    --query "[].{id:id,navn:displayName,upn:userPrincipalName}" -o tsv)
+    --query "[].[id,displayName,userPrincipalName]" -o tsv)
 ANTALL_TREFF=$(grep -c . <<<"$TREFF" || true)
 
 if [[ "$ANTALL_TREFF" -gt 1 ]]; then
@@ -135,16 +160,26 @@ if [[ "$ANTALL_TREFF" -gt 1 ]]; then
 fi
 
 if [[ -z "$TREFF" ]]; then
-    if [[ "$INVITER" -eq 0 ]]; then
+    # Finnes ikke personen i tenanten, er en B2B-invitasjon eneste vei videre.
+    # Da tilbyr scriptet den framfor å avbryte og be deg kjøre på nytt med et
+    # flagg. Bekreftelsen under viser adressen, og det er den som fanger en
+    # skrivefeil, ikke et flagg du uansett ville satt.
+    #
+    # Unntaket er -y. Da ser ingen adressen før den brukes, og en skrivefeil
+    # ville opprettet en gjestekonto for en fremmed og sendt vedkommende
+    # e-post. Uten tilsyn kreves derfor --inviter som et eksplisitt ja.
+    if [[ "$BEKREFT" -eq 0 && "$INVITER" -eq 0 ]]; then
         echo "Fant ingen bruker med e-post ${EPOST} i ai-dev-tenanten." >&2
         echo >&2
-        echo "Personen må inviteres som B2B-gjest først. Kjør på nytt med --inviter" >&2
-        echo "for å sende invitasjonen, eller --inviter --uten-epost for å opprette" >&2
-        echo "gjestekontoen uten at det sendes noen e-post." >&2
+        echo "Med -y inviterer scriptet ikke på egen hånd, siden ingen får se" >&2
+        echo "adressen før den brukes. Er den riktig, legg til --inviter." >&2
         exit 1
     fi
 
-    echo "Fant ingen bruker med e-post ${EPOST}. Inviterer som B2B-gjest."
+    echo "Fant ingen bruker med e-post ${EPOST} i ai-dev-tenanten."
+    echo "Personen må inviteres som B2B-gjest for å kunne logge inn."
+    echo "Visningsnavn blir \"${NAVN}\". Det kan IKKE endres etterpå; bruk"
+    echo "--navn=\"Fornavn Etternavn\" hvis dette er feil."
     if [[ "$SEND_EPOST" -eq 1 ]]; then
         echo "Det sendes en invitasjons-e-post fra Microsoft til ${EPOST}."
     else
@@ -159,27 +194,27 @@ if [[ -z "$TREFF" ]]; then
     INVITASJON=$(mktemp)
     trap 'rm -f "$INVITASJON"' EXIT
 
-    if [[ "$SEND_EPOST" -eq 1 ]]; then
-        cat >"$INVITASJON" <<JSON
-{
-  "invitedUserEmailAddress": "${EPOST}",
-  "inviteRedirectUrl": "${CMS_URL}",
-  "sendInvitationMessage": true,
-  "invitedUserMessageInfo": {
-    "messageLanguage": "nb-NO",
-    "customizedMessageBody": "Du er invitert til CMS-et for ki.norge.no. Godta invitasjonen, og logg deretter inn på ${CMS_URL} med knappen Sign in with Microsoft."
-  }
+    # Bygges av python, ikke av en heredoc. Et navn med anførselstegn ville
+    # ellers laget ugyldig JSON og fått invitasjonen til å feile.
+    python3 - "$EPOST" "$NAVN" "$CMS_URL" "$SEND_EPOST" >"$INVITASJON" <<'PYJSON'
+import json, sys
+epost, navn, cms_url, send = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1"
+body = {
+    "invitedUserEmailAddress": epost,
+    "invitedUserDisplayName": navn,
+    "inviteRedirectUrl": cms_url,
+    "sendInvitationMessage": send,
 }
-JSON
-    else
-        cat >"$INVITASJON" <<JSON
-{
-  "invitedUserEmailAddress": "${EPOST}",
-  "inviteRedirectUrl": "${CMS_URL}",
-  "sendInvitationMessage": false
-}
-JSON
-    fi
+if send:
+    body["invitedUserMessageInfo"] = {
+        "messageLanguage": "nb-NO",
+        "customizedMessageBody": (
+            "Du er invitert til CMS-et for ki.norge.no. Godta invitasjonen, og logg "
+            f"deretter inn på {cms_url} med knappen Sign in with Microsoft."
+        ),
+    }
+print(json.dumps(body, ensure_ascii=False))
+PYJSON
 
     BRUKER_ID=$(az rest --method POST --url "https://graph.microsoft.com/v1.0/invitations" \
         --headers "Content-Type=application/json" \
