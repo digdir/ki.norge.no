@@ -145,8 +145,9 @@ fi
 # Oppslag på mail, ikke UPN. Gjestekontoer har UPN navn_digdir.no#EXT#@... og
 # `az ad user show --id navn@digdir.no` finner dem ikke.
 
+# Array-projeksjon, ikke dict: den garanterer kolonnerekkefølgen cut leser under.
 TREFF=$(az ad user list --filter "mail eq '${EPOST}'" \
-    --query "[].{id:id,navn:displayName,upn:userPrincipalName}" -o tsv)
+    --query "[].[id,displayName,userPrincipalName]" -o tsv)
 ANTALL_TREFF=$(grep -c . <<<"$TREFF" || true)
 
 if [[ "$ANTALL_TREFF" -gt 1 ]]; then
@@ -193,29 +194,27 @@ if [[ -z "$TREFF" ]]; then
     INVITASJON=$(mktemp)
     trap 'rm -f "$INVITASJON"' EXIT
 
-    if [[ "$SEND_EPOST" -eq 1 ]]; then
-        cat >"$INVITASJON" <<JSON
-{
-  "invitedUserEmailAddress": "${EPOST}",
-  "invitedUserDisplayName": "${NAVN}",
-  "inviteRedirectUrl": "${CMS_URL}",
-  "sendInvitationMessage": true,
-  "invitedUserMessageInfo": {
-    "messageLanguage": "nb-NO",
-    "customizedMessageBody": "Du er invitert til CMS-et for ki.norge.no. Godta invitasjonen, og logg deretter inn på ${CMS_URL} med knappen Sign in with Microsoft."
-  }
+    # Bygges av python, ikke av en heredoc. Et navn med anførselstegn ville
+    # ellers laget ugyldig JSON og fått invitasjonen til å feile.
+    python3 - "$EPOST" "$NAVN" "$CMS_URL" "$SEND_EPOST" >"$INVITASJON" <<'PYJSON'
+import json, sys
+epost, navn, cms_url, send = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1"
+body = {
+    "invitedUserEmailAddress": epost,
+    "invitedUserDisplayName": navn,
+    "inviteRedirectUrl": cms_url,
+    "sendInvitationMessage": send,
 }
-JSON
-    else
-        cat >"$INVITASJON" <<JSON
-{
-  "invitedUserEmailAddress": "${EPOST}",
-  "invitedUserDisplayName": "${NAVN}",
-  "inviteRedirectUrl": "${CMS_URL}",
-  "sendInvitationMessage": false
-}
-JSON
-    fi
+if send:
+    body["invitedUserMessageInfo"] = {
+        "messageLanguage": "nb-NO",
+        "customizedMessageBody": (
+            "Du er invitert til CMS-et for ki.norge.no. Godta invitasjonen, og logg "
+            f"deretter inn på {cms_url} med knappen Sign in with Microsoft."
+        ),
+    }
+print(json.dumps(body, ensure_ascii=False))
+PYJSON
 
     BRUKER_ID=$(az rest --method POST --url "https://graph.microsoft.com/v1.0/invitations" \
         --headers "Content-Type=application/json" \
