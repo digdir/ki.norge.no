@@ -27,6 +27,7 @@
     <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.12" />
     <PackageReference Include="Umbraco.Cms" Version="17.5.3" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.5.3" />
+    <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="17.1.0" />
     <PackageReference Include="uSync" Version="17.3.6" />
   </ItemGroup>
 
