@@ -1,16 +1,17 @@
 # CODEOWNERS — auto-assign reviewers for PRs.
 # Last matching pattern wins. Owners are auto-requested on PR open.
-# Until a team is set up, all default to @larsekhansen.
+# @digdir/team-ki-norge eier hele repoet. Teamet må ha write på repoet for at
+# GitHub skal godta linjene her.
 
-*                                  @larsekhansen
+*                                  @digdir/team-ki-norge
 
 # Specific directories
-/apps/frontend/                    @larsekhansen
-/apps/cms-umbraco/                 @larsekhansen
-/scripts/                          @larsekhansen
-/.github/                          @larsekhansen
+/apps/frontend/                    @digdir/team-ki-norge
+/apps/cms-umbraco/                 @digdir/team-ki-norge
+/scripts/                          @digdir/team-ki-norge
+/.github/                          @digdir/team-ki-norge
 
 # Prod sitt skjema. En eksport tatt fra feil database re-nøkler prod og gjør alt
 # blokkinnhold «Unsupported». Skal aldri merges uten review.
 # Se apps/cms-umbraco/uSync/README.md
-/apps/cms-umbraco/uSync/           @larsekhansen
+/apps/cms-umbraco/uSync/           @digdir/team-ki-norge
