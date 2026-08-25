@@ -1,0 +1,25 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "id": "KiNorge.Malform",
+  "name": "KI Norge målform",
+  "version": "1.0.0",
+  "extensions": [
+    {
+      "type": "dashboard",
+      "alias": "KiNorge.Dashboard.Malform",
+      "name": "Målform",
+      "element": "/App_Plugins/Malform/dashboard.js",
+      "weight": -5,
+      "meta": {
+        "label": "Målform",
+        "pathname": "malform"
+      },
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "Umb.Section.Content"
+        }
+      ]
+    }
+  ]
+}
