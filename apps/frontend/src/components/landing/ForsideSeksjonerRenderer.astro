@@ -23,7 +23,6 @@ interface Props {
   eksempelKort: { href: string; title: string; tag?: string }[];
 }
 const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [], eksempelKort } = Astro.props;
-const featuredArticle = latestArticles[0];
 
 // Normaliserer en pool-artikkel til kort-formen rendereren bruker (tittel/slug/lead/image).
 // Pool-artikler har ingress/artikkelBilde; vi mapper dem til lead/image.
@@ -69,15 +68,12 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   if (block.contentType === 'forsideAktuelt') {
-    // Fremhevet artikkel velges eksplisitt, ellers første valgte kort, ellers nyeste.
+    // Tomt felt betyr ingenting: uten valgt artikkel vises ingen stor artikkel, og
+    // uten valgte kort vises ingen kort. Ingen automatisk utfylling fra nyeste.
     const fremhevet = block.fremhevetArtikkelId ? latestArticles.find((a: any) => a.id === block.fremhevetArtikkelId) : null;
-    const valgte = block.kort?.length ? resolveArtikkelKort(block.kort) : [];
-    const featured = fremhevet ? artikkelTilKort(fremhevet)
-      : valgte.length > 0 ? valgte[0]
-      : featuredArticle ? artikkelTilKort(featuredArticle) : null;
-    // Små kort: valgte kort hvis satt, ellers nyeste. Den fremhevede tas ut.
-    const pool = valgte.length > 0 ? valgte : latestArticles.map((a) => artikkelTilKort(a));
-    const smaa = pool.filter((c) => c.slug !== featured?.slug).slice(0, 3);
+    const featured = fremhevet ? artikkelTilKort(fremhevet) : null;
+    const smaa = resolveArtikkelKort(block.kort).filter((c) => c.slug !== featured?.slug).slice(0, 3);
+    if (!featured && smaa.length === 0 && !block.lenketekst) return null;
     return (
       <section class="aktuelt" data-layout-block="edge">
         <div data-layout-block="content">
@@ -93,18 +89,20 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
               variant="featured"
             />
           )}
-          <CardGrid columns={3} divided>
-            {smaa.map((article) => (
-              <NewsCard
-                href={`/artikler/${article.slug}`}
-                title={article.tittel}
-                variant="image"
-                image={article.image}
-                date={article.publishedAt}
-              />
-            ))}
-          </CardGrid>
-          <ArrowLink href={block.lenkeUrl || '/artikler'} text={block.lenketekst || 'Se alle artikler'} />
+          {smaa.length > 0 && (
+            <CardGrid columns={3} divided>
+              {smaa.map((article) => (
+                <NewsCard
+                  href={`/artikler/${article.slug}`}
+                  title={article.tittel}
+                  variant="image"
+                  image={article.image}
+                  date={article.publishedAt}
+                />
+              ))}
+            </CardGrid>
+          )}
+          {block.lenketekst && <ArrowLink href={block.lenkeUrl || '/artikler'} text={block.lenketekst} />}
         </div>
       </section>
     );
@@ -122,7 +120,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
           {valgt && (
             <EventCard {...hendelseTilEventCard(valgt)} />
           )}
-          <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst || 'Se alle arrangementer'} />
+          {block.lenketekst && <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst} />}
         </div>
       </section>
     );
@@ -162,7 +160,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
       <section data-layout-block="content" class="examples-section">
         {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
         <ExampleLinkCards cards={kort.filter((c): c is { href: string; title: string } => 'href' in c && 'title' in c).map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
-        <ArrowLink href={block.lenkeUrl || '/eksempler'} text={block.lenketekst || 'Se alle eksempler'} />
+        {block.lenketekst && <ArrowLink href={block.lenkeUrl || '/eksempler'} text={block.lenketekst} />}
       </section>
     );
   }
