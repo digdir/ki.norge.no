@@ -1,7 +1,7 @@
 ---
 // Rendrer forsidens modul-blokker (forside.seksjoner) i redaktørens rekkefølge.
-// Komponenten gjør INGEN fetch — auto-data (artikler/arrangement/eksempler) sendes inn.
-// Hver modul faller tilbake til dagens hardkodede verdier når feltet er tomt.
+// Komponenten gjør INGEN fetch — pooler (artikler/arrangement/eksempler) sendes inn.
+// Hva som skal vises avgjøres i lib/forside-seksjoner.ts, her bare rendres det.
 import Hero from './Hero.astro';
 import NewsCard from '../shared/NewsCard.astro';
 import CardGrid from '../shared/CardGrid.astro';
@@ -11,6 +11,7 @@ import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
 import { getMediaUrl, getCardImage, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
+import { velgAktuelt, velgLaerAvAndre, velgLenke, velgVeiledning } from '../../lib/forside-seksjoner';
 import { hendelseTilEventCard } from '../../lib/kalender';
 import { splitLastWord } from '../../lib/text';
 
@@ -22,35 +23,6 @@ interface Props {
   veiledninger?: VeiledningGuide[];
 }
 const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [] } = Astro.props;
-
-// Normaliserer en pool-artikkel til kort-formen rendereren bruker (tittel/slug/lead/image).
-// Pool-artikler har ingress/artikkelBilde; vi mapper dem til lead/image.
-const artikkelTilKort = (a: any, ingressOverride?: string) => ({
-  tittel: a.tittel,
-  slug: a.slug,
-  lead: ingressOverride || a.lead || a.ingress,
-  image: a.image || getCardImage(a.artikkelBilde),
-  publishedAt: a.publishedAt,
-});
-
-// Slår opp redaktørvalgte kort i poolen og dropper de som ikke finnes.
-const resolveArtikkelKort = (kort: { id?: string; ingress?: string }[] | undefined) =>
-  (kort ?? [])
-    .map((k) => {
-      const article = latestArticles.find((a: any) => a.id === k.id);
-      return article ? artikkelTilKort(article, k.ingress) : null;
-    })
-    .filter((c): c is ReturnType<typeof artikkelTilKort> => c !== null);
-
-const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefined) =>
-  (kort ?? [])
-    .map((k) => {
-      const ex = eksempler.find((e: any) => e.id === k.id);
-      return ex
-        ? { href: `/eksempler/${ex.slug}`, title: ex.tittel, lead: k.ingress || ex.ingress || undefined }
-        : null;
-    })
-    .filter((c) => c !== null) as { href: string; title: string; lead?: string }[];
 ---
 
 {seksjoner.map((block) => {
@@ -67,12 +39,9 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   if (block.contentType === 'forsideAktuelt') {
-    // Tomt felt betyr ingenting: uten valgt artikkel vises ingen stor artikkel, og
-    // uten valgte kort vises ingen kort. Ingen automatisk utfylling fra nyeste.
-    const fremhevet = block.fremhevetArtikkelId ? latestArticles.find((a: any) => a.id === block.fremhevetArtikkelId) : null;
-    const featured = fremhevet ? artikkelTilKort(fremhevet) : null;
-    const smaa = resolveArtikkelKort(block.kort).filter((c) => c.slug !== featured?.slug).slice(0, 3);
-    if (!featured && smaa.length === 0 && !block.lenketekst) return null;
+    const aktuelt = velgAktuelt(block, latestArticles);
+    if (!aktuelt) return null;
+    const { featured, kort: smaa, lenke } = aktuelt;
     return (
       <section class="aktuelt" data-layout-block="edge">
         <div data-layout-block="content">
@@ -101,7 +70,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
               ))}
             </CardGrid>
           )}
-          {block.lenketekst && block.lenkeUrl && <ArrowLink href={block.lenkeUrl} text={block.lenketekst} />}
+          {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
         </div>
       </section>
     );
@@ -112,6 +81,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     const valgt = (block.arrangementId && upcomingEvents.find((e) => e.id === block.arrangementId)) || upcomingEvents[0] || null;
     // Ingen kommende arrangementer → skjul hele seksjonen (ikke en tom overskrift + lenke).
     if (!valgt) return null;
+    const lenke = velgLenke(block);
     return (
       <section class="arrangementer" data-layout-block="edge">
         <div class="arrangementer-section" data-layout-block="content">
@@ -119,21 +89,16 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
           {valgt && (
             <EventCard {...hendelseTilEventCard(valgt)} />
           )}
-          {block.lenketekst && block.lenkeUrl && <ArrowLink href={block.lenkeUrl} text={block.lenketekst} />}
+          {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
         </div>
       </section>
     );
   }
 
   if (block.contentType === 'forsideVeiledning') {
-    // Redaktørvalgt veiledning gir standardverdier; tekstfeltene overstyrer.
-    const valgt = block.veiledningId ? veiledninger.find((v) => v.id === block.veiledningId) : undefined;
-    const tittel = block.tittel || valgt?.tittel;
-    const ingress = block.ingress || valgt?.ingress;
-    const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : undefined);
-    const image = getCardImage(block.illustrasjon) ?? getCardImage(valgt?.seoBilde);
-    // TextWithImage krever både tittel og lenke, så uten dem har seksjonen ingenting å vise.
-    if (!tittel || !href) return null;
+    const veiledning = velgVeiledning(block, veiledninger);
+    if (!veiledning) return null;
+    const { tittel, ingress, href, image } = veiledning;
     return (
       <section class="veiledning-section" data-layout-block="edge">
         <div data-layout-block="content">
@@ -152,14 +117,14 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   if (block.contentType === 'forsideLaerAvAndre') {
-    // Tomt felt betyr ingenting, som i Aktuelt. Ingen automatisk utfylling.
-    const kort = resolveEksempelKort(block.kort);
-    if (kort.length === 0 && !block.lenketekst) return null;
+    const laer = velgLaerAvAndre(block, eksempler);
+    if (!laer) return null;
+    const { kort, lenke } = laer;
     return (
       <section data-layout-block="content" class="examples-section">
         {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
         <ExampleLinkCards cards={kort.map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
-        {block.lenketekst && block.lenkeUrl && <ArrowLink href={block.lenkeUrl} text={block.lenketekst} />}
+        {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
       </section>
     );
   }
