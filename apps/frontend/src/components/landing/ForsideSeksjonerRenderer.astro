@@ -20,9 +20,8 @@ interface Props {
   eksempler?: any[];
   upcomingEvents?: Kalenderhendelse[];
   veiledninger?: VeiledningGuide[];
-  eksempelKort: { href: string; title: string; tag?: string }[];
 }
-const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [], eksempelKort } = Astro.props;
+const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [] } = Astro.props;
 
 // Normaliserer en pool-artikkel til kort-formen rendereren bruker (tittel/slug/lead/image).
 // Pool-artikler har ingress/artikkelBilde; vi mapper dem til lead/image.
@@ -102,7 +101,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
               ))}
             </CardGrid>
           )}
-          {block.lenketekst && <ArrowLink href={block.lenkeUrl || '/artikler'} text={block.lenketekst} />}
+          {block.lenketekst && block.lenkeUrl && <ArrowLink href={block.lenkeUrl} text={block.lenketekst} />}
         </div>
       </section>
     );
@@ -120,7 +119,7 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
           {valgt && (
             <EventCard {...hendelseTilEventCard(valgt)} />
           )}
-          {block.lenketekst && <ArrowLink href={block.lenkeUrl || '/kalender'} text={block.lenketekst} />}
+          {block.lenketekst && block.lenkeUrl && <ArrowLink href={block.lenkeUrl} text={block.lenketekst} />}
         </div>
       </section>
     );
@@ -131,10 +130,10 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
     const valgt = block.veiledningId ? veiledninger.find((v) => v.id === block.veiledningId) : undefined;
     const tittel = block.tittel || valgt?.tittel;
     const ingress = block.ingress || valgt?.ingress;
-    const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : '/veiledning');
+    const href = block.lenkeUrl || (valgt ? `/veiledning/${valgt.slug}` : undefined);
     const image = getCardImage(block.illustrasjon) ?? getCardImage(valgt?.seoBilde);
-    // Uten tittel har seksjonen ikke noe innhold å vise, og TextWithImage krever den.
-    if (!tittel) return null;
+    // TextWithImage krever både tittel og lenke, så uten dem har seksjonen ingenting å vise.
+    if (!tittel || !href) return null;
     return (
       <section class="veiledning-section" data-layout-block="edge">
         <div data-layout-block="content">
@@ -153,14 +152,14 @@ const resolveEksempelKort = (kort: { id?: string; ingress?: string }[] | undefin
   }
 
   if (block.contentType === 'forsideLaerAvAndre') {
-    // Redaktørvalgte eksempler overstyrer auto-pool. Tomt → behold nåværende oppførsel.
-    const valgte = block.kort?.length ? resolveEksempelKort(block.kort) : [];
-    const kort = valgte.length > 0 ? valgte : eksempelKort;
+    // Tomt felt betyr ingenting, som i Aktuelt. Ingen automatisk utfylling.
+    const kort = resolveEksempelKort(block.kort);
+    if (kort.length === 0 && !block.lenketekst) return null;
     return (
       <section data-layout-block="content" class="examples-section">
         {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
-        <ExampleLinkCards cards={kort.filter((c): c is { href: string; title: string } => 'href' in c && 'title' in c).map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
-        {block.lenketekst && <ArrowLink href={block.lenkeUrl || '/eksempler'} text={block.lenketekst} />}
+        <ExampleLinkCards cards={kort.map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
+        {block.lenketekst && block.lenkeUrl && <ArrowLink href={block.lenkeUrl} text={block.lenketekst} />}
       </section>
     );
   }
