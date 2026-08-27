@@ -31,11 +31,12 @@ patches:
         value:
           name: Umbraco__CMS__Security__BackOfficeHost
           value: https://cms.ki.norge.no
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Umbraco__Storage__AzureBlob__Media__ConnectionString
-          value: https://kinorgemediaprodbzrw.blob.core.windows.net
+      # Blob-lagring for media er IKKE tatt i bruk i prod enda. Mediet ligger paa
+      # Azure Files-PVC-en, og blob-containeren kinorgemediaprodbzrw/umbraco er tom.
+      # AzureBlobMediaComposer aktiveres av ConnectionString alene, saa lenge den
+      # staar her ville prod bytte til den tomme containeren ved neste oppstart og
+      # alle bilder gi 404. Legg den inn igjen FOERST naar mediet er kopiert over
+      # og containeren er verifisert. Se apps/cms-umbraco/Composers/AzureBlobMediaComposer.cs.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
