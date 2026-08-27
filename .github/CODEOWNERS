@@ -1,17 +1,13 @@
-# CODEOWNERS — auto-assign reviewers for PRs.
-# Last matching pattern wins. Owners are auto-requested on PR open.
-# @digdir/team-ki-norge eier hele repoet. Teamet må ha write på repoet for at
-# GitHub skal godta linjene her.
+### CODEOWNERS - used to auto-assign PR reviewers in Github
+### Mainly means that listed users get notifications from PRs/code changes
+### For developers - but other team members can add themselves if wanted
 
-*                                  @digdir/team-ki-norge
+## All code
+* @larsekhansen @pooriamehregan
 
-# Specific directories
-/apps/frontend/                    @digdir/team-ki-norge
-/apps/cms-umbraco/                 @digdir/team-ki-norge
-/scripts/                          @digdir/team-ki-norge
-/.github/                          @digdir/team-ki-norge
+## Specific parts of the repo
+# Prods Umbraco uSync schema. See apps/cms-umbraco/uSync/README.md
+/apps/cms-umbraco/uSync/ @larsekhansen
 
-# Prod sitt skjema. En eksport tatt fra feil database re-nøkler prod og gjør alt
-# blokkinnhold «Unsupported». Skal aldri merges uten review.
-# Se apps/cms-umbraco/uSync/README.md
-/apps/cms-umbraco/uSync/           @digdir/team-ki-norge
+# Other teams do this to adhere to Team Sikkerhet's filtrering,
+/.github/CODEOWNERS @digdir/team-ki-norge
