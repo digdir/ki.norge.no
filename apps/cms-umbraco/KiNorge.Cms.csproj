@@ -17,6 +17,13 @@
     <!-- Transitiv via Umbraco. Pinnet over sårbar 2.4.1 (GHSA-v5pm-xwqc-g5wc);
          fjern når Umbraco selv drar >= 2.7.5. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
+    <!-- OTLP-eksport til otel-collector. Traces kobles opp i Program.cs, logger
+         via Serilog-sinken (appsettings.Production.json), ikke builder.Logging. -->
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
     <!-- Transitiv via Umbraco -> Microsoft.Data.Sqlite. 2.1.11 pakker en sårbar
          SQLite-binær (GHSA-2m69-gcr7-jv3q, HIGH). Hele familien pinnes samlet så
          core/provider/lib ikke kommer i utakt. Fjern når Umbraco drar 2.1.12
@@ -27,6 +34,7 @@
     <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.13" />
     <PackageReference Include="Umbraco.Cms" Version="17.6.2" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.6.2" />
+    <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="17.1.0" />
     <PackageReference Include="uSync" Version="17.3.7" />
   </ItemGroup>
 
