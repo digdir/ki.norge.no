@@ -11,7 +11,6 @@ let latestArticles: any[] = [];
 let eksempler: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
 let veiledninger: VeiledningGuide[] = [];
-let eksempelKort: { href: string; title: string; tag?: string }[] = [];
 try {
   // Preview gjelder kun forsidens egen kladd (struktur/overskrifter/pins). Kortene henter
   // alltid PUBLISERT innhold, slik at preview matcher det publikum ser (ingen upubliserte lekker inn).
@@ -26,10 +25,6 @@ try {
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime());
   const eksemplerRes = await getEksempler({ preview: isPreview });
   eksempler = eksemplerRes.data;
-  eksempelKort = eksempler.slice(0, 2).map((c: any) => ({
-    href: `/eksempler/${c.slug}`,
-    title: c.tittel,
-  }));
   const veiledningerRes = await getVeiledningGuider({ preview: isPreview });
   veiledninger = veiledningerRes.data;
 } catch (e) {
@@ -53,7 +48,6 @@ const websiteJsonLd = websiteSchema(seoDescription);
     eksempler={eksempler}
     upcomingEvents={upcomingEvents}
     veiledninger={veiledninger}
-    eksempelKort={eksempelKort}
     />
   <Fragment slot="head">
       <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />

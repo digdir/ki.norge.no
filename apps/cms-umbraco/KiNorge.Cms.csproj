@@ -8,27 +8,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.2" />
     <PackageReference Include="Azure.Identity" Version="1.21.0" />
-    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="9.4.2" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="9.5.0" />
     <PackageReference Include="Kjac.HeadlessPreview" Version="3.0.0" />
     <PackageReference Include="MailKit" Version="4.17.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.11" />
     <!-- Transitiv via Umbraco. Pinnet over sårbar 2.4.1 (GHSA-v5pm-xwqc-g5wc);
          fjern når Umbraco selv drar >= 2.7.5. -->
-    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
     <!-- Transitiv via Umbraco -> Microsoft.Data.Sqlite. 2.1.11 pakker en sårbar
          SQLite-binær (GHSA-2m69-gcr7-jv3q, HIGH). Hele familien pinnes samlet så
          core/provider/lib ikke kommer i utakt. Fjern når Umbraco drar 2.1.12
          selv. Treffer bare lokal dev, prod kjører Azure SQL. -->
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
-    <PackageReference Include="SQLitePCLRaw.core" Version="2.1.12" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12" />
-    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.12" />
-    <PackageReference Include="Umbraco.Cms" Version="17.5.3" />
-    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.5.3" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
+    <PackageReference Include="SQLitePCLRaw.core" Version="2.1.13" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.13" />
+    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.13" />
+    <PackageReference Include="Umbraco.Cms" Version="17.6.2" />
+    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.6.2" />
     <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="17.1.0" />
-    <PackageReference Include="uSync" Version="17.3.6" />
+    <PackageReference Include="uSync" Version="17.3.7" />
   </ItemGroup>
 
   <ItemGroup>
