@@ -94,15 +94,27 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
         <dl>
           <div><dt>Nynorsk</dt><dd>${tall.format(r.tegnNynorsk)} av ${tall.format(r.tegnTotalt)} tegn</dd></div>
           <div><dt>Sider</dt><dd>${r.siderNynorsk} nynorsk, ${r.siderBokmal} bokmål (${prosent(r.andelSider)} %)</dd></div>
-          ${r.siderUkjent > 0
-            ? html`<div><dt>Ukjent</dt><dd>${r.siderUkjent} side${r.siderUkjent === 1 ? '' : 'r'} uten nok norsk tekst til å avgjøres, holdt utenfor</dd></div>`
-            : nothing}
+          ${this.#ukjentLinje(r)}
           ${r.kravetErNadd
             ? nothing
             : html`<div><dt>Mangler</dt><dd>${tall.format(r.tegnSomMangler)} tegn må over fra bokmål til nynorsk</dd></div>`}
         </dl>
       </uui-box>
     `;
+  }
+
+  #ukjentLinje(r) {
+    const ukjente = r.sider.filter((s) => s.malform === 'ukjent');
+    if (!ukjente.length) return nothing;
+    const utenOrd = ukjente.filter((s) => s.nynorskTreff + s.bokmalTreff === 0).length;
+    const tynt = ukjente.length - utenOrd;
+    const deler = [];
+    if (utenOrd) deler.push(`${utenOrd} uten norske ord`);
+    if (tynt) deler.push(`${tynt} med for tynt grunnlag`);
+    return html`<div>
+      <dt>Ukjent</dt>
+      <dd>${ukjente.length} side${ukjente.length === 1 ? '' : 'r'} holdt utenfor, ${deler.join(' og ')}</dd>
+    </div>`;
   }
 
   #plukkliste() {
@@ -150,7 +162,7 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
                 </uui-table-cell>
                 <uui-table-cell>${tall.format(s.tegn)}</uui-table-cell>
                 <uui-table-cell>
-                  ${s.malform === 'ukjent' ? '-' : prosent(s.sikkerhet) + ' %'}
+                  ${s.malform === 'ukjent' ? s.nynorskTreff + s.bokmalTreff + ' markører' : prosent(s.sikkerhet) + ' %'}
                 </uui-table-cell>
               </uui-table-row>
             `,

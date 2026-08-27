@@ -27,10 +27,16 @@ public sealed record MalformDom(Malform Malform, int NynorskTreff, int BokmalTre
 public static class MalformClassifier
 {
     /// <summary>
-    /// Under dette blir det for få markørord til å konkludere. Tre av 74 prod-noder
-    /// ligger under grensen, og de skal vises som ukjent framfor å gjettes på.
+    /// Antall markørord som må til for å felle en dom. Under dette er grunnlaget for
+    /// tynt, og siden vises som ukjent framfor å gjettes på.
+    ///
+    /// Grensen går på bevis, ikke på tekstlengde. En lengdegrense teller ikke ordene
+    /// i det hele tatt, og gjør begge feilene: den gir dom til lange sider med ett
+    /// tilfeldig markørord, og nekter dom til korte sider som er utvetydige. Målt på
+    /// de 74 prod-nodene har 67 sider 6 eller flere markører, så terskelen rammer
+    /// bare det som faktisk er tvilsomt.
     /// </summary>
-    public const int MinsteTekstlengde = 200;
+    public const int MinsteMarkortreff = 3;
 
     private static readonly string[] NynorskMarkorer =
     [
@@ -77,7 +83,7 @@ public static class MalformClassifier
 
     public static MalformDom Klassifiser(string? tekst)
     {
-        if (string.IsNullOrWhiteSpace(tekst) || tekst.Length < MinsteTekstlengde)
+        if (string.IsNullOrWhiteSpace(tekst))
             return new MalformDom(Malform.Ukjent, 0, 0, 0);
 
         var nynorsk = 0;
@@ -91,9 +97,11 @@ public static class MalformClassifier
                 bokmal++;
         }
 
+        // Treffene rapporteres også når de er for få til en dom, så dashboardet kan
+        // skille en side uten norsk tekst fra en side med for tynt grunnlag.
         var treff = nynorsk + bokmal;
-        if (treff == 0)
-            return new MalformDom(Malform.Ukjent, 0, 0, 0);
+        if (treff < MinsteMarkortreff)
+            return new MalformDom(Malform.Ukjent, nynorsk, bokmal, 0);
 
         return new MalformDom(
             nynorsk > bokmal ? Malform.Nynorsk : Malform.Bokmal,
