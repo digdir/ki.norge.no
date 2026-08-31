@@ -9,7 +9,7 @@ public sealed record MalformSide(
     string Malform,
     int NynorskTreff,
     int BokmalTreff,
-    double Sikkerhet);
+    double Andel);
 
 /// <param name="TegnTotalt">
 /// Summen over klassifiserte sider. Sider med målform "ukjent" holdes utenfor både
@@ -17,9 +17,6 @@ public sealed record MalformSide(
 /// </param>
 /// <param name="TegnSomMangler">
 /// Hvor mange tegn som må over fra bokmål til nynorsk for å nå kravet. 0 når kravet er nådd.
-/// </param>
-/// <param name="Plukkliste">
-/// Færrest mulig bokmålssider som til sammen lukker gapet, største først.
 /// </param>
 public sealed record MalformRapport(
     double Kravet,
@@ -33,5 +30,4 @@ public sealed record MalformRapport(
     double AndelSider,
     long TegnSomMangler,
     bool KravetErNadd,
-    IReadOnlyList<MalformSide> Plukkliste,
     IReadOnlyList<MalformSide> Sider);

@@ -71,7 +71,7 @@ public sealed class MalformReportBuilder
             Navn(dom.Malform),
             dom.NynorskTreff,
             dom.BokmalTreff,
-            dom.Sikkerhet);
+            dom.Andel);
     }
 
     private static MalformRapport Summer(List<MalformSide> sider)
@@ -100,30 +100,7 @@ public sealed class MalformReportBuilder
             // Uten målbar tekst er kravet verken innfridd eller brutt. Uten denne
             // sjekken blir gapet 0 og et tomt innholdstre framstår som grønt.
             tegnTotalt > 0 && mangler == 0,
-            Plukkliste(bokmal, mangler),
             sider);
-    }
-
-    /// <summary>
-    /// Største bokmålssider først, til gapet er dekket. Det gir færrest sider å
-    /// oversette, ikke minst arbeid per side, som er avveiningen en redaktør
-    /// selv må ta i dashboardet.
-    /// </summary>
-    private static List<MalformSide> Plukkliste(List<MalformSide> bokmal, long mangler)
-    {
-        var plukk = new List<MalformSide>();
-        long dekket = 0;
-
-        foreach (var side in bokmal.OrderByDescending(s => s.Tegn))
-        {
-            if (dekket >= mangler)
-                break;
-
-            dekket += side.Tegn;
-            plukk.Add(side);
-        }
-
-        return plukk;
     }
 
     private static string Navn(Malform malform) => malform switch

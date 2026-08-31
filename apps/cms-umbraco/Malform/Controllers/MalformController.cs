@@ -29,6 +29,6 @@ public class MalformController : ManagementApiControllerBase
     [MapToApiVersion("1.0")]
     [ProducesResponseType(typeof(MalformRapport), StatusCodes.Status200OK)]
     [EndpointSummary("Andel nynorsk i publisert innhold.")]
-    [EndpointDescription("Klassifiserer hver publiserte node som nynorsk eller bokmål og summerer andelen målt i tegn og i sider, med plukkliste for å nå kravet på 25 prosent.")]
+    [EndpointDescription("Klassifiserer hver publiserte node som nynorsk eller bokmål og summerer andelen målt i tegn og i sider, med hvor mye som mangler for å nå kravet på 25 prosent.")]
     public IActionResult Rapport() => Ok(_builder.Bygg());
 }

@@ -9,11 +9,12 @@ public enum Malform
     Nynorsk,
 }
 
-/// <param name="Sikkerhet">
-/// 0 til 1. Hvor stor overvekt den vinnende målformen har blant markørtreffene.
-/// Lave verdier betyr blandet tekst, ikke nødvendigvis feilklassifisering.
+/// <param name="Andel">
+/// 0,5 til 1. Hvor stor del av markørordene som peker mot den vinnende målformen.
+/// 1 betyr rein målform, verdier ned mot 0,5 betyr at siden blander nynorsk og bokmål.
+/// 0 når det ikke er felt noen dom.
 /// </param>
-public sealed record MalformDom(Malform Malform, int NynorskTreff, int BokmalTreff, double Sikkerhet)
+public sealed record MalformDom(Malform Malform, int NynorskTreff, int BokmalTreff, double Andel)
 {
     public int Markortreff => NynorskTreff + BokmalTreff;
 }
@@ -52,19 +53,29 @@ public static class MalformClassifier
 
     private static readonly string[] BokmalMarkorer =
     [
-        "anbefalinger", "bare", "ble", "blir", "bruker", "brukt", "dere", "deres",
-        "derfor", "disse", "flere", "fra", "først", "gjør", "gjøre", "hensyn",
+        "anbefalinger", "bare", "ble", "bruker", "dere", "deres",
+        "derfor", "disse", "flere", "fra", "gjør", "gjøre", "hensyn",
         "heter", "hva", "hver", "hverken", "hvem", "hvilke", "hvilken", "hvordan",
         "hvorfor", "ikke", "jeg", "krever", "mens", "mer", "midlertidig", "mulig",
-        "mulighet", "muligheter", "mye", "noe", "noen", "også", "offentlig",
+        "mulighet", "muligheter", "mye", "noe", "noen", "offentlig",
         "sammen", "samtidig", "selv", "siden", "spørre", "tjeneste",
         "tjenester", "uten", "vet", "videre", "viktigste", "virksomhet",
         "virksomheter", "være",
     ];
 
-    // "samme" er en fristende bokmålsmarkør (nynorsk har "same"), men holdes ute
-    // så lenge Node-prototypen er fasit for verifiseringen. Legg den inn begge
-    // steder samtidig, ellers blir listeavvik forvekslet med implementasjonsfeil.
+    // Ord som IKKE hører hjemme over, selv om de ser ut som bokmål. Nynorsk tillater
+    // dem, så de gir falske bokmålstreff på reine nynorsksider:
+    //   blir, brukt   nynorsk har bli/blir/blei/blitt og brukt ved siden av verte/vert
+    //   også          gyldig nynorsk, ikke bare "òg"
+    //   først         gyldig nynorsk ved siden av "fyrst"
+    // Målt på personvernerklæringen var 11 av 15 bokmålstreff av denne typen.
+    //
+    // Dedupliseringen under fanger ikke slike ord, for den krever at ordet står i
+    // BEGGE listene. "blir" møter aldri "vert". Nye markører må derfor sjekkes mot
+    // om nynorsk faktisk tillater formen, ikke bare mot om nynorsk har en annen.
+    //
+    // Fortsatt usikre, bør vurderes av noen som kan nynorsk: derfor, samtidig,
+    // spørre, midlertidig, bruker.
 
     private static readonly HashSet<string> Nynorsk;
     private static readonly HashSet<string> Bokmal;
@@ -107,7 +118,7 @@ public static class MalformClassifier
             nynorsk > bokmal ? Malform.Nynorsk : Malform.Bokmal,
             nynorsk,
             bokmal,
-            Math.Abs(nynorsk - bokmal) / (double)treff);
+            Math.Max(nynorsk, bokmal) / (double)treff);
     }
 
     /// <summary>
