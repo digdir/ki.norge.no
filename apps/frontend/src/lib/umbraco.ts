@@ -202,6 +202,8 @@ export interface Kalenderhendelse {
   sluttDato?: string;
   tid?: string;
   sted?: string;
+  /** Valgfri arrangør. Tom = arrangør vises ikke. */
+  arrangor?: string;
   lenke?: string;
   /** Valgfri pris, f.eks. "Gratis" eller "1 500 kr". Tom = pris vises ikke. */
   pris?: string;
@@ -1127,6 +1129,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         sluttDato: props.sluttDato as string || undefined,
         tid: props.tid as string || undefined,
         sted: props.sted as string || undefined,
+        arrangor: props.arrangor as string || undefined,
         lenke: props.lenke as string || undefined,
         pris: props.pris as string || undefined,
       } as T;
@@ -1754,6 +1757,7 @@ function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
     sluttDato: p.sluttDato || undefined,
     tid: p.tid || undefined,
     sted: p.sted || undefined,
+    arrangor: p.arrangor || undefined,
     lenke: p.lenke || undefined,
     pris: p.pris || undefined,
     createdAt: node.createDate || '',
