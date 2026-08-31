@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 
 // RFC 9116 — https://www.rfc-editor.org/rfc/rfc9116
 // Expires must be updated at least once a year.
-const content = `Contact: mailto:sikkerhet@digdir.no
+const content = `Contact: mailto:security@digdir.no
 Canonical: https://ki.norge.no/.well-known/security.txt
 Expires: 2027-06-10T00:00:00Z
 Preferred-Languages: nb, en
