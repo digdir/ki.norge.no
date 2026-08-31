@@ -4,7 +4,7 @@ import ForsideSeksjonerRenderer from '../components/landing/ForsideSeksjonerRend
 import { websiteSchema } from '../lib/seo';
 import { getForside, getArtikler, getKalenderhendelser, getEksempler, getVeiledningGuider, type Kalenderhendelse, type VeiledningGuide } from '../lib/umbraco';
 
-const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+const isPreview = Astro.locals.isPreview;
 
 let forside = null;
 let latestArticles: any[] = [];
