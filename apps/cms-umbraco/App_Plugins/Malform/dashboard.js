@@ -7,11 +7,18 @@ const prosent = (n) => (n * 100).toLocaleString('nb-NO', { minimumFractionDigits
 
 const ETIKETT = { nn: 'Nynorsk', nb: 'Bokmål', ukjent: 'Ukjent' };
 
+// Rapporten sender content.Key, som er den samme GUID-en redigeringsvisningen bruker.
+// Vanlig lenke framfor klikk-håndtering, så midtklikk og "åpne i ny fane" virker.
+const redigerLenke = (id) => `/umbraco/section/content/workspace/document/edit/${id}/invariant/`;
+
 export default class KiNorgeMalformDashboard extends UmbLitElement {
   static properties = {
     _rapport: { state: true },
     _feil: { state: true },
     _laster: { state: true },
+    _sortKol: { state: true },
+    _sortStigende: { state: true },
+    _visForklaring: { state: true },
   };
 
   #auth;
@@ -21,6 +28,9 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
     this._rapport = null;
     this._feil = null;
     this._laster = true;
+    this._sortKol = 'tegn';
+    this._sortStigende = false;
+    this._visForklaring = false;
 
     this.consumeContext(UMB_AUTH_CONTEXT, (auth) => {
       if (!auth) return;
@@ -58,7 +68,6 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
 
     return html`
       ${this.#tall()}
-      ${this.#plukkliste()}
       ${this.#tabell()}
     `;
   }
@@ -117,53 +126,110 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
     </div>`;
   }
 
-  #plukkliste() {
-    const r = this._rapport;
-    if (r.kravetErNadd || !r.plukkliste.length) return nothing;
+  #sorter(kol) {
+    if (this._sortKol === kol) {
+      this._sortStigende = !this._sortStigende;
+    } else {
+      this._sortKol = kol;
+      // Tekst leses naturlig A til Å, tall er mest interessante fra toppen.
+      this._sortStigende = kol === 'navn' || kol === 'innholdstype' || kol === 'malform';
+    }
+  }
+
+  #sorterteSider() {
+    const kol = this._sortKol;
+    const retning = this._sortStigende ? 1 : -1;
+
+    return [...this._rapport.sider].sort((a, b) => {
+      // Målformkolonnen viser både hvilken målform som dominerer og hvor rein siden
+      // er. Sortering følger det som vises: først gruppe, så blandingsgrad, så at
+      // ukjente alltid havner nederst.
+      if (kol === 'malform') {
+        const rang = (s) => (s.malform === 'ukjent' ? 2 : s.malform === 'nb' ? 0 : 1);
+        const ra = rang(a);
+        const rb = rang(b);
+        // Ukjente er ikke en målform og hører nederst uansett retning. Bokmål og
+        // nynorsk bytter derimot plass, ellers gjør pilen ingenting synlig.
+        if (ra !== rb) return ra === 2 || rb === 2 ? ra - rb : (ra - rb) * retning;
+        if (a.malform === 'ukjent') return (a.nynorskTreff + a.bokmalTreff) - (b.nynorskTreff + b.bokmalTreff);
+        return (a.andel - b.andel) * retning;
+      }
+
+      const x = a[kol];
+      const y = b[kol];
+      const primaer = typeof x === 'number' && typeof y === 'number'
+        ? (x - y) * retning
+        : String(x).localeCompare(String(y), 'nb') * retning;
+      // Ved lik verdi er den største siden mest interessant. Det gjør at et klikk på
+      // Målform samler bokmålssidene med de største øverst, som er det man er ute
+      // etter når man leter etter hva som skal oversettes.
+      return primaer !== 0 ? primaer : b.tegn - a.tegn;
+    });
+  }
+
+  #hode(kol, tekst, hjelp) {
+    const aktiv = this._sortKol === kol;
+    const pil = aktiv ? (this._sortStigende ? '\u2191' : '\u2193') : '';
     return html`
-      <uui-box headline="Færrest mulig sider å oversette">
-        <p class="hjelp">
-          De ${r.plukkliste.length} største bokmålssidene lukker gapet. Færrest sider, ikke minst
-          arbeid per side.
-        </p>
-        <ul class="plukk">
-          ${r.plukkliste.map(
-            (s) => html`<li><span>${s.navn}</span><span class="tegn">${tall.format(s.tegn)} tegn</span></li>`,
-          )}
-        </ul>
-      </uui-box>
-    `;
+      <uui-table-head-cell>
+        <button class="sorter ${aktiv ? 'aktiv' : ''}" @click=${() => this.#sorter(kol)}
+          aria-label=${`Sorter på ${tekst}`}>
+          ${tekst}<span class="pil">${pil}</span>
+        </button>
+        ${hjelp
+          ? html`<button class="hjelpeknapp" aria-expanded=${this._visForklaring}
+              aria-label="Hva betyr konsistens" @click=${() => { this._visForklaring = !this._visForklaring; }}>?</button>`
+          : nothing}
+      </uui-table-head-cell>`;
+  }
+
+  /// Rein målform trenger ingen prosent. Den vises bare når siden faktisk blander,
+  /// slik at tallet er et unntak som betyr noe og ikke støy på hver rad.
+  #blanding(s) {
+    if (s.malform === 'ukjent') {
+      return html`<span class="svak">${s.nynorskTreff + s.bokmalTreff} markørord</span>`;
+    }
+    if (s.andel >= 1) return nothing;
+    return html`<span class="svak">${prosent(s.andel)} %</span>`;
   }
 
   #tabell() {
     if (!this._rapport.sider.length) return nothing;
     return html`
       <uui-box headline="Alle sider">
+        ${this._visForklaring
+          ? html`<p class="forklaring">
+              De fleste sider er skrevet i én målform, og da står bare målformen. Er siden en
+              blanding, vises hvor stor del av den som er i den dominerende målformen. «75 %
+              Nynorsk» betyr at en fjerdedel av teksten er bokmål, og at siden bør leses gjennom.
+              Sider uten nok norsk tekst til å avgjøres står som ukjent, med antall funne
+              markørord.
+            </p>`
+          : nothing}
         <uui-table>
           <uui-table-head>
-            <uui-table-head-cell>Side</uui-table-head-cell>
-            <uui-table-head-cell>Type</uui-table-head-cell>
-            <uui-table-head-cell>Målform</uui-table-head-cell>
-            <uui-table-head-cell>Tegn</uui-table-head-cell>
-            <uui-table-head-cell>Sikkerhet</uui-table-head-cell>
+            ${this.#hode('navn', 'Side')}
+            ${this.#hode('innholdstype', 'Type')}
+            ${this.#hode('malform', 'Målform', true)}
+            ${this.#hode('tegn', 'Tegn')}
           </uui-table-head>
-          ${this._rapport.sider.map(
+          ${this.#sorterteSider().map(
             (s) => html`
               <uui-table-row>
                 <uui-table-cell>
-                  ${s.navn}
-                  ${s.url ? html`<div class="url">${s.url}</div>` : nothing}
+                  <a class="sidelenke" href=${redigerLenke(s.id)}>
+                    ${s.navn}
+                    ${s.url ? html`<span class="url">${s.url}</span>` : nothing}
+                  </a>
                 </uui-table-cell>
                 <uui-table-cell>${s.innholdstype}</uui-table-cell>
                 <uui-table-cell>
                   <uui-tag look="secondary" color=${s.malform === 'nn' ? 'positive' : 'default'}>
                     ${ETIKETT[s.malform] ?? s.malform}
                   </uui-tag>
+                  ${this.#blanding(s)}
                 </uui-table-cell>
                 <uui-table-cell>${tall.format(s.tegn)}</uui-table-cell>
-                <uui-table-cell>
-                  ${s.malform === 'ukjent' ? s.nynorskTreff + s.bokmalTreff + ' markører' : prosent(s.sikkerhet) + ' %'}
-                </uui-table-cell>
               </uui-table-row>
             `,
           )}
@@ -247,24 +313,79 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
       color: var(--uui-color-text-alt);
       margin-top: 0;
     }
-    .plukk {
-      list-style: none;
-      margin: 0;
+    .sorter {
+      background: none;
+      border: 0;
       padding: 0;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
-    .plukk li {
-      display: flex;
-      justify-content: space-between;
-      gap: var(--uui-size-space-4);
-      padding: var(--uui-size-space-3) 0;
-      border-bottom: 1px solid var(--uui-color-divider);
+    .sorter:hover {
+      text-decoration: underline;
     }
-    .tegn {
+    .sorter.aktiv {
+      font-weight: 700;
+    }
+    .sorter:focus-visible,
+    .hjelpeknapp:focus-visible {
+      outline: 2px solid var(--uui-color-focus);
+      outline-offset: 2px;
+    }
+    .pil {
+      font-size: 0.8em;
+      width: 0.8em;
+    }
+    .hjelpeknapp {
+      margin-left: 6px;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      border: 1px solid var(--uui-color-border);
+      background: var(--uui-color-surface);
       color: var(--uui-color-text-alt);
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+      font-size: 11px;
+      line-height: 1;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .hjelpeknapp:hover {
+      border-color: var(--uui-color-focus);
+      color: var(--uui-color-text);
+    }
+    .forklaring {
+      background: var(--uui-color-surface-alt);
+      border-radius: 4px;
+      padding: var(--uui-size-space-4);
+      margin: 0 0 var(--uui-size-space-4);
+      color: var(--uui-color-text-alt);
+      font-size: var(--uui-type-small-size);
+    }
+    .svak {
+      color: var(--uui-color-text-alt);
+    }
+    .sidelenke {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+    .sidelenke:hover .url,
+    .sidelenke:focus-visible .url {
+      color: var(--uui-color-interactive-emphasis);
+    }
+    .sidelenke:hover {
+      text-decoration: underline;
+      color: var(--uui-color-interactive-emphasis);
+    }
+    .sidelenke:focus-visible {
+      outline: 2px solid var(--uui-color-focus);
+      outline-offset: 2px;
     }
     .url {
+      display: block;
       font-size: var(--uui-type-small-size);
       color: var(--uui-color-text-alt);
     }
