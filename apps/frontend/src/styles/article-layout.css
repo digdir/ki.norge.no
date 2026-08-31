@@ -1,9 +1,15 @@
 /**
 * ArticleLayout — CSS Grid with gutter columns for centering + bleed.
 *
-* 5-column grid:
-*   | gutter  | sidebar | gap   | content       | gutter  |
-*   | dynamic | 1fr     | ds-30 | min(0, 680px) | dynamic |
+* 6-column grid:
+*   | gutter  | sidebar         | gap   | content       | rest  | gutter  |
+*   | dynamic | innhold, ≤240px | ds-30 | min(0, 680px) | 0.5fr | dynamic |
+*
+* Sidebaren har et tak, ikke en fr-andel. Med 1fr satte innholdet minimumsbredden,
+* og en lang adresse i kalendersidebaren presset tekstkolonnen ned til under det
+* halve (målt: sidebar 568px mot tekst 330px ved 1440px vindu). fit-content gjør
+* at taket bare slår inn der det trengs, så artikkelsidene beholder sin smale
+* metakolonne.
 *
 * Col 1 (gutter) uses a dynamic calc() so the sidebar always aligns with
 * the left content edge of the page header at every viewport width.
@@ -17,13 +23,13 @@
 */
 
 :root {
---article-layout-sidebar-width: 200px;
+--article-layout-sidebar-width: 240px;
 --article-layout-gap: var(--ds-size-30);
 --article-layout-content-max-width: 680px;
 --article-layout-gutter: calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2));
 --article-layout-columns:
   var(--article-layout-gutter)
-  1fr
+  fit-content(var(--article-layout-sidebar-width))
   var(--article-layout-gap)
   minmax(0, var(--article-layout-content-max-width))
   0.5fr

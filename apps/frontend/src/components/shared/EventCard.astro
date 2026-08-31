@@ -133,17 +133,19 @@ const isLink = !!href;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
     background-color: var(--ds-color-surface-active);
-    padding-block: var(--ds-size-10);
-    padding-inline: var(--ds-size-8);
+    /* Flex sentrerer. Det brede innrykket her gjorde bare tekstboksen smalere enn
+       ordet "september", som da rant utenfor den fargede boksen. */
+    padding: var(--ds-size-4) var(--ds-size-2);
     gap: var(--ds-size-3);
     margin: 0;
+    overflow-wrap: anywhere;
   }
 
   .event-card-day {
     font-family: var(--ki-heading-font);
-    font-size: var(--ds-heading-md-font-size);
-    text-align: center;
+    font-size: var(--ds-heading-sm-font-size);
     line-height: 1;
   }
   .event-card-year {
