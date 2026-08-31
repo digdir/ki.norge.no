@@ -42,8 +42,7 @@ const formatFullDate = (iso: string) => {
 const dateDisplay = formatFullDate(hendelse.startDato);
 const timeDisplay = hendelse.tid || '';
 
-// Mock data for fields not yet in CMS
-const arrangør = 'Digdir';
+const arrangør = hendelse.arrangor || '';
 const pris = hendelse.pris || '';
 const påmeldingUrl = hendelse.lenke || '#';
 ---
@@ -67,10 +66,12 @@ const påmeldingUrl = hendelse.lenke || '#';
         <AkselIcon name="LocationPin" size={24} />
         <div><span class="event-meta-label">Sted:</span> <strong>{hendelse.sted || 'Ikke oppgitt'}</strong></div>
       </div>
-      <div class="event-meta-item">
-        <AkselIcon name="HouseHeart" size={24} />
-        <div><span class="event-meta-label">Arrangør:</span> <strong>{arrangør}</strong></div>
-      </div>
+      {arrangør && (
+        <div class="event-meta-item">
+          <AkselIcon name="HouseHeart" size={24} />
+          <div><span class="event-meta-label">Arrangør:</span> <strong>{arrangør}</strong></div>
+        </div>
+      )}
       {pris && (
         <div class="event-meta-item">
           <AkselIcon name="Receipt" size={24} />
