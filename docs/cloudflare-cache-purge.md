@@ -50,3 +50,80 @@ For hvert miljø (prod + tt02), legg secretene i miljøets Key Vault:
 
 Redeploy CMS. Verifiser i oppstartsloggen:
 `Cloudflare cache-purge: Enabled=True, ZoneId=<satt>, ApiToken=<satt>, SiteBaseUrl=https://ki.norge.no`.
+
+## Purge ved deploy, og hvorfor den bruker purge_everything
+
+`apps/frontend/scripts/purge-cache.mjs` er en annen sak enn purgen over. Den kjører
+i `deploy:prod` / `deploy:tt02` og finnes fordi en deploy roterer de innholdshashede
+`_astro`-filnavnene. Edge-cachen sitter samtidig på HTML fra før deployen, og den
+HTML-en peker på filer som ikke finnes lenger, som gir en ustylet side (#428).
+
+Den bruker `purge_everything`. Det ser grovt ut, og det er et **målt valg**, ikke
+latskap. To forsøk på å gjøre det finere er vurdert og forkastet. Les dette før du
+"forbedrer" det.
+
+### Sprengradiusen er bare våre egne miljø
+
+Innvendingen mot `purge_everything` er at `norge.no`-sonen deles. Den er målt.
+
+Sertifikat-transparenslogg for `%.norge.no` gir 25 unike hostnavn. Oppslag på alle 25
+viser at nøyaktig fire er CNAME-et til `cdn.cloudflare.net`, altså proxet i partial-sonen:
+
+    ki.norge.no  ki.test.norge.no  cms.ki.norge.no  cms.ki.test.norge.no
+
+Resten peker på `lb.digdir.no`, Google, eller er NXDOMAIN. `purge_everything` treffer
+derfor bare oss. Kostnaden er en kald tt02-cache i noen minutter når prod deployes.
+
+Metoden er etterprøvbar:
+
+```sh
+curl -s "https://crt.sh/?q=%25.norge.no&output=json" \
+  | jq -r '.[].name_value' | tr '\n' '\n' | sort -u
+# deretter: dig +short <host> CNAME  for hver, og se etter cdn.cloudflare.net
+```
+
+Sjekk den på nytt hvis noen legger et nytt hostnavn i sonen. `minid.norge.no` og
+`minside.norge.no` finnes i CT-loggen. De er NXDOMAIN i dag, men sonen deles med
+tjenester der en purge per frontend-deploy ikke ville vært en skuldertrekning.
+
+### Hvorfor ikke purge per URL
+
+`files`-arrayet virker på Business, og CMS-purgen over bruker det allerede. Det er
+likevel feil her, fordi **cache-nøkkelen er hele URLen med query**.
+
+En besøkende som kommer inn på `/artikler/foo?utm_source=nyhetsbrev` lager sin egen
+cache-entry. Et `files`-purge av den kanoniske URLen treffer den ikke. `purge_everything`
+treffer den. Å bytte ville altså gitt et delvis purge i stedet for et uttømmende, og
+latt nøyaktig den bugen vi fikser leve videre på taggede lenker fra nyhetsbrev og
+sosiale medier.
+
+Dekningen er ikke problemet: `/sitemap.xml` har 74 URLer og dekker rutene. Hullet er
+utm-varianter.
+
+**Rekkefølgen er derfor:** normaliser cache-nøkkelen i `apps/cache-kinorgeportal` først
+(strip `utm_*`, `fbclid`, `gclid` og liknende fra nøkkelen, ikke fra origin-fetchen),
+og først da blir purge per URL uttømmende. Ingen side leser noen query-parameter unntatt
+`preview`, som uansett setter `no-store` og aldri caches, så normaliseringen er
+semantisk trygg. Den ville dessuten gitt bedre hit rate på taggede lenker, som i dag
+får kald cache per unike variant.
+
+### Parkert, ikke løst
+
+- **Nøkkel-normalisering** som over. Effektivitetsforbedring, ikke feilretting, siden
+  `purge_everything` allerede dekker utm-hullet. Tas neste gang cache-workeren
+  uansett skal deployes.
+- **`headers: request.headers` i cacheKey** er støy. `caches.default` nøkler på URL, og
+  `Vary` på det lagrede svaret styrer header-varians. Samme disposisjon.
+- **Credential-svakheten.** Scriptet hardfeiler uten `CLOUDFLARE_PURGE_TOKEN`, som bare
+  finnes lokalt. Ingen kan deploye i den tro at cachen ble tømt, så feilmodusen er
+  høylytt. Begynner det å svi, for eksempel når CI deployer, er svaret å la
+  cache-workeren slå opp frontendens faktiske versjon (via `CF_VERSION_METADATA` på
+  frontenden, eksponert på et endepunkt) og folde den inn i cache-nøkkelen.
+
+### Forkastet
+
+Å binde `CF_VERSION_METADATA` på **cache-workeren** og deploye den sammen med frontenden.
+Den gir cache-workerens egen version-id, altså en stedfortreder for frontendens versjon,
+og virker bare så lenge deploy-scriptet tvinger de to til å følges. Enhver sti som
+deployer frontenden alene, som en hotfix, CI eller `wrangler rollback`, serverer da
+gammel HTML uten noe signal om hvorfor.
