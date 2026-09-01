@@ -9,7 +9,7 @@ overrides:
   # vite/astro drar inn fiksede versjoner selv.
   esbuild: "^0.28.1" # GHSA-gv7w-rqvm-qjhr
   ws: "^8.21.0" # CVE-2026-48779
-  sharp: "^0.35.0" # GHSA-f88m-g3jw-g9cj
+  sharp: "^0.35.4" # GHSA-f88m-g3jw-g9cj, og astro 7.2.8+ krever ^0.35.4
   undici: "^7.29.0" # CVE-2026-13697, transitiv via miniflare/wrangler
   svgo: "^4.0.2" # GHSA-2p49-hgcm-8545
   js-yaml: "^4.3.1" # CVE-2026-59870, transitiv via astro
