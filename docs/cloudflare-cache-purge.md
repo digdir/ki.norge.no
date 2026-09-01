@@ -66,7 +66,7 @@ latskap. To forsøk på å gjøre det finere er vurdert og forkastet. Les dette 
 
 Innvendingen mot `purge_everything` er at `norge.no`-sonen deles. Den er målt.
 
-Sertifikat-transparenslogg for `%.norge.no` gir 25 unike hostnavn. Oppslag på alle 25
+Sertifikat-transparenslogg for `%.norge.no` gir 24 unike hostnavn. Oppslag på alle 24
 viser at nøyaktig fire er CNAME-et til `cdn.cloudflare.net`, altså proxet i partial-sonen:
 
     ki.norge.no  ki.test.norge.no  cms.ki.norge.no  cms.ki.test.norge.no
@@ -78,9 +78,27 @@ Metoden er etterprøvbar:
 
 ```sh
 curl -s "https://crt.sh/?q=%25.norge.no&output=json" \
-  | jq -r '.[].name_value' | tr '\n' '\n' | sort -u
-# deretter: dig +short <host> CNAME  for hver, og se etter cdn.cloudflare.net
+  | jq -r '.[].name_value' \
+  | sed 's/^\*\.//' \
+  | tr 'A-Z' 'a-z' \
+  | grep -E '(^|\.)norge\.no$' \
+  | sort -u
+# deretter, for hver: dig +short <host> CNAME | grep cdn.cloudflare.net
 ```
+
+`sed` fjerner wildcard-SAN-er (`*.data.norge.no`), som ellers havner i lista som
+hostnavn ingen kan slå opp. `tr` trengs fordi CT returnerer blandet case, så `sort -u`
+ellers gir både `norge.no` og `NORGE.NO`. `grep` filtrerer bort `datanorge.no`, et
+annet domene som crt.sh sitt LIKE-mønster fanger opp.
+
+crt.sh er ustabil og svarer jevnlig 404 eller 502. Tomt resultat betyr som regel at
+tjenesten er nede, ikke at målingen er feil. Prøv igjen senere.
+
+CT og oppslag er den beste sjekken vi kan gjøre uten sone-tilgang, og den er sterk
+fordi et Cloudflare-proxet hostnavn får Universal SSL og dermed havner i CT. Den er
+ikke autoritativ: den bommer på et proxet hostnavn uten offentlig sertifikat, og den
+er et øyeblikksbilde. Autoritativ liste er DNS-fanen for `norge.no`-sonen i
+Cloudflare-dashbordet.
 
 Sjekk den på nytt hvis noen legger et nytt hostnavn i sonen. `minid.norge.no` og
 `minside.norge.no` finnes i CT-loggen. De er NXDOMAIN i dag, men sonen deles med
@@ -102,9 +120,11 @@ utm-varianter.
 
 **Rekkefølgen er derfor:** normaliser cache-nøkkelen i `apps/cache-kinorgeportal` først
 (strip `utm_*`, `fbclid`, `gclid` og liknende fra nøkkelen, ikke fra origin-fetchen),
-og først da blir purge per URL uttømmende. Ingen side leser noen query-parameter unntatt
-`preview`, som uansett setter `no-store` og aldri caches, så normaliseringen er
-semantisk trygg. Den ville dessuten gitt bedre hit rate på taggede lenker, som i dag
+og først da blir purge per URL uttømmende. Ingen side varierer innhold på sporingsparametre.
+De eneste query-parametrene koden leser er `preview` (setter `no-store`), `key` på
+`/admin-tilgang` (`no-store`) og `redirect` i `/api/exit-preview` (API-rute,
+`no-store`). Ingen av dem berøres av en allowlist som kun stripper `utm_*`, `fbclid`
+og `gclid`, så normaliseringen er semantisk trygg. Den ville dessuten gitt bedre hit rate på taggede lenker, som i dag
 får kald cache per unike variant.
 
 ### Parkert, ikke løst
