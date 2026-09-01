@@ -44,7 +44,10 @@ const timeDisplay = hendelse.tid || '';
 
 const arrangør = hendelse.arrangor || '';
 const pris = hendelse.pris || '';
-const påmeldingUrl = hendelse.lenke || '#';
+const påmeldingUrl = hendelse.lenke || '';
+// Arrangementet er over: påmelding gir ikke mening lenger, men siden skal fortsatt
+// kunne leses for opptak og presentasjoner.
+const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Date();
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
@@ -78,7 +81,7 @@ const påmeldingUrl = hendelse.lenke || '#';
           <div><span class="event-meta-label">Pris:</span> <strong>{pris}</strong></div>
         </div>
       )}
-      {påmeldingUrl && (
+      {påmeldingUrl && !erAvsluttet && (
         <a href={påmeldingUrl} class="ds-button">Påmelding</a>
       )}
     </Fragment>

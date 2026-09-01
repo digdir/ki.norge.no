@@ -20,9 +20,10 @@ interface Props {
   latestArticles: any[];
   eksempler?: any[];
   upcomingEvents?: Kalenderhendelse[];
+  harTidligereArrangementer?: boolean;
   veiledninger?: VeiledningGuide[];
 }
-const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [] } = Astro.props;
+const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidligereArrangementer = false, veiledninger = [] } = Astro.props;
 ---
 
 {seksjoner.map((block) => {
@@ -79,17 +80,22 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
   if (block.contentType === 'forsideArrangementer') {
     // Redaktørvalgt arrangement overstyrer auto. Tomt → neste kommende.
     const valgt = (block.arrangementId && upcomingEvents.find((e) => e.id === block.arrangementId)) || upcomingEvents[0] || null;
-    // Ingen kommende arrangementer → skjul hele seksjonen (ikke en tom overskrift + lenke).
-    if (!valgt) return null;
     const lenke = velgLenke(block);
+    // Uten kommende arrangement peker seksjonen til arkivet i stedet for å forsvinne.
+    // Er arkivet også tomt har seksjonen ingenting å vise, og da skjuler vi den.
+    if (!valgt && !harTidligereArrangementer) return null;
     return (
       <section class="arrangementer" data-layout-block="edge">
         <div class="arrangementer-section" data-layout-block="content">
           {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
-          {valgt && (
+          {valgt ? (
             <EventCard {...hendelseTilEventCard(valgt)} />
+          ) : (
+            <p class="arrangementer-tom">Ingen kommende arrangementer</p>
           )}
-          {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
+          {valgt
+            ? lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />
+            : <ArrowLink href={lenke?.href || '/kalender'} text="Se tidligere arrangementer" />}
         </div>
       </section>
     );
@@ -228,6 +234,12 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
 
   .arrangementer-section :global(.event-card) {
     margin-bottom: var(--ds-size-6);
+  }
+
+  .arrangementer-tom {
+    margin: 0 0 var(--ds-size-6);
+    padding: var(--ds-size-6);
+    background-color: var(--ds-color-neutral-background-default);
   }
 
   /* ── Lær av andre ────────────────────────────────────── */
