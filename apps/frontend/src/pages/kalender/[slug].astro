@@ -186,9 +186,14 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
     gap: 24px;
   }
 
+  /* minmax(0, 1fr) og ikke 1fr: et gridelement har min-content som automatisk
+     minstebredde, og kortene her kan ikke smalne under 293px, som er 220px
+     min-height gjennom aspect-ratio 4/3. Tre slike spor ble 960px, og siden
+     rullet vannrett fra 768px til 1022px. Målt: 192px overflyt på 768. Samme
+     grep som CardGrid (#735). */
   @media (min-width: 768px) {
     .event-related-grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 32px;
     }
   }
