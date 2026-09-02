@@ -2037,6 +2037,10 @@ export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: strin
   return steps.find(s => s.slug === stepSlug) || null;
 }
 
+export async function getEnkleVeiledninger(options: FetchOptions = {}) {
+  return fetchCollection<EnkelVeiledning>('enkelVeiledning', options);
+}
+
 export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {
   const item = await fetchBySlug<EnkelVeiledning>('enkelVeiledning', slug, options);
   if (item) await enrichBlocksInternalLinks(item.innhold, options);
