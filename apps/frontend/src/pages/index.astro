@@ -10,6 +10,7 @@ let forside = null;
 let latestArticles: any[] = [];
 let eksempler: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
+let harTidligereArrangementer = false;
 let veiledninger: VeiledningGuide[] = [];
 try {
   // Preview gjelder kun forsidens egen kladd (struktur/overskrifter/pins). Kortene henter
@@ -23,6 +24,9 @@ try {
   upcomingEvents = hendelserRes.data
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime());
+  // Arrangementmodulen trenger å vite om det finnes noe i arkivet, så den kan peke
+  // dit når det ikke er noe kommende.
+  harTidligereArrangementer = hendelserRes.data.some(h => new Date(h.sluttDato || h.startDato) < now);
   const eksemplerRes = await getEksempler({ preview: isPreview });
   eksempler = eksemplerRes.data;
   const veiledningerRes = await getVeiledningGuider({ preview: isPreview });
@@ -47,6 +51,7 @@ const websiteJsonLd = websiteSchema(seoDescription);
     latestArticles={latestArticles}
     eksempler={eksempler}
     upcomingEvents={upcomingEvents}
+    harTidligereArrangementer={harTidligereArrangementer}
     veiledninger={veiledninger}
     />
   <Fragment slot="head">
