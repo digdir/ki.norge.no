@@ -507,6 +507,7 @@ public class ContentTypeComponent : IAsyncComponent
         ("globaleInnstillinger", "footerLenke3Url"),
         ("globaleInnstillinger", "footerLenke4Url"),
         ("globaleInnstillinger", "footerLenke5Url"),
+        ("globaleInnstillinger", "footerLenke6Url"),
     };
 
     // Repeker eksisterende lenkefelt fra vanlig TextBox til "Lenke / URL"-datatypen.
@@ -3502,6 +3503,11 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
+    // Slot 6 har ingen hardkodet standardverdi i frontenden, i motsetning til 1-5.
+    // Tom = ingen oppforing.
+    private const string Slot6Beskrivelse =
+        "La stå tom for å skjule oppføringen. Både tekst og URL må fylles ut for at lenken skal vises.";
+
     // Footer-lenkene i visnings-rekkefolge.
     private static readonly (string alias, string label, int sort)[] FooterLenker =
     {
@@ -3515,6 +3521,8 @@ public class ContentTypeComponent : IAsyncComponent
         ("footerLenke4Url", "Tilgjengelighet (URL)", 7),
         ("footerLenke5Tekst", "Endre samtykke for informasjonskapsler", 8),
         ("footerLenke5Url", "Endre samtykke (URL)", 9),
+        ("footerLenke6Tekst", "Ledige stillinger", 10),
+        ("footerLenke6Url", "Ledige stillinger (URL)", 11),
     };
 
     private static bool MoveProp(IContentType ct, string alias, string groupAlias)
@@ -3564,7 +3572,12 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("footerEpost", "Kontakt e-post", _textStringDt, description: "E-postadressen som vises under \"Kontakt oss\"."), "footer/kontakt");
         foreach (var (alias, label, sort) in FooterLenker)
         {
-            var desc = alias == "footerLenke5Url" ? "La stå tom for å vise som knapp som åpner samtykke-banneret." : null;
+            var desc = alias switch
+            {
+                "footerLenke5Url" => "La stå tom for å vise som knapp som åpner samtykke-banneret.",
+                "footerLenke6Tekst" => Slot6Beskrivelse,
+                _ => null,
+            };
             ct.AddPropertyType(Prop(alias, label, _textStringDt, description: desc, sortOrder: sort), "footer/lenker");
         }
     }
@@ -3606,6 +3619,7 @@ public class ContentTypeComponent : IAsyncComponent
             changed |= MoveProp(ct, alias, "footer/lenker");
         }
         changed |= SetPropDescription(ct, "footerLenke5Url", "La stå tom for å vise som knapp som åpner samtykke-banneret.");
+        changed |= SetPropDescription(ct, "footerLenke6Tekst", Slot6Beskrivelse);
 
         return changed;
     }
