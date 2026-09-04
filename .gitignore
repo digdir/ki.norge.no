@@ -49,6 +49,8 @@ test-results/
 design/
 .venv/
 apps/cms-kinorgeportal/worker-configuration.d.ts
-# Hele .wrangler, ikke bare tmp/. wrangler dev legger også igjen state/, som
-# ellers dukker opp som usporede filer. Samme regel som de to andre workerne.
 apps/cms-kinorgeportal/.wrangler/
+KI_tiltak_klart.html
+
+# Superpowers scratch workspace
+.superpowers/

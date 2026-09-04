@@ -263,7 +263,7 @@ export interface ArtiklerOversikt {
 }
 
 export interface EksemplerSeksjon {
-  contentType: 'eksempelFeatured' | 'eksempelGruppe' | 'eksempelRelatert' | 'eksempelKontakt';
+  contentType: 'eksempelFeatured' | 'eksempelGruppe' | 'eksempelRelatert' | 'eksempelKontakt' | 'eksempelKiTiltak';
   id: string;
   // Featured: én eksempel-referanse
   eksempelId?: string;
@@ -283,6 +283,7 @@ export interface EksemplerSeksjon {
   kortTag?: string;                              // Gruppe: tag på hvert kort (default "Eksempel")
   kortFarger?: Array<'dark' | 'light' | undefined>; // Gruppe: per-kort farge, justert mot eksempelIds
   relatertTags?: Array<string | undefined>;      // Relatert: per-kort tag, justert mot relatertIds
+  // KI-tiltak: ingen felt. Kortet leser antallet fra det statiske datasettet selv.
 }
 
 export interface EksemplerOversikt {

@@ -263,7 +263,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
       'Content-Security-Policy',
       [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://survey.skyra.no https://siteimproveanalytics.com",
+        // challenges.cloudflare.com er Turnstile pa «Del KI-tiltak». Widgeten
+        // laster et skript og rendrer seg selv i en iframe, sa den trenger bade
+        // script-src og frame-src under.
+        "script-src 'self' 'unsafe-inline' https://survey.skyra.no https://siteimproveanalytics.com https://challenges.cloudflare.com",
         "style-src 'self' 'unsafe-inline' https://altinncdn.no https://survey.skyra.no",
         "font-src 'self' https://altinncdn.no data:",
         // CMS-hoster (union av alle reelle origins). Frontend henter media fra CMS,
@@ -276,6 +279,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // (dis-core + workers.dev) pluss localhost CMS dev-origin slik at preview
         // virker i dev ogsa.
         "frame-ancestors 'self' https://cms.ki.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
+        // Uten en egen frame-src faller Turnstile-iframen tilbake pa
+        // default-src 'self' og blir blokkert.
+        "frame-src 'self' https://challenges.cloudflare.com",
         "base-uri 'self'",
         "form-action 'self'",
       ].join('; '),
