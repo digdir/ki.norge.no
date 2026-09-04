@@ -2,7 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import EventCard from '../../components/shared/EventCard.astro';
 import { getKalender, getKalenderhendelser, type Kalenderhendelse } from '../../lib/umbraco';
-import { hendelseTilEventCard } from '../../lib/kalender';
+import { hendelseTilEventCard, tidligereTomTekst } from '../../lib/kalender';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 let kalender = null;
@@ -30,16 +30,18 @@ const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
 // helt til siste dag er passert. Sortering bruker fortsatt startDato.
 const effectiveEnd = (h: Kalenderhendelse) => new Date(h.sluttDato || h.startDato);
 
-// Bruk CMS-felt hvis satt, ellers bruk første kommende hendelse som featured.
+// Fremhevet inngang styres av redaktøren alene. Uten valgt hendelse vises ingen
+// fremhevet boks, slik at redaktøren kan ta den vekk når det ikke er noe å løfte.
+// Tidligere falt vi tilbake til første kommende hendelse, og da fantes det ingen
+// måte å skru den av på.
 // Picker-objektet fra Delivery API har tomme properties (ingen slug/dato), så
 // slå opp den fulle hendelsen i listen via id.
 const allKommende = hendelser
   .filter(h => effectiveEnd(h) >= now)
   .sort(sortByStart);
-const featuredValgt = kalender?.featuredHendelse
+const featured = (kalender?.featuredHendelse
   ? hendelser.find(h => h.id === kalender!.featuredHendelse!.id)
-  : null;
-const featured = featuredValgt || allKommende[0] || null;
+  : null) ?? null;
 const featuredId = featured?.id;
 
 const kommende = allKommende
@@ -52,6 +54,11 @@ const tidligere = hendelser
   .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
+
+// Uten kommende arrangement er tidligere-fanen den eneste med innhold. Åpne den
+// med en gang i stedet for å la brukeren lande på en tom fane. u-tabs beholder
+// den fanen som allerede har aria-selected="true" ved oppstart.
+const startfane = allKommende.length === 0 && tidligere.length > 0 ? 'tidligere' : 'kommende';
 
 // Kommende først, så tidligere. Det er rekkefølgen som er nyttig for en agent
 // som spør "hva skjer framover".
@@ -94,8 +101,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
     <ds-tabs class="ds-tabs kalender-tabs">
       <ds-tablist>
-        <ds-tab aria-controls="panel-kommende" data-value="kommende">Kommende arrangement</ds-tab>
-        <ds-tab aria-controls="panel-tidligere" data-value="tidligere">Tidligere arrangement</ds-tab>
+        <ds-tab aria-controls="panel-kommende" data-value="kommende" aria-selected={String(startfane === 'kommende')}>Kommende arrangement</ds-tab>
+        <ds-tab aria-controls="panel-tidligere" data-value="tidligere" aria-selected={String(startfane === 'tidligere')}>Tidligere arrangement</ds-tab>
       </ds-tablist>
 
       <ds-tabpanel id="panel-kommende">
@@ -103,7 +110,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
           featuredErKommende ? (
             <p class="kalender-empty">Det kommende arrangementet er vist øverst på siden.</p>
           ) : (
-            <p class="kalender-empty">Ingen kommende arrangement.</p>
+            <p class="kalender-empty">Ingen kommende arrangementer</p>
           )
         ) : (
           <div class="kalender-list">
@@ -116,11 +123,11 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
       <ds-tabpanel id="panel-tidligere">
         {tidligere.length === 0 ? (
-          <p class="kalender-empty">Ingen tidligere arrangement.</p>
+          <p class="kalender-empty">{tidligereTomTekst(featured, now)}</p>
         ) : (
           <div class="kalender-list">
             {tidligere.map(h => (
-              <EventCard {...hendelseTilEventCard(h, { clickable: false })} />
+              <EventCard {...hendelseTilEventCard(h)} />
             ))}
           </div>
         )}

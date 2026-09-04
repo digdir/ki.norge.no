@@ -20,19 +20,19 @@
     "generate-types": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.1.4",
-    "@astrojs/node": "11.1.4",
-    "@astrojs/react": "6.0.4",
+    "@astrojs/cloudflare": "^14.2.5",
+    "@astrojs/node": "11.1.5",
+    "@astrojs/react": "6.0.5",
     "@digdir/designsystemet-css": "^1.15.0",
     "@digdir/designsystemet-react": "^1.15.0",
     "@navikt/aksel-icons": "^8.11.0",
-    "astro": "7.2.4",
+    "astro": "7.2.10",
     "clsx": "^2.1.1",
     "linkedom": "^0.18.12",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "tailwind-merge": "^3.6.0",
-    "wrangler": "^4.95.0"
+    "wrangler": "^4.127.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

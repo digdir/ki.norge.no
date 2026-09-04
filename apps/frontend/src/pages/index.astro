@@ -2,7 +2,7 @@
 import Layout from '../components/layout/Layout.astro';
 import ForsideSeksjonerRenderer from '../components/landing/ForsideSeksjonerRenderer.astro';
 import { websiteSchema } from '../lib/seo';
-import { getForside, getArtikler, getKalenderhendelser, getEksempler, getVeiledningGuider, type Kalenderhendelse, type VeiledningGuide } from '../lib/umbraco';
+import { getForside, getArtikler, getKalenderhendelser, getEksempler, getVeiledningGuider, getEnkleVeiledninger, type Kalenderhendelse, type VeiledningGuide } from '../lib/umbraco';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -10,7 +10,9 @@ let forside = null;
 let latestArticles: any[] = [];
 let eksempler: any[] = [];
 let upcomingEvents: Kalenderhendelse[] = [];
+let harTidligereArrangementer = false;
 let veiledninger: VeiledningGuide[] = [];
+let enkleVeiledninger: any[] = [];
 try {
   // Preview gjelder kun forsidens egen kladd (struktur/overskrifter/pins). Kortene henter
   // alltid PUBLISERT innhold, slik at preview matcher det publikum ser (ingen upubliserte lekker inn).
@@ -23,10 +25,15 @@ try {
   upcomingEvents = hendelserRes.data
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime());
+  // Arrangementmodulen trenger å vite om det finnes noe i arkivet, så den kan peke
+  // dit når det ikke er noe kommende.
+  harTidligereArrangementer = hendelserRes.data.some(h => new Date(h.sluttDato || h.startDato) < now);
   const eksemplerRes = await getEksempler({ preview: isPreview });
   eksempler = eksemplerRes.data;
   const veiledningerRes = await getVeiledningGuider({ preview: isPreview });
   veiledninger = veiledningerRes.data;
+  const enkleVeiledningerRes = await getEnkleVeiledninger({ preview: isPreview });
+  enkleVeiledninger = enkleVeiledningerRes.data;
 } catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
   // CMS-henting feilet: ikke cache den degraderte renderen (tom forside uten
@@ -47,7 +54,9 @@ const websiteJsonLd = websiteSchema(seoDescription);
     latestArticles={latestArticles}
     eksempler={eksempler}
     upcomingEvents={upcomingEvents}
+    harTidligereArrangementer={harTidligereArrangementer}
     veiledninger={veiledninger}
+    enkleVeiledninger={enkleVeiledninger}
     />
   <Fragment slot="head">
       <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
