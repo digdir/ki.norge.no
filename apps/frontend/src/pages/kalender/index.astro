@@ -2,7 +2,7 @@
 import Layout from '../../components/layout/Layout.astro';
 import EventCard from '../../components/shared/EventCard.astro';
 import { getKalender, getKalenderhendelser, type Kalenderhendelse } from '../../lib/umbraco';
-import { hendelseTilEventCard } from '../../lib/kalender';
+import { hendelseTilEventCard, tidligereTomTekst } from '../../lib/kalender';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 let kalender = null;
@@ -123,7 +123,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
       <ds-tabpanel id="panel-tidligere">
         {tidligere.length === 0 ? (
-          <p class="kalender-empty">Ingen tidligere arrangement.</p>
+          <p class="kalender-empty">{tidligereTomTekst(featured, now)}</p>
         ) : (
           <div class="kalender-list">
             {tidligere.map(h => (
