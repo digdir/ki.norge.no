@@ -20,15 +20,19 @@ const { columns = 3, divided = false } = Astro.props;
   }
 
   /* ── Column variants ──────────────────────────────── */
+  /* minmax(0, 1fr) og ikke 1fr: et gridelement har min-content som automatisk
+     minstebredde, så et kort som ikke kan smalne under 341px låste hvert spor
+     til 341px. Tre slike spor ble 1024px, og forsiden fikk vannrett rulling på
+     alt fra 768px til 1023px. Med 0 som minimum følger sporene viewporten. */
   @media (min-width: 768px) {
     .card-grid--2 {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .card-grid--3 {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .card-grid--4 {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 

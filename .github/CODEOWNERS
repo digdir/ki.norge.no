@@ -1,16 +1,13 @@
-# CODEOWNERS — auto-assign reviewers for PRs.
-# Last matching pattern wins. Owners are auto-requested on PR open.
-# Until a team is set up, all default to @larsekhansen.
+### CODEOWNERS - used to auto-assign PR reviewers in Github
+### Mainly means that listed users get notifications from PRs/code changes
+### For developers - but other team members can add themselves if wanted
 
-*                                  @larsekhansen
+## All code
+* @larsekhansen @pooriamehregan
 
-# Specific directories
-/apps/frontend/                    @larsekhansen
-/apps/cms-umbraco/                 @larsekhansen
-/scripts/                          @larsekhansen
-/.github/                          @larsekhansen
+## Specific parts of the repo
+# Prods Umbraco uSync schema. See apps/cms-umbraco/uSync/README.md
+/apps/cms-umbraco/uSync/ @larsekhansen
 
-# Prod sitt skjema. En eksport tatt fra feil database re-nøkler prod og gjør alt
-# blokkinnhold «Unsupported». Skal aldri merges uten review.
-# Se apps/cms-umbraco/uSync/README.md
-/apps/cms-umbraco/uSync/           @larsekhansen
+# Other teams do this to adhere to Team Sikkerhet's filtrering,
+/.github/CODEOWNERS @digdir/team-ki-norge

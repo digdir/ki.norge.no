@@ -202,6 +202,8 @@ export interface Kalenderhendelse {
   sluttDato?: string;
   tid?: string;
   sted?: string;
+  /** Valgfri arrangør. Tom = arrangør vises ikke. */
+  arrangor?: string;
   lenke?: string;
   /** Valgfri pris, f.eks. "Gratis" eller "1 500 kr". Tom = pris vises ikke. */
   pris?: string;
@@ -507,6 +509,8 @@ export interface GlobaleInnstillinger {
   footerLenke4Url?: string;
   footerLenke5Tekst?: string;
   footerLenke5Url?: string;
+  footerLenke6Tekst?: string;
+  footerLenke6Url?: string;
 }
 
 export interface UmbracoMedia {
@@ -1128,6 +1132,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         sluttDato: props.sluttDato as string || undefined,
         tid: props.tid as string || undefined,
         sted: props.sted as string || undefined,
+        arrangor: props.arrangor as string || undefined,
         lenke: props.lenke as string || undefined,
         pris: props.pris as string || undefined,
       } as T;
@@ -1267,6 +1272,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         footerLenke4Url: props.footerLenke4Url as string || undefined,
         footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
         footerLenke5Url: props.footerLenke5Url as string || undefined,
+        footerLenke6Tekst: props.footerLenke6Tekst as string || undefined,
+        footerLenke6Url: props.footerLenke6Url as string || undefined,
       } as T;
 
     default:
@@ -1755,6 +1762,7 @@ function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
     sluttDato: p.sluttDato || undefined,
     tid: p.tid || undefined,
     sted: p.sted || undefined,
+    arrangor: p.arrangor || undefined,
     lenke: p.lenke || undefined,
     pris: p.pris || undefined,
     createdAt: node.createDate || '',
@@ -2032,6 +2040,10 @@ export async function getVeiledningSteg(guideSlug: string, options: FetchOptions
 export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: string, options: FetchOptions = {}) {
   const steps = await getVeiledningSteg(guideSlug, options);
   return steps.find(s => s.slug === stepSlug) || null;
+}
+
+export async function getEnkleVeiledninger(options: FetchOptions = {}) {
+  return fetchCollection<EnkelVeiledning>('enkelVeiledning', options);
 }
 
 export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {

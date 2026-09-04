@@ -2,7 +2,6 @@ using KiNorge.Cms.Search.Elasticsearch;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
 namespace KiNorge.Cms.Search.Jobs;
@@ -62,7 +61,7 @@ public class ReindexBackgroundJob : IHostedService
             var extractor = scope.ServiceProvider.GetRequiredService<ContentTextExtractor>();
 
             _status = "collecting content";
-            var allContent = CollectAllPublishedContent(contentService);
+            var allContent = PublishedContentWalker.CollectAllPublished(contentService);
             _totalItems = allContent.Count;
 
             _status = "indexing";
@@ -101,29 +100,6 @@ public class ReindexBackgroundJob : IHostedService
         finally
         {
             Interlocked.Exchange(ref _isRunning, 0);
-        }
-    }
-
-    private static List<IContent> CollectAllPublishedContent(IContentService contentService)
-    {
-        var result = new List<IContent>();
-        foreach (var root in contentService.GetRootContent())
-        {
-            CollectRecursive(contentService, root, result);
-        }
-        return result;
-    }
-
-    private static void CollectRecursive(
-        IContentService contentService, IContent content, List<IContent> result)
-    {
-        if (content.Published)
-            result.Add(content);
-
-        var children = contentService.GetPagedChildren(content.Id, 0, int.MaxValue, out _);
-        foreach (var child in children)
-        {
-            CollectRecursive(contentService, child, result);
         }
     }
 }

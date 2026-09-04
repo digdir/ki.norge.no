@@ -1,9 +1,16 @@
 /**
 * ArticleLayout — CSS Grid with gutter columns for centering + bleed.
 *
-* 5-column grid:
-*   | gutter  | sidebar | gap   | content       | gutter  |
-*   | dynamic | 1fr     | ds-30 | min(0, 680px) | dynamic |
+* 6-column grid:
+*   | gutter  | sidebar | gap   | content       | rest  | gutter  |
+*   | dynamic | 200px   | ds-30 | min(0, 680px) | 0.5fr | dynamic |
+*
+* Sidebarsporet er fast. Det var 1fr, der innholdet satte minimumsbredden, og en
+* lang adresse i kalendersidebaren presset tekstkolonnen til 330px (#722). Et
+* fit-content-tak fjernet det, men gjorde sporet innholdsstyrt, og artikkelheroen
+* er et eget grid uten sidebar. Der ble sporet 0 bredt, så tittelen havnet
+* 86-111px til venstre for sin egen brødtekst, ulikt fra side til side (#731).
+* Fast spor gir samme kolonne 4 i begge grid, på alle sider.
 *
 * Col 1 (gutter) uses a dynamic calc() so the sidebar always aligns with
 * the left content edge of the page header at every viewport width.
@@ -23,7 +30,7 @@
 --article-layout-gutter: calc(var(--layout-content-padding) + max(0px, (100% - var(--layout-content-max-width)) / 2));
 --article-layout-columns:
   var(--article-layout-gutter)
-  1fr
+  var(--article-layout-sidebar-width)
   var(--article-layout-gap)
   minmax(0, var(--article-layout-content-max-width))
   0.5fr

@@ -16,7 +16,7 @@
 #   pnpm run cms:add-user <e-post> redaktor --navn="Fornavn Etternavn"
 #   pnpm run cms:add-user <e-post> redaktor -y --inviter    uten tilsyn, se under
 #
-#   Mangler personen i tenanten, tilbyr scriptet å invitere henne som B2B-gjest.
+#   Mangler personen i tenanten, tilbyr scriptet å invitere vedkommende som gjest.
 #   Det trengs ikke noe flagg for det, bekreftelsen viser adressen. Kjører du
 #   med -y må du legge til --inviter, siden ingen da ser adressen først.
 #
@@ -96,9 +96,9 @@ PYNAVN
 fi
 
 case "$ROLLE" in
-    redaktor|redaktør|editor) GRUPPE_ROLLE="Redaktør"; UMBRACO_GRUPPE="editor" ;;
+    red|redaktor|redaktør|editor) GRUPPE_ROLLE="Redaktør"; UMBRACO_GRUPPE="editor" ;;
     admin|administrator) GRUPPE_ROLLE="Administrator"; UMBRACO_GRUPPE="admin" ;;
-    *) echo "Rollen må være redaktor eller admin, fikk: $ROLLE" >&2; exit 1 ;;
+    *) echo "Rollen må være redaktor (red) eller admin, fikk: $ROLLE" >&2; exit 1 ;;
 esac
 
 if [[ "$MILJO" == "prod" ]]; then
@@ -183,7 +183,7 @@ if [[ -z "$TREFF" ]]; then
     if [[ "$SEND_EPOST" -eq 1 ]]; then
         echo "Det sendes en invitasjons-e-post fra Microsoft til ${EPOST}."
     else
-        echo "Ingen e-post sendes. Du må selv fortelle personen at hun skal logge inn på ${CMS_URL}."
+        echo "Ingen e-post sendes. Du må selv fortelle personen at de skal logge inn på ${CMS_URL}."
     fi
 
     if [[ "$BEKREFT" -eq 1 ]]; then
