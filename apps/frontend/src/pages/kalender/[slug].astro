@@ -42,10 +42,12 @@ const formatFullDate = (iso: string) => {
 const dateDisplay = formatFullDate(hendelse.startDato);
 const timeDisplay = hendelse.tid || '';
 
-// Mock data for fields not yet in CMS
-const arrangør = 'Digdir';
+const arrangør = hendelse.arrangor || '';
 const pris = hendelse.pris || '';
-const påmeldingUrl = hendelse.lenke || '#';
+const påmeldingUrl = hendelse.lenke || '';
+// Arrangementet er over: påmelding gir ikke mening lenger, men siden skal fortsatt
+// kunne leses for opptak og presentasjoner.
+const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Date();
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
@@ -67,17 +69,19 @@ const påmeldingUrl = hendelse.lenke || '#';
         <AkselIcon name="LocationPin" size={24} />
         <div><span class="event-meta-label">Sted:</span> <strong>{hendelse.sted || 'Ikke oppgitt'}</strong></div>
       </div>
-      <div class="event-meta-item">
-        <AkselIcon name="HouseHeart" size={24} />
-        <div><span class="event-meta-label">Arrangør:</span> <strong>{arrangør}</strong></div>
-      </div>
+      {arrangør && (
+        <div class="event-meta-item">
+          <AkselIcon name="HouseHeart" size={24} />
+          <div><span class="event-meta-label">Arrangør:</span> <strong>{arrangør}</strong></div>
+        </div>
+      )}
       {pris && (
         <div class="event-meta-item">
           <AkselIcon name="Receipt" size={24} />
           <div><span class="event-meta-label">Pris:</span> <strong>{pris}</strong></div>
         </div>
       )}
-      {påmeldingUrl && (
+      {påmeldingUrl && !erAvsluttet && (
         <a href={påmeldingUrl} class="ds-button">Påmelding</a>
       )}
     </Fragment>
@@ -133,10 +137,9 @@ const påmeldingUrl = hendelse.lenke || '#';
 
   :global(.event-meta-item) {
     display: flex;
-    align-items: center;
+    align-items: start;
     gap: var(--ds-size-2);
     font-size: var(--ds-font-size-5);
-    width: max-content;
 
     & :global(svg) {
       flex-shrink: 0;
@@ -183,9 +186,14 @@ const påmeldingUrl = hendelse.lenke || '#';
     gap: 24px;
   }
 
+  /* minmax(0, 1fr) og ikke 1fr: et gridelement har min-content som automatisk
+     minstebredde, og kortene her kan ikke smalne under 293px, som er 220px
+     min-height gjennom aspect-ratio 4/3. Tre slike spor ble 960px, og siden
+     rullet vannrett fra 768px til 1022px. Målt: 192px overflyt på 768. Samme
+     grep som CardGrid (#735). */
   @media (min-width: 768px) {
     .event-related-grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 32px;
     }
   }

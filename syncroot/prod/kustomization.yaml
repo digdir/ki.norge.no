@@ -31,6 +31,11 @@ patches:
         value:
           name: Umbraco__CMS__Security__BackOfficeHost
           value: https://cms.ki.norge.no
+      # Media ligger paa Azure Blob. ConnectionString alene aktiverer
+      # AzureBlobMediaComposer; fjernes den faller lagringen tilbake til PVC-en.
+      # Containeren ble fylt fra PVC-en 2026-08-28, 33 objekter verifisert mot
+      # md5 tatt i podden. PVC-en staar igjen som frossen kopi fram til foerste
+      # nye opplasting. Se apps/cms-umbraco/Composers/AzureBlobMediaComposer.cs.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
