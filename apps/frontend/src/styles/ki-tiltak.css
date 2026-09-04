@@ -992,3 +992,11 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 .tiltak-suksess .ds-paragraph {
   margin-bottom: var(--ds-size-10);
 }
+
+/*
+  Turnstile-widgeten i innsendingsskjemaet. Iframen har fast størrelse fra
+  Cloudflare, så her styres bare avstanden til feltene over og knappene under.
+*/
+.tiltak-turnstile:not(:empty) {
+  margin-block-start: var(--ds-size-4);
+}

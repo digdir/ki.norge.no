@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { validateTiltakForm } from '../../components/ki-tiltak/validateTiltakForm';
 import { emailIsConfigured, sendTiltakEmail } from '../../lib/graph-email';
 import { buildEmail, parseTiltakForm } from '../../lib/ki-tiltak-email';
+import { clientKey, withinRateLimit } from '../../lib/rate-limit';
+import { turnstileIsConfigured, verifyTurnstile } from '../../lib/turnstile';
 
 export const prerender = false;
 
@@ -9,6 +11,11 @@ export const prerender = false;
  * Tar imot «Del KI-tiltak» og videresender innsendingen til redaksjonens
  * postboks. Ruta er uten mellomlagring, både fordi svaret er per innsending og
  * fordi cache-infoportal ellers ville delt det mellom brukere.
+ *
+ * Ruta er åpen, og driver en Graph-legitimasjon som kan sende e-post. To
+ * kontroller står foran den: Turnstile skiller mennesker fra boter, og
+ * hastighetsgrensa demper mengden fra én kilde. Se src/lib/turnstile.ts for
+ * hvorfor rekkefølgen er slik.
  */
 
 /** Rikelig for et skjema der beskrivelsen er begrenset til 400 tegn. */
@@ -18,8 +25,19 @@ function jsonResponse(body: unknown, status: number): Response {
   return Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 }
 
+function readToken(body: unknown): string {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return '';
+  const value = (body as Record<string, unknown>).turnstileToken;
+  return typeof value === 'string' ? value : '';
+}
+
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // Først, siden den er lokal og ikke trenger kroppen.
+    if (!(await withinRateLimit('TILTAK_LIMIT', request))) {
+      return jsonResponse({ error: 'rate_limited' }, 429);
+    }
+
     const raw = await request.text();
     if (raw.length > BODY_MAX_BYTES) {
       return jsonResponse({ error: 'too_large' }, 413);
@@ -43,9 +61,22 @@ export const POST: APIRoute = async ({ request }) => {
       return jsonResponse({ error: 'validation', fields: errors.map((f) => f.field) }, 400);
     }
 
+    // Etter valideringen, slik at en åpenbart ugyldig kropp ikke koster en
+    // rundtur til Cloudflare. Tokenet er engangs, så klienten henter et nytt
+    // ved neste forsøk.
+    if (!(await verifyTurnstile(readToken(body), clientKey(request)))) {
+      return jsonResponse({ error: 'turnstile_failed' }, 403);
+    }
+
     if (!emailIsConfigured) {
       console.error('[ki-tiltak] innsending mottatt, men e-post er ikke konfigurert');
       return jsonResponse({ error: 'not_configured' }, 503);
+    }
+
+    if (!turnstileIsConfigured) {
+      // Verifiseringen slipper gjennom når nøklene mangler, slik at lokal dev
+      // virker. I drift er det en feil, og den skal være synlig i loggen.
+      console.error('[ki-tiltak] Turnstile er ikke konfigurert, innsending slapp gjennom ukontrollert');
     }
 
     const { subject, text } = buildEmail(form);
