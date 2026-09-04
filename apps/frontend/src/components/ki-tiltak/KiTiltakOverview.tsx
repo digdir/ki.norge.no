@@ -15,7 +15,12 @@ const FIRST_PAGE = 40;
 const NEXT_PAGE = 20;
 const GROUP_LABELS = { fagomrade: 'Fag- og temaområde', status: 'Status' } as const;
 
-export default function KiTiltakOverview() {
+interface Props {
+  /** Offentlig Turnstile-nøkkel, videreført til innsendingsskjemaet. */
+  turnstileSiteKey?: string;
+}
+
+export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
   const [filter, setFilter] = useState<KiTiltakFilter>(EMPTY_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -220,7 +225,11 @@ export default function KiTiltakOverview() {
 
       <KiTiltakDetail tiltak={selected} onClose={closeTiltak} />
 
-      <RegisterTiltakDialog open={registerOpen} onClose={() => setRegisterOpen(false)} />
+      <RegisterTiltakDialog
+        open={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+        turnstileSiteKey={turnstileSiteKey}
+      />
     </>
   );
 }

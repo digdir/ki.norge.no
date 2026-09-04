@@ -14,6 +14,21 @@
 	"observability": {
 		"enabled": true,
 	},
+	// Hastighetsgrenser for de to åpne API-rutene. Bindinger arves ikke av
+	// navngitte miljøer, så de gjentas under hver env. Period må være 10 eller 60.
+	//
+	// namespace_id gjelder per Cloudflare-konto, ikke per worker: to bindinger
+	// med samme id deler teller selv om de ligger i hver sin worker. Kontoen her
+	// er Digdirs felles konto, så id-ene er bevisst ikke 1001 og 1002, som er
+	// verdiene i Cloudflares egen dokumentasjon og dermed det alle andre får
+	// hvis de kopierer eksempelet.
+	//
+	// Grensa på søket er romslig med vilje. Målgruppa er offentlig ansatte, og
+	// en hel kommune kan ligge bak én utgående IP. Se src/lib/turnstile.ts.
+	"ratelimits": [
+		{ "name": "TILTAK_LIMIT", "namespace_id": "73101", "simple": { "limit": 5, "period": 60 } },
+		{ "name": "SEARCH_LIMIT", "namespace_id": "73102", "simple": { "limit": 60, "period": 60 } },
+	],
 	"env": {
 		"tt02": {
 			"vars": {
@@ -30,8 +45,18 @@
 				"GRAPH_TENANT_ID": "008e560f-08af-4cec-a056-b35447503991",
 				"GRAPH_CLIENT_ID": "ac5194d9-cdac-404b-9568-9006a149c395",
 				"KI_TILTAK_MAILBOX": "ki-tiltak@kin.norge.no",
+				// Turnstile på «Del KI-tiltak». Site key er offentlig og hører hjemme
+				// her; fyll den inn fra widgeten i Cloudflare-dashbordet. Hemmeligheten
+				// settes med wrangler secret put TURNSTILE_SECRET_KEY --env tt02
+				// Står den tom, slipper innsendinger gjennom ukontrollert og ruta
+				// logger det som en feil.
+				"TURNSTILE_SITE_KEY": "0x4AAAAAAEnMGfLvgsIVZ_Cl",
 				"LAUNCH_MODE": "live",
 			},
+			"ratelimits": [
+				{ "name": "TILTAK_LIMIT", "namespace_id": "73101", "simple": { "limit": 5, "period": 60 } },
+				{ "name": "SEARCH_LIMIT", "namespace_id": "73102", "simple": { "limit": 60, "period": 60 } },
+			],
 		},
 		"prod": {
 			"vars": {
@@ -50,9 +75,19 @@
 				"GRAPH_TENANT_ID": "008e560f-08af-4cec-a056-b35447503991",
 				"GRAPH_CLIENT_ID": "ac5194d9-cdac-404b-9568-9006a149c395",
 				"KI_TILTAK_MAILBOX": "ki-tiltak@kin.norge.no",
+				// Turnstile på «Del KI-tiltak». Site key er offentlig og hører hjemme
+				// her; fyll den inn fra widgeten i Cloudflare-dashbordet. Hemmeligheten
+				// settes med wrangler secret put TURNSTILE_SECRET_KEY --env prod
+				// Står den tom, slipper innsendinger gjennom ukontrollert og ruta
+				// logger det som en feil.
+				"TURNSTILE_SITE_KEY": "0x4AAAAAAEnMGfLvgsIVZ_Cl",
 				// Holding page on ki.norge.no until launch. Flip to "live" to go public.
 				"LAUNCH_MODE": "live",
 			},
+			"ratelimits": [
+				{ "name": "TILTAK_LIMIT", "namespace_id": "73101", "simple": { "limit": 5, "period": 60 } },
+				{ "name": "SEARCH_LIMIT", "namespace_id": "73102", "simple": { "limit": 60, "period": 60 } },
+			],
 		},
 	},
 }

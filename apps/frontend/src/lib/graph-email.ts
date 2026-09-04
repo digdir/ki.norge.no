@@ -9,10 +9,10 @@
 
 // Samme mønster som src/lib/search.ts. Tenant og klient-id er identifikatorer,
 // ikke hemmeligheter, og ligger i vars. Bare GRAPH_CLIENT_SECRET er en secret.
-const TENANT_ID = process.env.GRAPH_TENANT_ID || import.meta.env.GRAPH_TENANT_ID || '';
-const CLIENT_ID = process.env.GRAPH_CLIENT_ID || import.meta.env.GRAPH_CLIENT_ID || '';
-const CLIENT_SECRET = process.env.GRAPH_CLIENT_SECRET || import.meta.env.GRAPH_CLIENT_SECRET || '';
-const MAILBOX = process.env.KI_TILTAK_MAILBOX || import.meta.env.KI_TILTAK_MAILBOX || '';
+const TENANT_ID: string = process.env.GRAPH_TENANT_ID || import.meta.env.GRAPH_TENANT_ID || '';
+const CLIENT_ID: string = process.env.GRAPH_CLIENT_ID || import.meta.env.GRAPH_CLIENT_ID || '';
+const CLIENT_SECRET: string = process.env.GRAPH_CLIENT_SECRET || import.meta.env.GRAPH_CLIENT_SECRET || '';
+const MAILBOX: string = process.env.KI_TILTAK_MAILBOX || import.meta.env.KI_TILTAK_MAILBOX || '';
 /**
  * Hvem innsendingen havner hos. Skilt fra MAILBOX med vilje.
  *
@@ -24,7 +24,7 @@ const MAILBOX = process.env.KI_TILTAK_MAILBOX || import.meta.env.KI_TILTAK_MAILB
  * Uten variabelen sender postboksen til seg selv, som er den opprinnelige
  * oppførselen.
  */
-const RECIPIENTS =
+const RECIPIENTS: string =
   process.env.KI_TILTAK_RECIPIENTS || import.meta.env.KI_TILTAK_RECIPIENTS || MAILBOX;
 
 /**

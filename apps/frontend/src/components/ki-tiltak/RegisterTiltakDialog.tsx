@@ -18,6 +18,7 @@ import {
 import { CheckmarkCircleIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import { FAGOMRADER, STATUSES } from '../../lib/ki-tiltak';
 import { ORGNR_LENGTH } from './organisationNumber';
+import TurnstileWidget from './TurnstileWidget';
 import {
   DESCRIPTION_MAX,
   newPartnerRow,
@@ -35,6 +36,12 @@ import {
 interface Props {
   open: boolean;
   onClose: () => void;
+  /**
+   * Offentlig Turnstile-nøkkel, sendt fra ki-tiltak.astro. Tom streng betyr at
+   * Turnstile ikke er konfigurert, og da vises ingen widget. Serveren slipper
+   * innsendingen gjennom i det tilfellet, men logger det.
+   */
+  turnstileSiteKey: string;
 }
 
 const REGISTER_DIALOG_ID = 'tiltak-registrer-dialog';
@@ -86,12 +93,17 @@ function labelWithBadge(text: string, required: boolean) {
   );
 }
 
-export default function RegisterTiltakDialog({ open, onClose }: Props) {
+export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }: Props) {
   const [form, setForm] = useState<TiltakForm>(emptyForm);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendFailed, setSendFailed] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
+  /** Tom streng til widgeten har gitt oss et token. */
+  const [turnstileToken, setTurnstileToken] = useState('');
+  /** Økes for å be widgeten om et nytt token. Tokenet er engangs. */
+  const [turnstileReset, setTurnstileReset] = useState(0);
   // <ds-error-summary> flytter fokus til seg selv når den settes inn i DOM-en
   // (0s CSS-animasjon + animationend-håndtering i egen connectedCallback).
   // Det trigges bare ved innsetting, så et andre mislykket forsøk må
@@ -136,15 +148,19 @@ export default function RegisterTiltakDialog({ open, onClose }: Props) {
 
     setSending(true);
     setSendFailed(false);
+    setRateLimited(false);
     try {
       const response = await fetch('/api/ki-tiltak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, turnstileToken }),
       });
       // Ruta svarer 202 når Graph har tatt imot meldingen.
       if (!response.ok) {
-        setSendFailed(true);
+        // 429 er for mange forsøk fra samme sted. Det er den ene feilen
+        // brukeren kan gjøre noe med selv, så den får sin egen melding.
+        if (response.status === 429) setRateLimited(true);
+        else setSendFailed(true);
         return;
       }
       setSent(true);
@@ -154,6 +170,11 @@ export default function RegisterTiltakDialog({ open, onClose }: Props) {
       setSendFailed(true);
     } finally {
       setSending(false);
+      // Tokenet er brukt opp, uansett hvordan det gikk. Ved suksess vises
+      // kvitteringen og widgeten forsvinner; ellers trenger neste forsøk et
+      // nytt token.
+      setTurnstileToken('');
+      setTurnstileReset((previous) => previous + 1);
     }
   };
 
@@ -384,6 +405,32 @@ export default function RegisterTiltakDialog({ open, onClose }: Props) {
                     legger vi det inn manuelt.
                   </Paragraph>
                 </Alert>
+              )}
+
+              {rateLimited && (
+                <Alert data-color="warning" className="tiltak-sendefeil">
+                  <Heading level={3} data-size="xs">
+                    Du har sendt inn mange tiltak på kort tid
+                  </Heading>
+                  <Paragraph data-size="sm">
+                    Vent et minutt og prøv igjen. Skal du dele flere tiltak på en gang, send dem til{' '}
+                    <a href="mailto:ki-tiltak@kin.norge.no">ki-tiltak@kin.norge.no</a>, så legger vi
+                    dem inn for deg.
+                  </Paragraph>
+                </Alert>
+              )}
+
+              {/*
+                Turnstile står her, rett over feiloppsummeringen og knappene,
+                fordi det er siste steg før innsending. Widgeten er som regel
+                usynlig for brukeren og krever bare handling ved mistanke.
+              */}
+              {turnstileSiteKey.length > 0 && (
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  onToken={setTurnstileToken}
+                  resetKey={turnstileReset}
+                />
               )}
 
               {/*
