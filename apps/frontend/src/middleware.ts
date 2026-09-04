@@ -7,6 +7,7 @@ import {
 } from './lib/html-to-markdown';
 import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 import { CONTENT_SIGNAL } from './lib/robots';
+import { PREVIEW_COOKIE, previewCookieOptions, resolvePreview } from './lib/preview';
 
 /**
  * Edge caching middleware.
@@ -46,6 +47,10 @@ const ADMIN_ONLY_PATHS = new Set(['/status', '/api/status-checks']);
 // deploy can never accidentally expose the site.
 // To go live: set LAUNCH_MODE=live for that env in wrangler.jsonc and deploy.
 const LAUNCH_MODE = process.env.LAUNCH_MODE || import.meta.env.LAUNCH_MODE || '';
+
+// Må matche HeadlessPreview:PreviewSecret i CMS-et, som legger den på
+// forhåndsvisningslenkene sine. Er den tom, er forhåndsvisning avslått for alle.
+const PREVIEW_SECRET = process.env.PREVIEW_SECRET || import.meta.env.PREVIEW_SECRET || '';
 
 // Branding-/delingsassets som alltid skal kunne hentes, selv mens hosten er
 // gated. Slik kan lenkeforhandsvisninger (og:image) og favicon hentes for
@@ -181,8 +186,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  const isPreview =
-    url.searchParams.has('preview') || cookies.has('preview');
+  // Eneste stedet forhåndsvisning avgjøres. Sidene leser svaret fra locals, så
+  // ingen av dem kan komme til å stole på ?preview på egen hånd igjen.
+  const { isPreview, shouldSetCookie } = resolvePreview({
+    secretParam: url.searchParams.get('secret'),
+    cookieValue: cookies.get(PREVIEW_COOKIE)?.value,
+    configuredSecret: PREVIEW_SECRET,
+  });
+  context.locals.isPreview = isPreview;
+  if (shouldSetCookie) {
+    cookies.set(PREVIEW_COOKIE, PREVIEW_SECRET, previewCookieOptions());
+  }
+
   const isApiRoute = url.pathname.startsWith('/api/');
   const isAdminRoute = ADMIN_ONLY_PATHS.has(url.pathname) || url.pathname === '/admin-tilgang';
 
@@ -274,8 +289,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
         "connect-src 'self' https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
         // Allow CMS to embed the frontend in the preview iframe. Prod og tt02 CMS
         // (dis-core + workers.dev) pluss localhost CMS dev-origin slik at preview
-        // virker i dev ogsa.
-        "frame-ancestors 'self' https://cms.ki.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
+        // virker i dev ogsa. cms.ki.test.norge.no ble aldri lagt til da backoffice
+        // flyttet hit i #481, saa forhaandsvisning i tt02-backoffice ble blokkert
+        // av nettleseren ("refused to connect").
+        "frame-ancestors 'self' https://cms.ki.norge.no https://cms.ki.test.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
         "base-uri 'self'",
         "form-action 'self'",
       ].join('; '),

@@ -5,7 +5,7 @@ import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer
 import { getSandkasse, getMediaUrl, MEDIA_WIDTH, getPlainText, bakgrunnSurface } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 
-const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+const isPreview = Astro.locals.isPreview;
 const sandkasse = await getSandkasse({ preview: isPreview });
 
 if (!sandkasse) {
