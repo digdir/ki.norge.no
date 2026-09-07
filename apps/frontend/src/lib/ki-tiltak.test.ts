@@ -106,9 +106,24 @@ describe('filterTiltak', () => {
 
   test.each(SEARCHABLE)('søker i %s', (field) => {
     const found = uniqueQueryFor(field);
-    expect(found, `datasettet mangler en ${field}-verdi som er unik for feltet`).not.toBeNull();
-    const matches = filterTiltak(kiTiltak, { ...EMPTY, query: found!.query });
-    expect(matches.map((t) => t.id)).toContain(found!.tiltak.id);
+
+    if (found === null) {
+      // Ingen verdi i feltet er unik for feltet, så det finnes ikke noe søk
+      // som beviser treff via nettopp dette feltet. Gjelder formaal, som
+      // redaksjonen tømte i «språkvask»: én av 58 oppføringer har innhold
+      // igjen («Redusere teknisk gjeld»), og de ordene står også i andre felt.
+      //
+      // Grensa under er sikringen. Et felt med reelt innhold som mister
+      // søkbarhet gir fortsatt rød test. Bare et tomt eller nesten tomt felt
+      // hoppes over, og da slår testen inn igjen av seg selv hvis feltet får
+      // eget innhold på nytt.
+      const utfylt = kiTiltak.filter((tiltak) => tiltak[field].trim().length > 0).length;
+      expect(utfylt, `${field} har innhold, men ingen verdi som er unik for feltet`).toBeLessThan(3);
+      return;
+    }
+
+    const matches = filterTiltak(kiTiltak, { ...EMPTY, query: found.query });
+    expect(matches.map((t) => t.id)).toContain(found.tiltak.id);
   });
 
   test('søk er ikke versalfølsomt', () => {
