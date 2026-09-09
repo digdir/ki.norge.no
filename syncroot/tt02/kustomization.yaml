@@ -10,6 +10,27 @@ images:
     newTag: will-be-replaced
 
 patches:
+  # Blob er allerede media-filsystemet (oppstartslinja bekrefter det), men PVC-en
+  # montert på wwwroot/media gjør at static files serverer den frosne kopien før
+  # blob-provideren slipper til. Målt: samme fil, 70032 bytes begge steder, men blob
+  # sier 18.08 og podden svarer 05.08. Uten mounten faller lesing gjennom til blob.
+  # Volumet står igjen, så rollback er å fjerne denne patchen.
+  - target:
+      kind: Deployment
+      name: umbraco
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: umbraco
+      spec:
+        template:
+          spec:
+            containers:
+              - name: umbraco
+                volumeMounts:
+                  - $patch: delete
+                    mountPath: /app/wwwroot/media
   - target:
       kind: Vault
       name: umbraco
