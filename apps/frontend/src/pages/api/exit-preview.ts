@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
+import { PREVIEW_COOKIE } from '../../lib/preview';
 
 export const GET: APIRoute = async ({ cookies, redirect, url }) => {
   // Clear the preview cookie
-  cookies.delete('preview', { path: '/' });
+  cookies.delete(PREVIEW_COOKIE, { path: '/' });
 
   // Redirect back to the referring page or home
   const referer = url.searchParams.get('redirect') || '/';
