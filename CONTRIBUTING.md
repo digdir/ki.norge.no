@@ -20,6 +20,11 @@ pnpm run frontend:dev:prod
 
 First time the CMS runs, it auto-creates an admin and seeds demo content.
 
+That admin is a throwaway account against your own local SQLite file. It unlocks
+nothing shared, so the password is not a secret. Do not reuse the value, or the
+pattern, anywhere it is real. Real values live in Azure Key Vault per
+environment, documented in Confluence.
+
 ## Project structure
 
 ```
