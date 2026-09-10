@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { parseMerkelapp, isFlerDager, formatHendelseDato, hendelseTilEventCard } from './kalender';
+import { parseMerkelapp, isFlerDager, formatHendelseDato, hendelseTilEventCard, tidligereTomTekst } from './kalender';
 
 describe('parseMerkelapp', () => {
   test('splitter kommaseparert og trimmer', () => {
@@ -68,5 +68,31 @@ describe('hendelseTilEventCard', () => {
 
   test('clickable:false dropper href (tidligere arrangement)', () => {
     expect(hendelseTilEventCard(base, { clickable: false }).href).toBeUndefined();
+  });
+});
+
+describe('tidligereTomTekst', () => {
+  const naa = new Date('2026-09-03T12:00:00Z');
+  const OPPOVER = 'Det tidligere arrangementet er vist øverst på siden.';
+  const INGEN = 'Ingen tidligere arrangement.';
+
+  test('fremhevet hendelse er avholdt: fanen er tom fordi den står øverst', () => {
+    expect(tidligereTomTekst({ startDato: '2026-06-16T09:00:00Z' }, naa)).toBe(OPPOVER);
+  });
+
+  test('ingenting fremhevet: fanen er tom fordi arkivet er tomt', () => {
+    expect(tidligereTomTekst(null, naa)).toBe(INGEN);
+    expect(tidligereTomTekst(undefined, naa)).toBe(INGEN);
+  });
+
+  test('fremhevet hendelse er kommende: arkivet er tomt, ikke løftet', () => {
+    expect(tidligereTomTekst({ startDato: '2026-09-07T09:00:00Z' }, naa)).toBe(INGEN);
+  });
+
+  test('flerdagers teller som avholdt først når sluttdatoen er passert', () => {
+    const overGaar = { startDato: '2026-09-01T09:00:00Z', sluttDato: '2026-09-02T16:00:00Z' };
+    const paagaar = { startDato: '2026-09-02T09:00:00Z', sluttDato: '2026-09-04T16:00:00Z' };
+    expect(tidligereTomTekst(overGaar, naa)).toBe(OPPOVER);
+    expect(tidligereTomTekst(paagaar, naa)).toBe(INGEN);
   });
 });

@@ -71,8 +71,10 @@ spec:
             - name: umbraco-data
               mountPath: /app/uSync/v17/Content
               subPath: uSync-content
-            - name: umbraco-media
-              mountPath: /app/wwwroot/media
+            # umbraco-media er BEVISST ikke montert paa /app/wwwroot/media. Media
+            # ligger i Azure Blob, og en mount her gjoer at static files serverer
+            # den frosne PVC-kopien foer blob-provideren slipper til. Volumet staar
+            # igjen som frossen kopi. Se Composers/AzureBlobMediaComposer.cs.
             - name: umbraco-logs
               mountPath: /app/umbraco/Logs
       volumes:

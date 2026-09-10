@@ -1,6 +1,6 @@
 ---
 // Rendrer forsidens modul-blokker (forside.seksjoner) i redaktørens rekkefølge.
-// Komponenten gjør INGEN fetch — pooler (artikler/arrangement/eksempler) sendes inn.
+// Komponenten gjør INGEN fetch — pooler (artikler/veiledninger/arrangement/eksempler) sendes inn.
 // Hva som skal vises avgjøres i lib/forside-seksjoner.ts, her bare rendres det.
 import Hero from './Hero.astro';
 import NewsCard from '../shared/NewsCard.astro';
@@ -22,8 +22,9 @@ interface Props {
   upcomingEvents?: Kalenderhendelse[];
   harTidligereArrangementer?: boolean;
   veiledninger?: VeiledningGuide[];
+  enkleVeiledninger?: any[];
 }
-const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidligereArrangementer = false, veiledninger = [] } = Astro.props;
+const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidligereArrangementer = false, veiledninger = [], enkleVeiledninger = [] } = Astro.props;
 ---
 
 {seksjoner.map((block) => {
@@ -40,7 +41,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
   }
 
   if (block.contentType === 'forsideAktuelt') {
-    const aktuelt = velgAktuelt(block, latestArticles);
+    const aktuelt = velgAktuelt(block, { artikler: latestArticles, enkleVeiledninger, veiledninger, eksempler });
     if (!aktuelt) return null;
     const { featured, kort: smaa, lenke } = aktuelt;
     return (
@@ -49,7 +50,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
           {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
           {featured && (
             <NewsCard
-              href={`/artikler/${featured.slug}`}
+              href={featured.href}
               title={featured.tittel}
               tagColor="brand1"
               lead={featured.lead}
@@ -62,7 +63,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
             <CardGrid columns={3} divided>
               {smaa.map((article) => (
                 <NewsCard
-                  href={`/artikler/${article.slug}`}
+                  href={article.href}
                   title={article.tittel}
                   variant="image"
                   image={article.image}
@@ -142,6 +143,8 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
         if (art) return { href: `/artikler/${art.slug}`, title: art.tittel };
         const veil = veiledninger.find((v) => v.id === id);
         if (veil) return { href: `/veiledning/${veil.slug}`, title: veil.tittel };
+        const enkel = enkleVeiledninger.find((v: any) => v.id === id);
+        if (enkel) return { href: `/veiledning/${enkel.slug}`, title: enkel.tittel };
         return null;
       })
       .filter((l): l is { href: string; title: string } => l !== null);

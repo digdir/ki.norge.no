@@ -5,9 +5,9 @@ import { getCardImage, type CardImage, type ForsideKort, type ForsideSeksjon, ty
 
 export const MAKS_AKTUELT_KORT = 3;
 
-export interface ArtikkelKort {
+export interface AktueltKort {
   tittel: string;
-  slug: string;
+  href: string;
   lead?: string;
   image?: CardImage;
   publishedAt?: string;
@@ -25,8 +25,8 @@ export interface Lenke {
 }
 
 export interface AktueltInnhold {
-  featured: ArtikkelKort | null;
-  kort: ArtikkelKort[];
+  featured: AktueltKort | null;
+  kort: AktueltKort[];
   lenke: Lenke | null;
 }
 
@@ -43,32 +43,50 @@ export interface VeiledningInnhold {
   label?: string;
 }
 
+// Pickeren i Aktuelt er ufiltrert, så redaktøren kan velge mer enn artikler.
+// Alt som kan slås opp her får et kort. Innhold utenfor kildene droppes.
+export interface AktueltKilder {
+  artikler: any[];
+  enkleVeiledninger?: any[];
+  veiledninger?: VeiledningGuide[];
+  eksempler?: any[];
+}
+
 // Lenka nederst i en modul krever både tekst og URL. Tekst uten URL gir ingen lenke,
 // i stedet for en <a> uten mål.
 export function velgLenke(block: Pick<ForsideSeksjon, 'lenketekst' | 'lenkeUrl'>): Lenke | null {
   return block.lenketekst && block.lenkeUrl ? { href: block.lenkeUrl, tekst: block.lenketekst } : null;
 }
 
-// Pool-artikler har ingress/artikkelBilde; kortene bruker lead/image.
-function artikkelTilKort(a: any, ingressOverride?: string): ArtikkelKort {
+// Pool-innhold har ingress/artikkelBilde (guider har seoBilde); kortene bruker lead/image.
+function tilAktueltKort(a: any, href: string, ingressOverride?: string): AktueltKort {
   return {
     tittel: a.tittel,
-    slug: a.slug,
+    href,
     lead: ingressOverride || a.lead || a.ingress,
-    image: a.image || getCardImage(a.artikkelBilde),
+    image: a.image || getCardImage(a.artikkelBilde) || getCardImage(a.seoBilde),
     publishedAt: a.publishedAt,
   };
 }
 
-// Redaktørvalgte kort slås opp i poolen. Et kort uten treff droppes, enten fordi
-// artikkelen er slettet eller fordi den ligger utenfor poolen siden hentes med.
-function slaaOppArtikler(kort: ForsideKort[] | undefined, artikler: any[]): ArtikkelKort[] {
+// Hver kilde vet hvor innholdet sitt bor, så kortet lenker dit det valgte faktisk ligger.
+function finnAktuelt(id: string, kilder: AktueltKilder, ingressOverride?: string): AktueltKort | null {
+  const artikkel = kilder.artikler.find((a) => a.id === id);
+  if (artikkel) return tilAktueltKort(artikkel, `/artikler/${artikkel.slug}`, ingressOverride);
+  const veiledning = kilder.enkleVeiledninger?.find((v) => v.id === id) ?? kilder.veiledninger?.find((v) => v.id === id);
+  if (veiledning) return tilAktueltKort(veiledning, `/veiledning/${veiledning.slug}`, ingressOverride);
+  const eksempel = kilder.eksempler?.find((e) => e.id === id);
+  if (eksempel) return tilAktueltKort(eksempel, `/eksempler/${eksempel.slug}`, ingressOverride);
+  console.warn(`[forside] Aktuelt peker på innhold som ikke finnes i kildene (id=${id}), kortet droppes`);
+  return null;
+}
+
+// Redaktørvalgte kort slås opp i kildene. Et kort uten treff droppes, enten fordi
+// innholdet er slettet eller fordi det er av en type Aktuelt ikke kan vise.
+function slaaOppAktuelt(kort: ForsideKort[] | undefined, kilder: AktueltKilder): AktueltKort[] {
   return (kort ?? [])
-    .map((k) => {
-      const artikkel = k.id ? artikler.find((a) => a.id === k.id) : undefined;
-      return artikkel ? artikkelTilKort(artikkel, k.ingress) : null;
-    })
-    .filter((c): c is ArtikkelKort => c !== null);
+    .map((k) => (k.id ? finnAktuelt(k.id, kilder, k.ingress) : null))
+    .filter((c): c is AktueltKort => c !== null);
 }
 
 function slaaOppEksempler(kort: ForsideKort[] | undefined, eksempler: any[]): EksempelKort[] {
@@ -84,13 +102,10 @@ function slaaOppEksempler(kort: ForsideKort[] | undefined, eksempler: any[]): Ek
 
 // Fremhevet artikkel styrer den store artikkelen alene, Kort styrer de små alene.
 // Den fremhevede gjentas ikke blant kortene.
-export function velgAktuelt(block: ForsideSeksjon, artikler: any[]): AktueltInnhold | null {
-  const fremhevet = block.fremhevetArtikkelId
-    ? artikler.find((a) => a.id === block.fremhevetArtikkelId)
-    : undefined;
-  const featured = fremhevet ? artikkelTilKort(fremhevet) : null;
-  const kort = slaaOppArtikler(block.kort, artikler)
-    .filter((c) => c.slug !== featured?.slug)
+export function velgAktuelt(block: ForsideSeksjon, kilder: AktueltKilder): AktueltInnhold | null {
+  const featured = block.fremhevetArtikkelId ? finnAktuelt(block.fremhevetArtikkelId, kilder) : null;
+  const kort = slaaOppAktuelt(block.kort, kilder)
+    .filter((c) => c.href !== featured?.href)
     .slice(0, MAKS_AKTUELT_KORT);
   const lenke = velgLenke(block);
   if (!featured && kort.length === 0 && !lenke) return null;

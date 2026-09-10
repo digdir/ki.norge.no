@@ -36,6 +36,22 @@ export function formatHendelseDato(startIso: string, endIso?: string): { day: st
   return { day, month, year };
 }
 
+// Fremhevet hendelse trekkes ut av tidligere-lista så den ikke dubleres. Er den
+// eneste tidligere hendelsen løftet til heltboksen, står fanen tom uten at noe
+// mangler, og «Ingen tidligere arrangement» motsier boksen rett over. Da peker vi
+// oppover i stedet, slik kommende-fanen allerede gjør.
+// Er den fremhevede hendelsen kommende, er fanen tom fordi arkivet faktisk er
+// tomt, og da skal den opprinnelige teksten stå.
+export function tidligereTomTekst(
+  featured: Pick<Kalenderhendelse, 'startDato' | 'sluttDato'> | null | undefined,
+  naa: Date,
+): string {
+  const slutt = featured ? new Date(featured.sluttDato || featured.startDato) : null;
+  return slutt && slutt < naa
+    ? 'Det tidligere arrangementet er vist øverst på siden.'
+    : 'Ingen tidligere arrangement.';
+}
+
 export interface EventCardData {
   href?: string;
   title: string;

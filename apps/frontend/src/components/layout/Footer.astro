@@ -2,6 +2,7 @@
 // Footer — CMS-redigerbar via globaleInnstillinger. Faller tilbake til hardkodet default.
 import { getGlobaleInnstillinger } from "../../lib/umbraco";
 import Logo from "./Logo";
+import { footerLenke6 } from "../../lib/footer";
 let global = null;
 try {
     global = await getGlobaleInnstillinger();
@@ -11,11 +12,17 @@ const desc = global?.footerBeskrivelse;
 
 const epost = global?.footerEpost;
 const navCol1 = epost ? [{ text: epost, url: `mailto:${epost}` }] : [];
+// Rekkefølgen i denne lista er visningsrekkefølgen, ikke feltnummeret. Lenke 6
+// står derfor mellom Om KI Norge og Personvernerklæring, slik skissen viser.
+// Uten både tekst og URL fra CMS legges den ikke inn i det hele tatt.
+const lenke6 = footerLenke6(global);
+
 const navCol2 = [
     {
         text: global?.footerLenke1Tekst || "Om KI Norge",
         url: global?.footerLenke1Url || "/om-oss",
     },
+    ...(lenke6 ? [lenke6] : []),
     {
         text: global?.footerLenke2Tekst || "Personvernerklæring",
         url: global?.footerLenke2Url || "/personvernerklaering",

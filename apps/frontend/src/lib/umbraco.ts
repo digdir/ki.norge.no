@@ -508,6 +508,8 @@ export interface GlobaleInnstillinger {
   footerLenke4Url?: string;
   footerLenke5Tekst?: string;
   footerLenke5Url?: string;
+  footerLenke6Tekst?: string;
+  footerLenke6Url?: string;
 }
 
 export interface UmbracoMedia {
@@ -1269,6 +1271,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         footerLenke4Url: props.footerLenke4Url as string || undefined,
         footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
         footerLenke5Url: props.footerLenke5Url as string || undefined,
+        footerLenke6Tekst: props.footerLenke6Tekst as string || undefined,
+        footerLenke6Url: props.footerLenke6Url as string || undefined,
       } as T;
 
     default:
@@ -2035,6 +2039,10 @@ export async function getVeiledningSteg(guideSlug: string, options: FetchOptions
 export async function getVeiledningStegBySlug(guideSlug: string, stepSlug: string, options: FetchOptions = {}) {
   const steps = await getVeiledningSteg(guideSlug, options);
   return steps.find(s => s.slug === stepSlug) || null;
+}
+
+export async function getEnkleVeiledninger(options: FetchOptions = {}) {
+  return fetchCollection<EnkelVeiledning>('enkelVeiledning', options);
 }
 
 export async function getEnkelVeiledning(slug: string, options: FetchOptions = {}) {
