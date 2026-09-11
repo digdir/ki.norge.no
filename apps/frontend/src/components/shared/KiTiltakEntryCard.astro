@@ -1,0 +1,110 @@
+---
+import AkselIcon from './AkselIcon.astro';
+import { kiTiltak } from '../../lib/ki-tiltak';
+---
+
+<a class="tiltak-entry" href="/ki-tiltak">
+  <div class="tiltak-entry-tekst">
+    <h2 class="ds-heading tiltak-entry-tittel" data-size="sm">Offentlige KI-tiltak</h2>
+    <p class="ds-paragraph tiltak-entry-ingress" data-size="sm">
+      Oversikt over hvordan kunstig intelligens tas i bruk i offentlig sektor.
+    </p>
+    <span class="tiltak-entry-lenke">
+      Se tiltakene
+      <span class="tiltak-entry-pil"><AkselIcon name="ArrowRight" size={16} /></span>
+    </span>
+  </div>
+
+  <div class="tiltak-entry-teller">
+    <span class="tiltak-entry-tall">{kiTiltak.length}</span>
+    <span class="tiltak-entry-merkelapp">KI-tiltak meldt inn av virksomheter</span>
+  </div>
+</a>
+
+<style>
+  .tiltak-entry {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--ds-size-8);
+    padding: var(--ds-size-8) var(--ds-size-10);
+    text-decoration: none;
+    color: inherit;
+    background-color: var(--ds-color-brand2-background-default);
+    border: var(--ds-border-width-default) solid var(--ds-color-accent-border-subtle);
+    border-radius: var(--ds-border-radius-xl);
+  }
+
+  .tiltak-entry:hover .tiltak-entry-lenke {
+    text-decoration: underline;
+  }
+
+  .tiltak-entry-tittel {
+    margin: 0 0 var(--ds-size-2);
+    color: var(--ds-color-accent-text-default);
+  }
+
+  .tiltak-entry-ingress {
+    margin: 0 0 var(--ds-size-4);
+    max-width: 44ch;
+    color: var(--ds-color-neutral-text-subtle);
+  }
+
+  .tiltak-entry-lenke {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    font-weight: var(--ds-font-weight-medium);
+    color: var(--ds-color-accent-text-default);
+  }
+
+  .tiltak-entry-pil {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ds-size-8);
+    height: var(--ds-size-8);
+    border-radius: var(--ds-border-radius-full);
+    background-color: var(--ds-color-accent-surface-active);
+  }
+
+  .tiltak-entry-teller {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-size-1);
+    padding-left: var(--ds-size-8);
+    border-left: var(--ds-border-width-default) solid var(--ds-color-accent-border-subtle);
+  }
+
+  .tiltak-entry-tall {
+    font-family: var(--ki-heading-font);
+    font-size: var(--ds-heading-2xl-font-size);
+    line-height: 1;
+    color: var(--ds-color-accent-text-default);
+  }
+
+  .tiltak-entry-merkelapp {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-accent-text-default);
+    /* Teksten er lang nok til å brytes. Prototypen bryter den over to linjer
+       sentrert under tallet, i stedet for å la kortet vokse i bredden. */
+    max-width: 18ch;
+    text-align: center;
+  }
+
+  @media (max-width: 767px) {
+    .tiltak-entry {
+      grid-template-columns: 1fr;
+      gap: var(--ds-size-5);
+    }
+
+    .tiltak-entry-teller {
+      align-items: flex-start;
+      padding-left: 0;
+      padding-top: var(--ds-size-5);
+      border-left: 0;
+      border-top: var(--ds-border-width-default) solid var(--ds-color-accent-border-subtle);
+    }
+  }
+</style>

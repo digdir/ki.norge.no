@@ -14,6 +14,10 @@ const PUBLIC_URLS = [
   { path: '/veiledning', label: 'Veiledning' },
   { path: '/om-oss', label: 'Om oss' },
   { path: '/sandkasse', label: 'Sandkasse' },
+  // /ki-tiltak leser et redaksjonelt vedlikeholdt datasett. En ugyldig status
+  // der kaster i tilStatus() når modulen lastes, så hele siden svarer 500 og
+  // ikke bare ett kort. Denne ruten må være med i CI nettopp derfor.
+  { path: '/ki-tiltak', label: 'KI-tiltak' },
 ];
 
 for (const { path, label } of PUBLIC_URLS) {
