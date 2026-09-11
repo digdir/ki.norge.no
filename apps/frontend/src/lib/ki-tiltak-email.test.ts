@@ -11,7 +11,8 @@ function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     beskrivelse: 'Vi tester en KI-assistent som foreslår enklere formuleringer.',
     fagomrade: 'Digitale teknologier',
     kontaktinfo: 'postmottak@digdir.no',
-    status: 'Pågående',
+    status: 'Gjennomføring',
+    leveranse: ['Pilot'],
     ...overstyr,
   };
 }
@@ -31,14 +32,16 @@ describe('parseTiltakForm', () => {
       beskrivelse: 'En beskrivelse',
       fagomrade: 'Trafikk og transport',
       kontaktinfo: 'post@entur.no',
-      status: 'Planlagt',
-      oppstart: '2026-01-15',
-      slutt: '',
+      status: 'Innsikt og planlegging',
+      leveranse: ['PoC', 'Annet'],
+      leveranseAnnet: 'Rapport',
+      kiType: ['Generativ KI'],
       samarbeid: [{ id: 'rad-1', navn: 'KS', orgnr: '971032146' }],
     });
     expect(result?.ansvarligNavn).toBe('Entur AS');
     expect(result?.samarbeid).toEqual([{ id: 'rad-1', navn: 'KS', orgnr: '971032146' }]);
-    expect(result?.oppstart).toBe('2026-01-15');
+    expect(result?.leveranse).toEqual(['PoC', 'Annet']);
+    expect(result?.kiType).toEqual(['Generativ KI']);
   });
 
   test('felt med feil type blir tom streng i stedet for å velte', () => {
@@ -68,24 +71,30 @@ describe('lagEpost', () => {
   });
 
   test('teksten inneholder alle utfylte felt', () => {
-    const { text } = buildEmail(form({ oppstart: '2026-01-15', slutt: '2026-12-31' }));
+    const { text } = buildEmail(form());
     expect(text).toContain('KI-assistent for klarspråk i vedtak');
     expect(text).toContain('Digitaliseringsdirektoratet');
     expect(text).toContain('991825827');
     expect(text).toContain('Digitale teknologier');
     expect(text).toContain('postmottak@digdir.no');
-    expect(text).toContain('Pågående');
+    expect(text).toContain('Gjennomføring');
   });
 
-  test('datoer skrives på norsk form, slik de skal inn i datasettet', () => {
-    const { text } = buildEmail(form({ oppstart: '2026-01-15', slutt: '2026-12-31' }));
-    expect(text).toContain('Oppstartsdato: 15.01.2026');
-    expect(text).toContain('Sluttdato: 31.12.2026');
+  test('avkryssede valg listes på én linje, «Annet» med fritekst i parentes', () => {
+    const { text } = buildEmail(
+      form({
+        leveranse: ['PoC', 'Annet'],
+        leveranseAnnet: 'Rapport',
+        kiType: ['Generativ KI', 'Språkteknologi'],
+      }),
+    );
+    expect(text).toContain('Skal levere: PoC, Annet (Rapport)');
+    expect(text).toContain('Type KI: Generativ KI, Språkteknologi');
   });
 
   test('tomme valgfrie felt merkes tydelig', () => {
     const { text } = buildEmail(form());
-    expect(text).toContain('Oppstartsdato: (ikke oppgitt)');
+    expect(text).toContain('Type KI: (ikke oppgitt)');
     expect(text).toContain('SAMARBEIDSVIRKSOMHETER\n  (ingen oppgitt)');
   });
 

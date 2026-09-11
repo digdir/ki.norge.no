@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
+  Checkbox,
   Dialog,
   ErrorSummary,
   Field,
@@ -16,7 +17,7 @@ import {
   ValidationMessage,
 } from '@digdir/designsystemet-react';
 import { CheckmarkCircleIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
-import { FAGOMRADER, STATUSES } from '../../lib/ki-tiltak';
+import { ANNET, FAGOMRADER, FASER, KI_TYPER, LEVERANSER } from '../../lib/ki-tiltak';
 import { ORGNR_LENGTH } from './organisationNumber';
 import TurnstileWidget from './TurnstileWidget';
 import {
@@ -121,6 +122,28 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
 
   const update = (field: keyof TiltakForm) => (value: string) =>
     setForm((previous) => ({ ...previous, [field]: value }));
+
+  /**
+   * Av og på for en avkryssingsgruppe.
+   *
+   * Rekkefølgen tas fra alternativlisten og ikke fra klikkrekkefølgen, slik at
+   * e-posten til redaksjonen alltid lister dem likt. Fritekstfeltet tømmes når
+   * «Annet» hukes av igjen, ellers ville en gammel verdi blitt sendt med.
+   */
+  const toggleMulti =
+    (field: 'leveranse' | 'kiType', options: readonly string[], annetField: keyof TiltakForm) =>
+    (value: string) =>
+      setForm((previous) => {
+        const chosen = previous[field];
+        const next = chosen.includes(value)
+          ? chosen.filter((item) => item !== value)
+          : [...chosen, value];
+        return {
+          ...previous,
+          [field]: options.filter((option) => next.includes(option)),
+          ...(next.includes(ANNET) ? {} : { [annetField]: '' }),
+        };
+      });
 
   const updateRow = (id: string, field: keyof PartnerOrg) => (value: string) =>
     setForm((previous) => ({
@@ -249,7 +272,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                 <Textfield
                   id={fieldId('ansvarligOrgnr')}
                   label={labelWithBadge('Organisasjonsnummer', true)}
-                  description="Ni siffer, som i Brønnøysundregistrene."
+                  description="Ni siffer."
                   inputMode="numeric"
                   autoComplete="off"
                   maxLength={ORGNR_LENGTH}
@@ -348,7 +371,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   id={fieldId('kontaktinfo')}
                   type="email"
                   label={labelWithBadge('Kontaktinfo', true)}
-                  description="En e-postadresse folk kan bruke for å kontakte virksomheten din om tiltaket. Helst en adresse med flere mottakere, for eksempel postmottak."
+                  description="En e-postadresse folk kan bruke for å kontakte virksomheten din om tiltaket, for eksempel postmottak."
                   value={form.kontaktinfo}
                   error={message('kontaktinfo')}
                   onChange={(event) => update('kontaktinfo')(event.target.value)}
@@ -357,17 +380,19 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
 
               <div className="tiltak-seksjon">
                 <Fieldset className="tiltak-status-felt">
-                  <Fieldset.Legend>{labelWithBadge('Status', true)}</Fieldset.Legend>
-                  {STATUSES.map((status, index) => (
+                  <Fieldset.Legend>
+                    {labelWithBadge('Hvilken fase er tiltaket i?', true)}
+                  </Fieldset.Legend>
+                  {FASER.map((fase, index) => (
                     <Radio
-                      key={status}
+                      key={fase}
                       // Bare den første radioknappen får ankeret, slik at lenken
                       // i feiloppsummeringen lander på et fokuserbart element.
                       id={index === 0 ? fieldId('status') : undefined}
-                      name="tiltak-status"
-                      label={status}
-                      value={status}
-                      checked={form.status === status}
+                      name="tiltak-fase"
+                      label={fase}
+                      value={fase}
+                      checked={form.status === fase}
                       onChange={(event) => update('status')(event.target.value)}
                     />
                   ))}
@@ -376,22 +401,65 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   )}
                 </Fieldset>
 
-                <div className="tiltak-rad">
+                <Fieldset className="tiltak-status-felt">
+                  <Fieldset.Legend>
+                    {labelWithBadge('Hva skal tiltaket levere?', true)}
+                  </Fieldset.Legend>
+                  <Fieldset.Description>Du kan velge flere svar.</Fieldset.Description>
+                  {LEVERANSER.map((leveranse, index) => (
+                    <Checkbox
+                      key={leveranse}
+                      id={index === 0 ? fieldId('leveranse') : undefined}
+                      label={leveranse}
+                      value={leveranse}
+                      checked={form.leveranse.includes(leveranse)}
+                      onChange={() =>
+                        toggleMulti('leveranse', LEVERANSER, 'leveranseAnnet')(leveranse)
+                      }
+                    />
+                  ))}
+                  {message('leveranse') !== undefined && (
+                    <ValidationMessage>{message('leveranse')}</ValidationMessage>
+                  )}
+                </Fieldset>
+
+                {form.leveranse.includes(ANNET) && (
                   <Textfield
-                    label={labelWithBadge('Oppstartsdato', false)}
-                    type="date"
-                    value={form.oppstart}
-                    onChange={(event) => update('oppstart')(event.target.value)}
+                    id={fieldId('leveranseAnnet')}
+                    label="Beskriv nærmere"
+                    value={form.leveranseAnnet}
+                    error={message('leveranseAnnet')}
+                    onChange={(event) => update('leveranseAnnet')(event.target.value)}
                   />
+                )}
+
+                <Fieldset className="tiltak-status-felt">
+                  <Fieldset.Legend>
+                    {labelWithBadge('Hvilken type KI bruker dere i tiltaket?', false)}
+                  </Fieldset.Legend>
+                  <Fieldset.Description>Du kan velge flere svar.</Fieldset.Description>
+                  {KI_TYPER.map((kiType) => (
+                    <Checkbox
+                      key={kiType}
+                      label={kiType}
+                      value={kiType}
+                      checked={form.kiType.includes(kiType)}
+                      onChange={() => toggleMulti('kiType', KI_TYPER, 'kiTypeAnnet')(kiType)}
+                    />
+                  ))}
+                </Fieldset>
+
+                {/*
+                  Uten feilmelding og uten error-prop: spørsmålet er valgfritt,
+                  så et tomt fritekstfelt skal ikke stoppe innsendingen.
+                */}
+                {form.kiType.includes(ANNET) && (
                   <Textfield
-                    id={fieldId('slutt')}
-                    label={labelWithBadge('Sluttdato', false)}
-                    type="date"
-                    value={form.slutt}
-                    error={message('slutt')}
-                    onChange={(event) => update('slutt')(event.target.value)}
+                    label="Beskriv nærmere"
+                    value={form.kiTypeAnnet}
+                    onChange={(event) => update('kiTypeAnnet')(event.target.value)}
                   />
-                </div>
+                )}
               </div>
 
               {sendFailed && (

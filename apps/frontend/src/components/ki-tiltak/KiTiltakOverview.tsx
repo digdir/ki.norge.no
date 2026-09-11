@@ -8,12 +8,12 @@ import KiTiltakCard from './KiTiltakCard';
 import PromoBanner from './PromoBanner';
 import RegisterTiltakDialog from './RegisterTiltakDialog';
 
-const EMPTY_FILTER: KiTiltakFilter = { query: '', fagomrade: [], status: [] };
+const EMPTY_FILTER: KiTiltakFilter = { query: '', fagomrade: [] };
 
 /* Prototypen viser 40 tiltak først og laster 20 av gangen etter det. */
 const FIRST_PAGE = 40;
 const NEXT_PAGE = 20;
-const GROUP_LABELS = { fagomrade: 'Fag- og temaområde', status: 'Status' } as const;
+const GROUP_LABELS = { fagomrade: 'Fag- og temaområde' } as const;
 
 interface Props {
   /** Offentlig Turnstile-nøkkel, videreført til innsendingsskjemaet. */
@@ -74,7 +74,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
   const visible = useMemo(() => matches.slice(0, visibleCount), [matches, visibleCount]);
 
   const hasActiveFilter =
-    filter.query.trim().length > 0 || filter.fagomrade.length > 0 || filter.status.length > 0;
+    filter.query.trim().length > 0 || filter.fagomrade.length > 0;
 
   const countText = hasActiveFilter
     ? `Viser ${matches.length} av ${kiTiltak.length} tiltak`
@@ -82,10 +82,9 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
 
   const activeChips = [
     ...filter.fagomrade.map((value) => ({ group: 'fagomrade' as const, value })),
-    ...filter.status.map((value) => ({ group: 'status' as const, value })),
   ];
 
-  const removeChip = (group: 'fagomrade' | 'status', value: string) =>
+  const removeChip = (group: 'fagomrade', value: string) =>
     setFilter((previous) => ({ ...previous, [group]: previous[group].filter((v) => v !== value) }));
 
   const openTiltak = (tiltak: KiTiltak) => {
@@ -175,7 +174,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
             variant="tertiary"
             data-size="sm"
             className="tiltak-nullstill"
-            onClick={() => setFilter((previous) => ({ ...previous, fagomrade: [], status: [] }))}
+            onClick={() => setFilter((previous) => ({ ...previous, fagomrade: [] }))}
           >
             Nullstill
           </Button>

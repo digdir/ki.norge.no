@@ -473,18 +473,6 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   gap: var(--ds-size-1);
 }
 
-.tiltak-detalj-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: var(--ds-size-4);
-  margin: var(--ds-size-2) 0 0;
-}
-
-.tiltak-detalj-meta dd {
-  margin: 0;
-  font-size: var(--ds-body-md-font-size);
-}
-
 /* Fagområdet ligger nå her, som en pille nederst, i stedet for som ren tekst
    over tittelen. Tag med variant=outline gir prototypens .tag-pill: lys
    flate, tynn kant i --ds-color-accent-border-subtle (#e3aeb9, et eksakt
@@ -827,64 +815,6 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   border: 0;
 }
 
-
-.tiltak-rad {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--ds-size-4);
-}
-
-@media (min-width: 600px) {
-  /* Radet består av to hele Field-blokker (etikett + valgfri beskrivelse +
-     input + valgfri feilmelding), ikke av enkeltinput. Uten dette delte
-     radoppsettet får en beskrivelse som brytes over flere linjer (f.eks.
-     organisasjonsnummer-hintet) den ene Field-blokken til å bli høyere enn
-     den andre, og siden begge er egne grid-elementer i samme rad, flyter
-     etiketten i den korteste kolonnen lavere enn i den lengste (bare
-     input-boksene kan tvinges til å stå i flukt med align-items, ikke
-     etikettene over dem).
-     Løsningen er å la begge Field-blokker dele fire rader (etikett /
-     beskrivelse / kontroll / feilmelding) via subgrid i stedet for å eie sin
-     egen høyde. Raden får da samme høyde i begge kolonner uansett hvor mye
-     tekst den inneholder, og en rad uten innhold i noen av kolonnene (som
-     samarbeidsraden, som ikke har beskrivelse i det hele tatt) blir 0px og
-     legger ikke til luft. Robust for alle bredder og tekstlengder, ikke bare
-     1440px-oppsettet dette ble målt mot.
-     row-gap settes til 0 her: avstanden mellom etikett/beskrivelse/kontroll
-     skal fortsatt komme fra --dsc-field-content-spacing (ds-field sin egen
-     margin-top per barn), ikke fra et ekstra rad-mellomrom i tillegg.
-     column-gap for de to kolonnene arves uendret fra gap ovenfor. */
-  .tiltak-rad {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto auto;
-    row-gap: 0;
-  }
-
-  /* data-field="description"/"validation" er ds-field sin egen offentlige
-     CSS-krok, brukt av biblioteket selv i field.css og fieldset.css. Ikke en
-     intern implementasjonsdetalj, altså trygg å style mot direkte. */
-  .tiltak-rad > .ds-field {
-    display: grid;
-    grid-template-rows: subgrid;
-    grid-row: 1 / span 4;
-  }
-
-  .tiltak-rad > .ds-field > label {
-    grid-row: 1;
-  }
-
-  .tiltak-rad > .ds-field > [data-field="description"] {
-    grid-row: 2;
-  }
-
-  .tiltak-rad > .ds-field > .ds-field-affixes {
-    grid-row: 3;
-  }
-
-  .tiltak-rad > .ds-field > [data-field="validation"] {
-    grid-row: 4;
-  }
-}
 
 /* Samme avstand mellom etikett og kontroll som Field bruker
    (--dsc-field-content-spacing), men uten selve ds-field-elementet. */

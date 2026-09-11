@@ -1,3 +1,4 @@
+import { ANNET } from './ki-tiltak';
 import {
   emptyForm,
   type PartnerOrg,
@@ -21,6 +22,13 @@ function isObject(value: unknown): value is Record<string, unknown> {
 function readString(kilde: Record<string, unknown>, navn: string): string {
   const value = kilde[navn];
   return typeof value === 'string' ? value : '';
+}
+
+/** Leser et felt med flere avkryssede verdier. Alt som ikke er strenger siles bort. */
+function readStringArray(kilde: Record<string, unknown>, navn: string): string[] {
+  const value = kilde[navn];
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
 }
 
 function parsePartners(value: unknown): PartnerOrg[] {
@@ -54,22 +62,23 @@ export function parseTiltakForm(body: unknown): TiltakForm | null {
     beskrivelse: readString(body, 'beskrivelse'),
     fagomrade: readString(body, 'fagomrade'),
     kontaktinfo: readString(body, 'kontaktinfo'),
-    oppstart: readString(body, 'oppstart'),
-    slutt: readString(body, 'slutt'),
     status: readString(body, 'status'),
+    leveranse: readStringArray(body, 'leveranse'),
+    leveranseAnnet: readString(body, 'leveranseAnnet'),
+    kiType: readStringArray(body, 'kiType'),
+    kiTypeAnnet: readString(body, 'kiTypeAnnet'),
   };
 }
 
 /**
- * Datoene kommer fra input[type=date], altså ISO yyyy-mm-dd. Datasettet i
- * ki-tiltak.json bruker dd.mm.yyyy, så e-posten viser den formen redaktøren
- * skal lime inn.
+ * Avkryssede valg på én linje. Er «Annet» krysset av, settes fritekstet inn i
+ * parentes etter det, slik at redaktøren slipper å lete etter det i en egen rad.
  */
-function toNorwegianDate(iso: string): string {
-  const matches = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (matches === null) return iso;
-  const [, year, month, day] = matches;
-  return `${day}.${month}.${year}`;
+function valgt(valgte: string[], annet: string): string {
+  const tekst = annet.trim();
+  return valgte
+    .map((v) => (v === ANNET && tekst.length > 0 ? `${v} (${tekst})` : v))
+    .join(', ');
 }
 
 function line(label: string, value: string): string {
@@ -102,9 +111,9 @@ export function buildEmail(form: TiltakForm): Email {
     'TILTAKET',
     line('Navn', navn),
     line('Tema', form.fagomrade),
-    line('Status', form.status),
-    line('Oppstartsdato', toNorwegianDate(form.oppstart)),
-    line('Sluttdato', toNorwegianDate(form.slutt)),
+    line('Fase', form.status),
+    line('Skal levere', valgt(form.leveranse, form.leveranseAnnet)),
+    line('Type KI', valgt(form.kiType, form.kiTypeAnnet)),
     '',
     'BESKRIVELSE',
     form.beskrivelse.trim(),

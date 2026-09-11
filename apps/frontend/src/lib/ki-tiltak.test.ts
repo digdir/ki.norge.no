@@ -1,14 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import {
   FAGOMRADER,
-  STATUSES,
+  ALLE_STATUSER,
   filterTiltak,
   kiTiltak,
   type KiTiltak,
   type KiTiltakFilter,
 } from './ki-tiltak';
 
-const EMPTY: KiTiltakFilter = { query: '', fagomrade: [], status: [] };
+const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
 
 /**
  * Feltene filterTiltak søker i.
@@ -17,7 +17,7 @@ const EMPTY: KiTiltakFilter = { query: '', fagomrade: [], status: [] };
  * dem. Redaksjonen endrer navn og tekst jevnlig, og en test som låser seg til
  * en bestemt formulering stopper dem i CI uten å fange en eneste reell feil.
  */
-const SEARCHABLE = ['navn', 'virksomhet', 'fagomrade', 'beskrivelse', 'formaal', 'status'] as const;
+const SEARCHABLE = ['navn', 'virksomhet', 'fagomrade', 'beskrivelse', 'status'] as const;
 type SearchField = (typeof SEARCHABLE)[number];
 
 function otherFields(tiltak: KiTiltak, exclude: SearchField): string {
@@ -79,7 +79,7 @@ describe('ki-tiltak datasett', () => {
   test('bruker bare kjente statusverdier', () => {
     for (const tiltak of kiTiltak) {
       if (tiltak.status === '') continue;
-      expect(STATUSES, `ukjent status på ${tiltak.navn}`).toContain(tiltak.status);
+      expect(ALLE_STATUSER, `ukjent status på ${tiltak.navn}`).toContain(tiltak.status);
     }
   });
 
@@ -106,24 +106,9 @@ describe('filterTiltak', () => {
 
   test.each(SEARCHABLE)('søker i %s', (field) => {
     const found = uniqueQueryFor(field);
-
-    if (found === null) {
-      // Ingen verdi i feltet er unik for feltet, så det finnes ikke noe søk
-      // som beviser treff via nettopp dette feltet. Gjelder formaal, som
-      // redaksjonen tømte i «språkvask»: én av 58 oppføringer har innhold
-      // igjen («Redusere teknisk gjeld»), og de ordene står også i andre felt.
-      //
-      // Grensa under er sikringen. Et felt med reelt innhold som mister
-      // søkbarhet gir fortsatt rød test. Bare et tomt eller nesten tomt felt
-      // hoppes over, og da slår testen inn igjen av seg selv hvis feltet får
-      // eget innhold på nytt.
-      const utfylt = kiTiltak.filter((tiltak) => tiltak[field].trim().length > 0).length;
-      expect(utfylt, `${field} har innhold, men ingen verdi som er unik for feltet`).toBeLessThan(3);
-      return;
-    }
-
-    const matches = filterTiltak(kiTiltak, { ...EMPTY, query: found.query });
-    expect(matches.map((t) => t.id)).toContain(found.tiltak.id);
+    expect(found, `datasettet mangler en ${field}-verdi som er unik for feltet`).not.toBeNull();
+    const matches = filterTiltak(kiTiltak, { ...EMPTY, query: found!.query });
+    expect(matches.map((t) => t.id)).toContain(found!.tiltak.id);
   });
 
   test('søk er ikke versalfølsomt', () => {
@@ -156,26 +141,23 @@ describe('filterTiltak', () => {
     expect(new Set(matches.map((t) => t.fagomrade))).toEqual(new Set([a, b]));
   });
 
-  test('filtrerer på status', () => {
-    const status = kiTiltak.find((t) => t.status !== '')?.status;
-    expect(status, 'ingen tiltak har status satt').toBeDefined();
-    const matches = filterTiltak(kiTiltak, { ...EMPTY, status: [status!] });
-    expect(matches.length).toBe(kiTiltak.filter((t) => t.status === status).length);
-    expect(matches.every((t) => t.status === status)).toBe(true);
-  });
+  test('fritekst og fasett kombineres som OG', () => {
+    // Status er ikke lenger en fasett, så de to dimensjonene som kan kombineres
+    // er fritekstsøket og fag- og temaområde.
+    const tiltak = kiTiltak.find((t) => t.navn.trim().length > 0);
+    expect(tiltak, 'datasettet er tomt').toBeDefined();
 
-  test('grupper kombineres som OG', () => {
-    const par = kiTiltak.find((t) => t.status !== '');
-    expect(par, 'trenger et tiltak med både fagområde og status').toBeDefined();
-    const matches = filterTiltak(kiTiltak, {
-      query: '',
-      fagomrade: [par!.fagomrade],
-      status: [par!.status],
+    const treff = filterTiltak(kiTiltak, {
+      query: tiltak!.navn,
+      fagomrade: [tiltak!.fagomrade],
     });
-    expect(matches.length).toBeGreaterThan(0);
-    expect(
-      matches.every((t) => t.fagomrade === par!.fagomrade && t.status === par!.status),
-    ).toBe(true);
+    expect(treff.map((t) => t.id)).toContain(tiltak!.id);
+    expect(treff.every((t) => t.fagomrade === tiltak!.fagomrade)).toBe(true);
+
+    // Samme søk, men med et fagområde tiltaket ikke har, skal utelukke det.
+    const annet = FAGOMRADER.find((f) => f !== tiltak!.fagomrade);
+    const uten = filterTiltak(kiTiltak, { query: tiltak!.navn, fagomrade: [annet!] });
+    expect(uten.map((t) => t.id)).not.toContain(tiltak!.id);
   });
 
   test('ingen treff gir tom liste', () => {

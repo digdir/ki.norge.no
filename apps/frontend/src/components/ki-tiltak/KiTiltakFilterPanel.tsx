@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Button, Checkbox, Dialog, Fieldset, Heading } from '@digdir/designsystemet-react';
-import { FAGOMRADER, STATUSES, kiTiltak, type KiTiltakFilter } from '../../lib/ki-tiltak';
+import { FAGOMRADER, kiTiltak, type KiTiltakFilter } from '../../lib/ki-tiltak';
 
 interface Props {
   open: boolean;
@@ -9,7 +9,7 @@ interface Props {
   setFilter: React.Dispatch<React.SetStateAction<KiTiltakFilter>>;
 }
 
-type Group = 'fagomrade' | 'status';
+type Group = 'fagomrade';
 
 const FILTER_DIALOG_ID = 'tiltak-filter-dialog';
 
@@ -32,12 +32,10 @@ export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }
   // ikke krymper mens brukeren huker av.
   const count = useMemo(() => {
     const fagomrade = new Map<string, number>();
-    const status = new Map<string, number>();
     for (const tiltak of kiTiltak) {
       fagomrade.set(tiltak.fagomrade, (fagomrade.get(tiltak.fagomrade) ?? 0) + 1);
-      if (tiltak.status !== '') status.set(tiltak.status, (status.get(tiltak.status) ?? 0) + 1);
     }
-    return { fagomrade, status };
+    return { fagomrade };
   }, []);
 
   const toggle = (group: Group, value: string) => {
@@ -50,7 +48,7 @@ export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }
     });
   };
 
-  const reset = () => setFilter((previous) => ({ ...previous, fagomrade: [], status: [] }));
+  const reset = () => setFilter((previous) => ({ ...previous, fagomrade: [] }));
 
   return (
     <Dialog
@@ -82,21 +80,6 @@ export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }
           ))}
         </Fieldset>
 
-        <Fieldset>
-          <Fieldset.Legend>Status</Fieldset.Legend>
-          <Fieldset.Description>
-            Status er registrert for noen av tiltakene.
-          </Fieldset.Description>
-          {STATUSES.filter((s) => (count.status.get(s) ?? 0) > 0).map((status) => (
-            <Checkbox
-              key={status}
-              label={optionLabel(status, count.status.get(status) ?? 0)}
-              value={status}
-              checked={filter.status.includes(status)}
-              onChange={() => toggle('status', status)}
-            />
-          ))}
-        </Fieldset>
       </Dialog.Block>
 
       <Dialog.Block className="tiltak-panel-fot">

@@ -1,3 +1,4 @@
+import { ANNET } from '../../lib/ki-tiltak';
 import { hasValidCheckDigit, hasOrgnrFormat } from './organisationNumber';
 import type { TiltakForm } from './tiltakForm';
 
@@ -13,7 +14,8 @@ export type FieldKey =
   | 'fagomrade'
   | 'kontaktinfo'
   | 'status'
-  | 'slutt'
+  | 'leveranse'
+  | 'leveranseAnnet'
   | `samarbeid:${string}:navn`
   | `samarbeid:${string}:orgnr`;
 
@@ -37,8 +39,9 @@ export const ERROR_MESSAGE = {
   fagomrade: 'Velg tema for tiltaket',
   kontaktinfoEmpty: 'Legg til kontaktinfo',
   kontaktinfoFormat: 'Sjekk e-postadressen, den må inneholde @',
-  status: 'Velg status for tiltaket',
-  slutt: 'Sluttdato kan ikke være før oppstartsdato',
+  status: 'Velg fase for tiltaket',
+  leveranse: 'Velg hva tiltaket skal levere',
+  leveranseAnnet: 'Skriv hva du mener med «Annet»',
 } as const;
 
 /**
@@ -100,11 +103,15 @@ export function validateTiltakForm(form: TiltakForm): ValidationError[] {
 
   if (form.status.length === 0) add('status', ERROR_MESSAGE.status);
 
-  // Datoene kommer fra input[type=date], altså ISO yyyy-mm-dd, som sorterer
-  // korrekt som streng. Ingen Date-parsing nødvendig.
-  if (form.oppstart.length > 0 && form.slutt.length > 0 && form.slutt < form.oppstart) {
-    add('slutt', ERROR_MESSAGE.slutt);
+  if (form.leveranse.length === 0) {
+    add('leveranse', ERROR_MESSAGE.leveranse);
+  } else if (form.leveranse.includes(ANNET) && form.leveranseAnnet.trim().length === 0) {
+    add('leveranseAnnet', ERROR_MESSAGE.leveranseAnnet);
   }
+
+  // kiType er valgfritt, og har derfor ingen regel i det hele tatt. Det gjelder
+  // også fritekstfeltet: krysser noen av «Annet» uten å skrive noe, slipper
+  // innsendingen gjennom. Avklart med Dorte 08.09.
 
   return errors;
 }

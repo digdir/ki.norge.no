@@ -16,7 +16,8 @@ function validForm(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     beskrivelse: 'Utforsker KI-løsninger for offentlige tjenester.',
     fagomrade: 'Digitale teknologier',
     kontaktinfo: 'postmottak@digdir.no',
-    status: 'Pågående',
+    status: 'Gjennomføring',
+    leveranse: ['Pilot'],
     ...overstyr,
   };
 }
@@ -61,16 +62,23 @@ describe('validateTiltakForm', () => {
       ['beskrivelse', { beskrivelse: '   ' }, 'beskrivelse', ERROR_MESSAGE.beskrivelse],
       ['tema', { fagomrade: '' }, 'fagomrade', ERROR_MESSAGE.fagomrade],
       ['kontaktinfo', { kontaktinfo: '  ' }, 'kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty],
-      ['status', { status: '' }, 'status', ERROR_MESSAGE.status],
+      ['fase', { status: '' }, 'status', ERROR_MESSAGE.status],
+      ['leveranse', { leveranse: [] }, 'leveranse', ERROR_MESSAGE.leveranse],
+      [
+        'fritekst når «Annet» er krysset av',
+        { leveranse: ['Annet'], leveranseAnnet: '  ' },
+        'leveranseAnnet',
+        ERROR_MESSAGE.leveranseAnnet,
+      ],
     ];
 
     test.each(tilfeller)('krever %s', (_navn, overstyr, field, forventet) => {
       expect(message(validForm(overstyr), field as never)).toBe(forventet);
     });
 
-    test('alle sju kan mangle samtidig', () => {
+    test('alle åtte kan mangle samtidig', () => {
       const errors = validateTiltakForm(emptyForm());
-      expect(errors).toHaveLength(7);
+      expect(errors).toHaveLength(8);
       expect(errors.map((item) => item.field)).toEqual([
         'ansvarligNavn',
         'ansvarligOrgnr',
@@ -79,6 +87,7 @@ describe('validateTiltakForm', () => {
         'fagomrade',
         'kontaktinfo',
         'status',
+        'leveranse',
       ]);
     });
   });
@@ -146,20 +155,19 @@ describe('validateTiltakForm', () => {
     });
   });
 
-  describe('datoer', () => {
-    test('sluttdato kan ikke være før oppstartsdato', () => {
-      const form = validForm({ oppstart: '2026-06-01', slutt: '2026-01-01' });
-      expect(message(form, 'slutt')).toBe(ERROR_MESSAGE.slutt);
+  describe('valgfrie spørsmål', () => {
+    test('kiType kan stå tom', () => {
+      expect(validateTiltakForm(validForm({ kiType: [] }))).toHaveLength(0);
     });
 
-    test('like datoer er greit', () => {
-      const form = validForm({ oppstart: '2026-06-01', slutt: '2026-06-01' });
-      expect(message(form, 'slutt')).toBeUndefined();
+    test('«Annet» i kiType uten fritekst slipper gjennom', () => {
+      const form = validForm({ kiType: ['Annet'], kiTypeAnnet: '' });
+      expect(validateTiltakForm(form)).toHaveLength(0);
     });
 
-    test('bare én dato satt gir ingen datofeil', () => {
-      expect(message(validForm({ slutt: '2026-01-01' }), 'slutt')).toBeUndefined();
-      expect(message(validForm({ oppstart: '2026-01-01' }), 'slutt')).toBeUndefined();
+    test('«Annet» i leveranse med fritekst er gyldig', () => {
+      const form = validForm({ leveranse: ['Annet'], leveranseAnnet: 'Rapport' });
+      expect(validateTiltakForm(form)).toHaveLength(0);
     });
   });
 
@@ -168,8 +176,6 @@ describe('validateTiltakForm', () => {
     const errors = validateTiltakForm({
       ...emptyForm(),
       samarbeid: [row],
-      oppstart: '2026-06-01',
-      slutt: '2026-01-01',
     });
     expect(errors.map((item) => item.field)).toEqual([
       'ansvarligNavn',
@@ -180,7 +186,7 @@ describe('validateTiltakForm', () => {
       'fagomrade',
       'kontaktinfo',
       'status',
-      'slutt',
+      'leveranse',
     ]);
   });
 });

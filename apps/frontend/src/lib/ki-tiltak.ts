@@ -1,6 +1,21 @@
 import data from '../data/ki-tiltak.json';
 
-export type KiTiltakStatus = '' | 'Planlagt' | 'Pågående' | 'Avsluttet';
+/**
+ * Feltet holder to generasjoner verdier med vilje.
+ *
+ * Skjemaet spør nå «Hvilken fase er tiltaket i?» og gir de tre FASER-verdiene.
+ * De 28 eldre oppføringene i ki-tiltak.json beholder sine gamle verdier, siden
+ * ingen visning lenger viser feltet og en omskriving derfor ikke gir noe.
+ * toStatus kaster på ukjente verdier, så begge settene må stå her.
+ */
+export type KiTiltakStatus =
+  | ''
+  | 'Planlagt'
+  | 'Pågående'
+  | 'Avsluttet'
+  | 'Innsikt og planlegging'
+  | 'Gjennomføring'
+  | 'I drift';
 
 export interface KiTiltak {
   /** GUID fra kinorge.json */
@@ -12,12 +27,16 @@ export interface KiTiltak {
   /** Alltid nøyaktig ett fagområde per tiltak */
   fagomrade: string;
   beskrivelse: string;
-  formaal: string;
-  /** dd.mm.yyyy, kan være tom */
-  oppstart: string;
-  /** dd.mm.yyyy, kan være tom */
-  slutt: string;
   status: KiTiltakStatus;
+  /**
+   * Samles inn i skjemaet, men vises ikke ennå. Feltene er valgfrie fordi ingen
+   * av de eksisterende oppføringene har dem, og redaksjonen fyller dem inn
+   * etter hvert som nye tiltak kommer inn.
+   */
+  leveranse?: string[];
+  leveranseAnnet?: string;
+  kiType?: string[];
+  kiTypeAnnet?: string;
 }
 
 /** Alfabetisk (nb). Alle 15 er i bruk i datasettet. */
@@ -39,9 +58,33 @@ export const FAGOMRADER = [
   'Økonomi, finans og forsikring',
 ] as const;
 
-export const STATUSES = ['Planlagt', 'Pågående', 'Avsluttet'] as const;
+/** Gamle statusverdier. Står bare i datasettet, ingen velger dem lenger. */
+const ELDRE_STATUSER = ['Planlagt', 'Pågående', 'Avsluttet'] as const;
 
-const STATUS_VALUES: readonly KiTiltakStatus[] = ['', ...STATUSES];
+/** «Hvilken fase er tiltaket i?» Ett valg. */
+export const FASER = ['Innsikt og planlegging', 'Gjennomføring', 'I drift'] as const;
+
+/** «Hva skal tiltaket levere?» Flere valg. */
+export const LEVERANSER = ['PoC', 'MVP', 'Pilot', 'Løsning i produksjon', 'Annet'] as const;
+
+/** «Hvilken type KI bruker dere i tiltaket?» Flere valg, valgfritt. */
+export const KI_TYPER = [
+  'Generativ KI',
+  'Prediktiv KI',
+  'Agentisk KI',
+  'Språkteknologi',
+  'Computer Vision',
+  'Anbefalingssystemer',
+  'Annet',
+] as const;
+
+/** Verdien som utløser fritekstfeltet «Beskriv nærmere». */
+export const ANNET = 'Annet';
+
+/** Alt feltet kan inneholde: tom, de gamle verdiene, og de nye fasene. */
+export const ALLE_STATUSER = ['', ...ELDRE_STATUSER, ...FASER] as const;
+
+const STATUS_VALUES: readonly KiTiltakStatus[] = ALLE_STATUSER;
 
 function toStatus(value: string): KiTiltakStatus {
   const matches = STATUS_VALUES.find((s) => s === value);
@@ -68,7 +111,6 @@ export const kiTiltak: KiTiltak[] = rawData
 export interface KiTiltakFilter {
   query: string;
   fagomrade: string[];
-  status: string[];
 }
 
 /**
@@ -80,14 +122,12 @@ export function filterTiltak(items: KiTiltak[], filter: KiTiltakFilter): KiTilta
 
   return items.filter((tiltak) => {
     if (filter.fagomrade.length > 0 && !filter.fagomrade.includes(tiltak.fagomrade)) return false;
-    if (filter.status.length > 0 && !filter.status.includes(tiltak.status)) return false;
     if (q.length === 0) return true;
 
     const haystack = [
       tiltak.navn,
       tiltak.virksomhet,
       tiltak.beskrivelse,
-      tiltak.formaal,
       tiltak.fagomrade,
       tiltak.status,
     ]

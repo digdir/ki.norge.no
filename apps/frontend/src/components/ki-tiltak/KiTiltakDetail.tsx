@@ -35,15 +35,9 @@ function RichText({ text }: { text: string }) {
 }
 
 export default function KiTiltakDetail({ tiltak, onClose }: Props) {
-  // Metafelt er tomme for de fleste tiltakene, så raden vises bare når det finnes data.
-  const metaFields = tiltak
-    ? ([
-        ['Oppstartsdato', tiltak.oppstart],
-        ['Sluttdato', tiltak.slutt],
-        ['Status', tiltak.status],
-      ] as const).filter(([, value]) => value.length > 0)
-    : [];
-
+  // Oppstartsdato, sluttdato og status er tatt ut av visningen. Fase samles
+  // fortsatt inn i skjemaet og går til redaksjonen på e-post, men publiseres
+  // ikke. Leveranse og KI-type skal vises senere, se KiTiltak i lib/ki-tiltak.ts.
   return (
     <Dialog
       id={DETAIL_DIALOG_ID}
@@ -90,24 +84,6 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
               <h3 className="tiltak-detalj-merkelapp">Beskrivelse</h3>
               <RichText text={tiltak.beskrivelse} />
             </section>
-          )}
-
-          {tiltak.formaal.length > 0 && (
-            <section className="tiltak-detalj-felt">
-              <h3 className="tiltak-detalj-merkelapp">Formål og hensikt</h3>
-              <RichText text={tiltak.formaal} />
-            </section>
-          )}
-
-          {metaFields.length > 0 && (
-            <dl className="tiltak-detalj-meta">
-              {metaFields.map(([label, value]) => (
-                <div key={label}>
-                  <dt className="tiltak-detalj-merkelapp">{label}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
           )}
 
           {tiltak.fagomrade.length > 0 && (
