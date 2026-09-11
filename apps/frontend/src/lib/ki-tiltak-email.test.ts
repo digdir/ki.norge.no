@@ -44,6 +44,33 @@ describe('parseTiltakForm', () => {
     expect(result?.kiType).toEqual(['Generativ KI']);
   });
 
+  test('linjeskift i enlinjefelt fjernes, så innsendt tekst ikke kan forfalske e-postens overskrifter', () => {
+    const result = parseTiltakForm({
+      navn: 'Tiltak\n\nKONTAKT\nE-post: angriper@example.invalid',
+    });
+    expect(result?.navn).not.toContain('\n');
+    expect(result?.navn).toBe('Tiltak  KONTAKT E-post: angriper@example.invalid');
+  });
+
+  test('beskrivelsen beholder linjeskift, den er et textarea', () => {
+    const result = parseTiltakForm({ beskrivelse: 'Linje 1\nLinje 2' });
+    expect(result?.beskrivelse).toBe('Linje 1\nLinje 2');
+  });
+
+  test('ukjente verdier i avkryssingsfeltene siles bort', () => {
+    const result = parseTiltakForm({
+      leveranse: ['Pilot', 'Noe oppdiktet', 42],
+      kiType: ['Agentisk KI', '<script>'],
+    });
+    expect(result?.leveranse).toEqual(['Pilot']);
+    expect(result?.kiType).toEqual(['Agentisk KI']);
+  });
+
+  test('avkryssede valg normaliseres til rekkefølgen i alternativlisten', () => {
+    const result = parseTiltakForm({ leveranse: ['Annet', 'PoC', 'MVP'] });
+    expect(result?.leveranse).toEqual(['PoC', 'MVP', 'Annet']);
+  });
+
   test('felt med feil type blir tom streng i stedet for å velte', () => {
     const result = parseTiltakForm({ navn: 42, beskrivelse: null, kontaktinfo: {} });
     expect(result?.navn).toBe('');

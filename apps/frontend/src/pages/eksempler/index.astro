@@ -40,33 +40,14 @@ const relatertById = new Map<string, Artikkel | VeiledningGuide>();
 artikler.forEach(a => relatertById.set(a.id, a));
 guider.forEach(g => relatertById.set(g.id, g));
 
-// Hard-coded seksjoner som matcher Figma-designet. Refererer til eksempler og artikler
-// fra mock-fixturen via ID. Brukes når CMS ikke leverer seksjoner.
-const eksempelIder = eksempler.map(e => e.id);
-const artikkelIder = artikler.map(a => a.id);
+// Ingen fallback-seksjoner. Dødt innhold maskerer manglende CMS-data, og ble
+// derfor fjernet i #636. Leverer ikke CMS-et seksjoner, skal siden vise
+// ingenting i stedet for oppdiktede kort og en oppdiktet kontaktperson.
+const fraCms = oversikt?.seksjoner ?? [];
 
-const fallbackSeksjoner: EksemplerSeksjon[] = [
-  // 1) Featured eksempel
-  { contentType: 'eksempelFeatured', id: 'fallback-featured', eksempelId: eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
-  // 2) 2x2 grid (4 kort) — farger fra standardmønsteret i ExampleLinkCards (#461)
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-1', eksempelIds: eksempelIder.slice(0, 4) },
-  // 3) 3-kolonne grid (3 kort)
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-2', antallKolonner: 3, eksempelIds: eksempelIder.slice(0, 3) },
-  // 4) Enda en featured
-  { contentType: 'eksempelFeatured', id: 'fallback-featured-2', eksempelId: eksempelIder[1] || eksempelIder[0], ingress: 'Denne artikkelen gir en oversikt over den norske situasjonen, basert på tidligere utredninger og utviklingstrekk i den nasjonale KI-infrastrukturen.' },
-  // 5) 2 kort
-  { contentType: 'eksempelGruppe', id: 'fallback-gruppe-3', eksempelIds: eksempelIder.slice(0, 2) },
-  // 6) Relatert innhold (3 artikler)
-  { contentType: 'eksempelRelatert', id: 'fallback-relatert', relatertIds: artikkelIder.slice(0, 3), relatertTags: ['Digitaliseringsstrategien', 'Offentlig sektor', 'Arbeidsmarkedet'] },
-  // 7) Kontakt-seksjon
-  { contentType: 'eksempelKontakt', id: 'fallback-kontakt', tittel: 'Ønsker du å dele et eksempel?', navn: 'Navn Navnesen', epost: 'navn@digdir.no', stilling: 'Rådgiver i Digitaliseringsdirektoratet' },
-];
-
-const fraCms = oversikt?.seksjoner?.length ? oversikt.seksjoner : fallbackSeksjoner;
-
-// Inngangskortet er kodedrevet, ikke en CMS-blokk, så det må flettes inn i
-// begge tilfeller. Uten dette rendres det aldri i prod, der CMS-et faktisk
-// leverer seksjoner og fallbacken derfor ikke brukes.
+// Inngangskortet er kodedrevet, ikke en CMS-blokk, så det flettes inn etter
+// den første eksempelgruppen. Leverer CMS-et ingen seksjoner, står kortet
+// alene, som er riktig: det er alltid gyldig, i motsetning til CMS-innholdet.
 const kiTiltakKort: EksemplerSeksjon = { contentType: 'eksempelKiTiltak', id: 'ki-tiltak-inngang' };
 const forsteGruppe = fraCms.findIndex((s) => s.contentType === 'eksempelGruppe');
 const seksjoner =

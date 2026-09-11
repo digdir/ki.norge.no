@@ -1,4 +1,4 @@
-import { ANNET } from './ki-tiltak';
+import { ANNET, KI_TYPER, LEVERANSER } from './ki-tiltak';
 import {
   emptyForm,
   type PartnerOrg,
@@ -24,11 +24,46 @@ function readString(kilde: Record<string, unknown>, navn: string): string {
   return typeof value === 'string' ? value : '';
 }
 
-/** Leser et felt med flere avkryssede verdier. Alt som ikke er strenger siles bort. */
-function readStringArray(kilde: Record<string, unknown>, navn: string): string[] {
+/**
+ * Leser et felt med flere avkryssede verdier.
+ *
+ * Bare verdier som står i alternativlisten slipper gjennom. Skjemaet kan ikke
+ * produsere noe annet, så filteret gjelder POST-er som går rett på ruta og
+ * ellers kunne lagt vilkårlig tekst inn i e-posten til redaksjonen. Ukjente
+ * verdier forsvinner i stillhet: en tom leveranse fanges av valideringen,
+ * og kiType er valgfritt.
+ *
+ * Resultatet følger rekkefølgen i alternativlisten, ikke i innsendingen, slik
+ * at e-posten alltid lister valgene likt.
+ */
+function readStringArray(
+  kilde: Record<string, unknown>,
+  navn: string,
+  tillatte: readonly string[],
+): string[] {
   const value = kilde[navn];
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === 'string');
+  return tillatte.filter((option) => value.includes(option));
+}
+
+/** Kontrolltegn, linjeskift inkludert. */
+const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g;
+
+/**
+ * Leser et felt som er én linje i skjemaet.
+ *
+ * <input type="text"> kan ikke inneholde linjeskift, så et linjeskift her kan
+ * bare komme fra en POST rett mot ruta. Feltene havner i emnefeltet og i
+ * brødteksten til redaksjonen, der e-posten har sine egne overskrifter
+ * («TILTAKET», «KONTAKT»). Uten dette kan innsendt tekst forfalske dem, og
+ * redaktøren kan ikke se hva avsenderen faktisk skrev. Erstattes med mellomrom
+ * så ord ikke smelter sammen.
+ *
+ * beskrivelse går bevisst ikke gjennom denne: den er et textarea og skal ha
+ * linjeskift.
+ */
+function readLine(kilde: Record<string, unknown>, navn: string): string {
+  return readString(kilde, navn).replace(CONTROL_CHARS, ' ');
 }
 
 function parsePartners(value: unknown): PartnerOrg[] {
@@ -37,9 +72,9 @@ function parsePartners(value: unknown): PartnerOrg[] {
   for (const row of value) {
     if (!isObject(row)) continue;
     rows.push({
-      id: readString(row, 'id'),
-      navn: readString(row, 'navn'),
-      orgnr: readString(row, 'orgnr'),
+      id: readLine(row, 'id'),
+      navn: readLine(row, 'navn'),
+      orgnr: readLine(row, 'orgnr'),
     });
   }
   return rows;
@@ -55,18 +90,18 @@ export function parseTiltakForm(body: unknown): TiltakForm | null {
   if (!isObject(body)) return null;
   return {
     ...emptyForm(),
-    ansvarligNavn: readString(body, 'ansvarligNavn'),
-    ansvarligOrgnr: readString(body, 'ansvarligOrgnr'),
+    ansvarligNavn: readLine(body, 'ansvarligNavn'),
+    ansvarligOrgnr: readLine(body, 'ansvarligOrgnr'),
     samarbeid: parsePartners(body.samarbeid),
-    navn: readString(body, 'navn'),
+    navn: readLine(body, 'navn'),
     beskrivelse: readString(body, 'beskrivelse'),
-    fagomrade: readString(body, 'fagomrade'),
-    kontaktinfo: readString(body, 'kontaktinfo'),
-    status: readString(body, 'status'),
-    leveranse: readStringArray(body, 'leveranse'),
-    leveranseAnnet: readString(body, 'leveranseAnnet'),
-    kiType: readStringArray(body, 'kiType'),
-    kiTypeAnnet: readString(body, 'kiTypeAnnet'),
+    fagomrade: readLine(body, 'fagomrade'),
+    kontaktinfo: readLine(body, 'kontaktinfo'),
+    status: readLine(body, 'status'),
+    leveranse: readStringArray(body, 'leveranse', LEVERANSER),
+    leveranseAnnet: readLine(body, 'leveranseAnnet'),
+    kiType: readStringArray(body, 'kiType', KI_TYPER),
+    kiTypeAnnet: readLine(body, 'kiTypeAnnet'),
   };
 }
 

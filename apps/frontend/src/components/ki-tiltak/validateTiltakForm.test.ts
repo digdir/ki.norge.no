@@ -155,6 +155,34 @@ describe('validateTiltakForm', () => {
     });
   });
 
+  describe('verdier utenfor alternativlistene', () => {
+    // Skjemaet kan ikke produsere disse. De kan bare komme fra en POST rett
+    // mot ruta, og skal behandles som «ikke valgt».
+    test('ukjent tema behandles som ikke valgt', () => {
+      expect(message(validForm({ fagomrade: 'Oppdiktet tema' }), 'fagomrade')).toBe(
+        ERROR_MESSAGE.fagomrade,
+      );
+    });
+
+    test('ukjent fase behandles som ikke valgt', () => {
+      expect(message(validForm({ status: 'Pågående' }), 'status')).toBe(ERROR_MESSAGE.status);
+    });
+
+    test('for lang tekst avvises', () => {
+      expect(message(validForm({ navn: 'a'.repeat(201) }), 'navn')).toBe(ERROR_MESSAGE.forLangt);
+      expect(message(validForm({ beskrivelse: 'a'.repeat(801) }), 'beskrivelse')).toBe(
+        ERROR_MESSAGE.forLangt,
+      );
+      expect(message(validForm({ kiTypeAnnet: 'a'.repeat(201) }), 'kiTypeAnnet')).toBe(
+        ERROR_MESSAGE.forLangt,
+      );
+    });
+
+    test('tekst innenfor grensen er gyldig', () => {
+      expect(validateTiltakForm(validForm({ navn: 'a'.repeat(200) }))).toHaveLength(0);
+    });
+  });
+
   describe('valgfrie spørsmål', () => {
     test('kiType kan stå tom', () => {
       expect(validateTiltakForm(validForm({ kiType: [] }))).toHaveLength(0);
