@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.11" />
     <!-- Transitiv via Umbraco. Pinnet over sårbar 2.4.1 (GHSA-v5pm-xwqc-g5wc);
          fjern når Umbraco selv drar >= 2.7.5. -->
-    <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
+    <PackageReference Include="Microsoft.OpenApi" Version="3.10.2" />
     <!-- OTLP-eksport til otel-collector. Traces kobles opp i Program.cs, logger
          via Serilog-sinken (appsettings.Production.json), ikke builder.Logging. -->
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
