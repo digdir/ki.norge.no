@@ -23,11 +23,11 @@ export const EXCLUDED_PATH_PREFIXES = [
   '/404',
 ] as const;
 
-// Rene .astro-sider uten CMS-node bak seg. Tom i dag — alle statiske toppsider
-// er dekket av singleton-innholdstyper (forside, omOss, oversiktene), som
-// crawlen plukker opp. sitemap-pages.test.ts vokter at en ny kun-kode-side
-// får en bevisst sitemap-beslutning i stedet for å falle stille ut.
-export const STATIC_ROUTES: string[] = [];
+// Rene .astro-sider uten CMS-node bak seg. /ki-tiltak er kodedrevet med et
+// statisk datasett, så den har ingen singleton-innholdstype å bli plukket opp
+// av. sitemap-pages.test.ts vokter at en ny kun-kode-side får en bevisst
+// sitemap-beslutning i stedet for å falle stille ut.
+export const STATIC_ROUTES: string[] = ['/ki-tiltak'];
 
 type SitemapUrl = {
   loc: string;
@@ -109,8 +109,8 @@ async function collectSitemapUrls(publicBaseUrl: string): Promise<SitemapUrl[]> 
     if (entry) urls.push(entry);
   }
 
-  // Statiske, kun-kode-ruter uten CMS-node. Tom i dag, men flettes inn for
-  // framtidige sider. Respekter også sti-utelukkelsene her.
+  // Statiske, kun-kode-ruter uten CMS-node, se STATIC_ROUTES over.
+  // Respekter også sti-utelukkelsene her.
   for (const path of STATIC_ROUTES) {
     if (!isExcludedPath(path)) {
       urls.push({ loc: toAbsoluteUrl(publicBaseUrl, path) });

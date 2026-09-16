@@ -7,7 +7,7 @@ import AxeBuilder from '@axe-core/playwright';
  * tastatur, skjema-labels). Kjøres mot dev-server, ev. PLAYWRIGHT_BASE_URL.
  */
 
-const ROUTES = ['/', '/artikler', '/eksempler', '/veiledning', '/kalender', '/om-oss'];
+const ROUTES = ['/', '/artikler', '/eksempler', '/veiledning', '/kalender', '/om-oss', '/ki-tiltak'];
 
 test.describe('Axe (WCAG 2.1 AA)', () => {
   for (const route of ROUTES) {

@@ -263,7 +263,7 @@ export interface ArtiklerOversikt {
 }
 
 export interface EksemplerSeksjon {
-  contentType: 'eksempelFeatured' | 'eksempelGruppe' | 'eksempelRelatert' | 'eksempelKontakt';
+  contentType: 'eksempelFeatured' | 'eksempelGruppe' | 'eksempelRelatert' | 'eksempelKontakt' | 'eksempelKiTiltak';
   id: string;
   // Featured: én eksempel-referanse
   eksempelId?: string;
@@ -283,6 +283,7 @@ export interface EksemplerSeksjon {
   kortTag?: string;                              // Gruppe: tag på hvert kort (default "Eksempel")
   kortFarger?: Array<'dark' | 'light' | undefined>; // Gruppe: per-kort farge, justert mot eksempelIds
   relatertTags?: Array<string | undefined>;      // Relatert: per-kort tag, justert mot relatertIds
+  // KI-tiltak: ingen felt. Kortet leser antallet fra det statiske datasettet selv.
 }
 
 export interface EksemplerOversikt {
@@ -508,6 +509,8 @@ export interface GlobaleInnstillinger {
   footerLenke4Url?: string;
   footerLenke5Tekst?: string;
   footerLenke5Url?: string;
+  footerLenke6Tekst?: string;
+  footerLenke6Url?: string;
 }
 
 export interface UmbracoMedia {
@@ -1269,6 +1272,8 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         footerLenke4Url: props.footerLenke4Url as string || undefined,
         footerLenke5Tekst: props.footerLenke5Tekst as string || undefined,
         footerLenke5Url: props.footerLenke5Url as string || undefined,
+        footerLenke6Tekst: props.footerLenke6Tekst as string || undefined,
+        footerLenke6Url: props.footerLenke6Url as string || undefined,
       } as T;
 
     default:
