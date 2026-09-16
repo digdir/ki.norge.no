@@ -1,0 +1,71 @@
+---
+// Fyller bildeboksen i et kort som mangler bilde. Boksen bestemmer formatet,
+// dette fyller den bare. Logo og gradient tegner bakgrunnen selv og legger
+// logoen inni med luft rundt, så den er hel uansett hvor smal boksen blir.
+// Banner og bilde beskjæres som vanlige bilder og kan miste kantene av logoen
+// i de smaleste boksene.
+//
+// Ytterelementet gir boksen samme høyde som et 4:3-bilde ville gitt den, slik at
+// kort med og uten bilde blir like høye. Flaten legges absolutt over hele boksen,
+// så boksen må være posisjonert (position: relative).
+import { velgStandardbilde } from '../../lib/standardbilde';
+const variant = velgStandardbilde(Astro.url);
+---
+
+<div class="standardbilde">
+  <div class:list={['standardbilde-flate', `standardbilde-flate--${variant}`]}></div>
+</div>
+
+<style>
+  .standardbilde {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+  }
+
+  .standardbilde-flate {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  /* Logoen holder seg innenfor innholdsboksen, bakgrunnen dekker hele flaten. */
+  .standardbilde-flate--logo,
+  .standardbilde-flate--gradient {
+    padding: 15% 20%;
+    background-image: url('/ki-norge-logo-hvit.svg');
+    background-size: contain;
+    background-origin: content-box;
+    background-clip: border-box;
+  }
+
+  /* Samme burgunder som og-image.svg. */
+  .standardbilde-flate--logo {
+    background-color: #541321;
+  }
+
+  /* Fargene er plukket fra bildet i #738: lys rosa oppe til venstre og nede til
+     høyre, mørk burgunder i midten og nede til venstre. */
+  .standardbilde-flate--gradient {
+    background-color: #672031;
+    background-image:
+      url('/ki-norge-logo-hvit.svg'),
+      radial-gradient(circle at 100% 0%, rgba(187, 140, 142, 0.85) 0%, rgba(187, 140, 142, 0) 45%),
+      linear-gradient(135deg, #8c5f66 0%, #672031 50%, #d4a1a4 100%);
+    background-size: contain, cover, cover;
+    background-origin: content-box, border-box, border-box;
+  }
+
+  .standardbilde-flate--banner {
+    background-color: #541321;
+    background-image: url('/og-image.svg');
+    background-size: cover;
+  }
+
+  .standardbilde-flate--bilde {
+    background-color: #672031;
+    background-image: url('/standardbilde-ki-norge.webp');
+    background-size: cover;
+  }
+</style>
