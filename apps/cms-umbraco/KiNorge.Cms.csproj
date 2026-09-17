@@ -29,7 +29,7 @@
          core/provider/lib ikke kommer i utakt. Fjern når Umbraco drar 2.1.12
          selv. Treffer bare lokal dev, prod kjører Azure SQL. -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
-    <PackageReference Include="SQLitePCLRaw.core" Version="2.1.13" />
+    <PackageReference Include="SQLitePCLRaw.core" Version="3.0.5" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.13" />
     <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.13" />
     <PackageReference Include="Umbraco.Cms" Version="17.6.2" />
