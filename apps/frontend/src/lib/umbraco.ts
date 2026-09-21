@@ -1101,12 +1101,18 @@ export async function enrichBlocksInternalLinks(
 function mapItem<T>(item: UmbracoItem, contentType: string): T {
   const props = item.properties;
 
+  // publishedAt er createDate, ikke updateDate. Med updateDate flyttet
+  // «Publisert»-datoen seg hver gang en redaktør rettet en skrivefeil, og i
+  // prod hadde 5 av 36 noder over 30 dagers avvik, den verste 88 dager.
+  // Delivery API-et eksponerer ikke førstegangspublisert, bare createDate og
+  // updateDate, så createDate er det nærmeste vi kommer. Kalenderhendelser
+  // gjorde dette allerede, se mappingen lenger ned i fila.
   const base = {
     id: item.id,
     documentId: item.id,
     createdAt: item.createDate,
     updatedAt: item.updateDate,
-    publishedAt: item.updateDate,
+    publishedAt: item.createDate,
     locale: Object.keys(item.cultures || {})[0] || 'nb-NO',
   };
 
@@ -2203,7 +2209,9 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
           slug,
           contentType: item.contentType,
           excerpt,
-          publishedAt: item.updateDate,
+          // Samme kilde som i mapItem, så et søketreff viser samme dato
+          // som siden det peker til.
+          publishedAt: item.createDate,
         };
       });
 
