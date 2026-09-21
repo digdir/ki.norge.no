@@ -795,6 +795,35 @@ async function fetchContentItemById(id: string, options: FetchOptions = {}): Pro
   return deliveryApiFetch<ResolvedContentItem>(`/item/${id}${previewSuffix}`, options);
 }
 
+/**
+ * Henter et hvilket som helst publisert innhold som et lenkekort, uansett type.
+ * Aktuelt-modulen lar redaktoeren peke paa alt i innholdstreet, ogsaa steg og
+ * stegartikler som ligger nestet under en guide. URLen loeses via den delte
+ * rutetabellen, som henter forfedre naar moensteret trenger dem.
+ *
+ * Returnerer null naar typen mangler rutemapping eller en forfar ikke finnes,
+ * slik at kortet kan droppes i stedet for aa lenke til "#".
+ */
+export async function hentKortKandidat(
+  id: string,
+  options: FetchOptions = {},
+): Promise<{ id: string; tittel: string; href: string; ingress?: string; lenkekortBilde?: UmbracoMedia; artikkelBilde?: UmbracoMedia; publishedAt?: string } | null> {
+  const item = await fetchContentItemById(id, options);
+  if (!item) return null;
+  const href = await resolveContentUrl(item, CONTENT_ROUTES, options);
+  if (!href) return null;
+  const p = item.properties ?? {};
+  return {
+    id: item.id,
+    tittel: (p.tittel as string) || '',
+    href,
+    ingress: (p.ingress as string) || undefined,
+    lenkekortBilde: mapMedia(p.lenkekortBilde),
+    artikkelBilde: mapMedia(p.artikkelBilde),
+    publishedAt: (item as any).createDate || undefined,
+  };
+}
+
 export async function fetchContentAncestorsById(id: string, options: FetchOptions = {}): Promise<ResolvedContentItem[]> {
   const previewSuffix = options.preview ? '&preview=true' : '';
   const data = await deliveryApiFetch<UmbracoResponse<ResolvedContentItem>>(

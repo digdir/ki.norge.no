@@ -21,10 +21,11 @@ interface Props {
   eksempler?: any[];
   upcomingEvents?: Kalenderhendelse[];
   harTidligereArrangementer?: boolean;
+  aktueltEkstra?: Map<string, any>;
   veiledninger?: VeiledningGuide[];
   enkleVeiledninger?: any[];
 }
-const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidligereArrangementer = false, veiledninger = [], enkleVeiledninger = [] } = Astro.props;
+const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidligereArrangementer = false, veiledninger = [], enkleVeiledninger = [], aktueltEkstra } = Astro.props;
 ---
 
 {seksjoner.map((block) => {
@@ -41,7 +42,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
   }
 
   if (block.contentType === 'forsideAktuelt') {
-    const aktuelt = velgAktuelt(block, { artikler: latestArticles, enkleVeiledninger, veiledninger, eksempler });
+    const aktuelt = velgAktuelt(block, { artikler: latestArticles, enkleVeiledninger, veiledninger, eksempler, ekstra: aktueltEkstra });
     if (!aktuelt) return null;
     const { featured, kort: smaa, lenke } = aktuelt;
     return (

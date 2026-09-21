@@ -2,7 +2,7 @@
 import Layout from '../components/layout/Layout.astro';
 import ForsideSeksjonerRenderer from '../components/landing/ForsideSeksjonerRenderer.astro';
 import { websiteSchema } from '../lib/seo';
-import { getForside, getArtikler, getKalenderhendelser, getEksempler, getVeiledningGuider, getEnkleVeiledninger, type Kalenderhendelse, type VeiledningGuide } from '../lib/umbraco';
+import { getForside, getArtikler, getKalenderhendelser, getEksempler, getVeiledningGuider, getEnkleVeiledninger, hentKortKandidat, type Kalenderhendelse, type VeiledningGuide } from '../lib/umbraco';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -41,6 +41,29 @@ try {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
+// Aktuelt lar redaktoeren peke paa alt i innholdstreet, ogsaa steg og
+// stegartikler som ligger nestet under en guide og ikke er med i listene over.
+// URLen deres krever forfedre, saa vi loeser dem her. Bare id-er som IKKE
+// finnes i listene slaas opp, saa vanlig bruk koster ingen ekstra kall.
+const kjenteIder = new Set<string>([
+  ...latestArticles.map((a: any) => a.id),
+  ...eksempler.map((e: any) => e.id),
+  ...veiledninger.map((v: any) => v.id),
+  ...enkleVeiledninger.map((v: any) => v.id),
+]);
+const refererteIder = new Set<string>();
+for (const blokk of forside?.seksjoner ?? []) {
+  if (blokk.contentType !== 'forsideAktuelt') continue;
+  if (blokk.fremhevetArtikkelId) refererteIder.add(blokk.fremhevetArtikkelId);
+  for (const k of blokk.kort ?? []) if (k.id) refererteIder.add(k.id);
+}
+const ukjente = [...refererteIder].filter((id) => !kjenteIder.has(id));
+const aktueltEkstra = new Map<string, any>();
+if (ukjente.length > 0) {
+  const loeste = await Promise.all(ukjente.map((id) => hentKortKandidat(id, { preview: isPreview })));
+  for (const kort of loeste) if (kort) aktueltEkstra.set(kort.id, kort);
+}
+
 const title = forside?.seoTittel || 'Hjem';
 const seoDescription = forside?.seoBeskrivelse || 'En nasjonal inngang til offentlig informasjon om ansvarlig og innovativ bruk av KI. Veiledning, artikler og gode eksempler.';
 const websiteJsonLd = websiteSchema(seoDescription);
@@ -57,6 +80,7 @@ const websiteJsonLd = websiteSchema(seoDescription);
     harTidligereArrangementer={harTidligereArrangementer}
     veiledninger={veiledninger}
     enkleVeiledninger={enkleVeiledninger}
+    aktueltEkstra={aktueltEkstra}
     />
   <Fragment slot="head">
       <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c')} />
