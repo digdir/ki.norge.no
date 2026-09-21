@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { sammenlignPublisertDato, velgPublisertDato } from './umbraco';
 
 /**
  * «Publisert»-datoen skal komme fra createDate, aldri fra updateDate.
@@ -29,16 +30,25 @@ describe('publishedAt-kilden', () => {
     expect(treff.map((t) => `linje ${t.nr}: ${t.linje}`)).toEqual([]);
   });
 
-  test('alle publishedAt-tilordninger bruker createDate', () => {
-    const tilordninger = umbracoKilde
-      .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => /^publishedAt:\s*[A-Za-z_$][\w$.]*\./.test(l));
+  test('publishedAt tilordnes bare fra godkjente kilder', () => {
+    // Enten den rå createDate, eller den løste kjeden i velgPublisertDato, eller
+    // base.publishedAt som selv er createDate. Aldri noe annet.
+    const godkjent = /(\.createDate\b|velgPublisertDato\(|base\.publishedAt\b)/;
+    const linjer = umbracoKilde.split('\n').map((l) => l.trim());
 
-    // Minst mapItem, kalenderhendelse og søketreffet.
-    expect(tilordninger.length).toBeGreaterThanOrEqual(3);
-    const feil = tilordninger.filter((t) => !/\.createDate\b/.test(t));
-    expect(feil).toEqual([]);
+    const tilordninger = linjer
+      .map((linje, i) => {
+        if (!/^publishedAt:/.test(linje)) return null;
+        // Typeerklæringer i interface-ene er ikke tilordninger.
+        if (/^publishedAt\??:\s*(string|number)\s*;?$/.test(linje)) return null;
+        // Verdien kan ligge på linja under når uttrykket er brutt.
+        return linje === 'publishedAt:' ? `${linje} ${linjer[i + 1] ?? ''}` : linje;
+      })
+      .filter((l): l is string => l !== null);
+
+    // Minst mapItem, veiledningGuide, kalenderhendelse og søketreffet.
+    expect(tilordninger.length).toBeGreaterThanOrEqual(4);
+    expect(tilordninger.filter((t) => !godkjent.test(t))).toEqual([]);
   });
 });
 
@@ -55,5 +65,53 @@ describe('byline-datoen vinner over publishedAt', () => {
     const iFormat = articleLayoutKilde.indexOf('toLocaleDateString');
     expect(iForrang).toBeGreaterThan(-1);
     expect(iFormat).toBeGreaterThan(iForrang);
+  });
+});
+
+describe('velgPublisertDato: rekkefoelgen', () => {
+  const OPPRETTET = '2026-06-01T10:00:00Z';
+  const BYLINE = '2026-07-01T10:00:00Z';
+  const OVERSTYRT = '2026-08-01T10:00:00Z';
+  const medByline = (dato: string) => [
+    { contentType: 'artikkelTekst', content: {} },
+    { contentType: 'artikkelByline', content: { dato } },
+  ];
+
+  test('publisertDato vinner over baade byline og opprettet', () => {
+    expect(
+      velgPublisertDato({
+        publisertDato: OVERSTYRT,
+        publishedAt: OPPRETTET,
+        innhold: medByline(BYLINE),
+      }),
+    ).toBe(OVERSTYRT);
+  });
+
+  test('byline vinner naar publisertDato staar tom', () => {
+    expect(
+      velgPublisertDato({ publisertDato: '', publishedAt: OPPRETTET, innhold: medByline(BYLINE) }),
+    ).toBe(BYLINE);
+  });
+
+  test('opprettet brukes naar ingen av de to er satt', () => {
+    expect(
+      velgPublisertDato({ publisertDato: '', publishedAt: OPPRETTET, innhold: medByline('') }),
+    ).toBe(OPPRETTET);
+  });
+
+  test('tom streng og bare mellomrom teller som ikke satt', () => {
+    expect(velgPublisertDato({ publisertDato: '   ', publishedAt: OPPRETTET })).toBe(OPPRETTET);
+  });
+
+  test('uten noen dato i det hele tatt gir undefined', () => {
+    expect(velgPublisertDato({})).toBeUndefined();
+    expect(velgPublisertDato(null)).toBeUndefined();
+  });
+
+  test('sortering bruker samme kjede, nyeste foerst, udaterte sist', () => {
+    const a = { publishedAt: OPPRETTET };
+    const b = { publisertDato: OVERSTYRT, publishedAt: OPPRETTET };
+    const c = {};
+    expect([a, b, c].sort(sammenlignPublisertDato)).toEqual([b, a, c]);
   });
 });
