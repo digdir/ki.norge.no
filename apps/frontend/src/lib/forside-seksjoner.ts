@@ -50,6 +50,10 @@ export interface AktueltKilder {
   enkleVeiledninger?: any[];
   veiledninger?: VeiledningGuide[];
   eksempler?: any[];
+  // Ferdigloeste kort for innhold som ikke ligger i listene over, f.eks. steg og
+  // stegartikler nestet under en guide. URLen deres krever forfedre, saa den
+  // loeses av kalleren via hentKortKandidat. Noekkel er node-id.
+  ekstra?: Map<string, { tittel: string; href: string; ingress?: string; lenkekortBilde?: any; artikkelBilde?: any; publishedAt?: string }>;
 }
 
 // Lenka nederst i en modul krever både tekst og URL. Tekst uten URL gir ingen lenke,
@@ -79,6 +83,10 @@ function finnAktuelt(id: string, kilder: AktueltKilder, ingressOverride?: string
   if (veiledning) return tilAktueltKort(veiledning, `/veiledning/${veiledning.slug}`, ingressOverride, bildeOverride);
   const eksempel = kilder.eksempler?.find((e) => e.id === id);
   if (eksempel) return tilAktueltKort(eksempel, `/eksempler/${eksempel.slug}`, ingressOverride, bildeOverride);
+  // Alt annet redaktoeren kan peke paa: typen er ikke i listene, men kalleren
+  // har loest URLen for oss. Uten dette forsvant kortet stille.
+  const annet = kilder.ekstra?.get(id);
+  if (annet) return tilAktueltKort(annet, annet.href, ingressOverride, bildeOverride);
   console.warn(`[forside] Aktuelt peker på innhold som ikke finnes i kildene (id=${id}), kortet droppes`);
   return null;
 }

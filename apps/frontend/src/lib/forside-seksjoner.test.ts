@@ -223,3 +223,37 @@ describe('bildehierarki i aktuelt', () => {
     expect(kortFor(medBilder({ seoBilde: media('seo') })).image).toBeUndefined();
   });
 });
+
+// Aktuelt lar redaktøren peke på alt i innholdstreet, også steg og stegartikler
+// som ligger nestet under en guide. De er ikke med i kildelistene, så URLen
+// deres løses av kalleren og sendes inn via ekstra. Uten dette forsvant kortet
+// stille, og redaktøren fikk ingen beskjed om hvorfor.
+describe('aktuelt med nestet innhold', () => {
+  const steg = {
+    tittel: 'Finn ut hvilke data du trenger',
+    href: '/veiledning/gjoer-dataene-ki-klare/finn-ut-hvilke-data-du-trenger',
+    ingress: 'Ingress fra steget',
+  };
+
+  const kortFor = (ekstra?: Map<string, any>) =>
+    velgAktuelt(blokk({ kort: [{ id: 'steg-1' }] as any }), { artikler: [], ekstra });
+
+  it('viser kortet når kalleren har løst URLen', () => {
+    const r = kortFor(new Map([['steg-1', steg]]));
+    expect(r!.kort).toHaveLength(1);
+    expect(r!.kort[0].href).toBe(steg.href);
+    expect(r!.kort[0].tittel).toBe(steg.tittel);
+  });
+
+  it('dropper kortet når verken listene eller ekstra kjenner id-en', () => {
+    expect(kortFor(new Map())).toBeNull();
+  });
+
+  it('lar ingress-overstyring vinne også for nestet innhold', () => {
+    const r = velgAktuelt(
+      blokk({ kort: [{ id: 'steg-1', ingress: 'Overstyrt' }] as any }),
+      { artikler: [], ekstra: new Map([['steg-1', steg]]) },
+    );
+    expect(r!.kort[0].lead).toBe('Overstyrt');
+  });
+});
