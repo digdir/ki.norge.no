@@ -33,7 +33,8 @@ let enkelCtx: {
 if (enkel) {
   const seoTitle = enkel.seoTittel || enkel.tittel;
   const seoDesc = enkel.seoBeskrivelse || enkel.ingress || getPlainText(enkel.innhold, 200);
-  const heroImage = enkel.artikkelBilde || enkel.seoBilde;
+  // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
+  const heroImage = enkel.artikkelBilde;
   const seoImage = enkel.seoBilde?.url || enkel.artikkelBilde?.url;
   enkelCtx = {
     seoTitle,
