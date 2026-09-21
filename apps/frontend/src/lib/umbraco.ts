@@ -168,6 +168,8 @@ export interface VeiledningTrekkspillBlock {
 
 // Content types matching Umbraco document type schemas
 export interface Artikkel {
+  /** Redaktørens overstyring av publiseringsdatoen. Tom = ikke satt. */
+  publisertDato?: string;
   id: string;
   documentId: string;
   tittel: string;
@@ -302,6 +304,8 @@ export interface EksemplerOversikt {
 }
 
 export interface VeiledningGuide {
+  /** Redaktørens overstyring av publiseringsdatoen. Tom = ikke satt. */
+  publisertDato?: string;
   id: string;
   documentId: string;
   tittel: string;
@@ -1117,7 +1121,9 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'eksempel':
     case 'enkelVeiledning':
     case 'stegartikkel':
-    case 'side':
+    case 'side': {
+      const innhold = mapArtikkelBlocks(props.innhold);
+      const publisertDato = props.publisertDato as string || '';
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -1127,11 +1133,19 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         lenkekortBilde: mapMedia(props.lenkekortBilde),
         bildeAlt: props.bildeAlt as string || '',
         bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
-        innhold: mapArtikkelBlocks(props.innhold),
+        publisertDato,
+        // Datoen loeses her, ikke paa hvert kallsted. Da kan ikke et kort, en
+        // artikkelside og en sortering vise tre ulike datoer for samme side.
+        // createdAt beholder den raa opprettelsesdatoen.
+        publishedAt:
+          velgPublisertDato({ publisertDato, publishedAt: base.publishedAt, innhold }) ??
+          base.publishedAt,
+        innhold,
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
       } as T;
+    }
 
     case 'kalenderhendelse':
       return {
@@ -1169,6 +1183,13 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
         ingress: props.ingress as string || '',
+        publisertDato: props.publisertDato as string || '',
+        // Guider har ingen byline-blokk, men samme kjede gjelder.
+        publishedAt:
+          velgPublisertDato({
+            publisertDato: props.publisertDato as string || '',
+            publishedAt: base.publishedAt,
+          }) ?? base.publishedAt,
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
         lenkekortBilde: mapMedia(props.lenkekortBilde),
         stegGruppeTittler: props.stegGruppeTittler as string || '',
@@ -1870,6 +1891,50 @@ export interface CardImage {
  * SEO-bildet er bevisst ikke med. Det er for delingsforhandsvisning, ikke
  * innhold, og at det lekket inn hit er nettopp feilen i #738.
  */
+/**
+ * Datoen som skal vises for et innhold, og som sortering skal bruke.
+ *
+ * Rekkefølgen er redaktørens overstyring, så byline-datoen der artikkelen har
+ * en byline-blokk, så datoen innholdet ble opprettet (se publishedAt i
+ * mapItem). Samlet her framfor spredt utover, slik velgKortbilde gjorde det for
+ * bilder, så kort, artikkelsider og sortering ikke kan komme til å vise tre
+ * ulike datoer for samme side.
+ *
+ * Tom streng teller som ikke satt. Både publisertDato og byline-datoen mappes
+ * til '' når feltet står tomt i Umbraco, så en ren ?? -kjede ville valgt tomt.
+ */
+export function velgPublisertDato(
+  node?: {
+    publisertDato?: string;
+    publishedAt?: string;
+    innhold?: Array<{ contentType: string; content?: { dato?: string } }>;
+  } | null,
+): string | undefined {
+  const byline = node?.innhold?.find((b) => b.contentType === 'artikkelByline');
+  return satt(node?.publisertDato) ?? satt(byline?.content?.dato) ?? satt(node?.publishedAt);
+}
+
+/** Nyeste først. Innhold uten dato havner sist, uansett sorteringsretning. */
+export function sammenlignPublisertDato(
+  a: Parameters<typeof velgPublisertDato>[0],
+  b: Parameters<typeof velgPublisertDato>[0],
+): number {
+  const ta = tid(velgPublisertDato(a));
+  const tb = tid(velgPublisertDato(b));
+  return tb - ta;
+}
+
+function satt(verdi?: string): string | undefined {
+  const trimmet = verdi?.trim();
+  return trimmet ? trimmet : undefined;
+}
+
+function tid(iso?: string): number {
+  if (!iso) return Number.NEGATIVE_INFINITY;
+  const ms = new Date(iso).getTime();
+  return Number.isNaN(ms) ? Number.NEGATIVE_INFINITY : ms;
+}
+
 export function velgKortbilde(
   node?: { lenkekortBilde?: UmbracoMedia; artikkelBilde?: UmbracoMedia } | null,
   overstyring?: UmbracoMedia,
