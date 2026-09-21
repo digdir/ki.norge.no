@@ -1,23 +1,22 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getArtikler, getArtiklerOversikt, getVeiledningGuider, getPlainText, velgKortbilde, type Artikkel, type UmbracoMedia, type VeiledningGuide } from '../../lib/umbraco';
+import { getArtikler, getArtiklerOversikt, getPlainText, velgKortbilde, type Artikkel } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
 let articles: Artikkel[] = [];
-let guider: VeiledningGuide[] = [];
 let oversikt = null;
 try {
-  const [artiklerRes, oversiktRes, guiderRes] = await Promise.all([
+  // Veiledningsguidene ble bare hentet for artikkelRelatert-blokken, som denne
+  // sida ikke lenger rendrer. Da slipper vi også det tredje API-kallet.
+  const [artiklerRes, oversiktRes] = await Promise.all([
     getArtikler(undefined, { preview: isPreview }),
     getArtiklerOversikt({ preview: isPreview }),
-    getVeiledningGuider({ preview: isPreview }),
   ]);
   articles = artiklerRes.data;
   oversikt = oversiktRes;
-  guider = guiderRes.data;
 } catch (e) {
   console.error('Failed to fetch artikler:', e);
   // CMS-henting feilet: ikke cache den degraderte renderen (se middleware).
@@ -29,17 +28,32 @@ const heroSubtittel = oversikt?.heroSubtittel || '';
 const seoTitle = oversikt?.seoTittel || heroTittel;
 const seoDesc = oversikt?.seoBeskrivelse || 'Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.';
 
-const seksjoner = oversikt?.seksjoner || [];
-
-const artikkelById = new Map(articles.map(a => [a.id, a]));
-const relatertById = new Map<string, Artikkel | VeiledningGuide>();
-articles.forEach(a => relatertById.set(a.id, a));
-guider.forEach(g => relatertById.set(g.id, g));
+// Nyest først, sortert på publishedAt, som er nøyaktig feltet kortene viser i
+// merkelappen. Det er hele poenget: sorterer lista på noe annet enn det som står
+// på kortet, ser rekkefølgen feil ut selv om begge datoene isolert sett stemmer.
+// Datokjeden bak publishedAt (redaktørens publisertDato, så byline-datoen, så
+// createDate) settes ett sted, i mapItem, så denne sida slipper å kjenne den.
+//
+// API-et kan ikke sortere for oss: getArtikler henter med sort=updateDate:desc,
+// og updateDate er verken det kortet viser eller det redaktøren kan overstyre.
+// Manglende eller ugyldig dato gir 0, så artikkelen havner sist i stedet for på
+// en tilfeldig plass. Uten isFinite-sjekken blir en ubrukelig datostreng til NaN,
+// og en komparator som returnerer NaN gir uforutsigbar rekkefølge.
+//
+// Når #770 har landet finnes sammenlignPublisertDato i umbraco.ts med nøyaktig
+// denne semantikken. Da bør denne komparatoren byttes ut med den, så det er én
+// implementasjon igjen.
+const tid = (a: Artikkel) => {
+  const t = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+  return Number.isFinite(t) ? t : 0;
+};
+const sorterte = [...articles].sort((a, b) => tid(b) - tid(a));
 
 // velgKortbilde gjor URLen absolutt mot CMS-hosten og gir srcset + sideforhold.
-// Rekkefolgen er overstyring paa blokken, saa lenkekortbilde, saa hovedbilde.
-function getCardBilde(article: Artikkel, overstyring?: UmbracoMedia) {
-  return velgKortbilde(article, overstyring);
+// Rekkefolgen er lenkekortbilde, saa hovedbilde. Blokk-overstyringen falt bort
+// sammen med seksjonene.
+function getCardBilde(article: Artikkel) {
+  return velgKortbilde(article);
 }
 
 function getTag(article: Artikkel) {
@@ -47,18 +61,16 @@ function getTag(article: Artikkel) {
   return 'KI-strategien';
 }
 
-// Fremhevet artikkel-pickeren gjelder også når seksjoner er bygd: den rendres
-// som hero øverst, med mindre redaktøren har lagt inn en egen Fremhevet
-// artikkel-blokk i seksjonene (da vinner blokken).
-const featuredOverride = oversikt?.featuredArtikkelId
-  ? articles.find(a => a.id === oversikt!.featuredArtikkelId)
-  : null;
-const harFeaturedBlokk = seksjoner.some(s => s.contentType === 'artikkelFeatured');
-const seksjonerFeatured = seksjoner.length > 0 && !harFeaturedBlokk ? featuredOverride : null;
+// Toppen er fortsatt redaktørens valg. Uten valgt artikkel er det den nyeste,
+// og «nyeste» følger samme datokjede som resten av lista.
+const featured = (oversikt?.featuredArtikkelId
+  ? sorterte.find(a => a.id === oversikt!.featuredArtikkelId)
+  : null) ?? sorterte[0];
 
-// Auto-layout (fallback når redaktøren ikke har bygd seksjoner): featured + kort + bildegrid.
-const featured = featuredOverride || articles[0];
-const rest = articles.filter(a => a.id !== featured?.id);
+// Fremhevet artikkel vises ikke en gang til lenger nede. Samme kort to ganger på
+// én skjerm leses som en feil. Prisen er at en gammel fremhevet artikkel løftes
+// ut av kronologien, og det er iboende i å ha en manuell topplass.
+const rest = sorterte.filter(a => a.id !== featured?.id);
 const compactCards = rest.slice(0, 3);
 const imageGridTop = rest.slice(3, 6);
 const imageGridBottom = rest.slice(6, 8);
@@ -69,7 +81,7 @@ const collectionJsonLd = collectionPageSchema({
   name: heroTittel || seoTitle || 'Artikler',
   description: seoDesc,
   url: '/artikler',
-  items: articles.map((a) => ({ name: a.tittel, url: `/artikler/${a.slug}` })),
+  items: sorterte.map((a) => ({ name: a.tittel, url: `/artikler/${a.slug}` })),
 });
 const breadcrumbJsonLd = breadcrumbSchema([
   { name: 'Hjem', url: '/' },
@@ -91,156 +103,85 @@ const breadcrumbJsonLd = breadcrumbSchema([
       {heroSubtittel && <p class="artikler-subtitle">{heroSubtittel}</p>}
     </header>
 
-    {seksjonerFeatured && (
+    {featured && (
       <NewsCard
         variant="featured"
-        href={`/artikler/${seksjonerFeatured.slug}`}
-        title={seksjonerFeatured.tittel}
-        lead={seksjonerFeatured.ingress || getPlainText(seksjonerFeatured.innhold, 150)}
-        image={getCardBilde(seksjonerFeatured)}
-        imageAlt={seksjonerFeatured.bildeAlt}
+        href={`/artikler/${featured.slug}`}
+        title={featured.tittel}
+        lead={featured.ingress || getPlainText(featured.innhold, 150)}
+        image={getCardBilde(featured)}
+        imageAlt={featured.bildeAlt}
       />
     )}
 
-    {seksjoner.length > 0 ? seksjoner.map(s => {
-      if (s.contentType === 'artikkelFeatured' && s.artikkelId) {
-        const a = artikkelById.get(s.artikkelId);
-        if (!a) return null;
-        return (
+    {compactCards.length > 0 && (
+      <div class="compact-grid">
+        {compactCards.map(article => (
           <NewsCard
-            variant="featured"
-            href={`/artikler/${a.slug}`}
-            title={a.tittel}
-            lead={s.ingress || a.ingress || getPlainText(a.innhold, 150)}
-            image={getCardBilde(a, s.bilde)}
-            imageAlt={a.bildeAlt}
+            variant="small"
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            tag={getTag(article)}
+            date={article.publishedAt}
           />
-        );
-      }
+        ))}
+      </div>
+    )}
 
-      if (s.contentType === 'artikkelGruppe') {
-        const items = (s.artikkelIds || []).map(id => artikkelById.get(id)).filter((a): a is Artikkel => !!a);
-        if (items.length === 0) return null;
-        const cols = s.antallKolonner || 3;
-        return (
-          <div class="artikler-gruppe">
-            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
-            <div class={`image-grid ${cols <= 2 ? 'image-grid--2col' : ''}`}>
-              {items.map(a => (
-                <NewsCard
-                  variant="image"
-                  href={`/artikler/${a.slug}`}
-                  title={a.tittel}
-                  date={a.publishedAt}
-                  image={getCardBilde(a)}
-                  imageAlt={a.bildeAlt}
-                />
-              ))}
-            </div>
-          </div>
-        );
-      }
-
-      if (s.contentType === 'artikkelRelatert') {
-        const items = (s.relatertIds || []).map(id => relatertById.get(id)).filter((x): x is Artikkel | VeiledningGuide => !!x);
-        if (items.length === 0) return null;
-        return (
-          <div class="artikler-gruppe">
-            {s.tittel && <h2 class="ds-heading section-heading" data-size="lg">{s.tittel}</h2>}
-            <div class="compact-grid">
-              {items.map((item, i) => {
-                const href = articles.some(a => a.id === item.id) ? `/artikler/${item.slug}` : `/veiledning/${item.slug}`;
-                return <NewsCard variant="small" href={href} title={item.tittel} tag={s.relatertTags?.[i]} date={item.publishedAt} />;
-              })}
-            </div>
-          </div>
-        );
-      }
-
-      return null;
-    }) : (
-      <Fragment>
-        {featured && (
+    {imageGridTop.length > 0 && (
+      <div class="image-grid">
+        {imageGridTop.map(article => (
           <NewsCard
-            variant="featured"
-            href={`/artikler/${featured.slug}`}
-            title={featured.tittel}
-            lead={featured.ingress || getPlainText(featured.innhold, 150)}
-            image={getCardBilde(featured)}
-            imageAlt={featured.bildeAlt}
+            variant="image"
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            date={article.publishedAt}
+            image={getCardBilde(article)}
+            imageAlt={article.bildeAlt}
           />
-        )}
+        ))}
+      </div>
+    )}
 
-        {compactCards.length > 0 && (
-          <div class="compact-grid">
-            {compactCards.map(article => (
-              <NewsCard
-                variant="small"
-                href={`/artikler/${article.slug}`}
-                title={article.tittel}
-                tag={getTag(article)}
-                date={article.publishedAt}
-              />
-            ))}
-          </div>
-        )}
-
-        {imageGridTop.length > 0 && (
-          <div class="image-grid">
-            {imageGridTop.map(article => (
-              <NewsCard
-                variant="image"
-                href={`/artikler/${article.slug}`}
-                title={article.tittel}
-                date={article.publishedAt}
-                image={getCardBilde(article)}
-                imageAlt={article.bildeAlt}
-              />
-            ))}
-          </div>
-        )}
-
-        {imageGridBottom.length > 0 && (
-          <div class="image-grid image-grid--2col">
-            {imageGridBottom.map(article => (
-              <NewsCard
-                variant="image"
-                href={`/artikler/${article.slug}`}
-                title={article.tittel}
-                date={article.publishedAt}
-                image={getCardBilde(article)}
-                imageAlt={article.bildeAlt}
-              />
-            ))}
-          </div>
-        )}
-
-        {bottomFeatured && (
+    {imageGridBottom.length > 0 && (
+      <div class="image-grid image-grid--2col">
+        {imageGridBottom.map(article => (
           <NewsCard
-            variant="featured"
-            href={`/artikler/${bottomFeatured.slug}`}
-            title={bottomFeatured.tittel}
-            lead={bottomFeatured.ingress || getPlainText(bottomFeatured.innhold, 150)}
-            image={getCardBilde(bottomFeatured)}
-            imageAlt={bottomFeatured.bildeAlt}
+            variant="image"
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            date={article.publishedAt}
+            image={getCardBilde(article)}
+            imageAlt={article.bildeAlt}
           />
-        )}
+        ))}
+      </div>
+    )}
 
-        {remaining.length > 0 && (
-          <div class="image-grid">
-            {remaining.map(article => (
-              <NewsCard
-                variant="image"
-                href={`/artikler/${article.slug}`}
-                title={article.tittel}
-                date={article.publishedAt}
-                image={getCardBilde(article)}
-                imageAlt={article.bildeAlt}
-              />
-            ))}
-          </div>
-        )}
-      </Fragment>
+    {bottomFeatured && (
+      <NewsCard
+        variant="featured"
+        href={`/artikler/${bottomFeatured.slug}`}
+        title={bottomFeatured.tittel}
+        lead={bottomFeatured.ingress || getPlainText(bottomFeatured.innhold, 150)}
+        image={getCardBilde(bottomFeatured)}
+        imageAlt={bottomFeatured.bildeAlt}
+      />
+    )}
+
+    {remaining.length > 0 && (
+      <div class="image-grid">
+        {remaining.map(article => (
+          <NewsCard
+            variant="image"
+            href={`/artikler/${article.slug}`}
+            title={article.tittel}
+            date={article.publishedAt}
+            image={getCardBilde(article)}
+            imageAlt={article.bildeAlt}
+          />
+        ))}
+      </div>
     )}
 
     {articles.length === 0 && (
