@@ -1,7 +1,7 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getArtikler, getArtiklerOversikt, getVeiledningGuider, getPlainText, getCardImage, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
+import { getArtikler, getArtiklerOversikt, getVeiledningGuider, getPlainText, velgKortbilde, type Artikkel, type UmbracoMedia, type VeiledningGuide } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -36,9 +36,10 @@ const relatertById = new Map<string, Artikkel | VeiledningGuide>();
 articles.forEach(a => relatertById.set(a.id, a));
 guider.forEach(g => relatertById.set(g.id, g));
 
-// getCardImage gjor URLen absolutt mot CMS-hosten og gir srcset + sideforhold.
-function getCardBilde(article: Artikkel) {
-  return getCardImage(article.artikkelBilde);
+// velgKortbilde gjor URLen absolutt mot CMS-hosten og gir srcset + sideforhold.
+// Rekkefolgen er overstyring paa blokken, saa lenkekortbilde, saa hovedbilde.
+function getCardBilde(article: Artikkel, overstyring?: UmbracoMedia) {
+  return velgKortbilde(article, overstyring);
 }
 
 function getTag(article: Artikkel) {
@@ -111,7 +112,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
             href={`/artikler/${a.slug}`}
             title={a.tittel}
             lead={s.ingress || a.ingress || getPlainText(a.innhold, 150)}
-            image={getCardBilde(a)}
+            image={getCardBilde(a, s.bilde)}
             imageAlt={a.bildeAlt}
           />
         );

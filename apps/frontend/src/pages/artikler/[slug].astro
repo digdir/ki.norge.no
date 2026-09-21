@@ -15,7 +15,8 @@ if (!article) return Astro.redirect('/artikler');
 const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
-const heroImage = article.artikkelBilde || article.seoBilde;
+// SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
+const heroImage = article.artikkelBilde;
 const heroBg = bakgrunnSurface(article.bakgrunn);
 
 const articleJsonLd = articleSchema({
