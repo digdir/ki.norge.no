@@ -18,6 +18,11 @@ pnpm run frontend:dev:prod
 
 Første gang CMS kjøres opprettes SQLite-databasen og alt innhold seedes automatisk (unattended install).
 
+Innlogget bruker over er en lokal kastebruker mot din egen SQLite-fil. Den gir
+ikke tilgang til noe delt, og passordet er derfor ikke en hemmelighet. Ikke
+gjenbruk verdien, eller mønsteret, noe sted den er ekte. Ekte verdier ligger i
+Azure Key Vault per miljø, og er dokumentert i Confluence.
+
 ## Arkitektur
 
 Monorepo med to apper: frontend på Cloudflare Workers, CMS på Altinn dis-core (Kubernetes).

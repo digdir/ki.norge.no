@@ -27,7 +27,25 @@ else
   CMS="https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev"
 fi
 
-API_KEY="ki-norge-delivery-key-2025"
+# The Delivery API runs with PublicAccess: true (appsettings.json), so published
+# content answers the same with no key, with a key, and with a wrong key.
+# Verified against prod, where all three returned byte-identical responses. The
+# key here was decoration, and a hardcoded string that looks like a secret
+# invites reuse somewhere it is real. This test only covers published content.
+#
+# If draft content ever needs smoke testing, pass the key through the
+# environment instead of writing it in here:
+#   SMOKE_API_KEY=... bash scripts/smoke-test.sh
+API_KEY="${SMOKE_API_KEY:-}"
+
+# An empty key must not turn into "Api-Key: ", which is an empty but present
+# header. The expansion is written ${arr[@]+"${arr[@]}"} rather than
+# "${arr[@]}" because bash 3.2, which macOS still ships, treats an empty array
+# as unbound under set -u.
+api_key_header=()
+if [ -n "$API_KEY" ]; then
+  api_key_header=(-H "Api-Key: $API_KEY")
+fi
 
 PASS=0
 FAIL=0
@@ -75,7 +93,7 @@ skip() {
 check_blocks() {
   local label="$1" ct="$2" prop="$3"
   local out
-  out=$(curl -sS --max-time 15 -H "Api-Key: $API_KEY" \
+  out=$(curl -sS --max-time 15 ${api_key_header[@]+"${api_key_header[@]}"} \
     "$CMS/umbraco/delivery/api/v2/content?filter=contentType:$ct&take=10" 2>/dev/null \
     | python3 -c "
 import sys, json
@@ -126,10 +144,10 @@ check "Sandkasse"         "$FRONTEND/sandkasse"
 echo ""
 echo "=== Frontend detail pages (sample one of each) ==="
 # Find a real article slug from the API and hit its page
-SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1" -H "Api-Key: $API_KEY" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
+SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1" ${api_key_header[@]+"${api_key_header[@]}"} | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
 if [ -n "$SLUG" ]; then check "Artikkel detail"  "$FRONTEND/artikler/$SLUG"; else skip "Artikkel detail" "fant ingen slug via Delivery API"; fi
 
-SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1" -H "Api-Key: $API_KEY" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
+SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1" ${api_key_header[@]+"${api_key_header[@]}"} | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
 if [ -n "$SLUG" ]; then check "Eksempel detail"  "$FRONTEND/eksempler/$SLUG"; else skip "Eksempel detail" "fant ingen slug via Delivery API"; fi
 
 echo ""
@@ -143,14 +161,13 @@ check_blocks "Eksempelblokker har contentType" "eksempel"  "innhold"
 
 echo ""
 echo "=== Delivery API ($CMS) ==="
-HEADER="-H 'Api-Key: $API_KEY'"
-check "DeliveryAPI: artikkel"        "$CMS/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1"  "2xx" "200" -H "Api-Key: $API_KEY"
-check "DeliveryAPI: eksempel"        "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1"  "2xx" "200" -H "Api-Key: $API_KEY"
-check "DeliveryAPI: omOss"           "$CMS/umbraco/delivery/api/v2/content?filter=contentType:omOss&take=1"      "2xx" "200" -H "Api-Key: $API_KEY"
-check "DeliveryAPI: forside"         "$CMS/umbraco/delivery/api/v2/content?filter=contentType:forside&take=1"    "2xx" "200" -H "Api-Key: $API_KEY"
+check "DeliveryAPI: artikkel"        "$CMS/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1"  "2xx" "200" ${api_key_header[@]+"${api_key_header[@]}"}
+check "DeliveryAPI: eksempel"        "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1"  "2xx" "200" ${api_key_header[@]+"${api_key_header[@]}"}
+check "DeliveryAPI: omOss"           "$CMS/umbraco/delivery/api/v2/content?filter=contentType:omOss&take=1"      "2xx" "200" ${api_key_header[@]+"${api_key_header[@]}"}
+check "DeliveryAPI: forside"         "$CMS/umbraco/delivery/api/v2/content?filter=contentType:forside&take=1"    "2xx" "200" ${api_key_header[@]+"${api_key_header[@]}"}
 
 # Sort sanity — would have caught the publishedAt:desc bug
-check "DeliveryAPI: sort=updateDate" "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1&sort=updateDate:desc" "2xx" "200" -H "Api-Key: $API_KEY"
+check "DeliveryAPI: sort=updateDate" "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1&sort=updateDate:desc" "2xx" "200" ${api_key_header[@]+"${api_key_header[@]}"}
 
 echo ""
 echo "=== CMS health ==="

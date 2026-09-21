@@ -15,6 +15,25 @@
       },
       "DeliveryApi": {
         "ApiKey": "generate-a-random-key-here"
+      },
+      // MUST hold a value. If it is empty, Umbraco generates one at startup and
+      // writes it into appsettings.json, which is tracked in git. That puts a
+      // generated secret in a public repo and strips every comment in that
+      // file. Generate your own local value:
+      //   node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
+      "Imaging": {
+        "HMACSecretKey": "generate-a-local-base64-value-here"
+      },
+      // First run creates the database and the admin user. The password must
+      // satisfy the rules in appsettings.json
+      // (Security:UserPasswordConfiguration): at least 10 characters, upper and
+      // lower case, and at least one character that is neither letter nor
+      // digit.
+      "Unattended": {
+        "InstallUnattended": true,
+        "UnattendedUserName": "Admin",
+        "UnattendedUserEmail": "admin@ki.norge.no",
+        "UnattendedUserPassword": "sett-et-lokalt-passord-her!"
       }
     }
   },
@@ -27,6 +46,10 @@
     "ApiKey": "your-elasticsearch-api-key",
     "IndexName": "ki-content"
   },
+  // |DataDirectory| has to be there. With a relative path Umbraco will not
+  // find the database.
   "ConnectionStrings": {
+    "umbracoDbDSN": "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True;Default Timeout=30",
+    "umbracoDbDSN_ProviderName": "Microsoft.Data.Sqlite"
   }
 }
