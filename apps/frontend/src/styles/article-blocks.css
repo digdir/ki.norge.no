@@ -273,9 +273,12 @@
    Ikke kursiv: i denne fila betyr font-style: italic allerede SITAT, både i
    .article-quote-text og .article-fremheving-text--quote. Gjenbrukt på
    bildetekst svekker begge signalene, og farge og størrelse gjør jobben. */
+/* Nøytral grå, ikke --ds-color-text-subtle. Den er en kontekstavhengig alias som
+   løser til aksentfargen (#af2844, karmosin) med mindre du står i en nøytral
+   fargekontekst, så bildeteksten ble rød. Nøytralvarianten er alltid #5b5d60. */
 .article-image-section figcaption {
   margin-top: var(--ds-size-2);
-  color: var(--ds-color-text-subtle);
+  color: var(--ds-color-neutral-text-subtle);
   font-size: var(--ds-font-size-2);
 }
 
