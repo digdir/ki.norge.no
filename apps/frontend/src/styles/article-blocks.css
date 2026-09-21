@@ -262,8 +262,21 @@
   height: 400px;
   background: var(--image-fallback-bg, #D9D9D9);
 }
+/* Bildetekst skal skille seg fra brødteksten, men lavmælt (#756).
+   Farge: text-subtle er #5b5d60 mot hvit bakgrunn = 6,60:1, altså godt over
+   WCAG AA-kravet på 4,5:1 for vanlig tekst. Mot background-tinted blir det
+   5,96:1, så den tåler et tonet panel også.
+   Størrelse: figcaption arver nettleserens 16px, siden verken body eller
+   .article-layout setter font-size, mens brødteksten er 1,125rem. Teksten er
+   altså allerede litt mindre. font-size-2 (0,875rem) er ett tokensteg videre
+   ned, samme proporsjon som steget fra 1,125 til 1.
+   Ikke kursiv: i denne fila betyr font-style: italic allerede SITAT, både i
+   .article-quote-text og .article-fremheving-text--quote. Gjenbrukt på
+   bildetekst svekker begge signalene, og farge og størrelse gjør jobben. */
 .article-image-section figcaption {
   margin-top: var(--ds-size-2);
+  color: var(--ds-color-text-subtle);
+  font-size: var(--ds-font-size-2);
 }
 
 .article-layout .ds-details {
