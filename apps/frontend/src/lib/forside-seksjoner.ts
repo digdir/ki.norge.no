@@ -1,7 +1,7 @@
 // Utvelgelseslogikken for forsidens moduler, skilt fra malen så den kan testes
 // uten å rendre HTML. Regelen er den samme overalt: et tomt felt betyr ingenting.
 // Ingenting fylles automatisk, og en modul uten innhold rendres ikke.
-import { getCardImage, type CardImage, type ForsideKort, type ForsideSeksjon, type VeiledningGuide } from './umbraco';
+import { getCardImage, velgKortbilde, type CardImage, type ForsideKort, type ForsideSeksjon, type UmbracoMedia, type VeiledningGuide } from './umbraco';
 
 export const MAKS_AKTUELT_KORT = 3;
 
@@ -58,25 +58,27 @@ export function velgLenke(block: Pick<ForsideSeksjon, 'lenketekst' | 'lenkeUrl'>
   return block.lenketekst && block.lenkeUrl ? { href: block.lenkeUrl, tekst: block.lenketekst } : null;
 }
 
-// Pool-innhold har ingress/artikkelBilde (guider har seoBilde); kortene bruker lead/image.
-function tilAktueltKort(a: any, href: string, ingressOverride?: string): AktueltKort {
+// Pool-innhold har ingress og bildefelt; kortene bruker lead/image.
+// Bildet foelger velgKortbilde: overstyring paa kortet, saa lenkekortbilde, saa
+// hovedbilde. Uten treff rendrer kortet standardbildet selv.
+function tilAktueltKort(a: any, href: string, ingressOverride?: string, bildeOverride?: UmbracoMedia): AktueltKort {
   return {
     tittel: a.tittel,
     href,
     lead: ingressOverride || a.lead || a.ingress,
-    image: a.image || getCardImage(a.artikkelBilde) || getCardImage(a.seoBilde),
+    image: a.image || velgKortbilde(a, bildeOverride),
     publishedAt: a.publishedAt,
   };
 }
 
 // Hver kilde vet hvor innholdet sitt bor, så kortet lenker dit det valgte faktisk ligger.
-function finnAktuelt(id: string, kilder: AktueltKilder, ingressOverride?: string): AktueltKort | null {
+function finnAktuelt(id: string, kilder: AktueltKilder, ingressOverride?: string, bildeOverride?: UmbracoMedia): AktueltKort | null {
   const artikkel = kilder.artikler.find((a) => a.id === id);
-  if (artikkel) return tilAktueltKort(artikkel, `/artikler/${artikkel.slug}`, ingressOverride);
+  if (artikkel) return tilAktueltKort(artikkel, `/artikler/${artikkel.slug}`, ingressOverride, bildeOverride);
   const veiledning = kilder.enkleVeiledninger?.find((v) => v.id === id) ?? kilder.veiledninger?.find((v) => v.id === id);
-  if (veiledning) return tilAktueltKort(veiledning, `/veiledning/${veiledning.slug}`, ingressOverride);
+  if (veiledning) return tilAktueltKort(veiledning, `/veiledning/${veiledning.slug}`, ingressOverride, bildeOverride);
   const eksempel = kilder.eksempler?.find((e) => e.id === id);
-  if (eksempel) return tilAktueltKort(eksempel, `/eksempler/${eksempel.slug}`, ingressOverride);
+  if (eksempel) return tilAktueltKort(eksempel, `/eksempler/${eksempel.slug}`, ingressOverride, bildeOverride);
   console.warn(`[forside] Aktuelt peker på innhold som ikke finnes i kildene (id=${id}), kortet droppes`);
   return null;
 }
@@ -85,7 +87,7 @@ function finnAktuelt(id: string, kilder: AktueltKilder, ingressOverride?: string
 // innholdet er slettet eller fordi det er av en type Aktuelt ikke kan vise.
 function slaaOppAktuelt(kort: ForsideKort[] | undefined, kilder: AktueltKilder): AktueltKort[] {
   return (kort ?? [])
-    .map((k) => (k.id ? finnAktuelt(k.id, kilder, k.ingress) : null))
+    .map((k) => (k.id ? finnAktuelt(k.id, kilder, k.ingress, k.bilde) : null))
     .filter((c): c is AktueltKort => c !== null);
 }
 
@@ -130,7 +132,7 @@ export function velgVeiledning(block: ForsideSeksjon, veiledninger: VeiledningGu
     tittel,
     ingress: block.ingress || valgt?.ingress,
     href,
-    image: getCardImage(block.illustrasjon) ?? getCardImage(valgt?.seoBilde),
+    image: getCardImage(block.illustrasjon) ?? velgKortbilde(valgt),
     label: block.label,
   };
 }

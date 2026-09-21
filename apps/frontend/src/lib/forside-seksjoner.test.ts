@@ -177,3 +177,49 @@ describe('velgVeiledning', () => {
     expect(velgVeiledning(veil({ veiledningId: 'slettet' }), GUIDER)).toBeNull();
   });
 });
+
+// Bildehierarkiet etter møtet med Sara: overstyring på kortet slår lenkekortbilde,
+// som slår hovedbilde. Uten treff gir det undefined, og da rendrer kortet
+// standardbildet selv.
+describe('bildehierarki i aktuelt', () => {
+  const media = (navn: string) => ({ url: `/media/${navn}.jpg`, width: 1200, height: 800 }) as any;
+
+  const medBilder = (over: Record<string, unknown>) => ({
+    ...artikkel('b1', 'bilde-artikkel'),
+    ...over,
+  });
+
+  const kortFor = (node: Record<string, unknown>, kortBilde?: unknown) =>
+    velgAktuelt(
+      blokk({ kort: [{ id: 'b1', ...(kortBilde ? { bilde: kortBilde } : {}) }] as any }),
+      { artikler: [node as any] },
+    )!.kort[0];
+
+  it('bruker hovedbildet når det er det eneste som er satt', () => {
+    const k = kortFor(medBilder({ artikkelBilde: media('hoved') }));
+    expect(k.image?.src).toContain('hoved');
+  });
+
+  it('lar lenkekortbildet slå hovedbildet', () => {
+    const k = kortFor(medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }));
+    expect(k.image?.src).toContain('lenkekort');
+  });
+
+  it('lar overstyringen på kortet slå begge', () => {
+    const k = kortFor(
+      medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }),
+      media('overstyrt'),
+    );
+    expect(k.image?.src).toContain('overstyrt');
+  });
+
+  it('gir undefined uten bilde, slik at standardbildet tar over', () => {
+    expect(kortFor(medBilder({})).image).toBeUndefined();
+  });
+
+  // Regresjonsvakt for #738: SEO-bildet lekket inn som innhold og ga veiledninger
+  // et bilde ingen hadde valgt. Det skal aldri tilbake.
+  it('bruker ALDRI SEO-bildet', () => {
+    expect(kortFor(medBilder({ seoBilde: media('seo') })).image).toBeUndefined();
+  });
+});

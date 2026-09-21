@@ -174,6 +174,7 @@ export interface Artikkel {
   slug: string;
   ingress?: string;
   artikkelBilde?: UmbracoMedia;
+  lenkekortBilde?: UmbracoMedia;
   bildeAlt?: string;
   bakgrunn?: 'hvit' | 'lyseblaa' | string;
   innhold?: UmbracoBlock[];
@@ -235,9 +236,10 @@ export interface Eksempel extends Artikkel {}
 export interface ArtiklerSeksjon {
   contentType: 'artikkelFeatured' | 'artikkelGruppe' | 'artikkelRelatert';
   id: string;
-  // Featured: én artikkel-referanse + valgfri ingress-overstyring
+  // Featured: én artikkel-referanse + valgfri ingress- og bilde-overstyring
   artikkelId?: string;
   ingress?: string;
+  bilde?: UmbracoMedia;
   // Gruppe: tittel + kolonner + 1-6 artikkel-referanser
   tittel?: string;
   antallKolonner?: number;
@@ -309,6 +311,7 @@ export interface VeiledningGuide {
   stegGruppeTittler?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
+  lenkekortBilde?: UmbracoMedia;
   seoBilde?: UmbracoMedia;
   createdAt: string;
   updatedAt: string;
@@ -355,6 +358,9 @@ export interface EventItem {
 export interface ForsideKort {
   id?: string;
   ingress?: string;
+  // Overstyrer bildet for dette kortet alene. Ligger pa blokken, ikke pa
+  // artikkelen, sa forsiden og /artikler kan vise hvert sitt bilde.
+  bilde?: UmbracoMedia;
 }
 
 // Én forside-modul (block i forside.seksjoner). Flat: alle mulige felt valgfrie.
@@ -1112,6 +1118,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         slug: props.slug as string || '',
         ingress: props.ingress as string || '',
         artikkelBilde: mapMedia(props.artikkelBilde),
+        lenkekortBilde: mapMedia(props.lenkekortBilde),
         bildeAlt: props.bildeAlt as string || '',
         bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
         innhold: mapArtikkelBlocks(props.innhold),
@@ -1157,6 +1164,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         slug: props.slug as string || '',
         ingress: props.ingress as string || '',
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
+        lenkekortBilde: mapMedia(props.lenkekortBilde),
         stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -1643,6 +1651,7 @@ function mapForsideKort(value: unknown): ForsideKort[] | undefined {
       return {
         id,
         ingress: (props.ingress as string) || undefined,
+        bilde: mapMedia(props.bilde),
       };
     })
     .filter((k: ForsideKort) => !!k.id);
@@ -1716,7 +1725,7 @@ function mapArtiklerSeksjoner(value: unknown): ArtiklerSeksjon[] | undefined {
     const id = content.id || '';
 
     if (ct === 'artikkelFeatured') {
-      return { contentType: ct, id, artikkelId: pickerId(props.artikkel), ingress: (props.ingress as string) || undefined };
+      return { contentType: ct, id, artikkelId: pickerId(props.artikkel), ingress: (props.ingress as string) || undefined, bilde: mapMedia(props.bilde) };
     }
     if (ct === 'artikkelGruppe') {
       const refs = [1, 2, 3, 4, 5, 6].map((n) => pickerId(props[`artikkel${n}`])).filter((x): x is string => !!x);
@@ -1845,6 +1854,27 @@ export interface CardImage {
  * som sideforhold nar CSS styrer selve storrelsen, sa de trenger ikke stemme
  * med den leverte bredden.
  */
+/**
+ * Bildet et lenkekort skal vise, i prioritert rekkefolge:
+ *   1. overstyring pa selve kortet, som bare gjelder den ene plasseringen
+ *   2. nodens lenkekortbilde
+ *   3. nodens hovedbilde
+ * Ingen treff gir undefined, og da fyller Standardbilde boksen.
+ *
+ * SEO-bildet er bevisst ikke med. Det er for delingsforhandsvisning, ikke
+ * innhold, og at det lekket inn hit er nettopp feilen i #738.
+ */
+export function velgKortbilde(
+  node?: { lenkekortBilde?: UmbracoMedia; artikkelBilde?: UmbracoMedia } | null,
+  overstyring?: UmbracoMedia,
+): CardImage | undefined {
+  return (
+    getCardImage(overstyring) ??
+    getCardImage(node?.lenkekortBilde) ??
+    getCardImage(node?.artikkelBilde)
+  );
+}
+
 export function getCardImage(media?: UmbracoMedia): CardImage | undefined {
   const src = getMediaUrl(media, MEDIA_WIDTH.card);
   if (!src) return undefined;
