@@ -152,18 +152,19 @@ const isLink = !!href;
     font-size: var(--ds-body-sm-font-size);
   }
 
+  /* Tid og sted sto i en egen 350px-kolonne til høyre. Den tok plass fra
+     brødteksten uten å trenge den selv, så raden ligger nå under (#640). */
   .event-card-body {
-    display: grid;
-    grid-template-columns: 1fr 350px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
     padding: var(--ds-size-6);
-    align-items: center;
   }
 
   .event-card-info {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-2);
-    padding-inline-end: var(--ds-size-6);
   }
 
   .event-card-desc {
@@ -172,10 +173,17 @@ const isLink = !!href;
 
   .event-card-details {
     display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-4);
-    padding-inline-start: var(--ds-size-6);
+    flex-wrap: wrap;
+    gap: var(--ds-size-2) var(--ds-size-6);
+    margin: 0;
+    padding: 0;
     list-style: none;
+  }
+
+  .event-card-details li {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
   }
 
   .event-card-details p {
@@ -207,24 +215,10 @@ const isLink = !!href;
       font-size: var(--ds-heading-sm-font-size);
     }
 
-    .event-card-body {
-      grid-template-columns: 1fr;
-    }
-
-    .event-card-info {
-      padding-inline-end: 0;
-      padding-block-end: var(--ds-size-4);
-
-      &:not(:has(*)) {
-        display: none;
-      }
-    }
-
-    .event-card-details {
-      border-left: none;
-      padding-inline-start: 0;
-      border-top: 1px solid var(--ds-color-border-subtle);
-      padding-block-start: var(--ds-size-4);
+    /* Kroppen er kolonne i begge bredder nå, så mobil trenger ingen egen
+       omstokking. Tomt info-felt skjules fortsatt, ellers står gapet igjen. */
+    .event-card-info:not(:has(*)) {
+      display: none;
     }
   }
 
