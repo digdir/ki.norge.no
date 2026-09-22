@@ -1,11 +1,19 @@
 ---
 import AkselIcon from './AkselIcon.astro';
 import { kiTiltak } from '../../lib/ki-tiltak';
+
+interface Props {
+  // h3 når kortet ligger inne i en seksjon med egen h2, som på forsiden.
+  headingLevel?: 2 | 3;
+}
+
+const { headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}`;
 ---
 
 <a class="tiltak-entry" href="/ki-tiltak">
   <div class="tiltak-entry-tekst">
-    <h2 class="ds-heading tiltak-entry-tittel" data-size="sm">Offentlige KI-tiltak</h2>
+    <Heading class="ds-heading tiltak-entry-tittel" data-size="sm">Offentlige KI-tiltak</Heading>
     <p class="ds-paragraph tiltak-entry-ingress" data-size="sm">
       Oversikt over hvordan kunstig intelligens tas i bruk i offentlig sektor.
     </p>
@@ -97,6 +105,7 @@ import { kiTiltak } from '../../lib/ki-tiltak';
     .tiltak-entry {
       grid-template-columns: 1fr;
       gap: var(--ds-size-5);
+      padding: var(--ds-size-6);
     }
 
     .tiltak-entry-teller {
@@ -105,6 +114,10 @@ import { kiTiltak } from '../../lib/ki-tiltak';
       padding-top: var(--ds-size-5);
       border-left: 0;
       border-top: var(--ds-border-width-default) solid var(--ds-color-accent-border-subtle);
+    }
+
+    .tiltak-entry-merkelapp {
+      text-align: start;
     }
   }
 </style>

@@ -10,6 +10,7 @@ import ArrowLink from '../shared/ArrowLink.astro';
 import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
+import KiTiltakEntryCard from '../shared/KiTiltakEntryCard.astro';
 import { getMediaUrl, getCardImage, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
 import { velgAktuelt, velgLaerAvAndre, velgLenke, velgVeiledning } from '../../lib/forside-seksjoner';
 import { hendelseTilEventCard } from '../../lib/kalender';
@@ -133,6 +134,9 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
         {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
         <ExampleLinkCards cards={kort.map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
         {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
+        {/* Kodedrevet som på /eksempler (#755). Følger blokken, så redaktøren
+            styrer boksen ved å flytte eller fjerne «Lær av andre». */}
+        <KiTiltakEntryCard headingLevel={3} />
       </section>
     );
   }
@@ -250,6 +254,10 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
   .examples-section {
     & :global(.arrow-link) {
       margin-block-start: var(--ds-size-6);
+    }
+
+    & :global(.tiltak-entry) {
+      margin-block-start: var(--ds-size-10);
     }
   }
 
