@@ -204,7 +204,10 @@ export interface Kalenderhendelse {
   startDato: string;
   sluttDato?: string;
   tid?: string;
+  /** Kort stedsnavn. Vises på kortene. */
   sted?: string;
+  /** Full gateadresse. Vises bare på arrangementssiden, aldri på kortene. */
+  adresse?: string;
   /** Valgfri arrangør. Tom = arrangør vises ikke. */
   arrangor?: string;
   lenke?: string;
@@ -1188,6 +1191,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         sluttDato: props.sluttDato as string || undefined,
         tid: props.tid as string || undefined,
         sted: props.sted as string || undefined,
+        adresse: props.adresse as string || undefined,
         arrangor: props.arrangor as string || undefined,
         lenke: props.lenke as string || undefined,
         pris: props.pris as string || undefined,
