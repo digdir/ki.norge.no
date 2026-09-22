@@ -39,7 +39,7 @@ Hostnavn i bruk:
 | `cms.ki.norge.no` | Umbraco prod |
 | `cms.ki.test.norge.no` | Umbraco tt02 |
 
-DNS-endringer på norge.no bestilles hos drift@digdir.no. Kenneth Helland er domeneansvarlig for norge.no.
+DNS-endringer på norge.no bestilles hos drift@digdir.no, som også eier domenet.
 
 ### SSL-terminering og sertifikater
 
