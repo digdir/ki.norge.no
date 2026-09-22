@@ -3,8 +3,8 @@
  * Status page — health overview for ki.norge.no.
  * Access controlled by ki_admin cookie (see middleware.ts).
  *
- * Shows: live HTTP health checks for frontend, CMS backoffice, Delivery API
- * and the ki.norge.no custom domain (see api/status-checks.ts).
+ * Shows: live HTTP health checks for frontend, CMS backoffice and Delivery API
+ * in the environment serving the page (see api/status-checks.ts).
  * Future: dis-core pod health, Azure SQL, TLS expiry, søkeindeks, analytics.
  */
 import Layout from '../components/layout/Layout.astro';
