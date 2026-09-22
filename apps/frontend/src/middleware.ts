@@ -307,7 +307,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // edgen og serveres til alle. Uten dette ville et transient CMS-blaff bli
   // fanget i edge-cachen i opptil s-maxage og vist til alle besøkende.
   const pageOptedOutOfCache = response.headers.get('Cache-Control')?.includes('no-store');
-  if (isPreview || isApiRoute || isAdminRoute || pageOptedOutOfCache) {
+  // En admin ser den ekte sida bak kommer-snart-veggen. Cache-workeren bruker bare
+  // URL-en som nøkkel, så uten dette ble sida servert fra kanten til alle.
+  const adminBehindWall = isComingSoon && (await isAdmin());
+  if (isPreview || isApiRoute || isAdminRoute || pageOptedOutOfCache || adminBehindWall) {
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   }
