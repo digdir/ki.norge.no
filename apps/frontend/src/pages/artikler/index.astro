@@ -1,7 +1,7 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getArtikler, getArtiklerOversikt, getPlainText, velgKortbilde, type Artikkel } from '../../lib/umbraco';
+import { getArtikler, getArtiklerOversikt, getPlainText, sammenlignPublisertDato, velgKortbilde, type Artikkel } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -28,37 +28,26 @@ const heroSubtittel = oversikt?.heroSubtittel || '';
 const seoTitle = oversikt?.seoTittel || heroTittel;
 const seoDesc = oversikt?.seoBeskrivelse || 'Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.';
 
-// Nyest først, sortert på publishedAt, som er nøyaktig feltet kortene viser i
-// merkelappen. Det er hele poenget: sorterer lista på noe annet enn det som står
-// på kortet, ser rekkefølgen feil ut selv om begge datoene isolert sett stemmer.
-// Datokjeden bak publishedAt (redaktørens publisertDato, så byline-datoen, så
-// createDate) settes ett sted, i mapItem, så denne sida slipper å kjenne den.
+// Nyest først på publishedAt, som er nøyaktig feltet kortene viser i merkelappen.
+// Sorterer lista på noe annet enn det som står på kortet, ser rekkefølgen feil ut
+// selv om begge datoene isolert sett stemmer.
+//
+// mapItem har alt løst datokjeden (redaktørens publisertDato, så byline, så
+// createDate) ned i publishedAt, og beholder ikke leddene. Derfor sendes bare
+// publishedAt inn her. Sender vi hele artikkelen, leter komparatoren opp byline
+// på nytt og kan lande på en annen dato enn den kortet viser.
 //
 // API-et kan ikke sortere for oss: getArtikler henter med sort=updateDate:desc,
 // og updateDate er verken det kortet viser eller det redaktøren kan overstyre.
-// Manglende eller ugyldig dato gir 0, så artikkelen havner sist i stedet for på
-// en tilfeldig plass. Uten isFinite-sjekken blir en ubrukelig datostreng til NaN,
-// og en komparator som returnerer NaN gir uforutsigbar rekkefølge.
-//
-// Når #770 har landet finnes sammenlignPublisertDato i umbraco.ts med nøyaktig
-// denne semantikken. Da bør denne komparatoren byttes ut med den, så det er én
-// implementasjon igjen.
-const tid = (a: Artikkel) => {
-  const t = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-  return Number.isFinite(t) ? t : 0;
-};
-const sorterte = [...articles].sort((a, b) => tid(b) - tid(a));
+const sorterte = [...articles].sort((a, b) =>
+  sammenlignPublisertDato({ publishedAt: a.publishedAt }, { publishedAt: b.publishedAt }),
+);
 
 // velgKortbilde gjor URLen absolutt mot CMS-hosten og gir srcset + sideforhold.
 // Rekkefolgen er lenkekortbilde, saa hovedbilde. Blokk-overstyringen falt bort
 // sammen med seksjonene.
 function getCardBilde(article: Artikkel) {
   return velgKortbilde(article);
-}
-
-function getTag(article: Artikkel) {
-  if (article.bakgrunn === 'lyseblaa') return 'Offentlig sektor';
-  return 'KI-strategien';
 }
 
 // Toppen er fortsatt redaktørens valg. Uten valgt artikkel er det den nyeste,
@@ -71,11 +60,6 @@ const featured = (oversikt?.featuredArtikkelId
 // én skjerm leses som en feil. Prisen er at en gammel fremhevet artikkel løftes
 // ut av kronologien, og det er iboende i å ha en manuell topplass.
 const rest = sorterte.filter(a => a.id !== featured?.id);
-const compactCards = rest.slice(0, 3);
-const imageGridTop = rest.slice(3, 6);
-const imageGridBottom = rest.slice(6, 8);
-const bottomFeatured = rest[8];
-const remaining = rest.slice(9);
 
 const collectionJsonLd = collectionPageSchema({
   name: heroTittel || seoTitle || 'Artikler',
@@ -114,64 +98,9 @@ const breadcrumbJsonLd = breadcrumbSchema([
       />
     )}
 
-    {compactCards.length > 0 && (
-      <div class="compact-grid">
-        {compactCards.map(article => (
-          <NewsCard
-            variant="small"
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            tag={getTag(article)}
-            date={article.publishedAt}
-          />
-        ))}
-      </div>
-    )}
-
-    {imageGridTop.length > 0 && (
+    {rest.length > 0 && (
       <div class="image-grid">
-        {imageGridTop.map(article => (
-          <NewsCard
-            variant="image"
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            date={article.publishedAt}
-            image={getCardBilde(article)}
-            imageAlt={article.bildeAlt}
-          />
-        ))}
-      </div>
-    )}
-
-    {imageGridBottom.length > 0 && (
-      <div class="image-grid image-grid--2col">
-        {imageGridBottom.map(article => (
-          <NewsCard
-            variant="image"
-            href={`/artikler/${article.slug}`}
-            title={article.tittel}
-            date={article.publishedAt}
-            image={getCardBilde(article)}
-            imageAlt={article.bildeAlt}
-          />
-        ))}
-      </div>
-    )}
-
-    {bottomFeatured && (
-      <NewsCard
-        variant="featured"
-        href={`/artikler/${bottomFeatured.slug}`}
-        title={bottomFeatured.tittel}
-        lead={bottomFeatured.ingress || getPlainText(bottomFeatured.innhold, 150)}
-        image={getCardBilde(bottomFeatured)}
-        imageAlt={bottomFeatured.bildeAlt}
-      />
-    )}
-
-    {remaining.length > 0 && (
-      <div class="image-grid">
-        {remaining.map(article => (
+        {rest.map(article => (
           <NewsCard
             variant="image"
             href={`/artikler/${article.slug}`}
@@ -221,19 +150,6 @@ const breadcrumbJsonLd = breadcrumbSchema([
     margin: 0;
   }
 
-  .compact-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--ds-size-12);
-    border-block: 1px solid var(--ds-color-surface-active);
-    padding-block: var(--ds-size-9);
-    
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-      gap: var(--ds-size-6);
-    }
-  }
-
   .image-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -247,12 +163,6 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
     @media (min-width: 1024px) {
       grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  .image-grid--2col {
-    @media (min-width: 1024px) {
-      grid-template-columns: repeat(2, 1fr);
     }
   }
 
