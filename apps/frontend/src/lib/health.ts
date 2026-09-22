@@ -106,9 +106,10 @@ async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<Hea
  * offentlige adressen, i prod en proxy-worker. Da proxyen var av i #600, var
  * nettstedet uten bilder i ti minutter mens alt annet svarte. Den feilen ser
  * bare en sjekk mot den offentlige adressen, og den gir Degraded, fordi sidene
- * fortsatt rendres.
+ * fortsatt rendres. Den kaller Delivery API gjennom proxyen, ikke en bildefil,
+ * så den fanger at proxyen er nede, men ikke en feil i selve bildelagringen.
  */
-async function checkMedia(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
+async function checkCmsProxy(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
   const { ok, ms } = await timed(deps, async (signal) => {
     const res = await callFetch(deps, `${config.umbracoPublicUrl}/umbraco/delivery/api/v2/content?take=1`, {
       headers: { Accept: 'application/json' },
@@ -152,16 +153,16 @@ export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): P
 
   // Er den offentlige adressen den samme som den interne, som på tt02, tester
   // en egen sjekk ingenting nytt.
-  const separatMedia = Boolean(config.umbracoPublicUrl) && config.umbracoPublicUrl !== config.umbracoUrl;
+  const separatProxy = Boolean(config.umbracoPublicUrl) && config.umbracoPublicUrl !== config.umbracoUrl;
 
-  const [umbraco, media, elasticsearch] = await Promise.all([
+  const [umbraco, cmsProxy, elasticsearch] = await Promise.all([
     checkUmbraco(config, deps),
-    separatMedia ? checkMedia(config, deps) : Promise.resolve(null),
+    separatProxy ? checkCmsProxy(config, deps) : Promise.resolve(null),
     esConfigured ? checkElasticsearch(config, deps) : Promise.resolve(null),
   ]);
 
   const entries: Record<string, HealthEntry> = { umbraco };
-  if (media) entries.media = media;
+  if (cmsProxy) entries['cms-proxy'] = cmsProxy;
   if (elasticsearch) entries.elasticsearch = elasticsearch;
 
   const worst = Object.values(entries).reduce<HealthStatus>(

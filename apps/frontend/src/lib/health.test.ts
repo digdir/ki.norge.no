@@ -21,17 +21,17 @@ type Handler = (url: string, init?: RequestInit) => Promise<Response>;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function fakeFetch(handlers: { umbraco?: Handler; media?: Handler; es?: Handler }): typeof fetch {
+function fakeFetch(handlers: { umbraco?: Handler; proxy?: Handler; es?: Handler }): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.startsWith(CONFIG.umbracoUrl)) return (handlers.umbraco ?? (async () => json({ total: 3 })))(url, init);
-    if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.media ?? (async () => json({ total: 3 })))(url, init);
+    if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.proxy ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.esEndpoint)) return (handlers.es ?? (async () => json({ hits: {} })))(url, init);
     throw new Error(`uventet url ${url}`);
   }) as typeof fetch;
 }
 
-const run = (handlers: { umbraco?: Handler; media?: Handler; es?: Handler }, config = CONFIG, timeoutMs = 3000) =>
+const run = (handlers: { umbraco?: Handler; proxy?: Handler; es?: Handler }, config = CONFIG, timeoutMs = 3000) =>
   runHealthChecks(config, { fetch: fakeFetch(handlers), now: Date.now, timeoutMs });
 
 /** Svarer aldri, men respekterer avbrudd, som et CMS som henger. */
@@ -57,28 +57,28 @@ describe('runHealthChecks', () => {
     const r = await run({});
     expect(r.status).toBe('Healthy');
     expect(r.entries.umbraco.status).toBe('Healthy');
-    expect(r.entries.media.status).toBe('Healthy');
+    expect(r.entries['cms-proxy'].status).toBe('Healthy');
     expect(r.entries.elasticsearch.status).toBe('Healthy');
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
   // #600: proxyen var av, nettstedet var uten bilder, og alt annet svarte.
   test('offentlig CMS-adresse nede gir Degraded, for sidene rendres fortsatt', async () => {
-    const r = await run({ media: async () => { throw new Error('ENOTFOUND cms-offentlig.example'); } });
-    expect(r.entries.media.status).toBe('Degraded');
+    const r = await run({ proxy: async () => { throw new Error('ENOTFOUND cms-offentlig.example'); } });
+    expect(r.entries['cms-proxy'].status).toBe('Degraded');
     expect(r.entries.umbraco.status).toBe('Healthy');
     expect(r.status).toBe('Degraded');
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
-  test('media utelates når den offentlige adressen er den samme som den interne', async () => {
+  test('cms-proxy utelates når den offentlige adressen er den samme som den interne', async () => {
     const r = await run({}, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
-    expect(r.entries.media).toBeUndefined();
+    expect(r.entries['cms-proxy']).toBeUndefined();
   });
 
-  test('media utelates når den offentlige adressen mangler', async () => {
+  test('cms-proxy utelates når den offentlige adressen mangler', async () => {
     const r = await run({}, { ...CONFIG, umbracoPublicUrl: '' });
-    expect(r.entries.media).toBeUndefined();
+    expect(r.entries['cms-proxy']).toBeUndefined();
   });
 
   // Fella fra Umbraco-oppgraderingene: migreringer hoppet over, API-et svarer
