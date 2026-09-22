@@ -50,6 +50,16 @@ export function formatDuration(ms: number): string {
   return `${pad(h)}:${pad(m)}:${pad(s)}.${fraction}`;
 }
 
+/**
+ * fetch kalt som metode, deps.fetch(...), får deps som this. Node bryr seg ikke,
+ * men Cloudflare Workers kaster «Illegal invocation», og da feiler alle sjekkene
+ * på null ms i drift mens de er grønne lokalt.
+ */
+function callFetch(deps: HealthDeps, input: string, init: RequestInit): Promise<Response> {
+  const f = deps.fetch;
+  return f(input, init);
+}
+
 async function timed(
   deps: HealthDeps,
   probe: (signal: AbortSignal) => Promise<boolean>,
@@ -74,7 +84,7 @@ async function timed(
  */
 async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
   const { ok, ms } = await timed(deps, async (signal) => {
-    const res = await deps.fetch(`${config.umbracoUrl}/umbraco/delivery/api/v2/content?take=1`, {
+    const res = await callFetch(deps, `${config.umbracoUrl}/umbraco/delivery/api/v2/content?take=1`, {
       headers: { Accept: 'application/json' },
       signal,
     });
@@ -96,7 +106,7 @@ async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<Hea
  */
 async function checkElasticsearch(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
   const { ok, ms } = await timed(deps, async (signal) => {
-    const res = await deps.fetch(`${config.esEndpoint}/${config.esIndex}/_search`, {
+    const res = await callFetch(deps, `${config.esEndpoint}/${config.esIndex}/_search`, {
       method: 'POST',
       headers: { Authorization: `ApiKey ${config.esApiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ size: 0, track_total_hits: false }),

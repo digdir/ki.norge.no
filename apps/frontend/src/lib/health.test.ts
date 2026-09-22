@@ -108,6 +108,20 @@ describe('runHealthChecks', () => {
     expect(r.status).toBe('Healthy');
   });
 
+  // Node godtar fetch kalt som metode på et hvilket som helst objekt. Cloudflare
+  // Workers kaster «Illegal invocation», og da feiler alle sjekkene på null ms
+  // i drift mens de er grønne lokalt. Denne falske fetchen oppfører seg som Workers.
+  test('fetch kalles uten this, slik Workers krever', async () => {
+    const vanlig = fakeFetch({});
+    const somWorkers = function (this: unknown, input: RequestInfo | URL, init?: RequestInit) {
+      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
+      return vanlig(input, init);
+    } as typeof fetch;
+    const r = await runHealthChecks(CONFIG, { fetch: somWorkers, now: Date.now });
+    expect(r.entries.umbraco.status).toBe('Healthy');
+    expect(r.entries.elasticsearch.status).toBe('Healthy');
+  });
+
   test('CMS kalles som sidene gjør, uten API-nøkkel', async () => {
     let headers: HeadersInit | undefined;
     await run({ umbraco: async (_url, init) => { headers = init?.headers; return json({ total: 1 }); } });

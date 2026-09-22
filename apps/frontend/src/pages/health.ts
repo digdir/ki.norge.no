@@ -8,7 +8,7 @@ const config: HealthConfig = {
   esIndex: process.env.KI_INDEX || import.meta.env.KI_INDEX || 'ki-content',
 };
 
-const report = memoize(() => runHealthChecks(config, { fetch, now: Date.now }), Date.now, 15_000);
+const report = memoize(() => runHealthChecks(config, { fetch: (input, init) => fetch(input, init), now: () => Date.now() }), Date.now, 15_000);
 
 const HEADERS = {
   'Content-Type': 'application/json',
