@@ -29,14 +29,22 @@ export interface KiTiltak {
   beskrivelse: string;
   status: KiTiltakStatus;
   /**
-   * Samles inn i skjemaet, men vises ikke ennå. Feltene er valgfrie fordi ingen
-   * av de eksisterende oppføringene har dem, og redaksjonen fyller dem inn
-   * etter hvert som nye tiltak kommer inn.
+   * Metadata fra innsendingsskjemaet. Alle er valgfrie, og gjelder bare tiltak
+   * som er sendt inn eller oppdatert via skjemaet på /ki-tiltak. De eldre
+   * oppføringene har dem ikke, og skal ikke etterfylles.
+   *
+   * Visningen hopper over et tomt felt helt, overskrift og alt. Et tiltak med
+   * bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
    */
   leveranse?: string[];
   leveranseAnnet?: string;
   kiType?: string[];
   kiTypeAnnet?: string;
+  /**
+   * E-postadresse. Feltet publiseres, og ki-tiltak.json ligger i et offentlig
+   * repo, så dette skal være en virksomhetsadresse og ikke en personlig.
+   */
+  kontaktinfo?: string;
 }
 
 /** Alfabetisk (nb). Alle 15 er i bruk i datasettet. */
@@ -136,4 +144,21 @@ export function filterTiltak(items: KiTiltak[], filter: KiTiltakFilter): KiTilta
 
     return haystack.includes(q);
   });
+}
+
+/**
+ * Slår sammen et flervalg med tilhørende «Annet»-fritekst til det som skal vises.
+ *
+ * Skjemaet lagrer valget «Annet» og friteksten hver for seg. Å vise begge gir
+ * «Annet, chatbot for innbyggere», der første ledd ikke sier leseren noe. Her
+ * erstatter friteksten ordet, på plassen ordet hadde, så rekkefølgen redaktøren
+ * valgte beholdes. Mangler friteksten, faller vi tilbake til «Annet», som i det
+ * minste er ærlig om at det finnes noe utenfor lista.
+ */
+export function visValg(valg?: string[], annet?: string): string[] {
+  if (!valg || valg.length === 0) return [];
+  const fritekst = annet?.trim();
+  return valg
+    .map((v) => (v === 'Annet' && fritekst ? fritekst : v))
+    .filter((v) => v.trim().length > 0);
 }

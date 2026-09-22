@@ -493,6 +493,19 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   border-radius: var(--ds-border-radius-full);
 }
 
+/* Type KI og «hva tiltaket skal levere» er flervalg, så merkelappene brytes
+   over flere linjer i stedet for å presse dialogen bredere. */
+.tiltak-detalj-tagger {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}
+
+.tiltak-detalj-tagger .ds-tag,
+.tiltak-detalj-felt > .ds-tag {
+  border-radius: var(--ds-border-radius-full);
+}
+
 /* Egen strek over, slik prototypens .detail-contact har. Skiller
    redaksjonell kontaktinfo fra selve tiltaksinnholdet. */
 .tiltak-detalj-kontakt {
