@@ -1,0 +1,40 @@
+---
+// Fyller bildeboksen i et kort som mangler bilde. Boksen bestemmer formatet,
+// dette fyller den bare. Logoen tegnes som bakgrunn med luft rundt, så den er
+// hel uansett hvor smal boksen blir, i motsetning til et foto som beskjæres.
+//
+// Ytterelementet gir boksen samme høyde som et 4:3-bilde ville gitt den, slik at
+// kort med og uten bilde blir like høye. Flaten legges absolutt over hele boksen,
+// så boksen må være posisjonert (position: relative).
+---
+
+<div class="standardbilde">
+  <div class="standardbilde-flate"></div>
+</div>
+
+<style>
+  .standardbilde {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+  }
+
+  /* Samme burgunder som og-image.svg. */
+  .standardbilde-flate {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    background-color: #541321;
+    background-image: url('/ki-norge-logo-hvit.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    background-origin: content-box;
+    background-clip: border-box;
+
+    /* Paddingen styrer størrelsen: logoen er 5:1 bred, så «contain» treffer alltid
+       bredden, og innholdsboksens bredde blir logoens bredde. Sidepaddingen er 30 og
+       ikke 20 prosent fordi Sara ville ha teksten mindre, det gir 40 mot 60 prosent
+       av boksen, altså to tredeler av den opprinnelige størrelsen. */
+    padding: 15% 30%;
+  }
+</style>

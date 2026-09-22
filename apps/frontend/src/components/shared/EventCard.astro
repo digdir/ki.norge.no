@@ -152,18 +152,27 @@ const isLink = !!href;
     font-size: var(--ds-body-sm-font-size);
   }
 
+  /* Tid og sted sto i en egen 350px-kolonne til høyre. Den tok plass fra
+     brødteksten uten å trenge den selv, så raden ligger nå under (#640). */
   .event-card-body {
-    display: grid;
-    grid-template-columns: 1fr 350px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--ds-size-4);
     padding: var(--ds-size-6);
-    align-items: center;
   }
 
   .event-card-info {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-2);
-    padding-inline-end: var(--ds-size-6);
+  }
+
+  /* Den fremhevede boksen rendrer tittel og ingress utenfor kortet, så info-feltet
+     kan stå helt tomt. Da er det fortsatt et flex-element, og gapet over tid- og
+     sted-raden blir liggende igjen som luft ingen har bedt om. */
+  .event-card-info:not(:has(*)) {
+    display: none;
   }
 
   .event-card-desc {
@@ -172,10 +181,25 @@ const isLink = !!href;
 
   .event-card-details {
     display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-4);
-    padding-inline-start: var(--ds-size-6);
+    flex-wrap: wrap;
+    gap: var(--ds-size-2) var(--ds-size-6);
+    margin: 0;
+    padding: 0;
     list-style: none;
+  }
+
+  /* Ikonet flukter med FØRSTE tekstlinje, ikke med midten av blokka. Et langt
+     stedsnavn brekker til to linjer på smal skjerm, og da havner et midtstilt
+     ikon mellom linjene. Baseline-nudgen holder det i ro på én linje også. */
+  .event-card-details li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ds-size-2);
+  }
+
+  .event-card-details li svg {
+    flex-shrink: 0;
+    margin-block-start: 0.1em;
   }
 
   .event-card-details p {
@@ -207,25 +231,6 @@ const isLink = !!href;
       font-size: var(--ds-heading-sm-font-size);
     }
 
-    .event-card-body {
-      grid-template-columns: 1fr;
-    }
-
-    .event-card-info {
-      padding-inline-end: 0;
-      padding-block-end: var(--ds-size-4);
-
-      &:not(:has(*)) {
-        display: none;
-      }
-    }
-
-    .event-card-details {
-      border-left: none;
-      padding-inline-start: 0;
-      border-top: 1px solid var(--ds-color-border-subtle);
-      padding-block-start: var(--ds-size-4);
-    }
   }
 
 </style>

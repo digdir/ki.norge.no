@@ -177,3 +177,83 @@ describe('velgVeiledning', () => {
     expect(velgVeiledning(veil({ veiledningId: 'slettet' }), GUIDER)).toBeNull();
   });
 });
+
+// Bildehierarkiet etter møtet med Sara: overstyring på kortet slår lenkekortbilde,
+// som slår hovedbilde. Uten treff gir det undefined, og da rendrer kortet
+// standardbildet selv.
+describe('bildehierarki i aktuelt', () => {
+  const media = (navn: string) => ({ url: `/media/${navn}.jpg`, width: 1200, height: 800 }) as any;
+
+  const medBilder = (over: Record<string, unknown>) => ({
+    ...artikkel('b1', 'bilde-artikkel'),
+    ...over,
+  });
+
+  const kortFor = (node: Record<string, unknown>, kortBilde?: unknown) =>
+    velgAktuelt(
+      blokk({ kort: [{ id: 'b1', ...(kortBilde ? { bilde: kortBilde } : {}) }] as any }),
+      { artikler: [node as any] },
+    )!.kort[0];
+
+  it('bruker hovedbildet når det er det eneste som er satt', () => {
+    const k = kortFor(medBilder({ artikkelBilde: media('hoved') }));
+    expect(k.image?.src).toContain('hoved');
+  });
+
+  it('lar lenkekortbildet slå hovedbildet', () => {
+    const k = kortFor(medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }));
+    expect(k.image?.src).toContain('lenkekort');
+  });
+
+  it('lar overstyringen på kortet slå begge', () => {
+    const k = kortFor(
+      medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }),
+      media('overstyrt'),
+    );
+    expect(k.image?.src).toContain('overstyrt');
+  });
+
+  it('gir undefined uten bilde, slik at standardbildet tar over', () => {
+    expect(kortFor(medBilder({})).image).toBeUndefined();
+  });
+
+  // Regresjonsvakt for #738: SEO-bildet lekket inn som innhold og ga veiledninger
+  // et bilde ingen hadde valgt. Det skal aldri tilbake.
+  it('bruker ALDRI SEO-bildet', () => {
+    expect(kortFor(medBilder({ seoBilde: media('seo') })).image).toBeUndefined();
+  });
+});
+
+// Aktuelt lar redaktøren peke på alt i innholdstreet, også steg og stegartikler
+// som ligger nestet under en guide. De er ikke med i kildelistene, så URLen
+// deres løses av kalleren og sendes inn via ekstra. Uten dette forsvant kortet
+// stille, og redaktøren fikk ingen beskjed om hvorfor.
+describe('aktuelt med nestet innhold', () => {
+  const steg = {
+    tittel: 'Finn ut hvilke data du trenger',
+    href: '/veiledning/gjoer-dataene-ki-klare/finn-ut-hvilke-data-du-trenger',
+    ingress: 'Ingress fra steget',
+  };
+
+  const kortFor = (ekstra?: Map<string, any>) =>
+    velgAktuelt(blokk({ kort: [{ id: 'steg-1' }] as any }), { artikler: [], ekstra });
+
+  it('viser kortet når kalleren har løst URLen', () => {
+    const r = kortFor(new Map([['steg-1', steg]]));
+    expect(r!.kort).toHaveLength(1);
+    expect(r!.kort[0].href).toBe(steg.href);
+    expect(r!.kort[0].tittel).toBe(steg.tittel);
+  });
+
+  it('dropper kortet når verken listene eller ekstra kjenner id-en', () => {
+    expect(kortFor(new Map())).toBeNull();
+  });
+
+  it('lar ingress-overstyring vinne også for nestet innhold', () => {
+    const r = velgAktuelt(
+      blokk({ kort: [{ id: 'steg-1', ingress: 'Overstyrt' }] as any }),
+      { artikler: [], ekstra: new Map([['steg-1', steg]]) },
+    );
+    expect(r!.kort[0].lead).toBe('Overstyrt');
+  });
+});

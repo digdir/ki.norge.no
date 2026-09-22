@@ -1,7 +1,7 @@
 import { Button, Dialog, Heading, Paragraph, Tag } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
-import type { KiTiltak } from '../../lib/ki-tiltak';
-import { toTextBlocks } from './textBlocks';
+import { visValg, type KiTiltak } from '../../lib/ki-tiltak';
+import { toTextBlocks, toInline } from './textBlocks';
 
 interface Props {
   tiltak: KiTiltak | null;
@@ -14,18 +14,62 @@ export const DETAIL_DIALOG_ID = 'tiltak-detalj-dialog';
  * Redaksjonell fritekst fra datasettet. Linjer som starter med et kulepunkt
  * blir en ekte <ul>, resten blir avsnitt. Se textBlocks.ts.
  */
+/**
+ * Lenker rendres som React-elementer, aldri som innerHTML. Teksten kommer fra
+ * et åpent innsendingsskjema, så det er den egenskapen som gjør den trygg.
+ */
+function Linjetekst({ text }: { text: string }) {
+  return (
+    <>
+      {toInline(text).map((del, i) =>
+        del.kind === 'link' ? (
+          <a key={`a-${i}`} href={del.href} rel="noopener noreferrer nofollow ugc" target="_blank">
+            {del.text}
+          </a>
+        ) : (
+          <span key={`t-${i}`}>{del.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+/** Seksjon med merkelapper. Rendrer ingenting når lista er tom. */
+function Merkelapper({ tittel, verdier }: { tittel: string; verdier: string[] }) {
+  if (verdier.length === 0) return null;
+  return (
+    <section className="tiltak-detalj-felt">
+      <h3 className="tiltak-detalj-merkelapp">{tittel}</h3>
+      <div className="tiltak-detalj-tagger">
+        {verdier.map((v) => (
+          <Tag key={v} variant="outline" data-size="sm">
+            {v}
+          </Tag>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function RichText({ text }: { text: string }) {
   return (
     <>
       {toTextBlocks(text).map((block, i) => {
-        if (block.kind !== 'list') return <Paragraph key={`p-${i}`}>{block.text}</Paragraph>;
+        if (block.kind !== 'list')
+          return (
+            <Paragraph key={`p-${i}`}>
+              <Linjetekst text={block.text} />
+            </Paragraph>
+          );
         // Nummerering kommer fra <ol>, ikke fra teksten. Skriver redaksjonen
         // 1, 1, 1 blir den likevel riktig i visningen.
         const List = block.ordered ? 'ol' : 'ul';
         return (
           <List key={`list-${i}`} className="tiltak-detalj-liste">
             {block.items.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>
+                <Linjetekst text={item} />
+              </li>
             ))}
           </List>
         );
@@ -35,9 +79,10 @@ function RichText({ text }: { text: string }) {
 }
 
 export default function KiTiltakDetail({ tiltak, onClose }: Props) {
-  // Oppstartsdato, sluttdato og status er tatt ut av visningen. Fase samles
-  // fortsatt inn i skjemaet og går til redaksjonen på e-post, men publiseres
-  // ikke. Leveranse og KI-type skal vises senere, se KiTiltak i lib/ki-tiltak.ts.
+  // Oppstartsdato og sluttdato er tatt ut av visningen. Metadatafeltene under
+  // gjelder bare tiltak som er sendt inn eller oppdatert via skjemaet, og et
+  // tomt felt rendres ikke i det hele tatt. De eldre oppføringene viser derfor
+  // bare beskrivelse og tema, og det er meningen.
   return (
     <Dialog
       id={DETAIL_DIALOG_ID}
@@ -83,6 +128,31 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             <section className="tiltak-detalj-felt">
               <h3 className="tiltak-detalj-merkelapp">Beskrivelse</h3>
               <RichText text={tiltak.beskrivelse} />
+            </section>
+          )}
+
+          <Merkelapper tittel="Type KI" verdier={visValg(tiltak.kiType, tiltak.kiTypeAnnet)} />
+
+          <Merkelapper
+            tittel="Hva tiltaket skal levere"
+            verdier={visValg(tiltak.leveranse, tiltak.leveranseAnnet)}
+          />
+
+          {tiltak.status.length > 0 && (
+            <section className="tiltak-detalj-felt">
+              <h3 className="tiltak-detalj-merkelapp">Fase</h3>
+              <Tag variant="outline" data-size="sm">
+                {tiltak.status}
+              </Tag>
+            </section>
+          )}
+
+          {tiltak.kontaktinfo && tiltak.kontaktinfo.trim().length > 0 && (
+            <section className="tiltak-detalj-felt">
+              <h3 className="tiltak-detalj-merkelapp">Kontaktinformasjon</h3>
+              <Paragraph>
+                <a href={`mailto:${tiltak.kontaktinfo.trim()}`}>{tiltak.kontaktinfo.trim()}</a>
+              </Paragraph>
             </section>
           )}
 

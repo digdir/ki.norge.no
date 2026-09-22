@@ -6,6 +6,9 @@ import {
   kiTiltak,
   type KiTiltak,
   type KiTiltakFilter,
+  visValg,
+  KI_TYPER,
+  LEVERANSER,
 } from './ki-tiltak';
 
 const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
@@ -80,6 +83,71 @@ describe('ki-tiltak datasett', () => {
     for (const tiltak of kiTiltak) {
       if (tiltak.status === '') continue;
       expect(ALLE_STATUSER, `ukjent status på ${tiltak.navn}`).toContain(tiltak.status);
+    }
+  });
+
+  /**
+   * Metadatafeltene er valgfrie, men skrives de først, skal de være riktige.
+   * En feilstavet verdi gir ingen krasj, bare en merkelapp som ser rar ut på
+   * et offentlig nettsted, og det oppdager ingen ved et øyekast.
+   */
+  test('kiType bruker bare verdier fra KI_TYPER', () => {
+    for (const t of kiTiltak) {
+      for (const v of t.kiType ?? []) {
+        expect(KI_TYPER, `ukjent KI-type på ${t.navn}`).toContain(v);
+      }
+    }
+  });
+
+  test('leveranse bruker bare verdier fra LEVERANSER', () => {
+    for (const t of kiTiltak) {
+      for (const v of t.leveranse ?? []) {
+        expect(LEVERANSER, `ukjent leveranse på ${t.navn}`).toContain(v);
+      }
+    }
+  });
+
+  test('ingen tomme strenger eller duplikater i flervalgene', () => {
+    for (const t of kiTiltak) {
+      for (const [felt, liste] of [['kiType', t.kiType], ['leveranse', t.leveranse]] as const) {
+        if (!liste) continue;
+        expect(liste.filter((v) => v.trim().length === 0), `tom verdi i ${felt} på ${t.navn}`).toHaveLength(0);
+        expect(new Set(liste).size, `duplikat i ${felt} på ${t.navn}`).toBe(liste.length);
+      }
+    }
+  });
+
+  /**
+   * Fritekst uten «Annet» i lista er en avskriftsfeil: teksten blir aldri vist,
+   * fordi visValg bare bytter ut ordet «Annet» der det står.
+   */
+  test('Annet-fritekst forutsetter at Annet er valgt', () => {
+    for (const t of kiTiltak) {
+      if (t.kiTypeAnnet?.trim()) {
+        expect(t.kiType ?? [], `kiTypeAnnet uten «Annet» på ${t.navn}`).toContain('Annet');
+      }
+      if (t.leveranseAnnet?.trim()) {
+        expect(t.leveranse ?? [], `leveranseAnnet uten «Annet» på ${t.navn}`).toContain('Annet');
+      }
+    }
+  });
+
+  test('kontaktinfo ser ut som en e-postadresse', () => {
+    for (const t of kiTiltak) {
+      if (!t.kontaktinfo?.trim()) continue;
+      expect(t.kontaktinfo, `kontaktinfo uten @ på ${t.navn}`).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+    }
+  });
+
+  /**
+   * Lenker skrives som [tekst](url). Bare http og https rendres som lenke, alt
+   * annet blir stående som synlig tekst, og det ser ut som en feil på sida.
+   */
+  test('lenker i beskrivelsen bruker http eller https', () => {
+    for (const t of kiTiltak) {
+      for (const treff of t.beskrivelse.matchAll(/\[[^\]\n]+\]\(([^)\s]+)\)/g)) {
+        expect(treff[1], `lenke som ikke blir klikkbar på ${t.navn}`).toMatch(/^https?:\/\//);
+      }
     }
   });
 
@@ -162,5 +230,33 @@ describe('filterTiltak', () => {
 
   test('ingen treff gir tom liste', () => {
     expect(filterTiltak(kiTiltak, { ...EMPTY, query: 'zzzfinnesikke' })).toEqual([]);
+  });
+});
+
+describe('visValg', () => {
+  test('tomt eller manglende valg gir tom liste', () => {
+    expect(visValg(undefined, 'noe')).toEqual([]);
+    expect(visValg([], 'noe')).toEqual([]);
+  });
+
+  test('vanlige valg går uendret gjennom', () => {
+    expect(visValg(['PoC', 'Pilot'])).toEqual(['PoC', 'Pilot']);
+  });
+
+  test('Annet byttes ut med friteksten, på samme plass', () => {
+    expect(visValg(['PoC', 'Annet', 'Pilot'], 'Noe helt eget')).toEqual([
+      'PoC',
+      'Noe helt eget',
+      'Pilot',
+    ]);
+  });
+
+  test('Annet uten fritekst beholdes som Annet', () => {
+    expect(visValg(['PoC', 'Annet'], '')).toEqual(['PoC', 'Annet']);
+    expect(visValg(['PoC', 'Annet'])).toEqual(['PoC', 'Annet']);
+  });
+
+  test('fritekst som bare er mellomrom teller som tom', () => {
+    expect(visValg(['Annet'], '   ')).toEqual(['Annet']);
   });
 });

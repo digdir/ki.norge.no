@@ -168,12 +168,15 @@ export interface VeiledningTrekkspillBlock {
 
 // Content types matching Umbraco document type schemas
 export interface Artikkel {
+  /** Redaktørens overstyring av publiseringsdatoen. Tom = ikke satt. */
+  publisertDato?: string;
   id: string;
   documentId: string;
   tittel: string;
   slug: string;
   ingress?: string;
   artikkelBilde?: UmbracoMedia;
+  lenkekortBilde?: UmbracoMedia;
   bildeAlt?: string;
   bakgrunn?: 'hvit' | 'lyseblaa' | string;
   innhold?: UmbracoBlock[];
@@ -201,7 +204,10 @@ export interface Kalenderhendelse {
   startDato: string;
   sluttDato?: string;
   tid?: string;
+  /** Kort stedsnavn. Vises på kortene. */
   sted?: string;
+  /** Full gateadresse. Vises bare på arrangementssiden, aldri på kortene. */
+  adresse?: string;
   /** Valgfri arrangør. Tom = arrangør vises ikke. */
   arrangor?: string;
   lenke?: string;
@@ -235,9 +241,10 @@ export interface Eksempel extends Artikkel {}
 export interface ArtiklerSeksjon {
   contentType: 'artikkelFeatured' | 'artikkelGruppe' | 'artikkelRelatert';
   id: string;
-  // Featured: én artikkel-referanse + valgfri ingress-overstyring
+  // Featured: én artikkel-referanse + valgfri ingress- og bilde-overstyring
   artikkelId?: string;
   ingress?: string;
+  bilde?: UmbracoMedia;
   // Gruppe: tittel + kolonner + 1-6 artikkel-referanser
   tittel?: string;
   antallKolonner?: number;
@@ -300,6 +307,8 @@ export interface EksemplerOversikt {
 }
 
 export interface VeiledningGuide {
+  /** Redaktørens overstyring av publiseringsdatoen. Tom = ikke satt. */
+  publisertDato?: string;
   id: string;
   documentId: string;
   tittel: string;
@@ -309,6 +318,7 @@ export interface VeiledningGuide {
   stegGruppeTittler?: string;
   seoTittel?: string;
   seoBeskrivelse?: string;
+  lenkekortBilde?: UmbracoMedia;
   seoBilde?: UmbracoMedia;
   createdAt: string;
   updatedAt: string;
@@ -355,6 +365,9 @@ export interface EventItem {
 export interface ForsideKort {
   id?: string;
   ingress?: string;
+  // Overstyrer bildet for dette kortet alene. Ligger pa blokken, ikke pa
+  // artikkelen, sa forsiden og /artikler kan vise hvert sitt bilde.
+  bilde?: UmbracoMedia;
 }
 
 // Én forside-modul (block i forside.seksjoner). Flat: alle mulige felt valgfrie.
@@ -789,6 +802,35 @@ async function fetchContentItemById(id: string, options: FetchOptions = {}): Pro
   return deliveryApiFetch<ResolvedContentItem>(`/item/${id}${previewSuffix}`, options);
 }
 
+/**
+ * Henter et hvilket som helst publisert innhold som et lenkekort, uansett type.
+ * Aktuelt-modulen lar redaktoeren peke paa alt i innholdstreet, ogsaa steg og
+ * stegartikler som ligger nestet under en guide. URLen loeses via den delte
+ * rutetabellen, som henter forfedre naar moensteret trenger dem.
+ *
+ * Returnerer null naar typen mangler rutemapping eller en forfar ikke finnes,
+ * slik at kortet kan droppes i stedet for aa lenke til "#".
+ */
+export async function hentKortKandidat(
+  id: string,
+  options: FetchOptions = {},
+): Promise<{ id: string; tittel: string; href: string; ingress?: string; lenkekortBilde?: UmbracoMedia; artikkelBilde?: UmbracoMedia; publishedAt?: string } | null> {
+  const item = await fetchContentItemById(id, options);
+  if (!item) return null;
+  const href = await resolveContentUrl(item, CONTENT_ROUTES, options);
+  if (!href) return null;
+  const p = item.properties ?? {};
+  return {
+    id: item.id,
+    tittel: (p.tittel as string) || '',
+    href,
+    ingress: (p.ingress as string) || undefined,
+    lenkekortBilde: mapMedia(p.lenkekortBilde),
+    artikkelBilde: mapMedia(p.artikkelBilde),
+    publishedAt: (item as any).createDate || undefined,
+  };
+}
+
 export async function fetchContentAncestorsById(id: string, options: FetchOptions = {}): Promise<ResolvedContentItem[]> {
   const previewSuffix = options.preview ? '&preview=true' : '';
   const data = await deliveryApiFetch<UmbracoResponse<ResolvedContentItem>>(
@@ -1066,12 +1108,18 @@ export async function enrichBlocksInternalLinks(
 function mapItem<T>(item: UmbracoItem, contentType: string): T {
   const props = item.properties;
 
+  // publishedAt er createDate, ikke updateDate. Med updateDate flyttet
+  // «Publisert»-datoen seg hver gang en redaktør rettet en skrivefeil, og i
+  // prod hadde 5 av 36 noder over 30 dagers avvik, den verste 88 dager.
+  // Delivery API-et eksponerer ikke førstegangspublisert, bare createDate og
+  // updateDate, så createDate er det nærmeste vi kommer. Kalenderhendelser
+  // gjorde dette allerede, se mappingen lenger ned i fila.
   const base = {
     id: item.id,
     documentId: item.id,
     createdAt: item.createDate,
     updatedAt: item.updateDate,
-    publishedAt: item.updateDate,
+    publishedAt: item.createDate,
     locale: Object.keys(item.cultures || {})[0] || 'nb-NO',
   };
 
@@ -1105,20 +1153,31 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
     case 'eksempel':
     case 'enkelVeiledning':
     case 'stegartikkel':
-    case 'side':
+    case 'side': {
+      const innhold = mapArtikkelBlocks(props.innhold);
+      const publisertDato = props.publisertDato as string || '';
       return {
         ...base,
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
         ingress: props.ingress as string || '',
         artikkelBilde: mapMedia(props.artikkelBilde),
+        lenkekortBilde: mapMedia(props.lenkekortBilde),
         bildeAlt: props.bildeAlt as string || '',
         bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
-        innhold: mapArtikkelBlocks(props.innhold),
+        publisertDato,
+        // Datoen loeses her, ikke paa hvert kallsted. Da kan ikke et kort, en
+        // artikkelside og en sortering vise tre ulike datoer for samme side.
+        // createdAt beholder den raa opprettelsesdatoen.
+        publishedAt:
+          velgPublisertDato({ publisertDato, publishedAt: base.publishedAt, innhold }) ??
+          base.publishedAt,
+        innhold,
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
       } as T;
+    }
 
     case 'kalenderhendelse':
       return {
@@ -1132,6 +1191,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         sluttDato: props.sluttDato as string || undefined,
         tid: props.tid as string || undefined,
         sted: props.sted as string || undefined,
+        adresse: props.adresse as string || undefined,
         arrangor: props.arrangor as string || undefined,
         lenke: props.lenke as string || undefined,
         pris: props.pris as string || undefined,
@@ -1156,7 +1216,15 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         tittel: props.tittel as string || item.name,
         slug: props.slug as string || '',
         ingress: props.ingress as string || '',
+        publisertDato: props.publisertDato as string || '',
+        // Guider har ingen byline-blokk, men samme kjede gjelder.
+        publishedAt:
+          velgPublisertDato({
+            publisertDato: props.publisertDato as string || '',
+            publishedAt: base.publishedAt,
+          }) ?? base.publishedAt,
         innholdBlokker: mapVeiledningBlocks(props.innholdBlokker),
+        lenkekortBilde: mapMedia(props.lenkekortBilde),
         stegGruppeTittler: props.stegGruppeTittler as string || '',
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -1643,6 +1711,7 @@ function mapForsideKort(value: unknown): ForsideKort[] | undefined {
       return {
         id,
         ingress: (props.ingress as string) || undefined,
+        bilde: mapMedia(props.bilde),
       };
     })
     .filter((k: ForsideKort) => !!k.id);
@@ -1716,7 +1785,7 @@ function mapArtiklerSeksjoner(value: unknown): ArtiklerSeksjon[] | undefined {
     const id = content.id || '';
 
     if (ct === 'artikkelFeatured') {
-      return { contentType: ct, id, artikkelId: pickerId(props.artikkel), ingress: (props.ingress as string) || undefined };
+      return { contentType: ct, id, artikkelId: pickerId(props.artikkel), ingress: (props.ingress as string) || undefined, bilde: mapMedia(props.bilde) };
     }
     if (ct === 'artikkelGruppe') {
       const refs = [1, 2, 3, 4, 5, 6].map((n) => pickerId(props[`artikkel${n}`])).filter((x): x is string => !!x);
@@ -1845,6 +1914,71 @@ export interface CardImage {
  * som sideforhold nar CSS styrer selve storrelsen, sa de trenger ikke stemme
  * med den leverte bredden.
  */
+/**
+ * Bildet et lenkekort skal vise, i prioritert rekkefolge:
+ *   1. overstyring pa selve kortet, som bare gjelder den ene plasseringen
+ *   2. nodens lenkekortbilde
+ *   3. nodens hovedbilde
+ * Ingen treff gir undefined, og da fyller Standardbilde boksen.
+ *
+ * SEO-bildet er bevisst ikke med. Det er for delingsforhandsvisning, ikke
+ * innhold, og at det lekket inn hit er nettopp feilen i #738.
+ */
+/**
+ * Datoen som skal vises for et innhold, og som sortering skal bruke.
+ *
+ * Rekkefølgen er redaktørens overstyring, så byline-datoen der artikkelen har
+ * en byline-blokk, så datoen innholdet ble opprettet (se publishedAt i
+ * mapItem). Samlet her framfor spredt utover, slik velgKortbilde gjorde det for
+ * bilder, så kort, artikkelsider og sortering ikke kan komme til å vise tre
+ * ulike datoer for samme side.
+ *
+ * Tom streng teller som ikke satt. Både publisertDato og byline-datoen mappes
+ * til '' når feltet står tomt i Umbraco, så en ren ?? -kjede ville valgt tomt.
+ */
+export function velgPublisertDato(
+  node?: {
+    publisertDato?: string;
+    publishedAt?: string;
+    innhold?: Array<{ contentType: string; content?: { dato?: string } }>;
+  } | null,
+): string | undefined {
+  const byline = node?.innhold?.find((b) => b.contentType === 'artikkelByline');
+  return satt(node?.publisertDato) ?? satt(byline?.content?.dato) ?? satt(node?.publishedAt);
+}
+
+/** Nyeste først. Innhold uten dato havner sist, uansett sorteringsretning. */
+export function sammenlignPublisertDato(
+  a: Parameters<typeof velgPublisertDato>[0],
+  b: Parameters<typeof velgPublisertDato>[0],
+): number {
+  const ta = tid(velgPublisertDato(a));
+  const tb = tid(velgPublisertDato(b));
+  return tb - ta;
+}
+
+function satt(verdi?: string): string | undefined {
+  const trimmet = verdi?.trim();
+  return trimmet ? trimmet : undefined;
+}
+
+function tid(iso?: string): number {
+  if (!iso) return Number.NEGATIVE_INFINITY;
+  const ms = new Date(iso).getTime();
+  return Number.isNaN(ms) ? Number.NEGATIVE_INFINITY : ms;
+}
+
+export function velgKortbilde(
+  node?: { lenkekortBilde?: UmbracoMedia; artikkelBilde?: UmbracoMedia } | null,
+  overstyring?: UmbracoMedia,
+): CardImage | undefined {
+  return (
+    getCardImage(overstyring) ??
+    getCardImage(node?.lenkekortBilde) ??
+    getCardImage(node?.artikkelBilde)
+  );
+}
+
 export function getCardImage(media?: UmbracoMedia): CardImage | undefined {
   const src = getMediaUrl(media, MEDIA_WIDTH.card);
   if (!src) return undefined;
@@ -2144,7 +2278,9 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
           slug,
           contentType: item.contentType,
           excerpt,
-          publishedAt: item.updateDate,
+          // Samme kilde som i mapItem, så et søketreff viser samme dato
+          // som siden det peker til.
+          publishedAt: item.createDate,
         };
       });
 
