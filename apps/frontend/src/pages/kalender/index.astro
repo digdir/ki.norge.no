@@ -96,16 +96,19 @@ const breadcrumbJsonLd = breadcrumbSchema([
     </section>
   )}
 
-  <!-- Uten egen overskrift her: sidetittelen er «Arrangementer», og en h2 med
-       samme ord rett under leses som en dobling. Fanene navngir panelene (#640). -->
+  <!-- Ingen synlig overskrift her: sidetittelen er «Arrangementer», og en h2 med
+       samme ord rett under leses som en dobling (#640). Panelene har i stedet hver
+       sin skjulte h2, ellers hopper sida fra h1 rett til korttitlenes h3. Det
+       skjulte panelet har hidden, så bare det aktive bidrar til overskriftslista. -->
   <section class="kalender-arrangementer" data-layout-block="content">
     <ds-tabs class="ds-tabs kalender-tabs">
-      <ds-tablist>
+      <ds-tablist aria-label="Arrangementer">
         <ds-tab aria-controls="panel-kommende" data-value="kommende" aria-selected={String(startfane === 'kommende')}>Kommende arrangement</ds-tab>
         <ds-tab aria-controls="panel-tidligere" data-value="tidligere" aria-selected={String(startfane === 'tidligere')}>Tidligere arrangement</ds-tab>
       </ds-tablist>
 
       <ds-tabpanel id="panel-kommende">
+        <h2 class="ds-sr-only">Kommende arrangement</h2>
         {kommende.length === 0 ? (
           featuredErKommende ? (
             <p class="kalender-empty">Det kommende arrangementet er vist øverst på siden.</p>
@@ -122,6 +125,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
       </ds-tabpanel>
 
       <ds-tabpanel id="panel-tidligere">
+        <h2 class="ds-sr-only">Tidligere arrangement</h2>
         {tidligere.length === 0 ? (
           <p class="kalender-empty">{tidligereTomTekst(featured, now)}</p>
         ) : (

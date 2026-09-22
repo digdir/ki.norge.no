@@ -157,6 +157,7 @@ const isLink = !!href;
   .event-card-body {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: var(--ds-size-4);
     padding: var(--ds-size-6);
   }
@@ -165,6 +166,13 @@ const isLink = !!href;
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-2);
+  }
+
+  /* Den fremhevede boksen rendrer tittel og ingress utenfor kortet, så info-feltet
+     kan stå helt tomt. Da er det fortsatt et flex-element, og gapet over tid- og
+     sted-raden blir liggende igjen som luft ingen har bedt om. */
+  .event-card-info:not(:has(*)) {
+    display: none;
   }
 
   .event-card-desc {
@@ -180,10 +188,18 @@ const isLink = !!href;
     list-style: none;
   }
 
+  /* Ikonet flukter med FØRSTE tekstlinje, ikke med midten av blokka. Et langt
+     stedsnavn brekker til to linjer på smal skjerm, og da havner et midtstilt
+     ikon mellom linjene. Baseline-nudgen holder det i ro på én linje også. */
   .event-card-details li {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--ds-size-2);
+  }
+
+  .event-card-details li svg {
+    flex-shrink: 0;
+    margin-block-start: 0.1em;
   }
 
   .event-card-details p {
@@ -215,11 +231,6 @@ const isLink = !!href;
       font-size: var(--ds-heading-sm-font-size);
     }
 
-    /* Kroppen er kolonne i begge bredder nå, så mobil trenger ingen egen
-       omstokking. Tomt info-felt skjules fortsatt, ellers står gapet igjen. */
-    .event-card-info:not(:has(*)) {
-      display: none;
-    }
   }
 
 </style>
