@@ -67,7 +67,12 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
     <Fragment slot="sidebar">
       <div class="event-meta-item">
         <AkselIcon name="LocationPin" size={24} />
-        <div><span class="event-meta-label">Sted:</span> <strong>{hendelse.sted || 'Ikke oppgitt'}</strong></div>
+        <div>
+          <span class="event-meta-label">Sted:</span> <strong>{hendelse.sted || 'Ikke oppgitt'}</strong>
+          {/* Adressen hører til stedet, så den deler nål med det i stedet for å
+              få en egen rad med enda en nål. Den vises bare her, ikke på kortene. */}
+          {hendelse.adresse && <span class="event-meta-adresse">{hendelse.adresse}</span>}
+        </div>
       </div>
       {arrangør && (
         <div class="event-meta-item">
@@ -152,6 +157,13 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
 
   :global(.event-meta-label) {
     font-weight: 400;
+  }
+  /* Egen linje under stedsnavnet, lavmælt. Nøytralvarianten av subtle, ikke
+     --ds-color-text-subtle, som løser til aksentfargen utenfor nøytral kontekst. */
+  :global(.event-meta-adresse) {
+    display: block;
+    font-size: var(--ds-font-size-3);
+    color: var(--ds-color-neutral-text-subtle);
   }
 
   :global(.event-register-btn) {
