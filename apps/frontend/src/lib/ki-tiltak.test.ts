@@ -6,6 +6,7 @@ import {
   kiTiltak,
   type KiTiltak,
   type KiTiltakFilter,
+  visValg,
 } from './ki-tiltak';
 
 const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
@@ -162,5 +163,33 @@ describe('filterTiltak', () => {
 
   test('ingen treff gir tom liste', () => {
     expect(filterTiltak(kiTiltak, { ...EMPTY, query: 'zzzfinnesikke' })).toEqual([]);
+  });
+});
+
+describe('visValg', () => {
+  test('tomt eller manglende valg gir tom liste', () => {
+    expect(visValg(undefined, 'noe')).toEqual([]);
+    expect(visValg([], 'noe')).toEqual([]);
+  });
+
+  test('vanlige valg går uendret gjennom', () => {
+    expect(visValg(['PoC', 'Pilot'])).toEqual(['PoC', 'Pilot']);
+  });
+
+  test('Annet byttes ut med friteksten, på samme plass', () => {
+    expect(visValg(['PoC', 'Annet', 'Pilot'], 'Noe helt eget')).toEqual([
+      'PoC',
+      'Noe helt eget',
+      'Pilot',
+    ]);
+  });
+
+  test('Annet uten fritekst beholdes som Annet', () => {
+    expect(visValg(['PoC', 'Annet'], '')).toEqual(['PoC', 'Annet']);
+    expect(visValg(['PoC', 'Annet'])).toEqual(['PoC', 'Annet']);
+  });
+
+  test('fritekst som bare er mellomrom teller som tom', () => {
+    expect(visValg(['Annet'], '   ')).toEqual(['Annet']);
   });
 });

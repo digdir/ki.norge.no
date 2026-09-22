@@ -1,6 +1,6 @@
 import { Button, Dialog, Heading, Paragraph, Tag } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
-import type { KiTiltak } from '../../lib/ki-tiltak';
+import { visValg, type KiTiltak } from '../../lib/ki-tiltak';
 import { toTextBlocks, toInline } from './textBlocks';
 
 interface Props {
@@ -34,6 +34,23 @@ function Linjetekst({ text }: { text: string }) {
   );
 }
 
+/** Seksjon med merkelapper. Rendrer ingenting når lista er tom. */
+function Merkelapper({ tittel, verdier }: { tittel: string; verdier: string[] }) {
+  if (verdier.length === 0) return null;
+  return (
+    <section className="tiltak-detalj-felt">
+      <h3 className="tiltak-detalj-merkelapp">{tittel}</h3>
+      <div className="tiltak-detalj-tagger">
+        {verdier.map((v) => (
+          <Tag key={v} variant="outline" data-size="sm">
+            {v}
+          </Tag>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function RichText({ text }: { text: string }) {
   return (
     <>
@@ -62,9 +79,10 @@ function RichText({ text }: { text: string }) {
 }
 
 export default function KiTiltakDetail({ tiltak, onClose }: Props) {
-  // Oppstartsdato, sluttdato og status er tatt ut av visningen. Fase samles
-  // fortsatt inn i skjemaet og går til redaksjonen på e-post, men publiseres
-  // ikke. Leveranse og KI-type skal vises senere, se KiTiltak i lib/ki-tiltak.ts.
+  // Oppstartsdato og sluttdato er tatt ut av visningen. Metadatafeltene under
+  // gjelder bare tiltak som er sendt inn eller oppdatert via skjemaet, og et
+  // tomt felt rendres ikke i det hele tatt. De eldre oppføringene viser derfor
+  // bare beskrivelse og tema, og det er meningen.
   return (
     <Dialog
       id={DETAIL_DIALOG_ID}
@@ -110,6 +128,31 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             <section className="tiltak-detalj-felt">
               <h3 className="tiltak-detalj-merkelapp">Beskrivelse</h3>
               <RichText text={tiltak.beskrivelse} />
+            </section>
+          )}
+
+          <Merkelapper tittel="Type KI" verdier={visValg(tiltak.kiType, tiltak.kiTypeAnnet)} />
+
+          <Merkelapper
+            tittel="Hva tiltaket skal levere"
+            verdier={visValg(tiltak.leveranse, tiltak.leveranseAnnet)}
+          />
+
+          {tiltak.status.length > 0 && (
+            <section className="tiltak-detalj-felt">
+              <h3 className="tiltak-detalj-merkelapp">Fase</h3>
+              <Tag variant="outline" data-size="sm">
+                {tiltak.status}
+              </Tag>
+            </section>
+          )}
+
+          {tiltak.kontaktinfo && tiltak.kontaktinfo.trim().length > 0 && (
+            <section className="tiltak-detalj-felt">
+              <h3 className="tiltak-detalj-merkelapp">Kontaktinformasjon</h3>
+              <Paragraph>
+                <a href={`mailto:${tiltak.kontaktinfo.trim()}`}>{tiltak.kontaktinfo.trim()}</a>
+              </Paragraph>
             </section>
           )}
 
