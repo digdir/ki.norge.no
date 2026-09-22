@@ -35,6 +35,12 @@ spec:
             # oppstart, og Delivery API svarer 200 OK med tom liste.
             - name: Umbraco__CMS__Unattended__UpgradeUnattended
               value: "true"
+            # Uten en varig sti havner DataProtection-nøklene pod-lokalt, og da
+            # blir alle redaktører logget ut ved hver deploy fordi backoffice-
+            # cookiene ikke lar seg dekryptere av den nye podden. umbraco-data er
+            # montert på /app/umbraco/Data og er ReadWriteOnce med replicas: 1.
+            - name: DataProtection__KeyPath
+              value: /app/umbraco/Data/DataProtection-Keys
             - name: KeyVault__AkvUri
               valueFrom:
                 configMapKeyRef:

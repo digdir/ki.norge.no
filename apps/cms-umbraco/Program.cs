@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+
 // ── Guard: prevent two instances (protects SQLite from corruption) ──
 // Must run BEFORE WebApplication.CreateBuilder, because Umbraco's boot
 // sequence can overwrite the database file.
@@ -38,6 +40,21 @@
 }
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// ── DataProtection-nøkler på disk ──
+// Uten dette lager ASP.NET nøklene under $HOME/.aspnet/DataProtection-Keys, som er
+// pod-lokalt. Hver nye pod får nye nøkler, og da kan ikke backoffice-cookiene
+// (__Host-umbAccessToken, __Host-umbRefreshToken, UMB_UCONTEXT) dekrypteres lenger.
+// Alle redaktører blir logget ut ved hver deploy. umbraco-data er ReadWriteOnce med
+// replicas: 1 og strategy: Recreate, så bare én pod skriver hit om gangen.
+// Stien finnes bare i drift; lokalt faller den tilbake til standarden.
+var dpKeys = builder.Configuration["DataProtection:KeyPath"];
+if (!string.IsNullOrWhiteSpace(dpKeys))
+{
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dpKeys))
+        .SetApplicationName("KiNorge.Cms");
+}
 
 // ── Azure Key Vault config (prod/tt02 on dis-core) ──
 // dis-core provisions an Azure Key Vault per environment and gives the pod a workload
