@@ -41,6 +41,11 @@ const GATED_HOSTS = new Set(['ki.norge.no', 'ki.test.norge.no']);
 // sammen: beskytter du bare siden, ligger dataene fortsatt åpne på API-ruta.
 const ADMIN_ONLY_PATHS = new Set(['/status', '/api/status-checks']);
 
+// /health er et maskin-endepunkt som /api/*, selv om adressen er lik
+// info.altinn.no/health. Uten dette ville holdesiden svart 200 på den i
+// kommer-snart-modus, og overvåkingen hadde trodd alt var i orden.
+const isMachineRoute = (pathname: string) => pathname.startsWith('/api/') || pathname === '/health';
+
 // Launch switch. Gated hosts show the holding page UNLESS LAUNCH_MODE is "live".
 // Fail-safe: any other value (or unset) keeps them gated, so a misconfigured
 // deploy can never accidentally expose the site.
@@ -167,7 +172,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isComingSoon = LAUNCH_MODE !== 'live' && GATED_HOSTS.has(url.hostname);
 
   if (isComingSoon) {
-    const isApiRoute = url.pathname.startsWith('/api/');
+    const isApiRoute = isMachineRoute(url.pathname);
     const hasAdminCookie = cookies.has('ki_admin');
     const isPublicAsset =
       PUBLIC_ASSET_PATHS.has(url.pathname) ||
@@ -183,7 +188,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const isPreview =
     url.searchParams.has('preview') || cookies.has('preview');
-  const isApiRoute = url.pathname.startsWith('/api/');
+  const isApiRoute = isMachineRoute(url.pathname);
   const isAdminRoute = ADMIN_ONLY_PATHS.has(url.pathname) || url.pathname === '/admin-tilgang';
 
   const isReadRequest = context.request.method === 'GET' || context.request.method === 'HEAD';

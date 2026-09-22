@@ -20,6 +20,7 @@ Innholdsfortegnelse:
   - [AzureSQL](#azuresql)
   - [Mediefiler](#mediefiler)
 - [ElasticSearch](#elasticsearch)
+- [Helsesjekk](#helsesjekk)
 - [Miljøer i korthet](#miljøer-i-korthet)
 
 ## Cloudflare
@@ -172,6 +173,22 @@ Vi bruker Elastic Cloud via Microsoft Azure. Indeksen heter `ki-content`.
 ```
 wrangler secret put ES_API_KEY --env prod
 ```
+
+## Helsesjekk
+
+`https://ki.norge.no/health` er punktet vakta skal overvåke. Formatet er det samme som `https://info.altinn.no/health`, så én regel på feltet `status` dekker begge portalene.
+
+| `status` | HTTP | Betyr |
+| --- | --- | --- |
+| `Healthy` | 200 | Alt oppe |
+| `Degraded` | 200 | Søket er nede, resten av nettstedet virker |
+| `Unhealthy` | 503 | CMS-et svarer ikke, eller svarer uten innhold |
+
+Umbraco regnes som nede også når Delivery API svarer 200 med tom liste. Slik ser det ut når en oppgradering hopper over migreringene.
+
+Svaret viser bare status og tid, aldri adresser eller feilmeldinger. Detaljene står på `/status`, som krever admin-cookie. Resultatet gjenbrukes i 15 sekunder, så `/health` ikke kan brukes til å belaste CMS-et.
+
+`/api/health` og `/api/health/ready` er eldre og sjekker mindre. Bruk `/health`.
 
 ## Miljøer i korthet
 
