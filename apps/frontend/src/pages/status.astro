@@ -109,7 +109,8 @@ import Layout from '../components/layout/Layout.astro';
   setInterval(loadChecks, 30_000);
 </script>
 
-<style>
+<!-- Global fordi radene settes inn med innerHTML og ikke får Astros scope-attributt. -->
+<style is:global>
   .status-page {
     max-width: 760px;
     margin: 0 auto;
