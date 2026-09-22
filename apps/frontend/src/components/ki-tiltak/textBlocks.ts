@@ -61,3 +61,51 @@ export function toTextBlocks(text: string): TextBlock[] {
 
   return blocks;
 }
+
+/**
+ * Lenker i fritekst, skrevet som markdown: [Se rapporten](https://example.no).
+ *
+ * Bare lenker. Ikke fet skrift, ikke bilder, ikke rå HTML. Grunnen er at
+ * beskrivelsen kommer fra et åpent innsendingsskjema, og en delvis markdown
+ * som senere vokser er hvordan man ender med å rendre brukerinnsendt HTML.
+ * Segmentene under blir React-elementer hos kalleren, aldri innerHTML, så
+ * XSS er utelukket av konstruksjon og ikke av årvåkenhet.
+ */
+const LENKE = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
+
+export type Inline =
+  | { kind: 'text'; text: string }
+  | { kind: 'link'; text: string; href: string };
+
+/**
+ * Bare http og https. En href som ikke består, rendres som den teksten den er,
+ * så «[klikk](javascript:alert(1))» blir synlig tekst og ikke en lenke.
+ * new URL() er strengere og mer forutsigbar enn et regex på protokollen.
+ */
+function erTryggLenke(href: string): boolean {
+  try {
+    const u = new URL(href);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/** Deler en linje i tekst og lenker. Uten lenker gir den ett tekstsegment. */
+export function toInline(text: string): Inline[] {
+  const ut: Inline[] = [];
+  let sist = 0;
+
+  for (const treff of text.matchAll(LENKE)) {
+    const [hele, etikett, href] = treff;
+    const start = treff.index;
+    if (!erTryggLenke(href)) continue;
+
+    if (start > sist) ut.push({ kind: 'text', text: text.slice(sist, start) });
+    ut.push({ kind: 'link', text: etikett, href });
+    sist = start + hele.length;
+  }
+
+  if (sist < text.length) ut.push({ kind: 'text', text: text.slice(sist) });
+  return ut;
+}

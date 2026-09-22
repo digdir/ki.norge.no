@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { toTextBlocks } from './textBlocks';
+import { toTextBlocks, toInline } from './textBlocks';
 
 describe('toTextBlocks', () => {
   test('vanlig tekst uten linjeskift blir ett avsnitt', () => {
@@ -72,5 +72,57 @@ describe('toTextBlocks', () => {
   test('teksten i datasettet i dag er uendret, siden den ikke har linjeskift', () => {
     const dagens = 'Dette er noen andre eksempler: • Vi har forenklet IT-løsninger.';
     expect(toTextBlocks(dagens)).toEqual([{ kind: 'paragraph', text: dagens }]);
+  });
+});
+
+describe('toInline (lenker i fritekst)', () => {
+  test('gir ett tekstsegment når det ikke er lenker', () => {
+    expect(toInline('Bare tekst.')).toEqual([{ kind: 'text', text: 'Bare tekst.' }]);
+  });
+
+  test('plukker ut en lenke midt i en setning', () => {
+    expect(toInline('Se [rapporten](https://example.no/a) for mer.')).toEqual([
+      { kind: 'text', text: 'Se ' },
+      { kind: 'link', text: 'rapporten', href: 'https://example.no/a' },
+      { kind: 'text', text: ' for mer.' },
+    ]);
+  });
+
+  test('takler flere lenker på samme linje', () => {
+    const ut = toInline('[en](https://a.no) og [to](https://b.no)');
+    expect(ut.filter((d) => d.kind === 'link')).toHaveLength(2);
+  });
+
+  test('lenke helt i starten og helt i slutten gir ingen tomme tekstsegmenter', () => {
+    expect(toInline('[a](https://a.no)')).toEqual([
+      { kind: 'link', text: 'a', href: 'https://a.no' },
+    ]);
+  });
+
+  // Det viktigste her. Teksten kommer fra et åpent innsendingsskjema.
+  test.each([
+    'javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    'file:///etc/passwd',
+    '/relativ/sti',
+    'ikke-en-url',
+  ])('rendrer ikke %s som lenke', (href) => {
+    const ut = toInline(`[klikk](${href})`);
+    expect(ut.every((d) => d.kind === 'text')).toBe(true);
+    expect(ut.map((d) => d.text).join('')).toBe(`[klikk](${href})`);
+  });
+
+  test('lar ufullstendig markdown stå som vanlig tekst', () => {
+    expect(toInline('[mangler parentes](https://a.no')).toEqual([
+      { kind: 'text', text: '[mangler parentes](https://a.no' },
+    ]);
+  });
+
+  test('tolker ikke HTML i etiketten som markup', () => {
+    const ut = toInline('[<img src=x onerror=alert(1)>](https://a.no)');
+    expect(ut).toEqual([
+      { kind: 'link', text: '<img src=x onerror=alert(1)>', href: 'https://a.no' },
+    ]);
   });
 });
