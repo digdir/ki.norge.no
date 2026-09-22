@@ -8,9 +8,10 @@ interface Props {
   lead?: string;
   image?: string;
   imageAlt?: string;
+  tags?: string[];
 }
 
-const { href, title, lead, image, imageAlt = '' } = Astro.props;
+const { href, title, lead, image, imageAlt = '', tags = [] } = Astro.props;
 const id = `featured-card-${crypto.randomUUID().slice(0, 8)}`;
 
 // Pilen limes til siste ord så den ikke brekker alene (#464)
@@ -24,6 +25,11 @@ const titleParts = splitLastWord(title);
   <div class="featured-card-body">
     <h3 class="featured-card-title"><a id={id} href={href}>{titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="featured-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span></a></h3>
     {lead && <p class="featured-card-lead">{lead}</p>}
+    {tags.length > 0 && (
+      <ul class="featured-card-tags">
+        {tags.map((t) => <li><span class="ds-tag" data-size="sm">{t}</span></li>)}
+      </ul>
+    )}
   </div>
 </article>
 
@@ -76,6 +82,16 @@ const titleParts = splitLastWord(title);
     flex-direction: column;
     gap: var(--ds-size-4);
     justify-content: center;
+  }
+
+  .featured-card-tags {
+    order: -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .featured-card-title {
