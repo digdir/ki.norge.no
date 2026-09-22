@@ -3,6 +3,7 @@ import { httpStatusFor, memoize, runHealthChecks, type HealthConfig } from '../l
 
 const config: HealthConfig = {
   umbracoUrl: (process.env.UMBRACO_URL || import.meta.env.UMBRACO_URL || 'http://localhost:5000').replace(/\/$/, ''),
+  umbracoPublicUrl: (process.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_PUBLIC_URL || '').replace(/\/$/, ''),
   esEndpoint: (process.env.ES_ENDPOINT || import.meta.env.ES_ENDPOINT || '').replace(/\/$/, ''),
   esApiKey: process.env.ES_API_KEY || import.meta.env.ES_API_KEY || '',
   esIndex: process.env.KI_INDEX || import.meta.env.KI_INDEX || 'ki-content',

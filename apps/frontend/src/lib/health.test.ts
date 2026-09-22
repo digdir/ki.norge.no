@@ -10,6 +10,7 @@ import {
 
 const CONFIG: HealthConfig = {
   umbracoUrl: 'https://cms.intern.example',
+  umbracoPublicUrl: 'https://cms-offentlig.example',
   esEndpoint: 'https://es.intern.example',
   esApiKey: 'hemmelig-nokkel-123',
   esIndex: 'ki-content',
@@ -20,16 +21,17 @@ type Handler = (url: string, init?: RequestInit) => Promise<Response>;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function fakeFetch(handlers: { umbraco?: Handler; es?: Handler }): typeof fetch {
+function fakeFetch(handlers: { umbraco?: Handler; media?: Handler; es?: Handler }): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.startsWith(CONFIG.umbracoUrl)) return (handlers.umbraco ?? (async () => json({ total: 3 })))(url, init);
+    if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.media ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.esEndpoint)) return (handlers.es ?? (async () => json({ hits: {} })))(url, init);
     throw new Error(`uventet url ${url}`);
   }) as typeof fetch;
 }
 
-const run = (handlers: { umbraco?: Handler; es?: Handler }, config = CONFIG, timeoutMs = 3000) =>
+const run = (handlers: { umbraco?: Handler; media?: Handler; es?: Handler }, config = CONFIG, timeoutMs = 3000) =>
   runHealthChecks(config, { fetch: fakeFetch(handlers), now: Date.now, timeoutMs });
 
 /** Svarer aldri, men respekterer avbrudd, som et CMS som henger. */
@@ -55,8 +57,28 @@ describe('runHealthChecks', () => {
     const r = await run({});
     expect(r.status).toBe('Healthy');
     expect(r.entries.umbraco.status).toBe('Healthy');
+    expect(r.entries.media.status).toBe('Healthy');
     expect(r.entries.elasticsearch.status).toBe('Healthy');
     expect(httpStatusFor(r.status)).toBe(200);
+  });
+
+  // #600: proxyen var av, nettstedet var uten bilder, og alt annet svarte.
+  test('offentlig CMS-adresse nede gir Degraded, for sidene rendres fortsatt', async () => {
+    const r = await run({ media: async () => { throw new Error('ENOTFOUND cms-offentlig.example'); } });
+    expect(r.entries.media.status).toBe('Degraded');
+    expect(r.entries.umbraco.status).toBe('Healthy');
+    expect(r.status).toBe('Degraded');
+    expect(httpStatusFor(r.status)).toBe(200);
+  });
+
+  test('media utelates når den offentlige adressen er den samme som den interne', async () => {
+    const r = await run({}, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
+    expect(r.entries.media).toBeUndefined();
+  });
+
+  test('media utelates når den offentlige adressen mangler', async () => {
+    const r = await run({}, { ...CONFIG, umbracoPublicUrl: '' });
+    expect(r.entries.media).toBeUndefined();
   });
 
   // Fella fra Umbraco-oppgraderingene: migreringer hoppet over, API-et svarer
@@ -148,6 +170,7 @@ describe('runHealthChecks', () => {
     for (const r of utfall) {
       const tekst = JSON.stringify(r);
       expect(tekst).not.toContain('intern.example');
+      expect(tekst).not.toContain('offentlig.example');
       expect(tekst).not.toContain('hemmelig');
       expect(tekst).not.toMatch(/ENOTFOUND|401|error|exception/i);
     }
@@ -190,5 +213,84 @@ describe('memoize', () => {
     klokke += 5_000;
     expect((await hent()).status).toBe('Unhealthy');
     expect(kjøringer).toBe(1);
+  });
+
+  // Det #4 målte: 200 samtidige kall etter utløp ga 200 runder mot CMS og søk.
+  test('200 samtidige kall etter utløp gir én kjøring, resten får forrige resultat', async () => {
+    let klokke = 0;
+    let kjøringer = 0;
+    let slipp: (r: HealthReport) => void = () => {};
+    const hent = memoize(
+      () => { kjøringer += 1; return kjøringer === 1 ? Promise.resolve(rapport('Healthy')) : new Promise((r) => { slipp = r; }); },
+      () => klokke,
+      15_000,
+    );
+    await hent();
+    klokke += 20_000;
+
+    const svar = Array.from({ length: 200 }, () => hent());
+    slipp(rapport('Degraded'));
+    const resultater = await Promise.all(svar);
+
+    expect(kjøringer).toBe(2);
+    expect(resultater.filter((x) => x.status === 'Healthy')).toHaveLength(199);
+    expect(resultater.filter((x) => x.status === 'Degraded')).toHaveLength(1);
+  });
+
+  test('et kaldt isolat uten resultat slipper alle gjennom til første svar', async () => {
+    let kjøringer = 0;
+    const hent = memoize(async () => { kjøringer += 1; return rapport('Healthy'); }, () => 0, 15_000);
+    await Promise.all([hent(), hent(), hent()]);
+    expect(kjøringer).toBe(3);
+  });
+
+  test('en oppdatering som henger, slipper taket etter tidsgrensen', async () => {
+    let klokke = 0;
+    let kjøringer = 0;
+    const hent = memoize(
+      () => { kjøringer += 1; return kjøringer === 1 ? Promise.resolve(rapport('Healthy')) : new Promise<HealthReport>(() => {}); },
+      () => klokke,
+      15_000,
+      10_000,
+    );
+    await hent();
+    klokke += 20_000;
+    void hent();
+    klokke += 5_000;
+    await hent();
+    expect(kjøringer).toBe(2);
+
+    klokke += 6_000;
+    void hent();
+    expect(kjøringer).toBe(3);
+  });
+
+  // Vakten betyr bare noe når den gamle oppdateringen feiler. Lykkes den, fornyer
+  // den cachen, og da får neste kall et ferskt svar uansett markering.
+  test('en gammel oppdatering som feiler, nullstiller ikke markeringen til den nye', async () => {
+    let klokke = 0;
+    let kjøringer = 0;
+    const avvis: Array<(e: Error) => void> = [];
+    const hent = memoize(
+      () => {
+        kjøringer += 1;
+        return kjøringer === 1 ? Promise.resolve(rapport('Healthy')) : new Promise<HealthReport>((_r, rej) => avvis.push(rej));
+      },
+      () => klokke,
+      15_000,
+      10_000,
+    );
+    await hent();
+    klokke += 20_000;
+    const gammel = hent();
+    klokke += 11_000;
+    void hent();
+    expect(kjøringer).toBe(3);
+
+    avvis[0](new Error('tidsavbrudd'));
+    await gammel.catch(() => {});
+    klokke += 1;
+    expect((await hent()).status).toBe('Healthy');
+    expect(kjøringer).toBe(3);
   });
 });

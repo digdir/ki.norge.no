@@ -181,14 +181,20 @@ wrangler secret put ES_API_KEY --env prod
 | `status` | HTTP | Betyr |
 | --- | --- | --- |
 | `Healthy` | 200 | Alt oppe |
-| `Degraded` | 200 | Søket er nede, resten av nettstedet virker |
+| `Degraded` | 200 | Søket eller bildeadressen er nede, sidene rendres fortsatt |
 | `Unhealthy` | 503 | CMS-et svarer ikke, eller svarer uten innhold |
 
-Umbraco regnes som nede også når Delivery API svarer 200 med tom liste. Slik ser det ut når en oppgradering hopper over migreringene.
+Tre sjekker ligger bak:
 
-Svaret viser bare status og tid, aldri adresser eller feilmeldinger. Detaljene står på `/status`, som krever admin-cookie. Resultatet gjenbrukes i 15 sekunder, så `/health` ikke kan brukes til å belaste CMS-et.
+- **`umbraco`** kaller Delivery API slik sidene gjør. Den regnes som nede også når API-et svarer 200 med tom liste, for slik ser det ut når en oppgradering hopper over migreringene.
+- **`media`** kaller den offentlige CMS-adressen nettleseren henter bilder fra, i prod en proxy-worker. Den fanger et bildeutfall som #600, der alt annet svarte. Den finnes bare der den offentlige og den interne adressen er ulike, altså ikke på tt02.
+- **`elasticsearch`** gjør et tomt søk med samme nøkkel som søket bruker.
 
-`/api/health` og `/api/health/ready` er eldre og sjekker mindre. Bruk `/health`.
+Svaret viser bare status og tid, aldri adresser eller feilmeldinger. Detaljene står på `/status`, som krever admin-cookie.
+
+Resultatet gjenbrukes i 15 sekunder. Når det går ut, oppdaterer én forespørsel mens de andre får forrige resultat, så det blir én runde kall mot CMS og søk per 15 sekunder per isolat, uansett hvor mange som spør. Unntaket er et nytt isolat som ennå ikke har noe resultat å vise.
+
+`/api/health` og `/api/health/ready` er eldre adresser som svarer det samme som `/health`, med samme resultat.
 
 ## Miljøer i korthet
 

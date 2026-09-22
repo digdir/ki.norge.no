@@ -26,6 +26,8 @@ export interface HealthReport {
 
 export interface HealthConfig {
   umbracoUrl: string;
+  /** Adressen nettleseren henter bilder fra. I prod en proxy, på tt02 lik umbracoUrl. */
+  umbracoPublicUrl: string;
   esEndpoint: string;
   esApiKey: string;
   esIndex: string;
@@ -100,6 +102,28 @@ async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<Hea
 }
 
 /**
+ * Sidene henter data fra umbracoUrl, men nettleseren henter bildene fra den
+ * offentlige adressen, i prod en proxy-worker. Da proxyen var av i #600, var
+ * nettstedet uten bilder i ti minutter mens alt annet svarte. Den feilen ser
+ * bare en sjekk mot den offentlige adressen, og den gir Degraded, fordi sidene
+ * fortsatt rendres.
+ */
+async function checkMedia(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
+  const { ok, ms } = await timed(deps, async (signal) => {
+    const res = await callFetch(deps, `${config.umbracoPublicUrl}/umbraco/delivery/api/v2/content?take=1`, {
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+    return res.ok;
+  });
+  return {
+    status: ok ? 'Healthy' : 'Degraded',
+    duration: formatDuration(ms),
+    tags: ['dependencies'],
+  };
+}
+
+/**
  * Nede søk er ikke nede nettsted, så feil her gir Degraded. Kallet er et søk
  * med size 0 og ikke et indeks-oppslag, fordi nøkkelen bare har lesetilgang,
  * og det er nøyaktig det søket bruker.
@@ -126,12 +150,18 @@ export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): P
   // Søk som ikke er satt opp er ikke søk som er nede. Lokalt mangler nøkkelen.
   const esConfigured = Boolean(config.esEndpoint && config.esApiKey);
 
-  const [umbraco, elasticsearch] = await Promise.all([
+  // Er den offentlige adressen den samme som den interne, som på tt02, tester
+  // en egen sjekk ingenting nytt.
+  const separatMedia = Boolean(config.umbracoPublicUrl) && config.umbracoPublicUrl !== config.umbracoUrl;
+
+  const [umbraco, media, elasticsearch] = await Promise.all([
     checkUmbraco(config, deps),
+    separatMedia ? checkMedia(config, deps) : Promise.resolve(null),
     esConfigured ? checkElasticsearch(config, deps) : Promise.resolve(null),
   ]);
 
   const entries: Record<string, HealthEntry> = { umbraco };
+  if (media) entries.media = media;
   if (elasticsearch) entries.elasticsearch = elasticsearch;
 
   const worst = Object.values(entries).reduce<HealthStatus>(
@@ -148,24 +178,41 @@ export function httpStatusFor(status: HealthStatus): number {
 }
 
 /**
- * Hver forespørsel mot /health kan komme utenfra, og hver kjøring gjør et kall
- * mot CMS og et mot søk. Uten en grense er /health en måte å belaste CMS-et på.
- * Resultatet gjenbrukes derfor i noen sekunder per isolat.
+ * Hver forespørsel mot /health kan komme utenfra, og hver kjøring gjør kall mot
+ * CMS og søk. Uten en grense er /health en måte å belaste CMS-et på.
  *
- * Bare ferdige resultater deles, aldri en kjøring som pågår. På Workers kan en
- * forespørsel som venter på I/O startet av en annen forespørsel henge når den
- * første avsluttes. Et ferdig resultat er ren data og trygt å dele.
+ * Et ferdig resultat gjenbrukes i ttlMs. Når det er gått ut, oppdaterer én
+ * forespørsel, og alle som kommer imens får det forrige resultatet. Da blir det
+ * én runde kall per ttl per isolat, uansett hvor mange som spør. Unntaket er et
+ * kaldt isolat uten noe resultat å vise, der slipper alle gjennom til første svar.
+ *
+ * Kjøringen som pågår deles ikke. På Workers kan en forespørsel som venter på
+ * I/O startet av en annen forespørsel henge når den første avsluttes, så hver
+ * forespørsel venter bare på sin egen. Oppdateringen markeres med et tidspunkt,
+ * ikke et flagg, så en avbrutt oppdatering ikke fryser en gammel status for alltid.
  */
 export function memoize(
   run: () => Promise<HealthReport>,
   now: () => number,
   ttlMs: number,
+  refreshTimeoutMs = 10_000,
 ): () => Promise<HealthReport> {
   let cached: { at: number; report: HealthReport } | null = null;
+  let refreshStartedAt: number | null = null;
   return async () => {
-    if (cached && now() - cached.at < ttlMs) return cached.report;
-    const report = await run();
-    cached = { at: now(), report };
-    return report;
+    const t = now();
+    const fresh = cached !== null && t - cached.at < ttlMs;
+    const refreshing = refreshStartedAt !== null && t - refreshStartedAt < refreshTimeoutMs;
+    if (cached && (fresh || refreshing)) return cached.report;
+
+    refreshStartedAt = t;
+    try {
+      const report = await run();
+      cached = { at: now(), report };
+      return report;
+    } finally {
+      // Har en nyere oppdatering tatt over etter tidsgrensen, er markeringen dens.
+      if (refreshStartedAt === t) refreshStartedAt = null;
+    }
   };
 }
