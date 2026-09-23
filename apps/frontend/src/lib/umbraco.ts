@@ -1,4 +1,5 @@
 import contentRoutesConfig from '../../../../shared/content-routes.json';
+import { tekstliste } from './eksempel-merkelapper';
 
 const UMBRACO_URL = process.env.UMBRACO_URL || import.meta.env.UMBRACO_URL || 'http://localhost:5000';
 const UMBRACO_PUBLIC_URL = process.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_PUBLIC_URL || UMBRACO_URL;
@@ -236,7 +237,11 @@ export interface Kalender {
 
 export interface Side extends Artikkel {}
 
-export interface Eksempel extends Artikkel {}
+export interface Eksempel extends Artikkel {
+  /** Merkelapper redaktøren har krysset av. Tom liste = ingen merkelapp. */
+  sektor?: string[];
+  kiType?: string[];
+}
 
 export interface ArtiklerSeksjon {
   contentType: 'artikkelFeatured' | 'artikkelGruppe' | 'artikkelRelatert';
@@ -1176,6 +1181,10 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
         seoBilde: mapMedia(props.seoBilde),
+        ...(contentType === 'eksempel' && {
+          sektor: tekstliste(props.sektor),
+          kiType: tekstliste(props.kiType),
+        }),
       } as T;
     }
 

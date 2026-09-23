@@ -7,6 +7,7 @@ import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro
 import KiTiltakEntryCard from '../../components/shared/KiTiltakEntryCard.astro';
 import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getCardImage, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { eksempelMerkelapper } from '../../lib/eksempel-merkelapper';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -85,7 +86,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
         <div class="eksempler-fallback-grid" data-layout-block="content">
           {eksempler.map((e, i) => (
             // Forskjøvet syklus per rad (3 kolonner) så naboer aldri får lik farge
-            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={(['dark', 'light', 'medium'] as const)[(i + Math.floor(i / 3)) % 3]} />
+            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} tags={eksempelMerkelapper(e)} variant={(['dark', 'light', 'medium'] as const)[(i + Math.floor(i / 3)) % 3]} />
           ))}
         </div>
       </section>
@@ -104,6 +105,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
                 lead={s.ingress || e.ingress}
                 image={getCardImage(e.artikkelBilde)}
                 imageAlt={e.bildeAlt || ''}
+                tags={eksempelMerkelapper(e)}
               />
             </div>
           </section>
@@ -121,6 +123,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
                 href: `/eksempler/${e.slug}`,
                 title: e.tittel,
                 tag: s.kortTag,
+                tags: eksempelMerkelapper(e),
                 variant: s.kortFarger?.[i],
               }))} />
             </div>
