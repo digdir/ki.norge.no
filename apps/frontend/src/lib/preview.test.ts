@@ -62,6 +62,31 @@ describe('resolvePreview', () => {
       resolvePreview({ secretParam: SECRET, cookieValue: SECRET, configuredSecret: '' }),
     ).toEqual({ isPreview: false, shouldSetCookie: false });
   });
+
+  // Står verdien i et offentlig repo, er den ikke en hemmelighet.
+  it.each(['change-me', 'generate-a-random-secret-here', 'super-secret-preview-key'])(
+    'er av når hemmeligheten er plassholderen %s',
+    (placeholder) => {
+      expect(
+        resolvePreview({ secretParam: placeholder, cookieValue: placeholder, configuredSecret: placeholder }),
+      ).toEqual({ isPreview: false, shouldSetCookie: false });
+    },
+  );
+
+  it('er av når hemmeligheten er kortere enn 32 tegn', () => {
+    const kort = SECRET.slice(0, 31);
+    expect(
+      resolvePreview({ secretParam: kort, cookieValue: undefined, configuredSecret: kort }),
+    ).toEqual({ isPreview: false, shouldSetCookie: false });
+  });
+
+  // CMS-et URL-koder ikke verdien, så + kommer fram som mellomrom.
+  it('er av når hemmeligheten har tegn som ikke overlever URL-en', () => {
+    const base64 = 'q1w2e3r4t5y6u7i8o9p0+a/s=d1f2g3h4j5k6';
+    expect(
+      resolvePreview({ secretParam: base64, cookieValue: undefined, configuredSecret: base64 }),
+    ).toEqual({ isPreview: false, shouldSetCookie: false });
+  });
 });
 
 describe('bypassesCache', () => {

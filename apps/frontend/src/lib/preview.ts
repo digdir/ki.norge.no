@@ -10,7 +10,7 @@
  * klient-kontrollert, så `preview=1` ville vært like lett å forfalske som
  * query-parameteren den erstattet.
  *
- * Uten en konfigurert hemmelighet er forhåndsvisning AV. Feiler heller lukket
+ * Uten en brukbar hemmelighet er forhåndsvisning AV. Feiler heller lukket
  * enn å la en manglende variabel åpne utkastene for alle.
  */
 
@@ -18,6 +18,13 @@ export const PREVIEW_COOKIE = 'preview';
 
 /** Editoren rekker å klikke seg rundt, uten at en glemt cookie lever evig. */
 export const PREVIEW_COOKIE_MAX_AGE = 60 * 60 * 8;
+
+/**
+ * Minst 32 tegn, og bare tegn som overlever URL-en uendret. CMS-et URL-koder
+ * ikke verdien, så en `+` fra base64 blir til mellomrom og treffer aldri.
+ * Plassholdere som `change-me` fra et offentlig repo stopper her.
+ */
+const USABLE_SECRET = /^[A-Za-z0-9_-]{32,}$/;
 
 /**
  * Sammenligner uten å avsløre hvor langt inn i strengen første avvik kom.
@@ -39,7 +46,7 @@ export interface PreviewRequest {
   secretParam: string | null;
   /** Verdien av preview-cookien, satt av oss ved forrige gyldige lenke. */
   cookieValue: string | undefined;
-  /** PREVIEW_SECRET fra miljøet. Tom streng betyr at preview er avslått. */
+  /** PREVIEW_SECRET fra miljøet. Tom eller for svak betyr at preview er avslått. */
   configuredSecret: string;
 }
 
@@ -55,7 +62,7 @@ export function resolvePreview({
   cookieValue,
   configuredSecret,
 }: PreviewRequest): PreviewVerdict {
-  if (configuredSecret === '') return { isPreview: false, shouldSetCookie: false };
+  if (!USABLE_SECRET.test(configuredSecret)) return { isPreview: false, shouldSetCookie: false };
 
   if (secretParam !== null && timingSafeEqual(secretParam, configuredSecret)) {
     return { isPreview: true, shouldSetCookie: true };
