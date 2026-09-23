@@ -14,6 +14,7 @@
  * enn å la en manglende variabel åpne utkastene for alle.
  */
 
+/** cache-kinorgeportal går rett til origin når en cookie med dette navnet er med. */
 export const PREVIEW_COOKIE = 'preview';
 
 /** Editoren rekker å klikke seg rundt, uten at en glemt cookie lever evig. */

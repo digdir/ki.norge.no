@@ -1,11 +1,21 @@
+// Forhåndsvisning bæres av en cookie, og cachen slår opp på URL-en alene. Uten
+// dette fikk redaktøren den publiserte siden fra cachen ved første klikk inne i
+// backoffice-ramma. Frontend sjekker verdien. En falsk cookie gir bare publisert
+// innhold rett fra origin, slik en ny query-parameter også gjør.
+// Samme navn som PREVIEW_COOKIE i apps/frontend/src/lib/preview.ts.
+function hasPreviewCookie(request: Request): boolean {
+	const cookie = request.headers.get("Cookie") ?? "";
+	return cookie.split(";").some((part) => part.trim().startsWith("preview="));
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		try {
-			if (request.method !== "GET") {
+			if (request.method !== "GET" || hasPreviewCookie(request)) {
 				return await env.FRONTEND.fetch(request);
 			}
 		} catch (error) {
-			throw new Error(`Failed to fetch NON-GET-request from origin: ${error}`);
+			throw new Error(`Failed to fetch uncached request from origin: ${error}`);
 		}
 
 		const url = new URL(request.url);
