@@ -1,7 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { APIContext } from 'astro';
 import { GET as exitPreview } from '../pages/api/exit-preview';
-import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, timingSafeEqual } from './preview';
+import {
+  PREVIEW_COOKIE,
+  bypassesCache,
+  previewCookieOptions,
+  resolvePreview,
+  timingSafeEqual,
+  withoutSecret,
+} from './preview';
 
 const SECRET = '59cfdda7b9140784c3c80149b5348d81';
 
@@ -122,5 +129,23 @@ describe('avslutt forhåndsvisning', () => {
 
     const { maxAge: _maxAge, ...satt } = previewCookieOptions();
     expect(del).toHaveBeenCalledWith(PREVIEW_COOKIE, satt);
+  });
+});
+
+describe('withoutSecret', () => {
+  const fra = (pathAndQuery: string) => new URL(`https://ki.norge.no${pathAndQuery}`);
+
+  it('fjerner hemmeligheten og beholder resten, også preview=true', () => {
+    expect(withoutSecret(fra(`/artikler/x?preview=true&secret=${SECRET}`))).toBe('/artikler/x?preview=true');
+    expect(withoutSecret(fra(`/eksempler?secret=${SECRET}&side=2&preview=true`))).toBe('/eksempler?side=2&preview=true');
+  });
+
+  it('gir bare stien når hemmeligheten var alt', () => {
+    expect(withoutSecret(fra(`/?secret=${SECRET}`))).toBe('/');
+  });
+
+  // En relativ adresse holder redaktøren på samme host som satte cookien.
+  it('gir aldri en adresse til en annen host', () => {
+    expect(withoutSecret(fra(`//evil.example/x?secret=${SECRET}`))).toBe('/evil.example/x');
   });
 });

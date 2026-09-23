@@ -76,6 +76,18 @@ export function resolvePreview({
 }
 
 /**
+ * Adressen redaktøren sendes videre til når cookien er satt. Hemmeligheten skal
+ * ikke bli stående i adresselinja, i historikken, i en lenke som limes inn i
+ * Teams eller i location.href som analyseskriptene leser. Cookien bærer den videre.
+ */
+export function withoutSecret(url: URL): string {
+  const target = new URL(url);
+  target.searchParams.delete('secret');
+  // `//host/sti` er en adresse til en annen host, ikke en sti.
+  return `/${target.pathname.replace(/^\/+/, '')}${target.search}`;
+}
+
+/**
  * Også forsøk som ikke slapp gjennom holdes utenfor edge-cachen. Ellers havner
  * en ekte `secret` i en offentlig cache-oppføring så lenge frontend mangler
  * hemmeligheten, og hver gjetning på den lager en ny oppføring.

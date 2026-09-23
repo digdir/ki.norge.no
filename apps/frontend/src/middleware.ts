@@ -8,7 +8,7 @@ import {
 } from './lib/html-to-markdown';
 import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 import { CONTENT_SIGNAL } from './lib/robots';
-import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview } from './lib/preview';
+import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, withoutSecret } from './lib/preview';
 
 /**
  * Edge caching middleware.
@@ -209,6 +209,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.isPreview = isPreview;
   if (shouldSetCookie) {
     cookies.set(PREVIEW_COOKIE, PREVIEW_SECRET, previewCookieOptions());
+    return new Response(null, {
+      status: 302,
+      headers: { Location: withoutSecret(url), 'Cache-Control': 'private, no-store' },
+    });
   }
 
   const isApiRoute = isMachineRoute(url.pathname);
