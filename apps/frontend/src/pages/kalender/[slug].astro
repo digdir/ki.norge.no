@@ -44,7 +44,10 @@ const timeDisplay = hendelse.tid || '';
 
 const arrangør = hendelse.arrangor || '';
 const pris = hendelse.pris || '';
-const påmeldingUrl = hendelse.lenke || '#';
+const påmeldingUrl = hendelse.lenke || '';
+// Arrangementet er over: påmelding gir ikke mening lenger, men siden skal fortsatt
+// kunne leses for opptak og presentasjoner.
+const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Date();
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
@@ -64,7 +67,12 @@ const påmeldingUrl = hendelse.lenke || '#';
     <Fragment slot="sidebar">
       <div class="event-meta-item">
         <AkselIcon name="LocationPin" size={24} />
-        <div><span class="event-meta-label">Sted:</span> <strong>{hendelse.sted || 'Ikke oppgitt'}</strong></div>
+        <div>
+          <span class="event-meta-label">Sted:</span> <strong>{hendelse.sted || 'Ikke oppgitt'}</strong>
+          {/* Adressen hører til stedet, så den deler nål med det i stedet for å
+              få en egen rad med enda en nål. Den vises bare her, ikke på kortene. */}
+          {hendelse.adresse && <span class="event-meta-adresse">{hendelse.adresse}</span>}
+        </div>
       </div>
       {arrangør && (
         <div class="event-meta-item">
@@ -78,7 +86,7 @@ const påmeldingUrl = hendelse.lenke || '#';
           <div><span class="event-meta-label">Pris:</span> <strong>{pris}</strong></div>
         </div>
       )}
-      {påmeldingUrl && (
+      {påmeldingUrl && !erAvsluttet && (
         <a href={påmeldingUrl} class="ds-button">Påmelding</a>
       )}
     </Fragment>
@@ -150,6 +158,13 @@ const påmeldingUrl = hendelse.lenke || '#';
   :global(.event-meta-label) {
     font-weight: 400;
   }
+  /* Egen linje under stedsnavnet, lavmælt. Nøytralvarianten av subtle, ikke
+     --ds-color-text-subtle, som løser til aksentfargen utenfor nøytral kontekst. */
+  :global(.event-meta-adresse) {
+    display: block;
+    font-size: var(--ds-font-size-3);
+    color: var(--ds-color-neutral-text-subtle);
+  }
 
   :global(.event-register-btn) {
     display: inline-block;
@@ -183,9 +198,14 @@ const påmeldingUrl = hendelse.lenke || '#';
     gap: 24px;
   }
 
+  /* minmax(0, 1fr) og ikke 1fr: et gridelement har min-content som automatisk
+     minstebredde, og kortene her kan ikke smalne under 293px, som er 220px
+     min-height gjennom aspect-ratio 4/3. Tre slike spor ble 960px, og siden
+     rullet vannrett fra 768px til 1022px. Målt: 192px overflyt på 768. Samme
+     grep som CardGrid (#735). */
   @media (min-width: 768px) {
     .event-related-grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 32px;
     }
   }

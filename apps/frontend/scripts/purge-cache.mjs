@@ -20,6 +20,12 @@ import fs from 'node:fs';
 // ki.test.norge.no. purge_everything treffer derfor begge. Det er samme
 // oppførsel som CMS-et har ved hver publisering, og konsekvensen er kun
 // cache-bom i noen minutter.
+//
+// purge_everything er et MÅLT valg, ikke latskap. Purge per URL (files) er
+// vurdert og forkastet: cache-nøkkelen er hele URLen med query, så et
+// files-purge bommer på utm-taggede varianter og blir delvis der dette er
+// uttømmende. Sonens sprengradius er dessuten målt til bare våre egne fire
+// hostnavn. Se docs/cloudflare-cache-purge.md før du endrer dette.
 const ENVIRONMENTS = new Set(['prod', 'tt02']);
 
 // Astro leser .env selv, men et rent node-skript gjør det ikke. Enkel lesing

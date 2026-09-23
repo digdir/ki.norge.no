@@ -4,8 +4,10 @@ import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.ast
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
-import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getCardImage, type Eksempel, type Artikkel, type VeiledningGuide } from '../../lib/umbraco';
+import KiTiltakEntryCard from '../../components/shared/KiTiltakEntryCard.astro';
+import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getCardImage, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { eksempelMerkelapper } from '../../lib/eksempel-merkelapper';
 
 const isPreview = Astro.locals.isPreview;
 
@@ -39,7 +41,20 @@ const relatertById = new Map<string, Artikkel | VeiledningGuide>();
 artikler.forEach(a => relatertById.set(a.id, a));
 guider.forEach(g => relatertById.set(g.id, g));
 
-const seksjoner = oversikt?.seksjoner ?? [];
+// Ingen fallback-seksjoner. Dødt innhold maskerer manglende CMS-data, og ble
+// derfor fjernet i #636. Leverer ikke CMS-et seksjoner, skal siden vise
+// ingenting i stedet for oppdiktede kort og en oppdiktet kontaktperson.
+const fraCms = oversikt?.seksjoner ?? [];
+
+// Inngangskortet er kodedrevet, ikke en CMS-blokk, så det flettes inn etter
+// den første eksempelgruppen. Leverer CMS-et ingen seksjoner, står kortet
+// alene, som er riktig: det er alltid gyldig, i motsetning til CMS-innholdet.
+const kiTiltakKort: EksemplerSeksjon = { contentType: 'eksempelKiTiltak', id: 'ki-tiltak-inngang' };
+const forsteGruppe = fraCms.findIndex((s) => s.contentType === 'eksempelGruppe');
+const seksjoner =
+  forsteGruppe === -1
+    ? [...fraCms, kiTiltakKort]
+    : [...fraCms.slice(0, forsteGruppe + 1), kiTiltakKort, ...fraCms.slice(forsteGruppe + 1)];
 
 const collectionJsonLd = collectionPageSchema({
   name: heroTittel || seoTitle || 'Eksempler',
@@ -71,7 +86,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
         <div class="eksempler-fallback-grid" data-layout-block="content">
           {eksempler.map((e, i) => (
             // Forskjøvet syklus per rad (3 kolonner) så naboer aldri får lik farge
-            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} variant={(['dark', 'light', 'medium'] as const)[(i + Math.floor(i / 3)) % 3]} />
+            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} tags={eksempelMerkelapper(e)} variant={(['dark', 'light', 'medium'] as const)[(i + Math.floor(i / 3)) % 3]} />
           ))}
         </div>
       </section>
@@ -90,6 +105,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
                 lead={s.ingress || e.ingress}
                 image={getCardImage(e.artikkelBilde)}
                 imageAlt={e.bildeAlt || ''}
+                tags={eksempelMerkelapper(e)}
               />
             </div>
           </section>
@@ -107,6 +123,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
                 href: `/eksempler/${e.slug}`,
                 title: e.tittel,
                 tag: s.kortTag,
+                tags: eksempelMerkelapper(e),
                 variant: s.kortFarger?.[i],
               }))} />
             </div>
@@ -127,6 +144,16 @@ const breadcrumbJsonLd = breadcrumbSchema([
                   return <ArticleCardCompact href={href} title={item.tittel} date={item.publishedAt} tag={s.relatertTags?.[i]} tagColor="accent" />;
                 })}
               </div>
+            </div>
+          </section>
+        );
+      }
+
+      if (s.contentType === 'eksempelKiTiltak') {
+        return (
+          <section data-layout-block="edge" class="eksempler-section">
+            <div data-layout-block="content">
+              <KiTiltakEntryCard />
             </div>
           </section>
         );

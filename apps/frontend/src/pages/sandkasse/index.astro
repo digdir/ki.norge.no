@@ -21,7 +21,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: sandkasse.tittel, url: '/sandkasse' },
 ]);
 
-const heroImage = sandkasse.artikkelBilde || sandkasse.seoBilde;
+// SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
+const heroImage = sandkasse.artikkelBilde;
 const heroBg = bakgrunnSurface(sandkasse.bakgrunn);
 
 const allBlocks = sandkasse.innhold ?? [];

@@ -1,5 +1,6 @@
 ---
 import AkselIcon from './AkselIcon.astro';
+import Standardbilde from './Standardbilde.astro';
 import { splitLastWord } from '../../lib/text';
 import type { CardImage } from '../../lib/umbraco';
 
@@ -30,11 +31,8 @@ const {
 
 const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
 
-// Placeholderen har ingen kjente dimensjoner, så den får bare src.
-const cardImage: CardImage =
-  typeof image === 'string'
-    ? { src: image }
-    : (image ?? { src: '/article_placeholder.png' });
+// Uten bilde fyller Standardbilde boksen i stedet.
+const cardImage: CardImage | undefined = typeof image === 'string' ? { src: image } : image;
 
 // Pilen i featured-varianten limes til siste ord så den ikke brekker alene (#464)
 const titleParts = splitLastWord(title);
@@ -45,32 +43,22 @@ const formattedDate = date
 ---
 
 <article class:list={['news-card', `news-card--${variant}`]} data-clickdelegatefor={id}>
-  {variant === 'featured' && (
+  {(variant === 'featured' || variant === 'image') && (
     <div class="news-card-image">
-      <img
-        src={cardImage.src}
-        srcset={cardImage.srcset}
-        sizes={cardImage.sizes}
-        width={cardImage.width}
-        height={cardImage.height}
-        alt={imageAlt}
-        loading="lazy"
-        decoding="async"
-      />
-    </div>
-  )}
-  {variant === 'image' && (
-    <div class="news-card-image">
-      <img
-        src={cardImage.src}
-        srcset={cardImage.srcset}
-        sizes={cardImage.sizes}
-        width={cardImage.width}
-        height={cardImage.height}
-        alt={imageAlt}
-        loading="lazy"
-        decoding="async"
-      />
+      {cardImage ? (
+        <img
+          src={cardImage.src}
+          srcset={cardImage.srcset}
+          sizes={cardImage.sizes}
+          width={cardImage.width}
+          height={cardImage.height}
+          alt={imageAlt}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <Standardbilde />
+      )}
     </div>
   )}
   <div class="news-card-body">
@@ -151,6 +139,7 @@ const formattedDate = date
   }
 
   .news-card--image .news-card-image {
+    position: relative;
     aspect-ratio: 4 / 3;
     min-height: 220px;
     max-height: 300px;
@@ -189,6 +178,7 @@ const formattedDate = date
   .news-card--featured .news-card-image {
     /* Bildet går helt til midten av kortet, og høyden følger teksten
        innenfor 220-300px (#584). */
+    position: relative;
     flex: 0 0 50%;
     min-height: 220px;
     max-height: 300px;

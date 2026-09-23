@@ -15,7 +15,7 @@ namespace KiNorge.Cms.Malform.Controllers;
 [ApiVersion("1.0")]
 [VersionedApiBackOfficeRoute("malform")]
 [ApiExplorerSettings(GroupName = "Malform")]
-[Authorize(Policy = AuthorizationPolicies.RequireAdminAccess)]
+[Authorize(Policy = AuthorizationPolicies.SectionAccessContent)]
 public class MalformController : ManagementApiControllerBase
 {
     private readonly MalformReportBuilder _builder;

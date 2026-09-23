@@ -1,6 +1,6 @@
 ---
 // Rendrer forsidens modul-blokker (forside.seksjoner) i redaktørens rekkefølge.
-// Komponenten gjør INGEN fetch — pooler (artikler/arrangement/eksempler) sendes inn.
+// Komponenten gjør INGEN fetch — pooler (artikler/veiledninger/arrangement/eksempler) sendes inn.
 // Hva som skal vises avgjøres i lib/forside-seksjoner.ts, her bare rendres det.
 import Hero from './Hero.astro';
 import NewsCard from '../shared/NewsCard.astro';
@@ -10,6 +10,7 @@ import ArrowLink from '../shared/ArrowLink.astro';
 import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
+import KiTiltakEntryCard from '../shared/KiTiltakEntryCard.astro';
 import { getMediaUrl, getCardImage, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
 import { velgAktuelt, velgLaerAvAndre, velgLenke, velgVeiledning } from '../../lib/forside-seksjoner';
 import { hendelseTilEventCard } from '../../lib/kalender';
@@ -20,9 +21,12 @@ interface Props {
   latestArticles: any[];
   eksempler?: any[];
   upcomingEvents?: Kalenderhendelse[];
+  harTidligereArrangementer?: boolean;
+  aktueltEkstra?: Map<string, any>;
   veiledninger?: VeiledningGuide[];
+  enkleVeiledninger?: any[];
 }
-const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledninger = [] } = Astro.props;
+const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidligereArrangementer = false, veiledninger = [], enkleVeiledninger = [], aktueltEkstra } = Astro.props;
 ---
 
 {seksjoner.map((block) => {
@@ -39,7 +43,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
   }
 
   if (block.contentType === 'forsideAktuelt') {
-    const aktuelt = velgAktuelt(block, latestArticles);
+    const aktuelt = velgAktuelt(block, { artikler: latestArticles, enkleVeiledninger, veiledninger, eksempler, ekstra: aktueltEkstra });
     if (!aktuelt) return null;
     const { featured, kort: smaa, lenke } = aktuelt;
     return (
@@ -48,7 +52,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
           {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
           {featured && (
             <NewsCard
-              href={`/artikler/${featured.slug}`}
+              href={featured.href}
               title={featured.tittel}
               tagColor="brand1"
               lead={featured.lead}
@@ -61,7 +65,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
             <CardGrid columns={3} divided>
               {smaa.map((article) => (
                 <NewsCard
-                  href={`/artikler/${article.slug}`}
+                  href={article.href}
                   title={article.tittel}
                   variant="image"
                   image={article.image}
@@ -79,17 +83,22 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
   if (block.contentType === 'forsideArrangementer') {
     // Redaktørvalgt arrangement overstyrer auto. Tomt → neste kommende.
     const valgt = (block.arrangementId && upcomingEvents.find((e) => e.id === block.arrangementId)) || upcomingEvents[0] || null;
-    // Ingen kommende arrangementer → skjul hele seksjonen (ikke en tom overskrift + lenke).
-    if (!valgt) return null;
     const lenke = velgLenke(block);
+    // Uten kommende arrangement peker seksjonen til arkivet i stedet for å forsvinne.
+    // Er arkivet også tomt har seksjonen ingenting å vise, og da skjuler vi den.
+    if (!valgt && !harTidligereArrangementer) return null;
     return (
       <section class="arrangementer" data-layout-block="edge">
         <div class="arrangementer-section" data-layout-block="content">
           {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
-          {valgt && (
+          {valgt ? (
             <EventCard {...hendelseTilEventCard(valgt)} />
+          ) : (
+            <p class="arrangementer-tom">Ingen kommende arrangementer</p>
           )}
-          {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
+          {valgt
+            ? lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />
+            : <ArrowLink href={lenke?.href || '/kalender'} text="Se tidligere arrangementer" />}
         </div>
       </section>
     );
@@ -125,6 +134,9 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
         {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
         <ExampleLinkCards cards={kort.map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
         {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
+        {/* Kodedrevet som på /eksempler (#755). Følger blokken, så redaktøren
+            styrer boksen ved å flytte eller fjerne «Lær av andre». */}
+        <KiTiltakEntryCard headingLevel={3} />
       </section>
     );
   }
@@ -136,6 +148,8 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
         if (art) return { href: `/artikler/${art.slug}`, title: art.tittel };
         const veil = veiledninger.find((v) => v.id === id);
         if (veil) return { href: `/veiledning/${veil.slug}`, title: veil.tittel };
+        const enkel = enkleVeiledninger.find((v: any) => v.id === id);
+        if (enkel) return { href: `/veiledning/${enkel.slug}`, title: enkel.tittel };
         return null;
       })
       .filter((l): l is { href: string; title: string } => l !== null);
@@ -230,10 +244,20 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], veiledni
     margin-bottom: var(--ds-size-6);
   }
 
+  .arrangementer-tom {
+    margin: 0 0 var(--ds-size-6);
+    padding: var(--ds-size-6);
+    background-color: var(--ds-color-neutral-background-default);
+  }
+
   /* ── Lær av andre ────────────────────────────────────── */
   .examples-section {
     & :global(.arrow-link) {
       margin-block-start: var(--ds-size-6);
+    }
+
+    & :global(.tiltak-entry) {
+      margin-block-start: var(--ds-size-10);
     }
   }
 

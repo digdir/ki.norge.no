@@ -9,18 +9,6 @@
       margin-block-end: 0 !important;
     }
 
-    > * {
-      max-width: var(--short-content-width);
-    }
-
-    :where(div:not([class]), img, section, figure, table, iframe, [data-iframe-video], .u-long-content, .dodont-row, [data-wide-content], [data-layout-block="edge"]) {
-      max-width: var(--long-content-width);
-    }
-
-    :where(.u-short-content, [data-short-content]) {
-      max-width: var(--short-content-width);
-    }
-
     > hr {
       margin-inline: 0;
     }

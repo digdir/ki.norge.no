@@ -3,11 +3,13 @@
  * Returns JSON with status + response time for each.
  *
  * Requires ki_admin cookie (enforced by middleware).
+ *
+ * Adressene er miljøets egne, så /status på tt02 måler tt02. CMS-et leses fra
+ * samme env-variabel som umbraco.ts, frontenden fra forespørselens origin.
  */
 import type { APIRoute } from 'astro';
 
-const FRONTEND_URL = 'https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev';
-const CMS_URL = 'https://kinorgeportal.prod.dis-core.altinn.cloud';
+const CMS_URL = process.env.UMBRACO_URL || import.meta.env.UMBRACO_URL || 'http://localhost:5000';
 
 interface CheckResult {
   name: string;
@@ -48,12 +50,11 @@ async function check(name: string, url: string, timeoutMs = 8000): Promise<Check
   }
 }
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ url }) => {
   const checks = await Promise.all([
-    check('Frontend', FRONTEND_URL),
+    check('Frontend', `${url.origin}/`),
     check('CMS Backoffice', `${CMS_URL}/umbraco`),
     check('CMS Delivery API', `${CMS_URL}/umbraco/delivery/api/v2/content?take=1`),
-    check('ki.norge.no (custom domain)', 'https://ki.norge.no', 5000),
   ]);
 
   return new Response(JSON.stringify({

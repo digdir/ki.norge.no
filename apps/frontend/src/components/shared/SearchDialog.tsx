@@ -49,6 +49,12 @@ export default function SearchDialog() {
         body: JSON.stringify({ query: trimmed }),
         signal: controller.signal,
       });
+      // 429 er hastighetsgrensa. «Prøv igjen» er feil råd der, siden et raskt
+      // nytt forsøk treffer den samme grensa.
+      if (res.status === 429) {
+        setError('Mange søk på kort tid herfra. Vent et minutt og prøv igjen.');
+        return;
+      }
       if (!res.ok) throw new Error(`Søk feilet (${res.status})`);
       const data = (await res.json()) as { results?: KiResult[] };
       setResults(data.results ?? []);
