@@ -84,9 +84,16 @@ export function bypassesCache(url: URL, isPreview: boolean): boolean {
  * Verdien er hemmeligheten selv, derfor HttpOnly og Secure.
  */
 export function previewCookieOptions() {
+  return { ...previewCookieDeleteOptions(), maxAge: PREVIEW_COOKIE_MAX_AGE };
+}
+
+/**
+ * Samme attributter som cookien ble satt med. En Set-Cookie uten dem avvises i
+ * iframen, og da sto cookien igjen i åtte timer uten vei ut.
+ */
+export function previewCookieDeleteOptions() {
   return {
     path: '/',
-    maxAge: PREVIEW_COOKIE_MAX_AGE,
     httpOnly: true,
     secure: true,
     sameSite: 'none',

@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { bypassesCache, resolvePreview, timingSafeEqual } from './preview';
+import { describe, it, expect, vi } from 'vitest';
+import type { APIContext } from 'astro';
+import { GET as exitPreview } from '../pages/api/exit-preview';
+import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, timingSafeEqual } from './preview';
 
 const SECRET = '59cfdda7b9140784c3c80149b5348d81';
 
@@ -79,5 +81,21 @@ describe('bypassesCache', () => {
 
   it('holder godkjent forhåndsvisning utenfor cachen, også uten noe i URL-en', () => {
     expect(bypassesCache(side(''), true)).toBe(true);
+  });
+});
+
+describe('avslutt forhåndsvisning', () => {
+  // Inne i backoffice-iframen avvises en Set-Cookie som mangler attributtene
+  // cookien ble satt med, og da ble den stående.
+  it('sletter cookien med de samme attributtene som den ble satt med', async () => {
+    const del = vi.fn();
+    await exitPreview({
+      cookies: { delete: del },
+      redirect: (path: string, status: number) => new Response(null, { status, headers: { Location: path } }),
+      url: new URL('https://ki.norge.no/api/exit-preview?redirect=/artikler/x'),
+    } as unknown as APIContext);
+
+    const { maxAge: _maxAge, ...satt } = previewCookieOptions();
+    expect(del).toHaveBeenCalledWith(PREVIEW_COOKIE, satt);
   });
 });
