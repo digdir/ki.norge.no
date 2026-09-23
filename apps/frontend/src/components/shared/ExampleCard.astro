@@ -6,6 +6,7 @@ interface Props {
   href: string;
   title: string;
   tag?: string;
+  tags?: string[];
   variant?: 'dark' | 'medium' | 'light';
 }
 
@@ -13,8 +14,11 @@ const {
   href,
   title,
   tag,
+  tags = [],
   variant = 'dark',
 } = Astro.props;
+
+const merkelapper = [...new Set([tag, ...tags].filter((t): t is string => !!t))];
 
 const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
 
@@ -28,7 +32,11 @@ const titleParts = splitLastWord(title);
       {titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="example-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span>
     </a>
   </h3>
-  {tag && <span class="ds-tag" data-size="sm">{tag}</span>}
+  {merkelapper.length > 0 && (
+    <ul class="example-card-tags">
+      {merkelapper.map((t) => <li><span class="ds-tag" data-size="sm">{t}</span></li>)}
+    </ul>
+  )}
 </article>
 
 <style>
@@ -62,9 +70,17 @@ const titleParts = splitLastWord(title);
     }
   }
 
-  .ds-tag {
+  .example-card-tags {
     order: -1;
-    margin-bottom: var(--ds-size-4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-2);
+    margin: 0 0 var(--ds-size-4);
+    padding: 0;
+    list-style: none;
+  }
+
+  .ds-tag {
     background-color: var(--ds-color-background-default);
   }
 

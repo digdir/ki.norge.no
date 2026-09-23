@@ -5,6 +5,7 @@ interface CardItem {
   href: string;
   title: string;
   tag?: string;
+  tags?: string[];
   // Optional editorial override; defaults to the dark/medium/light alternation.
   variant?: 'dark' | 'medium' | 'light';
 }
@@ -38,6 +39,7 @@ const defaultVariant = (i: number): Variant => DEFAULT_PATTERNS[count]?.[i] ?? C
       href={card.href}
       title={card.title}
       tag={card.tag}
+      tags={card.tags}
       variant={card.variant ?? defaultVariant(i)}
     />
   ))}
