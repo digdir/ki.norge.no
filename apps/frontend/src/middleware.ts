@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { adminToken, isAdminCookie, keyMatches } from './lib/admin-access';
 import {
   htmlToMarkdown,
   prefersMarkdown,
@@ -144,22 +145,30 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Visit /admin-tilgang?key=<ADMIN_SECRET> to set the ki_admin cookie.
   const adminSecret = process.env.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || '';
   if (url.pathname === '/admin-tilgang') {
-    const key = url.searchParams.get('key');
-    if (key && adminSecret && key === adminSecret) {
+    const token = keyMatches(url.searchParams.get('key'), adminSecret) ? await adminToken(adminSecret) : null;
+    if (token) {
       const res = new Response('Tilgang gitt! Du blir videresendt...', {
         status: 302,
         headers: { 'Location': '/status', 'Cache-Control': 'no-store' },
       });
-      res.headers.append('Set-Cookie', `ki_admin=1; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax; HttpOnly`);
+      res.headers.append(
+        'Set-Cookie',
+        `ki_admin=${token}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax; HttpOnly; Secure`,
+      );
       return res;
     }
     return new Response('Ugyldig nøkkel', { status: 401 });
   }
 
+  // Verdien må stemme med hemmeligheten, ikke bare finnes. Se lib/admin-access.ts.
+  // Regnes ut bare når en rute faktisk trenger svaret.
+  let adminCheck: Promise<boolean> | null = null;
+  const isAdmin = () => (adminCheck ??= isAdminCookie(cookies.get('ki_admin')?.value, adminSecret));
+
   // Statussiden og datakilden bak den krever admin-cookie. /api/status-checks
   // sto utenfor og var offentlig lesbar på prod, selv om ruta selv dokumenterte
   // at middlewaren beskyttet den. Den svarer med interne vertsnavn i dis-core.
-  if (ADMIN_ONLY_PATHS.has(url.pathname) && !cookies.has('ki_admin')) {
+  if (ADMIN_ONLY_PATHS.has(url.pathname) && !(await isAdmin())) {
     return new Response('Ikke autorisert. Trenger ki_admin-cookie. Bruk /admin-tilgang?key=<secret>', {
       status: 401,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -173,12 +182,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (isComingSoon) {
     const isApiRoute = isMachineRoute(url.pathname);
-    const hasAdminCookie = cookies.has('ki_admin');
     const isPublicAsset =
       PUBLIC_ASSET_PATHS.has(url.pathname) ||
       PUBLIC_ASSET_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
 
-    if (!isApiRoute && !hasAdminCookie && !isPublicAsset) {
+    if (!isApiRoute && !isPublicAsset && !(await isAdmin())) {
       return new Response(COMING_SOON_HTML, {
         status: 200,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
@@ -299,7 +307,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // edgen og serveres til alle. Uten dette ville et transient CMS-blaff bli
   // fanget i edge-cachen i opptil s-maxage og vist til alle besøkende.
   const pageOptedOutOfCache = response.headers.get('Cache-Control')?.includes('no-store');
-  if (isPreview || isApiRoute || isAdminRoute || pageOptedOutOfCache) {
+  // En admin ser den ekte sida bak kommer-snart-veggen. Cache-workeren bruker bare
+  // URL-en som nøkkel, så uten dette ble sida servert fra kanten til alle.
+  const adminBehindWall = isComingSoon && (await isAdmin());
+  if (isPreview || isApiRoute || isAdminRoute || pageOptedOutOfCache || adminBehindWall) {
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   }
