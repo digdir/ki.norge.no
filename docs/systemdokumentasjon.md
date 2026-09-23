@@ -20,6 +20,7 @@ Innholdsfortegnelse:
   - [AzureSQL](#azuresql)
   - [Mediefiler](#mediefiler)
 - [ElasticSearch](#elasticsearch)
+- [Helsesjekk](#helsesjekk)
 - [Miljøer i korthet](#miljøer-i-korthet)
 
 ## Cloudflare
@@ -172,6 +173,28 @@ Vi bruker Elastic Cloud via Microsoft Azure. Indeksen heter `ki-content`.
 ```
 wrangler secret put ES_API_KEY --env prod
 ```
+
+## Helsesjekk
+
+`https://ki.norge.no/health` er punktet vakta skal overvåke. Formatet er det samme som `https://info.altinn.no/health`, så én regel på feltet `status` dekker begge portalene.
+
+| `status` | HTTP | Betyr |
+| --- | --- | --- |
+| `Healthy` | 200 | Alt oppe |
+| `Degraded` | 200 | Søket eller CMS-proxyen er nede, sidene rendres fortsatt |
+| `Unhealthy` | 503 | CMS-et svarer ikke, eller svarer uten innhold |
+
+Tre sjekker ligger bak:
+
+- **`umbraco`** kaller Delivery API slik sidene gjør. Den regnes som nede også når API-et svarer 200 med tom liste, for slik ser det ut når en oppgradering hopper over migreringene.
+- **`cms-proxy`** kaller Delivery API gjennom den offentlige CMS-adressen nettleseren henter bilder fra, i prod en proxy-worker. Den fanger at proxyen er nede, som i #600, der nettstedet var uten bilder mens alt annet svarte. Den henter ingen bildefil, så en feil i selve bildelagringen ser den ikke. Den finnes bare der den offentlige og den interne adressen er ulike, altså ikke på tt02.
+- **`elasticsearch`** gjør et tomt søk med samme nøkkel som søket bruker.
+
+Svaret viser bare status og tid, aldri adresser eller feilmeldinger. Detaljene står på `/status`, som krever admin-cookie.
+
+Resultatet gjenbrukes i 15 sekunder. Når det går ut, oppdaterer én forespørsel mens de andre får forrige resultat, så det blir én runde kall mot CMS og søk per 15 sekunder per isolat, uansett hvor mange som spør. Unntaket er et nytt isolat som ennå ikke har noe resultat å vise.
+
+`/api/health` og `/api/health/ready` er eldre adresser som svarer det samme som `/health`, med samme resultat.
 
 ## Miljøer i korthet
 
