@@ -55,7 +55,8 @@ const isMachineRoute = (pathname: string) => pathname.startsWith('/api/') || pat
 const LAUNCH_MODE = process.env.LAUNCH_MODE || import.meta.env.LAUNCH_MODE || '';
 
 // Må matche HeadlessPreview:PreviewSecret i CMS-et, som legger den på
-// forhåndsvisningslenkene sine. Er den tom, er forhåndsvisning avslått for alle.
+// forhåndsvisningslenkene sine. Er den tom eller for svak, er forhåndsvisning
+// avslått for alle. Se USABLE_SECRET i lib/preview.ts.
 const PREVIEW_SECRET = process.env.PREVIEW_SECRET || import.meta.env.PREVIEW_SECRET || '';
 
 // Branding-/delingsassets som alltid skal kunne hentes, selv mens hosten er
