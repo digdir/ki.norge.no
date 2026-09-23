@@ -310,7 +310,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // Allow CMS to embed the frontend in the preview iframe. Prod og tt02 CMS
         // (dis-core + workers.dev) pluss localhost CMS dev-origin slik at preview
         // virker i dev ogsa. cms.ki.test.norge.no ble aldri lagt til da backoffice
-        // flyttet hit i #481, saa forhaandsvisning i tt02-backoffice ble blokkert
+        // flyttet hit i #481, så forhåndsvisning i tt02-backoffice ble blokkert
         // av nettleseren ("refused to connect").
         "frame-ancestors 'self' https://cms.ki.norge.no https://cms.ki.test.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
         // Uten en egen frame-src faller Turnstile-iframen tilbake pa

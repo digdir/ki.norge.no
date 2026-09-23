@@ -97,9 +97,11 @@ export function bypassesCache(url: URL, isPreview: boolean): boolean {
 }
 
 /**
- * SameSite=None fordi backoffice viser frontend i en iframe fra et annet
- * domene (cms.ki.norge.no rundt ki.norge.no). Med Lax ville cookien ikke blitt
- * sendt der, og editoren mistet forhåndsvisningen ved første klikk videre.
+ * Backoffice viser frontend i en iframe, cms.ki.norge.no rundt ki.norge.no.
+ * norge.no står ikke på Public Suffix List, så de to er samme site, og Lax
+ * holder. Derfor peker HeadlessPreview__FrontendUrl i syncroot på ki.norge.no og
+ * ki.test.norge.no. workers.dev står på lista, så fra en workers.dev-host ble
+ * cookien en tredjeparts-cookie som Safari blokkerer.
  * Verdien er hemmeligheten selv, derfor HttpOnly og Secure.
  */
 export function previewCookieOptions() {
@@ -115,6 +117,6 @@ export function previewCookieDeleteOptions() {
     path: '/',
     httpOnly: true,
     secure: true,
-    sameSite: 'none',
+    sameSite: 'lax',
   } as const;
 }

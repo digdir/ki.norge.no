@@ -46,11 +46,14 @@ patches:
         value:
           name: Umbraco__Storage__AzureBlob__Media__ContainerName
           value: umbraco
+      # Samme site som backoffice (cms.ki.norge.no). Fra workers.dev ble
+      # forhåndsvisnings-cookien en tredjeparts-cookie, og Safari mistet
+      # forhåndsvisningen ved første klikk i ramma. Se apps/frontend/src/lib/preview.ts.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: HeadlessPreview__FrontendUrl
-          value: https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev
+          value: https://ki.norge.no
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
