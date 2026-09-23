@@ -4,6 +4,7 @@ import { GET as exitPreview } from '../pages/api/exit-preview';
 import {
   PREVIEW_COOKIE,
   bypassesCache,
+  exitTarget,
   previewCookieOptions,
   resolvePreview,
   timingSafeEqual,
@@ -148,4 +149,21 @@ describe('withoutSecret', () => {
   it('gir aldri en adresse til en annen host', () => {
     expect(withoutSecret(fra(`//evil.example/x?secret=${SECRET}`))).toBe('/evil.example/x');
   });
+});
+
+describe('exitTarget', () => {
+  const exit = new URL('https://ki.norge.no/api/exit-preview');
+
+  it('sender tilbake til siden redaktøren var på', () => {
+    expect(exitTarget('/artikler/x', exit)).toBe('/artikler/x');
+    expect(exitTarget('/eksempler?side=2', exit)).toBe('/eksempler?side=2');
+    expect(exitTarget(null, exit)).toBe('/');
+  });
+
+  it.each(['https://evil.example/', '//evil.example/x', '/.//evil.example/x', 'javascript:alert(1)'])(
+    'sender aldri ut av nettstedet: %s',
+    (redirect) => {
+      expect(exitTarget(redirect, exit)).not.toMatch(/^\/\/|^[a-z]+:/i);
+    },
+  );
 });

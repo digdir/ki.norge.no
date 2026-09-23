@@ -84,7 +84,20 @@ export function resolvePreview({
 export function withoutSecret(url: URL): string {
   const target = new URL(url);
   target.searchParams.delete('secret');
-  // `//host/sti` er en adresse til en annen host, ikke en sti.
+  return localPath(target);
+}
+
+/**
+ * Hvor «Avslutt forhåndsvisning» sender redaktøren. Bare egne sider, ellers er
+ * ruta en åpen redirect fra ki.norge.no til hvor som helst.
+ */
+export function exitTarget(redirectParam: string | null, url: URL): string {
+  const target = new URL(redirectParam || '/', url);
+  return target.origin === url.origin ? localPath(target) : '/';
+}
+
+// `//host/sti` er en adresse til en annen host, ikke en sti.
+function localPath(target: URL): string {
   return `/${target.pathname.replace(/^\/+/, '')}${target.search}`;
 }
 
