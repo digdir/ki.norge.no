@@ -69,6 +69,15 @@ export function resolvePreview({
 }
 
 /**
+ * Også forsøk som ikke slapp gjennom holdes utenfor edge-cachen. Ellers havner
+ * en ekte `secret` i en offentlig cache-oppføring så lenge frontend mangler
+ * hemmeligheten, og hver gjetning på den lager en ny oppføring.
+ */
+export function bypassesCache(url: URL, isPreview: boolean): boolean {
+  return isPreview || url.searchParams.has('preview') || url.searchParams.has('secret');
+}
+
+/**
  * SameSite=None fordi backoffice viser frontend i en iframe fra et annet
  * domene (cms.ki.norge.no rundt ki.norge.no). Med Lax ville cookien ikke blitt
  * sendt der, og editoren mistet forhåndsvisningen ved første klikk videre.

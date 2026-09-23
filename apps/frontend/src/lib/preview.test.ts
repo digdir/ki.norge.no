@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolvePreview, timingSafeEqual } from './preview';
+import { bypassesCache, resolvePreview, timingSafeEqual } from './preview';
 
 const SECRET = '59cfdda7b9140784c3c80149b5348d81';
 
@@ -59,5 +59,25 @@ describe('resolvePreview', () => {
     expect(
       resolvePreview({ secretParam: SECRET, cookieValue: SECRET, configuredSecret: '' }),
     ).toEqual({ isPreview: false, shouldSetCookie: false });
+  });
+});
+
+describe('bypassesCache', () => {
+  const side = (query: string) => new URL(`https://ki.norge.no/artikler/x${query}`);
+
+  it('slipper vanlige sider inn i cachen', () => {
+    expect(bypassesCache(side(''), false)).toBe(false);
+    expect(bypassesCache(side('?side=2'), false)).toBe(false);
+  });
+
+  // Med bare dommen fikk ?secret=<ekte verdi> public, s-maxage så lenge frontend manglet hemmeligheten.
+  it('holder forsøk utenfor cachen også når de ikke slapp gjennom', () => {
+    expect(bypassesCache(side('?preview=true'), false)).toBe(true);
+    expect(bypassesCache(side(`?preview=true&secret=${SECRET}`), false)).toBe(true);
+    expect(bypassesCache(side('?secret=gjett'), false)).toBe(true);
+  });
+
+  it('holder godkjent forhåndsvisning utenfor cachen, også uten noe i URL-en', () => {
+    expect(bypassesCache(side(''), true)).toBe(true);
   });
 });

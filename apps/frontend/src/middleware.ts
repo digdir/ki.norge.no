@@ -8,7 +8,7 @@ import {
 } from './lib/html-to-markdown';
 import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 import { CONTENT_SIGNAL } from './lib/robots';
-import { PREVIEW_COOKIE, previewCookieOptions, resolvePreview } from './lib/preview';
+import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview } from './lib/preview';
 
 /**
  * Edge caching middleware.
@@ -327,7 +327,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // En admin ser den ekte sida bak kommer-snart-veggen. Cache-workeren bruker bare
   // URL-en som nøkkel, så uten dette ble sida servert fra kanten til alle.
   const adminBehindWall = isComingSoon && (await isAdmin());
-  if (isPreview || isApiRoute || isAdminRoute || pageOptedOutOfCache || adminBehindWall) {
+  if (bypassesCache(url, isPreview) || isApiRoute || isAdminRoute || pageOptedOutOfCache || adminBehindWall) {
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   }
