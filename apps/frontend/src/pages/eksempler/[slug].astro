@@ -8,7 +8,7 @@ import { getEksempel, getEksempler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakg
 import { eksempelSchema, breadcrumbSchema } from '../../lib/seo';
 
 const { slug } = Astro.params;
-const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
+const isPreview = Astro.locals.isPreview;
 const article: Eksempel | null = await getEksempel(slug!, { preview: isPreview });
 if (!article) return Astro.redirect('/eksempler');
 
