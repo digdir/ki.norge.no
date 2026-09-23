@@ -1,4 +1,30 @@
 [
+  
+    "id": "",
+    "navn": "KI-støttet regelverks- og konsekvensanalyse",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring (DFØ)",
+    "orgnr": "986252932",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "REKA (regelverks- og konsekvensanalyse) er en prototype for KI-støttet analyse av hvordan endringer i statens økonomiregelverk påvirker statlige virksomheter. Verktøyet bygger strukturerte virksomhetsprofiler fra offentlige årsrapporter og tildelingsbrev, og bruker disse som grunnlag for å identifisere forenklingsmuligheter og analysere konsekvenser av foreslåtte regelverksendringer. Målgruppen er regelverksforvaltere og fagmiljøer i DFØ som trenger et mer systematisk beslutningsgrunnlag. En pilot ble gjennomført våren 2026 og evaluert videre i august. Verktøyet er beslutningsstøtte, mennesker skal fortsatt gjøre faglige vurderinger og kvalitetssikre.",
+    "status": "",
+    "fase": "Gjennomføring",
+    "skal levere": "MVP, pilot og løsning i produksjon.",
+    "type KI": "Generativ KI, agentisk KI, språkteknologi og anbefalingssystemer",
+    "kontaktinformasjon": "jorgen.kongsro@dfo.no"
+    }
+  {
+    "id": "",
+    "navn": "KF Tsetlin, forklarbar KI for offentlig sektor",
+    "virksomhet": "KF",
+    "orgnr": "910976222",
+    "fagomrade": "Demokrati og styresett",
+    "beskrivelse": "Når KI-en følger logiske steg, som er nødvendig i en rettferdig, demokratisk og transparent offentlig forvaltning, kan vi vise hvordan KI har kommet frem til en konklusjon. Dette er mulig med Tsetlin-maskiner, som er norsk KI utviklet av UiA/CAIR. KF samarbeider med UiA/CAIR om å gjøre dette enkelt tilgjengelig som digitale offentlige goder (digital public goods). Det er altså fri, gratis programvare som alle kan bruke. De er tilgjengelige fra KI-plattformen Langflow, en lav-kode og fri programvare basert på Python-programmeringsspråket. (https://bitbucket.org/kf-no/workspace/projects/KFLANGFLOW")[Hent KF Tsetlin her],
+    "status": "",
+    "fase": "I drift",
+    "skal levere": "PoC, MVP, pilot og løsning i produksjon.",
+    "type KI": "Generativ KI, prediktiv KI, agentisk KI, språkteknologi, anbefalingssystemer og klassifisering",
+    "kontaktinformasjon": "haakon.meland.eriksen@kf.no"
+  }
   {
     "id": "bda57bb4-992e-4b12-adb5-1fddaa34f8b4",
     "navn": "#DataSaman",
