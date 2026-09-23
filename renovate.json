@@ -2,5 +2,20 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>digdir/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "description": "Overrides i pnpm-workspace.yaml er gulv for sikkerhetsfikser. En major-bump der tvinger en versjon ingen avhengighet har bedt om, og pnpm sier ikke fra.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["pnpm-workspace.overrides"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Pinnene i KiNorge.Cms.csproj løfter transitive pakker over Umbracos eget gulv (Umbraco 17.7.0 erklærer Microsoft.OpenApi 2.9.0 og SQLitePCLRaw 2.1.12/2.1.13). 3.x brekker swagger og splitter SQLite-familien. Fjern regelen når Umbraco selv erklærer 3.x.",
+      "matchManagers": ["nuget"],
+      "matchPackageNames": ["Microsoft.OpenApi", "SQLitePCLRaw.*"],
+      "allowedVersions": "<3.0.0"
+    }
   ]
 }
