@@ -103,7 +103,10 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     padding: 0;
     grid-column: 4;
 
-    @media (max-width: 767px) {
+    /* Samme bruddpunkt som artikkelgridet. Står bildet i kolonne 4 når gridet
+       har én kolonne, lager nettleseren tre ekstra kolonner, og teksten presses
+       ned i 77 px mellom 768 og 1024. */
+    @media (max-width: 1024px) {
       grid-column: 1 / 5;
       margin-block-start: var(--ds-size-6);
     }
