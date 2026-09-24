@@ -1,17 +1,11 @@
 import data from '../data/ki-tiltak.json';
 
 /**
- * Status og fase er to felt, fordi de ikke betyr det samme.
- *
- * `status` er de eldre oppføringenes egne verdier (Planlagt, Pågående,
- * Avsluttet). De beholdes i fila, men vises ikke og søkes ikke i, fordi
- * kategorien ikke skal brukes lenger. `fase` kommer fra skjemaets «Hvilken fase
- * er tiltaket i?» og finnes bare på tiltak som er sendt inn eller oppdatert via
- * skjemaet. toStatus og toFase kaster på ukjente verdier, så en skrivefeil i
- * ki-tiltak.json stopper bygget i stedet for å vises på nettstedet.
+ * `fase` kommer fra skjemaets «Hvilken fase er tiltaket i?» og finnes bare på
+ * tiltak som er sendt inn eller oppdatert via skjemaet. toFase kaster på
+ * ukjente verdier, så en skrivefeil i ki-tiltak.json stopper bygget i stedet
+ * for å vises på nettstedet. Det gamle status-feltet er fjernet helt.
  */
-export type KiTiltakStatus = '' | 'Planlagt' | 'Pågående' | 'Avsluttet';
-
 export type KiTiltakFase = (typeof FASER)[number];
 
 export interface KiTiltak {
@@ -24,7 +18,6 @@ export interface KiTiltak {
   /** Alltid nøyaktig ett fagområde per tiltak */
   fagomrade: string;
   beskrivelse: string;
-  status: KiTiltakStatus;
   /** Fra skjemaet. Vises som «Fase». De eldre oppføringene har det ikke. */
   fase?: KiTiltakFase;
   /**
@@ -65,9 +58,6 @@ export const FAGOMRADER = [
   'Økonomi, finans og forsikring',
 ] as const;
 
-/** Gamle statusverdier. Står bare i datasettet, ingen velger dem lenger. */
-const ELDRE_STATUSER = ['Planlagt', 'Pågående', 'Avsluttet'] as const;
-
 /** «Hvilken fase er tiltaket i?» Ett valg. */
 export const FASER = ['Innsikt og planlegging', 'Gjennomføring', 'I drift'] as const;
 
@@ -88,17 +78,6 @@ export const KI_TYPER = [
 /** Verdien som utløser fritekstfeltet «Beskriv nærmere». */
 export const ANNET = 'Annet';
 
-/** Alt status-feltet kan inneholde: tom eller en av de gamle verdiene. */
-export const ALLE_STATUSER = ['', ...ELDRE_STATUSER] as const;
-
-const STATUS_VALUES: readonly KiTiltakStatus[] = ALLE_STATUSER;
-
-function toStatus(value: string): KiTiltakStatus {
-  const matches = STATUS_VALUES.find((s) => s === value);
-  if (matches === undefined) throw new Error(`Ukjent status i ki-tiltak.json: "${value}"`);
-  return matches;
-}
-
 function toFase(value: string | undefined, navn: string): KiTiltakFase | undefined {
   if (value === undefined || value === '') return undefined;
   const matches = FASER.find((f) => f === value);
@@ -106,9 +85,9 @@ function toFase(value: string | undefined, navn: string): KiTiltakFase | undefin
   return matches;
 }
 
-// Vite typer et JSON-import strukturelt, så status kommer inn som string.
+// Vite typer et JSON-import strukturelt, så fase kommer inn som string.
 // Narrowingen gjøres i runtime her i stedet for med en type-assertion.
-type RawTiltak = Omit<KiTiltak, 'status' | 'fase'> & { status: string; fase?: string };
+type RawTiltak = Omit<KiTiltak, 'fase'> & { fase?: string };
 const rawData: RawTiltak[] = data;
 
 /**
@@ -119,7 +98,7 @@ const rawData: RawTiltak[] = data;
  * flytte posten. Det er en byrde uten gevinst når koden kan sortere selv.
  */
 export const kiTiltak: KiTiltak[] = rawData
-  .map((row) => ({ ...row, status: toStatus(row.status), fase: toFase(row.fase, row.navn) }))
+  .map((row) => ({ ...row, fase: toFase(row.fase, row.navn) }))
   .sort((a, b) => a.navn.localeCompare(b.navn, 'nb', { sensitivity: 'base', numeric: true }));
 
 export interface KiTiltakFilter {

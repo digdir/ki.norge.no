@@ -18,7 +18,6 @@ Da trenger du ikke skrive noe for hånd. Det eneste som kan trenge vask er `virk
   "orgnr": "917422575",
   "fagomrade": "Trafikk og transport",
   "beskrivelse": "Entur jobbar systematisk for å teste og utnytte moglegheitene som følgjer av forbetringar innan KI.",
-  "status": "",
   "fase": "Gjennomføring",
 
   "kiType": ["Generativ KI", "Språkteknologi"],
@@ -29,7 +28,7 @@ Da trenger du ikke skrive noe for hånd. Det eneste som kan trenge vask er `virk
 }
 ```
 
-De seks øverste og `status` finnes på alle oppføringene. `status` er tom på nye tiltak. De seks nederste er nye og valgfrie.
+De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste er valgfrie og gjelder bare nye tiltak.
 
 ## De nye feltene
 
@@ -42,7 +41,7 @@ De seks øverste og `status` finnes på alle oppføringene. `status` er tom på 
 | `leveranseAnnet` | tekst | Fritekst. Bare når `leveranse` inneholder `Annet` |
 | `kontaktinfo` | tekst | E-postadresse |
 
-**Status og fase er ikke det samme.** `status` er de eldre oppføringenes egne verdier, `Planlagt`, `Pågående` og `Avsluttet`. Den beholdes i fila, men vises ikke og søkes ikke i, fordi kategorien ikke skal brukes lenger. La den stå tom på nye tiltak. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
+**Det finnes ikke noe status-felt.** Det ble fjernet fordi kategorien ikke skal brukes. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**. Et felt som ikke står i modellen over, stopper testene.
 
 **Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
 
@@ -79,7 +78,7 @@ Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. D
 - `Annet`-fritekst uten at `Annet` er valgt
 - `kontaktinfo` som ikke ser ut som en e-postadresse
 - lenke i beskrivelsen som ikke er `http` eller `https`
-- ukjent fase, fagområde eller status, og duplikate id-er
+- ukjent fase eller fagområde, duplikate id-er, og felt som ikke står i modellen
 - virksomhetsnavn med bare versaler, som `KF`. Skriv `Kommuneforlaget (KF)`
 
 Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.

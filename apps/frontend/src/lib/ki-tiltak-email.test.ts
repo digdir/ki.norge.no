@@ -11,7 +11,7 @@ function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     beskrivelse: 'Vi tester en KI-assistent som foreslår enklere formuleringer.',
     fagomrade: 'Digitale teknologier',
     kontaktinfo: 'postmottak@digdir.no',
-    status: 'Gjennomføring',
+    fase: 'Gjennomføring',
     leveranse: ['Pilot'],
     ...overstyr,
   };
@@ -32,7 +32,7 @@ describe('parseTiltakForm', () => {
       beskrivelse: 'En beskrivelse',
       fagomrade: 'Trafikk og transport',
       kontaktinfo: 'post@entur.no',
-      status: 'Innsikt og planlegging',
+      fase: 'Innsikt og planlegging',
       leveranse: ['PoC', 'Annet'],
       leveranseAnnet: 'Rapport',
       kiType: ['Generativ KI'],
@@ -158,7 +158,6 @@ describe('JSON-blokken i e-posten', () => {
       id: '11111111-2222-4333-8444-555555555555',
       navn: 'KI-assistent for klarspråk i vedtak',
       orgnr: '991825827',
-      status: '',
       fase: 'Gjennomføring',
       kontaktinfo: 'postmottak@digdir.no',
     });

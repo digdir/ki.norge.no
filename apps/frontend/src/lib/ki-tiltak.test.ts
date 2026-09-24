@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
+import data from '../data/ki-tiltak.json';
 import {
   FAGOMRADER,
-  ALLE_STATUSER,
   filterTiltak,
   kiTiltak,
   type KiTiltak,
@@ -61,6 +61,16 @@ describe('ki-tiltak datasett', () => {
     expect(kiTiltak.length).toBeGreaterThanOrEqual(40);
   });
 
+  test('har bare kjente felt', () => {
+    // Et felt som ikke står her, vises ikke og blir bare liggende i fila.
+    // Slik kom det fjernede status-feltet tilbake i visningen en gang.
+    const kjente = ['id', 'navn', 'virksomhet', 'orgnr', 'fagomrade', 'beskrivelse', 'fase', 'leveranse', 'leveranseAnnet', 'kiType', 'kiTypeAnnet', 'kontaktinfo'];
+    for (const rad of data as Record<string, unknown>[]) {
+      const ukjente = Object.keys(rad).filter((k) => !kjente.includes(k));
+      expect(ukjente, `ukjent felt på ${String(rad.navn)}`).toEqual([]);
+    }
+  });
+
   test('har unike id-er', () => {
     const ids = new Set(kiTiltak.map((t) => t.id));
     expect(ids.size).toBe(kiTiltak.length);
@@ -77,13 +87,6 @@ describe('ki-tiltak datasett', () => {
   test('bruker bare fagområder fra FAGOMRADER', () => {
     for (const tiltak of kiTiltak) {
       expect(FAGOMRADER, `ukjent fagområde på ${tiltak.navn}`).toContain(tiltak.fagomrade);
-    }
-  });
-
-  test('bruker bare kjente statusverdier', () => {
-    for (const tiltak of kiTiltak) {
-      if (tiltak.status === '') continue;
-      expect(ALLE_STATUSER, `ukjent status på ${tiltak.navn}`).toContain(tiltak.status);
     }
   });
 
@@ -267,13 +270,5 @@ describe('somTekst', () => {
     expect(somTekst(['I drift'])).toBe('I drift');
     expect(somTekst(['PoC', 'MVP'])).toBe('PoC og MVP');
     expect(somTekst(['Generativ KI', 'Prediktiv KI', 'Språkteknologi'])).toBe('Generativ KI, Prediktiv KI og Språkteknologi');
-  });
-
-  test('status søkes ikke i', () => {
-    const synlig = (t: KiTiltak) => `${t.navn} ${t.virksomhet} ${t.fagomrade} ${t.beskrivelse} ${t.fase ?? ''}`.toLowerCase();
-    const kandidat = kiTiltak.find((t) => t.status !== '' && !synlig(t).includes(t.status.toLowerCase()));
-    expect(kandidat, 'fant ikke et tiltak der statusordet bare står i status').toBeDefined();
-    const treff = filterTiltak(kiTiltak, { ...EMPTY, query: kandidat!.status });
-    expect(treff.map((t) => t.id)).not.toContain(kandidat!.id);
   });
 });
