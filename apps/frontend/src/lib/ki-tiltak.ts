@@ -54,7 +54,7 @@ export const FAGOMRADER = [
   'Forskning',
   'Helse og omsorg',
   'Informasjonssikkerhet',
-  'Innbygger - granuleres/omdøpes',
+  'Innbygger',
   'Kultur, idrett og fritid',
   'Natur, klima og miljø',
   'Personvern',
