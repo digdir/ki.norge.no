@@ -37,7 +37,7 @@ const titleParts = splitLastWord(title);
   {virksomhet && <p class="example-card-virksomhet">{virksomhet}</p>}
   {merkelapper.length > 0 && (
     <ul class="example-card-tags">
-      {merkelapper.map((t) => <li><span class="ds-tag" data-size="sm">{t}</span></li>)}
+      {merkelapper.map((t) => <li><span class="ds-tag" data-size="md">{t}</span></li>)}
     </ul>
   )}
 </article>
@@ -77,13 +77,14 @@ const titleParts = splitLastWord(title);
     order: -1;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--ds-size-2);
-    margin: 0 0 var(--ds-size-4);
+    gap: var(--ds-size-3);
+    margin: 0 0 var(--ds-size-3);
     padding: 0;
     list-style: none;
   }
 
   .ds-tag {
+    border-radius: var(--ds-border-radius-md);
     background-color: var(--ds-color-background-default);
   }
 
@@ -92,9 +93,10 @@ const titleParts = splitLastWord(title);
   }
 
   .example-card-virksomhet {
-    margin: var(--ds-size-2) 0 0;
+    margin: var(--ds-size-3) 0 0;
     font-size: var(--ds-font-size-3);
-    font-weight: 500;
+    font-weight: var(--ds-font-weight-regular);
+    line-height: 1.5;
   }
 
   .example-card-arrow {
