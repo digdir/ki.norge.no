@@ -10,20 +10,16 @@ Kopier et eksisterende objekt, lim det inn på riktig plass i lista, og fyll ut 
 
 ```json
 {
-  "id": "77a251f9-0dc2-46fc-a72b-1597f9728800",
-  "navn": "Casegeneratoren",
+  "id": "0b9ae3a2-8a0c-4c0e-9f4b-3c6d7e1a2b44",
+  "navn": "Samtaletrening med KI",
   "virksomhet": "Barne-, ungdoms- og familiedirektoratet",
   "orgnr": "986128433",
   "fagomrade": "Familie og barn",
-  "beskrivelse": "En dialogbasert treningsplattform der offentlig ansatte kan øve på krevende samtaler med KI-simulerte personer i sårbare situasjoner",
-  "formaal": "",
-  "oppstart": "05.01.2026",
-  "slutt": "30.06.2026",
-  "status": "Avsluttet"
+  "beskrivelse": "En dialogbasert treningsplattform der offentlig ansatte kan øve på krevende samtaler med KI-simulerte personer i sårbare situasjoner."
 }
 ```
 
-Alle tolv feltene må være med, også de som er tomme. Bruk tom streng `""` for det du ikke har, ikke `null` og ikke utelat nøkkelen.
+De seks feltene over er påkrevd. Nye tiltak kan i tillegg ha `fase`, `kiType`, `leveranse` og `kontaktinfo`, se [docs/ki-tiltak-felt.md](../../../../docs/ki-tiltak-felt.md). Der står også hvordan du limer inn et nytt tiltak rett fra e-posten.
 
 ## Feltene
 
@@ -35,10 +31,6 @@ Alle tolv feltene må være med, også de som er tomme. Bruk tom streng `""` for
 | `orgnr` | Ni siffer, som i Brønnøysundregisteret |
 | `fagomrade` | Nøyaktig én av verdiene i lista under |
 | `beskrivelse` | Fritekst. Vises avkortet til tre linjer på kortet, i sin helhet i detaljvisningen |
-| `formaal` | Fritekst, kan være tom |
-| `oppstart` | `dd.mm.yyyy`, kan være tom |
-| `slutt` | `dd.mm.yyyy`, kan være tom |
-| `status` | `Planlagt`, `Pågående`, `Avsluttet`, eller tom streng. Ingenting annet |
 
 ### Gyldige fagområder
 
@@ -90,7 +82,7 @@ tiltaket.
 
 ## Én fallgruve
 
-**Statusverdien er streng.** En skrivefeil som `Pågånde` gjør at hele siden svarer med feil, ikke bare det ene kortet. Kopier verdien fra tabellen over i stedet for å skrive den inn.
+**Fase og fagområde er strenge.** En skrivefeil som `Gjennomføing` gjør at hele siden svarer med feil, ikke bare det ene kortet. Kopier verdien i stedet for å skrive den inn.
 
 ## Sjekk før du committer
 
@@ -98,7 +90,7 @@ tiltaket.
 cd apps/frontend && pnpm run test:unit
 ```
 
-Testene sjekker unike id-er, gyldige fagområder, gyldige statusverdier, påkrevde felt og sorteringen. De kjører også i CI, så en feil stopper bygget, men det er raskere å oppdage den lokalt.
+Testene sjekker unike id-er, gyldige fagområder og faser, påkrevde felt, at det ikke finnes ukjente felt, og sorteringen. De kjører også i CI, så en feil stopper bygget, men det er raskere å oppdage den lokalt.
 
 Får du en feilmelding om JSON-syntaks, mangler det oftest et komma mellom to objekter, eller det står et komma etter det siste objektet i lista.
 

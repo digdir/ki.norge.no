@@ -97,7 +97,7 @@ export function parseTiltakForm(body: unknown): TiltakForm | null {
     beskrivelse: readString(body, 'beskrivelse'),
     fagomrade: readLine(body, 'fagomrade'),
     kontaktinfo: readLine(body, 'kontaktinfo'),
-    status: readLine(body, 'status'),
+    fase: readLine(body, 'fase'),
     leveranse: readStringArray(body, 'leveranse', LEVERANSER),
     leveranseAnnet: readLine(body, 'leveranseAnnet'),
     kiType: readStringArray(body, 'kiType', KI_TYPER),
@@ -143,9 +143,8 @@ export function tiltakJson(form: TiltakForm, id: string): string {
     orgnr: form.ansvarligOrgnr.trim(),
     fagomrade: form.fagomrade.trim(),
     beskrivelse: form.beskrivelse.trim(),
-    status: '',
   };
-  if (form.status.trim()) post.fase = form.status.trim();
+  if (form.fase.trim()) post.fase = form.fase.trim();
   if (form.leveranse.length > 0) post.leveranse = form.leveranse;
   if (form.leveranse.includes(ANNET) && form.leveranseAnnet.trim()) post.leveranseAnnet = form.leveranseAnnet.trim();
   if (form.kiType.length > 0) post.kiType = form.kiType;
@@ -171,7 +170,7 @@ export function buildEmail(form: TiltakForm, nyId: () => string = () => crypto.r
     'TILTAKET',
     line('Navn', navn),
     line('Tema', form.fagomrade),
-    line('Fase', form.status),
+    line('Fase', form.fase),
     line('Skal levere', valgt(form.leveranse, form.leveranseAnnet)),
     line('Type KI', valgt(form.kiType, form.kiTypeAnnet)),
     '',

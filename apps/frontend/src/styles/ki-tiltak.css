@@ -838,7 +838,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 
 /* Samme avstand mellom etikett og kontroll som Field bruker
    (--dsc-field-content-spacing), men uten selve ds-field-elementet. */
-.tiltak-status-felt {
+.tiltak-valg-felt {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
@@ -850,7 +850,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    målte #3E263D ligger nærmest --ds-color-accent-text-default (#541321),
    samme token som send-knappen bruker, og ikke den lysere brand-rosa
    --ds-color-base-default som er forvalget. */
-.tiltak-status-felt .ds-input[type="radio"] {
+.tiltak-valg-felt .ds-input[type="radio"] {
   --dsc-input-accent-color: var(--ds-color-accent-text-default);
 }
 
@@ -860,7 +860,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    Fieldset.Legend rendres som <legend class="ds-label"> og alternativene som
    <label class="ds-label">, så elementnavnet skiller dem: legenden («Status»)
    beholder 600, alternativene settes tilbake til normal vekt. */
-.tiltak-status-felt label.ds-label {
+.tiltak-valg-felt label.ds-label {
   font-weight: var(--ds-font-weight-regular);
 }
 

@@ -157,7 +157,7 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             midlertidig adresse, slik at teksten ikke må endres to ganger.
           */}
           <Paragraph className="tiltak-detalj-kontakt">
-            Vil du oppdatere beskrivelsen av eller statusen til tiltaket? Ta kontakt på{' '}
+            Vil du oppdatere beskrivelsen av eller fasen til tiltaket? Ta kontakt på{' '}
             <a href="mailto:ki-tiltak@kin.norge.no">ki-tiltak@kin.norge.no</a>.
           </Paragraph>
         </Dialog.Block>

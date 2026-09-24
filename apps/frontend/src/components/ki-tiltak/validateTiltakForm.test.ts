@@ -16,7 +16,7 @@ function validForm(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     beskrivelse: 'Utforsker KI-løsninger for offentlige tjenester.',
     fagomrade: 'Digitale teknologier',
     kontaktinfo: 'postmottak@digdir.no',
-    status: 'Gjennomføring',
+    fase: 'Gjennomføring',
     leveranse: ['Pilot'],
     ...overstyr,
   };
@@ -62,7 +62,7 @@ describe('validateTiltakForm', () => {
       ['beskrivelse', { beskrivelse: '   ' }, 'beskrivelse', ERROR_MESSAGE.beskrivelse],
       ['tema', { fagomrade: '' }, 'fagomrade', ERROR_MESSAGE.fagomrade],
       ['kontaktinfo', { kontaktinfo: '  ' }, 'kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty],
-      ['fase', { status: '' }, 'status', ERROR_MESSAGE.status],
+      ['fase', { fase: '' }, 'fase', ERROR_MESSAGE.fase],
       ['leveranse', { leveranse: [] }, 'leveranse', ERROR_MESSAGE.leveranse],
       [
         'fritekst når «Annet» er krysset av',
@@ -86,7 +86,7 @@ describe('validateTiltakForm', () => {
         'beskrivelse',
         'fagomrade',
         'kontaktinfo',
-        'status',
+        'fase',
         'leveranse',
       ]);
     });
@@ -165,7 +165,7 @@ describe('validateTiltakForm', () => {
     });
 
     test('ukjent fase behandles som ikke valgt', () => {
-      expect(message(validForm({ status: 'Pågående' }), 'status')).toBe(ERROR_MESSAGE.status);
+      expect(message(validForm({ fase: 'Pågående' }), 'fase')).toBe(ERROR_MESSAGE.fase);
     });
 
     test('for lang tekst avvises', () => {
@@ -213,7 +213,7 @@ describe('validateTiltakForm', () => {
       'beskrivelse',
       'fagomrade',
       'kontaktinfo',
-      'status',
+      'fase',
       'leveranse',
     ]);
   });

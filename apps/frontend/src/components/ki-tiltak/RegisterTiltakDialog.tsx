@@ -379,7 +379,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
               </div>
 
               <div className="tiltak-seksjon">
-                <Fieldset className="tiltak-status-felt">
+                <Fieldset className="tiltak-valg-felt">
                   <Fieldset.Legend>
                     {labelWithBadge('Hvilken fase er tiltaket i?', true)}
                   </Fieldset.Legend>
@@ -388,20 +388,20 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                       key={fase}
                       // Bare den første radioknappen får ankeret, slik at lenken
                       // i feiloppsummeringen lander på et fokuserbart element.
-                      id={index === 0 ? fieldId('status') : undefined}
+                      id={index === 0 ? fieldId('fase') : undefined}
                       name="tiltak-fase"
                       label={fase}
                       value={fase}
-                      checked={form.status === fase}
-                      onChange={(event) => update('status')(event.target.value)}
+                      checked={form.fase === fase}
+                      onChange={(event) => update('fase')(event.target.value)}
                     />
                   ))}
-                  {message('status') !== undefined && (
-                    <ValidationMessage>{message('status')}</ValidationMessage>
+                  {message('fase') !== undefined && (
+                    <ValidationMessage>{message('fase')}</ValidationMessage>
                   )}
                 </Fieldset>
 
-                <Fieldset className="tiltak-status-felt">
+                <Fieldset className="tiltak-valg-felt">
                   <Fieldset.Legend>
                     {labelWithBadge('Hva skal tiltaket levere?', true)}
                   </Fieldset.Legend>
@@ -433,7 +433,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   />
                 )}
 
-                <Fieldset className="tiltak-status-felt">
+                <Fieldset className="tiltak-valg-felt">
                   <Fieldset.Legend>
                     {labelWithBadge('Hvilken type KI bruker dere i tiltaket?', false)}
                   </Fieldset.Legend>
