@@ -241,6 +241,7 @@ export interface Eksempel extends Artikkel {
   /** Merkelapper redaktøren har krysset av. Tom liste = ingen merkelapp. */
   sektor?: string[];
   kiType?: string[];
+  virksomhet?: string;
 }
 
 export interface ArtiklerSeksjon {
@@ -302,6 +303,7 @@ export interface EksemplerOversikt {
   id: string;
   documentId: string;
   heroTittel?: string;
+  heroIngress?: string;
   seksjoner?: EksemplerSeksjon[];
   seoTittel?: string;
   seoBeskrivelse?: string;
@@ -1133,6 +1135,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       return {
         ...base,
         heroTittel: props.heroTittel as string || '',
+        heroIngress: props.heroIngress as string || '',
         seksjoner: mapEksemplerSeksjoner(props.seksjoner),
         seoTittel: props.seoTittel as string || '',
         seoBeskrivelse: props.seoBeskrivelse as string || '',
@@ -1184,6 +1187,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         ...(contentType === 'eksempel' && {
           sektor: tekstliste(props.sektor),
           kiType: tekstliste(props.kiType),
+          virksomhet: (props.virksomhet as string)?.trim() || undefined,
         }),
       } as T;
     }

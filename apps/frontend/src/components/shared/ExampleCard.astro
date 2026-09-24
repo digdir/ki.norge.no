@@ -7,6 +7,7 @@ interface Props {
   title: string;
   tag?: string;
   tags?: string[];
+  virksomhet?: string;
   variant?: 'dark' | 'medium' | 'light';
 }
 
@@ -15,6 +16,7 @@ const {
   title,
   tag,
   tags = [],
+  virksomhet,
   variant = 'dark',
 } = Astro.props;
 
@@ -32,6 +34,7 @@ const titleParts = splitLastWord(title);
       {titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="example-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span>
     </a>
   </h3>
+  {virksomhet && <p class="example-card-virksomhet">{virksomhet}</p>}
   {merkelapper.length > 0 && (
     <ul class="example-card-tags">
       {merkelapper.map((t) => <li><span class="ds-tag" data-size="sm">{t}</span></li>)}
@@ -86,7 +89,12 @@ const titleParts = splitLastWord(title);
 
   .example-card-title {
     margin: 0;
-    flex: 1;
+  }
+
+  .example-card-virksomhet {
+    margin: var(--ds-size-2) 0 0;
+    font-size: var(--ds-font-size-3);
+    font-weight: 500;
   }
 
   .example-card-arrow {
