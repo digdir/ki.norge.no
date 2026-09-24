@@ -129,7 +129,32 @@ export interface Email {
  * Ren tekst, ikke HTML. Da finnes det ingen vei fra innsendt tekst til markup
  * i e-postklienten, og vi slipper å escape noe som helst.
  */
-export function buildEmail(form: TiltakForm): Email {
+/**
+ * Oppføringen slik den skal stå i ki-tiltak.json, klar til å limes inn rett
+ * etter «[» øverst i fila. Da blir avskriften en kopi, og id, feltnavn og
+ * verdier kan ikke skrives feil. Komma til slutt, siden de andre tiltakene
+ * følger etter. Virksomhetsnavnet er det innsenderen skrev, og kan trenge vask.
+ */
+export function tiltakJson(form: TiltakForm, id: string): string {
+  const post: Record<string, unknown> = {
+    id,
+    navn: form.navn.trim(),
+    virksomhet: form.ansvarligNavn.trim(),
+    orgnr: form.ansvarligOrgnr.trim(),
+    fagomrade: form.fagomrade.trim(),
+    beskrivelse: form.beskrivelse.trim(),
+    status: '',
+  };
+  if (form.status.trim()) post.fase = form.status.trim();
+  if (form.leveranse.length > 0) post.leveranse = form.leveranse;
+  if (form.leveranse.includes(ANNET) && form.leveranseAnnet.trim()) post.leveranseAnnet = form.leveranseAnnet.trim();
+  if (form.kiType.length > 0) post.kiType = form.kiType;
+  if (form.kiType.includes(ANNET) && form.kiTypeAnnet.trim()) post.kiTypeAnnet = form.kiTypeAnnet.trim();
+  if (form.kontaktinfo.trim()) post.kontaktinfo = form.kontaktinfo.trim();
+  return `${JSON.stringify(post, null, 2).replace(/^/gm, '  ')},`;
+}
+
+export function buildEmail(form: TiltakForm, nyId: () => string = () => crypto.randomUUID()): Email {
   const navn = form.navn.trim();
   const virksomhet = form.ansvarligNavn.trim();
 
@@ -162,6 +187,11 @@ export function buildEmail(form: TiltakForm): Email {
     '',
     'KONTAKT',
     line('E-post', form.kontaktinfo),
+    '',
+    'TIL KI-TILTAK.JSON',
+    'Lim inn rett etter [ på første linje i apps/frontend/src/data/ki-tiltak.json:',
+    '',
+    tiltakJson(form, nyId()),
     '',
     'Svar på denne e-posten for å nå innsenderen direkte.',
   ].join('\n');
