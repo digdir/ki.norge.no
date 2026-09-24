@@ -12,9 +12,10 @@ interface Props {
   image?: string | CardImage;
   imageAlt?: string;
   tags?: string[];
+  virksomhet?: string;
 }
 
-const { href, title, lead, image, imageAlt = '', tags = [] } = Astro.props;
+const { href, title, lead, image, imageAlt = '', tags = [], virksomhet } = Astro.props;
 const id = `featured-card-${crypto.randomUUID().slice(0, 8)}`;
 const cardImage: CardImage | undefined = typeof image === 'string' ? { src: image } : image;
 
@@ -41,6 +42,7 @@ const titleParts = splitLastWord(title);
   </div>
   <div class="featured-card-body">
     <h3 class="featured-card-title"><a id={id} href={href}>{titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="featured-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span></a></h3>
+    {virksomhet && <p class="featured-card-virksomhet">{virksomhet}</p>}
     {lead && <p class="featured-card-lead">{lead}</p>}
     {tags.length > 0 && (
       <ul class="featured-card-tags">
@@ -116,6 +118,12 @@ const titleParts = splitLastWord(title);
     font-weight: 400;
     margin: 0;
     text-decoration: underline;
+  }
+
+  .featured-card-virksomhet {
+    margin: 0;
+    font-size: var(--ds-font-size-3);
+    font-weight: 500;
   }
 
   .featured-card-lead {

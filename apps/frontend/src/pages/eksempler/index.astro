@@ -33,6 +33,7 @@ try {
 }
 
 const heroTittel = oversikt?.heroTittel;
+const heroIngress = oversikt?.heroIngress;
 const seoTitle = oversikt?.seoTittel || heroTittel;
 const seoDesc = oversikt?.seoBeskrivelse || 'Lær av andre offentlige virksomheters erfaringer med kunstig intelligens.';
 
@@ -79,6 +80,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
   <div class="eksempler-page">
     <header class="eksempler-header" data-layout-block="content">
       {heroTittel && <h1 class="ds-heading eksempler-title" data-size="xl">{heroTittel}</h1>}
+      {heroIngress && <p class="ds-paragraph" data-size="xl">{heroIngress}</p>}
     </header>
 
     {seksjoner.length === 0 && eksempler.length > 0 && (
@@ -86,7 +88,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
         <div class="eksempler-fallback-grid" data-layout-block="content">
           {eksempler.map((e, i) => (
             // Forskjøvet syklus per rad (3 kolonner) så naboer aldri får lik farge
-            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} tags={eksempelMerkelapper(e)} variant={(['dark', 'light', 'medium'] as const)[(i + Math.floor(i / 3)) % 3]} />
+            <ExampleCard href={`/eksempler/${e.slug}`} title={e.tittel} virksomhet={e.virksomhet} tags={eksempelMerkelapper(e)} variant={(['dark', 'light', 'medium'] as const)[(i + Math.floor(i / 3)) % 3]} />
           ))}
         </div>
       </section>
@@ -105,6 +107,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
                 lead={s.ingress || e.ingress}
                 image={getCardImage(e.artikkelBilde)}
                 imageAlt={e.bildeAlt || ''}
+                virksomhet={e.virksomhet}
                 tags={eksempelMerkelapper(e)}
               />
             </div>
@@ -123,6 +126,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
                 href: `/eksempler/${e.slug}`,
                 title: e.tittel,
                 tag: s.kortTag,
+                virksomhet: e.virksomhet,
                 tags: eksempelMerkelapper(e),
                 variant: s.kortFarger?.[i],
               }))} />
@@ -199,6 +203,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
   .eksempler-header {
     display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
     width: 100%;
 
     & .eksempler-title {
