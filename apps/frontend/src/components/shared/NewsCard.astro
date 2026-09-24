@@ -1,7 +1,6 @@
 ---
 import AkselIcon from './AkselIcon.astro';
 import Standardbilde from './Standardbilde.astro';
-import { splitLastChar } from '../../lib/text';
 import type { CardImage } from '../../lib/umbraco';
 
 interface Props {
@@ -35,7 +34,6 @@ const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
 const cardImage: CardImage | undefined = typeof image === 'string' ? { src: image } : image;
 
 // Pilen i featured-varianten limes til siste ord så den ikke brekker alene (#464)
-const titleParts = splitLastChar(title);
 
 const formattedDate = date
   ? new Date(date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -66,7 +64,7 @@ const formattedDate = date
     <h3 class="ds-heading news-card-title" data-size={variant === 'featured' ? 'lg' : 'sm'}>
       <a id={id} href={href}>
         {variant === 'featured' ? (
-          <Fragment>{titleParts.head}<span class="news-card-title-slutt">{titleParts.last}<span class="news-card-title-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={24} /></span></span></Fragment>
+          <Fragment>{title}<span class="news-card-title-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={24} /></span></Fragment>
         ) : (
           title
         )}
@@ -112,17 +110,6 @@ const formattedDate = date
       --dsc-tag-background: var(--ds-color-surface-tinted);
       --dsc-tag-color: var(--ds-color-text-subtle);
     }
-  }
-
-  /* Titlene deles ikke med bindestrek, og linjene fylles fra venstre uten
-     utjevning. Et ord som er lengre enn hele linja brytes fortsatt, via
-     overflow-wrap fra global.css. */
-  .news-card-title {
-    hyphens: manual;
-  }
-
-  .news-card-title-slutt {
-    white-space: nowrap;
   }
 
   /* ── Small variant (no image) ─────────────────────── */

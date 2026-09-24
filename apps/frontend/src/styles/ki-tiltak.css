@@ -87,12 +87,19 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 .tiltak-hero-tittel {
   color: var(--ds-color-brand1-background-default);
   margin: 0 0 var(--ds-size-4);
-  max-width: 60%;
   font-weight: var(--ds-font-weight-regular);
   /* Ingen --ds-line-height-* er nær prototypens 1.08 (nærmeste er
      --ds-line-height-sm på 1.3, likt overskriftens egen standardverdi), så
      literalen er beholdt som eneste unntak fra tokenkravet her. */
   line-height: 1.08;
+}
+
+/* På mobil får tittelen hele bredden. Med 60 % av 327 px ble det 196 px, og
+   «Offentlige» fikk ikke plass på én linje i 60 px. */
+@media (min-width: 768px) {
+  .tiltak-hero-tittel {
+    max-width: 60%;
+  }
 }
 
 .tiltak-hero-ingress {

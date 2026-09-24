@@ -44,10 +44,12 @@ body {
   font-feature-settings: "cv05" 1;
 }
 
+/* Overskrifter deles ikke automatisk med bindestrek. En bindestrek som står i
+   teksten, som i «KI-innhold», er fortsatt et sted linja kan brekke, og et ord
+   som er lengre enn hele linja brytes av word-break. */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--ki-heading-font);
   word-break: break-word;
-  hyphens: auto;
 }
 
 /* Utility classes */

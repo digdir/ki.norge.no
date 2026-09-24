@@ -12,15 +12,3 @@ export function splitLastWord(text: string): { head: string; last: string } {
   if (i === -1) return { head: '', last: trimmed };
   return { head: trimmed.slice(0, i + 1), last: trimmed.slice(i + 1) };
 }
-
-/**
- * Som splitLastWord, men bare siste tegn limes til ikonet. Et span midt i et ord
- * lager ikke noe bruddpunkt, så ordet brekker ikke der. Et ord som er lengre enn
- * hele linja kan fortsatt brytes, så dette trenger ikke unntaket .u-nowrap har
- * under 768px, der pilen kan falle alene ned på en ny linje.
- */
-export function splitLastChar(text: string): { head: string; last: string } {
-  const chars = Array.from((text ?? '').trim());
-  const last = chars.pop() ?? '';
-  return { head: chars.join(''), last };
-}
