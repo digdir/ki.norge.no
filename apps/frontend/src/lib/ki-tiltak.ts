@@ -4,7 +4,8 @@ import data from '../data/ki-tiltak.json';
  * Status og fase er to felt, fordi de ikke betyr det samme.
  *
  * `status` er de eldre oppføringenes egne verdier (Planlagt, Pågående,
- * Avsluttet). De beholdes som de er. `fase` kommer fra skjemaets «Hvilken fase
+ * Avsluttet). De beholdes i fila, men vises ikke og søkes ikke i, fordi
+ * kategorien ikke skal brukes lenger. `fase` kommer fra skjemaets «Hvilken fase
  * er tiltaket i?» og finnes bare på tiltak som er sendt inn eller oppdatert via
  * skjemaet. toStatus og toFase kaster på ukjente verdier, så en skrivefeil i
  * ki-tiltak.json stopper bygget i stedet for å vises på nettstedet.
@@ -142,7 +143,6 @@ export function filterTiltak(items: KiTiltak[], filter: KiTiltakFilter): KiTilta
       tiltak.virksomhet,
       tiltak.beskrivelse,
       tiltak.fagomrade,
-      tiltak.status,
       tiltak.fase ?? '',
     ]
       .join(' ')
@@ -167,4 +167,11 @@ export function visValg(valg?: string[], annet?: string): string[] {
   return valg
     .map((v) => (v === 'Annet' && fritekst ? fritekst : v))
     .filter((v) => v.trim().length > 0);
+}
+
+const listeformat = new Intl.ListFormat('nb', { style: 'long', type: 'conjunction' });
+
+/** «Generativ KI, Prediktiv KI og Språkteknologi». Slik vises flervalgene i detaljvisningen. */
+export function somTekst(verdier: string[]): string {
+  return listeformat.format(verdier);
 }

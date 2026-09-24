@@ -9,6 +9,7 @@ import {
   visValg,
   KI_TYPER,
   LEVERANSER,
+  somTekst,
 } from './ki-tiltak';
 
 const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
@@ -20,12 +21,12 @@ const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
  * dem. Redaksjonen endrer navn og tekst jevnlig, og en test som låser seg til
  * en bestemt formulering stopper dem i CI uten å fange en eneste reell feil.
  */
-const SEARCHABLE = ['navn', 'virksomhet', 'fagomrade', 'beskrivelse', 'status'] as const;
+const SEARCHABLE = ['navn', 'virksomhet', 'fagomrade', 'beskrivelse', 'fase'] as const;
 type SearchField = (typeof SEARCHABLE)[number];
 
 function otherFields(tiltak: KiTiltak, exclude: SearchField): string {
   return SEARCHABLE.filter((f) => f !== exclude)
-    .map((f) => tiltak[f])
+    .map((f) => tiltak[f] ?? '')
     .join(' ')
     .toLowerCase();
 }
@@ -37,7 +38,7 @@ function otherFields(tiltak: KiTiltak, exclude: SearchField): string {
  */
 function uniqueQueryFor(field: SearchField): { tiltak: KiTiltak; query: string } | null {
   for (const tiltak of kiTiltak) {
-    const value = tiltak[field].trim();
+    const value = (tiltak[field] ?? '').trim();
     if (value.length === 0) continue;
     const others = otherFields(tiltak, field);
     // Korte felt brukes hele, lange felt ord for ord.
@@ -258,5 +259,21 @@ describe('visValg', () => {
 
   test('fritekst som bare er mellomrom teller som tom', () => {
     expect(visValg(['Annet'], '   ')).toEqual(['Annet']);
+  });
+});
+
+describe('somTekst', () => {
+  test('ett, to og flere valg leses som vanlig norsk', () => {
+    expect(somTekst(['I drift'])).toBe('I drift');
+    expect(somTekst(['PoC', 'MVP'])).toBe('PoC og MVP');
+    expect(somTekst(['Generativ KI', 'Prediktiv KI', 'Språkteknologi'])).toBe('Generativ KI, Prediktiv KI og Språkteknologi');
+  });
+
+  test('status søkes ikke i', () => {
+    const synlig = (t: KiTiltak) => `${t.navn} ${t.virksomhet} ${t.fagomrade} ${t.beskrivelse} ${t.fase ?? ''}`.toLowerCase();
+    const kandidat = kiTiltak.find((t) => t.status !== '' && !synlig(t).includes(t.status.toLowerCase()));
+    expect(kandidat, 'fant ikke et tiltak der statusordet bare står i status').toBeDefined();
+    const treff = filterTiltak(kiTiltak, { ...EMPTY, query: kandidat!.status });
+    expect(treff.map((t) => t.id)).not.toContain(kandidat!.id);
   });
 });

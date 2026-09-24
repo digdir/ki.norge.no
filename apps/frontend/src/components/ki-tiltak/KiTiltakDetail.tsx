@@ -1,6 +1,6 @@
 import { Button, Dialog, Heading, Paragraph, Tag } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
-import { visValg, type KiTiltak } from '../../lib/ki-tiltak';
+import { somTekst, visValg, type KiTiltak } from '../../lib/ki-tiltak';
 import { toTextBlocks, toInline } from './textBlocks';
 
 interface Props {
@@ -34,19 +34,13 @@ function Linjetekst({ text }: { text: string }) {
   );
 }
 
-/** Seksjon med merkelapper. Rendrer ingenting når lista er tom. */
-function Merkelapper({ tittel, verdier }: { tittel: string; verdier: string[] }) {
+/** Seksjon med verdiene som vanlig tekst. Rendrer ingenting når lista er tom. */
+function Tekstfelt({ tittel, verdier }: { tittel: string; verdier: string[] }) {
   if (verdier.length === 0) return null;
   return (
     <section className="tiltak-detalj-felt">
       <h3 className="tiltak-detalj-merkelapp">{tittel}</h3>
-      <div className="tiltak-detalj-tagger">
-        {verdier.map((v) => (
-          <Tag key={v} variant="outline" data-size="sm">
-            {v}
-          </Tag>
-        ))}
-      </div>
+      <Paragraph>{somTekst(verdier)}</Paragraph>
     </section>
   );
 }
@@ -131,30 +125,14 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             </section>
           )}
 
-          <Merkelapper tittel="Type KI" verdier={visValg(tiltak.kiType, tiltak.kiTypeAnnet)} />
+          <Tekstfelt tittel="Type KI" verdier={visValg(tiltak.kiType, tiltak.kiTypeAnnet)} />
 
-          <Merkelapper
+          <Tekstfelt
             tittel="Hva tiltaket skal levere"
             verdier={visValg(tiltak.leveranse, tiltak.leveranseAnnet)}
           />
 
-          {tiltak.fase ? (
-            <section className="tiltak-detalj-felt">
-              <h3 className="tiltak-detalj-merkelapp">Fase</h3>
-              <Tag variant="outline" data-size="sm">
-                {tiltak.fase}
-              </Tag>
-            </section>
-          ) : (
-            tiltak.status.length > 0 && (
-              <section className="tiltak-detalj-felt">
-                <h3 className="tiltak-detalj-merkelapp">Status</h3>
-                <Tag variant="outline" data-size="sm">
-                  {tiltak.status}
-                </Tag>
-              </section>
-            )
-          )}
+          <Tekstfelt tittel="Fase" verdier={tiltak.fase ? [tiltak.fase] : []} />
 
           {tiltak.kontaktinfo && tiltak.kontaktinfo.trim().length > 0 && (
             <section className="tiltak-detalj-felt">
