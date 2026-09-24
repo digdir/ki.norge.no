@@ -52,6 +52,17 @@ h1, h2, h3, h4, h5, h6 {
   word-break: break-word;
 }
 
+/* På mobil krymper en sidetittel akkurat nok til at det lengste ordet får plass
+   på én linje. --lengste-ord settes per tittel med ordlengde() i lib/text.ts,
+   og 32 px er sidemargen. 0,52 em per tegn dekker de lengste ordene i prod,
+   målt til 0,46–0,51 i PT Serif («Arrangementer» er bredest). Uten variabelen, eller når
+   ordet uansett får plass, blir størrelsen som før. */
+@media (max-width: 767px) {
+  h1.ds-heading[data-size="xl"] {
+    font-size: min(var(--ds-heading-xl-font-size), calc((100vw - 32px) / (var(--lengste-ord, 1) * 0.52)));
+  }
+}
+
 /* Utility classes */
 /* Binder siste ord og pil-ikon sammen så pilen ikke brekker alene (#464).
    Brukes med splitLastWord() fra lib/text.ts. */

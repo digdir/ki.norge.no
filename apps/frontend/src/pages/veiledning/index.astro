@@ -10,7 +10,7 @@ import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
 import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getArtikler, getMediaUrl, MEDIA_WIDTH } from '../../lib/umbraco';
-import { splitLastWord } from '../../lib/text';
+import { splitLastWord, ordlengde } from '../../lib/text';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -130,7 +130,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
   <!-- Hero -->
   <section class="veil-hero" data-layout-block="content">
-    {heroTitle && <h1 class="ds-heading" data-size="xl">{heroTitle}</h1>}
+    {heroTitle && <h1 class="ds-heading" data-size="xl" style={ordlengde(heroTitle)}>{heroTitle}</h1>}
     {heroText && <p class="ds-paragraph veil-hero-text" data-size="xl">{heroText}</p>}
   </section>
 

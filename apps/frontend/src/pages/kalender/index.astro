@@ -4,6 +4,7 @@ import EventCard from '../../components/shared/EventCard.astro';
 import { getKalender, getKalenderhendelser, type Kalenderhendelse } from '../../lib/umbraco';
 import { hendelseTilEventCard, tidligereTomTekst } from '../../lib/kalender';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { ordlengde } from '../../lib/text';
 
 let kalender = null;
 let hendelser: Kalenderhendelse[] = [];
@@ -82,7 +83,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   </Fragment>
   <header class="kalender-header" data-layout-block="content">
-    {tittel && <h1 class="ds-heading" data-size="xl">{tittel}</h1>}
+    {tittel && <h1 class="ds-heading" data-size="xl" style={ordlengde(tittel)}>{tittel}</h1>}
     {ingress && <p class="kalender-ingress">{ingress}</p>}
   </header>
 

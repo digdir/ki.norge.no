@@ -1,4 +1,5 @@
 ---
+import { ordlengde } from '../../lib/text';
 import AkselIcon from './AkselIcon.astro';
 
 interface Props {
@@ -27,7 +28,7 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
 ---
 
 <article class="example-card" data-variant={variant} data-clickdelegatefor={id}>
-  <h3 class="ds-heading example-card-title" data-size="md">
+  <h3 class="ds-heading example-card-title" data-size="md" style={ordlengde(title)}>
     <a id={id} href={href}>
       {title}<span class="example-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span>
     </a>
@@ -88,6 +89,14 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
 
   .example-card-title {
     margin: 0;
+  }
+
+  /* Samme regel som sidetitlene i global.css: på mobil krymper tittelen akkurat
+     nok til at det lengste ordet får plass. 96 px er kortets og sidens marg. */
+  @media (max-width: 767px) {
+    .example-card .example-card-title {
+      font-size: min(var(--ds-heading-md-font-size), calc((100vw - 96px) / (var(--lengste-ord, 1) * 0.52)));
+    }
   }
 
   .example-card-virksomhet {

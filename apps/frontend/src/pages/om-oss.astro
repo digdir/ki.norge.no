@@ -5,6 +5,7 @@ import ArticleBlocksRenderer from '../components/shared/ArticleBlocksRenderer.as
 import NewsCard from '../components/shared/NewsCard.astro';
 import { getOmOss, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_WIDTH, bakgrunnSurface } from '../lib/umbraco';
 import { breadcrumbSchema } from '../lib/seo';
+import { ordlengde } from '../lib/text';
 
 // Om Oss er rik artikkelmal (#362): artikkelhode (tittel/ingress/hovedbilde) + innhold-blokkliste.
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -42,7 +43,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   <section class="article-hero" data-layout-block="edge">
     <div class="article-hero-inner">
       <div class="article-hero-text">
-        {tittel && <h1 class="ds-heading article-title" data-size="xl">{tittel}</h1>}
+        {tittel && <h1 class="ds-heading article-title" data-size="xl" style={ordlengde(tittel)}>{tittel}</h1>}
       </div>
     </div>
   </section>

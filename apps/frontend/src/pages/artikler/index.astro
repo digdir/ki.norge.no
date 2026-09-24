@@ -3,6 +3,7 @@ import Layout from '../../components/layout/Layout.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 import { getArtikler, getArtiklerOversikt, getPlainText, sammenlignPublisertDato, velgKortbilde, type Artikkel } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { ordlengde } from '../../lib/text';
 
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
 
@@ -83,7 +84,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
   <section data-layout-block="content" class="artikler-page">
     <header class="artikler-header">
-      {heroTittel && <h1 class="ds-heading" data-size="xl">{heroTittel}</h1>}
+      {heroTittel && <h1 class="ds-heading" data-size="xl" style={ordlengde(heroTittel)}>{heroTittel}</h1>}
       {heroSubtittel && <p class="artikler-subtitle">{heroSubtittel}</p>}
     </header>
 
