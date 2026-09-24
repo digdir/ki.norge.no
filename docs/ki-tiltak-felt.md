@@ -2,7 +2,11 @@
 
 Referanse for den som fører inn tiltak i `apps/frontend/src/data/ki-tiltak.json`.
 
-Feltnavnene er med vilje identiske med feltene i innsendingsskjemaet og i e-posten som kommer til `ki-tiltak@kin.norge.no`. Avskriften skal være mekanisk: står det `kiType` i e-posten, heter det `kiType` i fila.
+## Den enkleste veien: lim inn fra e-posten
+
+E-posten som kommer til `ki-tiltak@kin.norge.no` har nederst en blokk som heter **TIL KI-TILTAK.JSON**. Den er hele oppføringen, med ny id, riktige feltnavn og verdiene slik skjemaet har dem. Kopier blokken som den står, og lim den inn på linja rett etter `[` øverst i fila. Komma til slutt er med.
+
+Da trenger du ikke skrive noe for hånd. Det eneste som kan trenge vask er `virksomhet`, som er navnet innsenderen skrev, og `beskrivelse`, hvis dere vil språkvaske.
 
 ## Hele modellen
 
@@ -14,7 +18,8 @@ Feltnavnene er med vilje identiske med feltene i innsendingsskjemaet og i e-post
   "orgnr": "917422575",
   "fagomrade": "Trafikk og transport",
   "beskrivelse": "Entur jobbar systematisk for å teste og utnytte moglegheitene som følgjer av forbetringar innan KI.",
-  "status": "Gjennomføring",
+  "status": "",
+  "fase": "Gjennomføring",
 
   "kiType": ["Generativ KI", "Språkteknologi"],
   "kiTypeAnnet": "",
@@ -24,19 +29,22 @@ Feltnavnene er med vilje identiske med feltene i innsendingsskjemaet og i e-post
 }
 ```
 
-De seks øverste er påkrevd og finnes på alle 58 oppføringene fra før. De fem nederste er nye og valgfrie.
+De seks øverste og `status` finnes på alle oppføringene. `status` er tom på nye tiltak. De seks nederste er nye og valgfrie.
 
 ## De nye feltene
 
 | Felt | Type | Gyldige verdier |
 | --- | --- | --- |
+| `fase` | tekst | `Innsikt og planlegging`, `Gjennomføring`, `I drift`. Vises som **Fase** |
 | `kiType` | liste | `Generativ KI`, `Prediktiv KI`, `Agentisk KI`, `Språkteknologi`, `Computer Vision`, `Anbefalingssystemer`, `Annet` |
 | `kiTypeAnnet` | tekst | Fritekst. Bare når `kiType` inneholder `Annet` |
 | `leveranse` | liste | `PoC`, `MVP`, `Pilot`, `Løsning i produksjon`, `Annet` |
 | `leveranseAnnet` | tekst | Fritekst. Bare når `leveranse` inneholder `Annet` |
 | `kontaktinfo` | tekst | E-postadresse |
 
-`status` er feltet som heter **Fase** i skjemaet og i visningen. Det finnes fra før. Gyldige verdier er `Innsikt og planlegging`, `Gjennomføring` og `I drift`.
+**Status og fase er ikke det samme.** `status` er de eldre oppføringenes egne verdier, `Planlagt`, `Pågående` og `Avsluttet`, og vises som **Status**. Den beholdes som den er, og brukes ikke på nye tiltak. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
+
+**Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser én merkelapp per ord.
 
 ## Regler som er verdt å kjenne
 
@@ -46,7 +54,9 @@ De seks øverste er påkrevd og finnes på alle 58 oppføringene fra før. De fe
 
 **«Annet» erstattes av friteksten.** Skriver du `"leveranse": ["Pilot", "Annet"]` og `"leveranseAnnet": "Intern verktøykasse"`, viser sida «Pilot» og «Intern verktøykasse». Ordet «Annet» vises ikke. Står friteksten uten at `Annet` er i lista, blir teksten aldri vist, og en test stopper det.
 
-**Kontaktadressen blir publisert.** Både på nettstedet og i git-historikken til et offentlig repo. Bruk en virksomhetsadresse, ikke en personlig.
+**Kontaktadressen blir publisert.** Både på nettstedet og i git-historikken til et offentlig repo. En funksjonsadresse som `post@` er å foretrekke, men jobbadressen innsenderen selv har oppgitt er greit.
+
+**Hver oppføring trenger en unik id.** To tiltak med tom id får samme lenke, og da åpner begge det første. Blokken i e-posten har en ny id. Skriver du for hånd, lag en på [uuidgenerator.net](https://www.uuidgenerator.net/).
 
 ## Lenker i beskrivelsen
 
@@ -69,6 +79,7 @@ Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. D
 - `Annet`-fritekst uten at `Annet` er valgt
 - `kontaktinfo` som ikke ser ut som en e-postadresse
 - lenke i beskrivelsen som ikke er `http` eller `https`
-- ukjent fagområde eller status, og duplikate id-er, som fra før
+- ukjent fase, fagområde eller status, og duplikate id-er
+- virksomhetsnavn med bare versaler, som `KF`. Skriv `Kommuneforlaget (KF)`
 
 Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.

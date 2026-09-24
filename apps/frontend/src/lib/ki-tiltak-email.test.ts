@@ -141,3 +141,42 @@ describe('lagEpost', () => {
     expect(text).toContain('<b>hei</b>');
   });
 });
+
+describe('JSON-blokken i e-posten', () => {
+  const blokk = (text: string) => text.split('ki-tiltak.json:\n\n')[1].split('\n\nSvar på')[0];
+
+  test('limt inn etter [ gir gyldig JSON med én post mer', async () => {
+    const fil = (await import('node:fs')).readFileSync(
+      new URL('../data/ki-tiltak.json', import.meta.url),
+      'utf-8',
+    );
+    const { text } = buildEmail(form(), () => '11111111-2222-4333-8444-555555555555');
+    const limt = fil.replace('[', `[\n${blokk(text)}`);
+    const data = JSON.parse(limt);
+    expect(data).toHaveLength(JSON.parse(fil).length + 1);
+    expect(data[0]).toMatchObject({
+      id: '11111111-2222-4333-8444-555555555555',
+      navn: 'KI-assistent for klarspråk i vedtak',
+      orgnr: '991825827',
+      status: '',
+      fase: 'Gjennomføring',
+      kontaktinfo: 'postmottak@digdir.no',
+    });
+  });
+
+  test('flervalg står som lister, og fritekst bare når Annet er valgt', () => {
+    const { text } = buildEmail(
+      form({ leveranse: ['PoC', 'Annet'], leveranseAnnet: 'Rapport', kiType: ['Generativ KI'], kiTypeAnnet: 'glemt' }),
+      () => 'x',
+    );
+    const post = JSON.parse(blokk(text).replace(/,$/, ''));
+    expect(post.leveranse).toEqual(['PoC', 'Annet']);
+    expect(post.leveranseAnnet).toBe('Rapport');
+    expect(post.kiType).toEqual(['Generativ KI']);
+    expect(post).not.toHaveProperty('kiTypeAnnet');
+  });
+
+  test('hver e-post får en ny id', () => {
+    expect(blokk(buildEmail(form()).text)).not.toBe(blokk(buildEmail(form()).text));
+  });
+});

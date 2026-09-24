@@ -138,13 +138,22 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             verdier={visValg(tiltak.leveranse, tiltak.leveranseAnnet)}
           />
 
-          {tiltak.status.length > 0 && (
+          {tiltak.fase ? (
             <section className="tiltak-detalj-felt">
               <h3 className="tiltak-detalj-merkelapp">Fase</h3>
               <Tag variant="outline" data-size="sm">
-                {tiltak.status}
+                {tiltak.fase}
               </Tag>
             </section>
+          ) : (
+            tiltak.status.length > 0 && (
+              <section className="tiltak-detalj-felt">
+                <h3 className="tiltak-detalj-merkelapp">Status</h3>
+                <Tag variant="outline" data-size="sm">
+                  {tiltak.status}
+                </Tag>
+              </section>
+            )
           )}
 
           {tiltak.kontaktinfo && tiltak.kontaktinfo.trim().length > 0 && (
