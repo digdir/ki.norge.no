@@ -42,9 +42,9 @@ De seks øverste og `status` finnes på alle oppføringene. `status` er tom på 
 | `leveranseAnnet` | tekst | Fritekst. Bare når `leveranse` inneholder `Annet` |
 | `kontaktinfo` | tekst | E-postadresse |
 
-**Status og fase er ikke det samme.** `status` er de eldre oppføringenes egne verdier, `Planlagt`, `Pågående` og `Avsluttet`, og vises som **Status**. Den beholdes som den er, og brukes ikke på nye tiltak. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
+**Status og fase er ikke det samme.** `status` er de eldre oppføringenes egne verdier, `Planlagt`, `Pågående` og `Avsluttet`. Den beholdes i fila, men vises ikke og søkes ikke i, fordi kategorien ikke skal brukes lenger. La den stå tom på nye tiltak. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
 
-**Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser én merkelapp per ord.
+**Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
 
 ## Regler som er verdt å kjenne
 
