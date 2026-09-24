@@ -10,6 +10,7 @@ import {
   MEDIA_WIDTH,
 } from '../../../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../../../lib/seo';
+import { ordlengde } from '../../../../lib/text';
 
 const { guide: guideSlug, step: stepSlug, stegartikkel: stegartikkelSlug } = Astro.params;
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -61,7 +62,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
         {currentStep.tittel}
       </a>
     </ds-breadcrumbs>
-    <h1 class="article-title ds-heading" data-size="xl">{article.tittel}</h1>
+    <h1 class="article-title ds-heading" data-size="xl" style={ordlengde(article.tittel)}>{article.tittel}</h1>
     {article.ingress && <p class="article-ingress ds-heading" data-size="md">{article.ingress}</p>}
   </div>
   <div class="article-page u-rich-text" data-layout-block="content">

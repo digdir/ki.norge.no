@@ -6,6 +6,7 @@ import AkselIcon from '../../components/shared/AkselIcon.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 import { getKalenderhendelser, getArtikler, getPlainText, getCardImage, type Kalenderhendelse } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
+import { ordlengde } from '../../lib/text';
 
 const { slug } = Astro.params;
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -53,7 +54,7 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
 <Layout title={seoTitle} description={seoDesc}>
   
   <section class="article-hero" data-layout-block="edge">
-    <h1 class="ds-heading article-title" data-size="xl">{hendelse.tittel}</h1>
+    <h1 class="ds-heading article-title" data-size="xl" style={ordlengde(hendelse.tittel)}>{hendelse.tittel}</h1>
     <p class="event-datetime">
       <time datetime={hendelse.startDato}><strong>{dateDisplay}</strong></time>
       {timeDisplay && <span class="event-time">{timeDisplay}</span>}

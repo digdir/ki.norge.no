@@ -13,6 +13,7 @@ import {
   MEDIA_WIDTH,
 } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
+import { ordlengde } from '../../lib/text';
 
 const { guide: slug } = Astro.params;
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -102,7 +103,7 @@ if (guideData) {
     <section class="article-hero" data-layout-block="edge">
       <div class="article-hero-inner">
         <div class="article-hero-text">
-          <h1 class="ds-heading article-title" data-size="xl">{enkel.tittel}</h1>
+          <h1 class="ds-heading article-title" data-size="xl" style={ordlengde(enkel.tittel)}>{enkel.tittel}</h1>
         </div>
       </div>
     </section>
@@ -129,7 +130,7 @@ if (guideData) {
 ) : guideData && guideCtx ? (
   <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde?.url} bodyColor="brand1">
     <div class="guide-header" data-layout-block="content">
-      <h1 class="ds-heading" data-size="xl">{guideData.tittel}</h1>
+      <h1 class="ds-heading" data-size="xl" style={ordlengde(guideData.tittel)}>{guideData.tittel}</h1>
       {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
     </div>
     <div class="article-page" data-layout-block="content">

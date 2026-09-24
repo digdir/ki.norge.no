@@ -3,6 +3,7 @@ import Layout from '../components/layout/Layout.astro';
 import ArticleBlocksRenderer from '../components/shared/ArticleBlocksRenderer.astro';
 import { getSide, getPlainText, type Side } from '../lib/umbraco';
 import { breadcrumbSchema } from '../lib/seo';
+import { ordlengde } from '../lib/text';
 
 const { slug } = Astro.params;
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -23,7 +24,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
      bred tittel/ingress-blokk (1000px) og smalere sentrert brødtekst (680px) -->
 <Layout title={seoTitle} description={seoDesc} ogImage={seoImage} bodyColor="brand1">
   <div class="article-hero" data-layout-block="content">
-    <h1 class="article-title ds-heading" data-size="xl">{page.tittel}</h1>
+    <h1 class="article-title ds-heading" data-size="xl" style={ordlengde(page.tittel)}>{page.tittel}</h1>
     {page.ingress && <p class="article-ingress ds-heading" data-size="md">{page.ingress}</p>}
   </div>
   <div class="article-page u-rich-text" data-layout-block="content">

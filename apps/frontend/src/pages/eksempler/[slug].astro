@@ -6,6 +6,7 @@ import ExampleCard from '../../components/shared/ExampleCard.astro';
 
 import { getEksempel, getEksempler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakgrunnSurface, type Eksempel } from '../../lib/umbraco';
 import { eksempelSchema, breadcrumbSchema } from '../../lib/seo';
+import { ordlengde } from '../../lib/text';
 
 const { slug } = Astro.params;
 const isPreview = Astro.url.searchParams.has('preview') || !!Astro.cookies.get('preview')?.value;
@@ -47,7 +48,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   <section class="article-hero" data-layout-block="edge">
     <div class="article-hero-inner">
       <div class="article-hero-text">
-        <h1 class="ds-heading article-title" data-size="xl">{article.tittel}</h1>
+        <h1 class="ds-heading article-title" data-size="xl" style={ordlengde(article.tittel)}>{article.tittel}</h1>
       </div>
     </div>
   </section>
