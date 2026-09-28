@@ -27,7 +27,9 @@ const FJERNEDE_FELT: Record<string, string> = {
 function merknad(linje: number, kolonne: number, tittel: string, melding: string) {
   if (process.env.GITHUB_ACTIONS !== 'true') return;
   const rens = (s: string) => s.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
-  console.log(`::error file=${STI_I_REPO},line=${linje},col=${kolonne},title=${rens(tittel)}::${rens(melding)}`);
+  // Vitest skriver fargekoder foran konsollutskrift. Da starter ikke linja med
+  // ::error, og GitHub overser den. Linjeskiftet først gir merknaden egen linje.
+  console.log(`\n::error file=${STI_I_REPO},line=${linje},col=${kolonne},title=${rens(tittel)}::${rens(melding)}`);
 }
 
 function linjeFor(indeks: number): number {
