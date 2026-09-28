@@ -2,7 +2,7 @@
 
 Hvor avhengighetene i repoet bor, hvordan de oppdateres, fellene fra tidligere runder, og oppskriftene for å oppdatere og verifisere. Del 1 til 5 er varige. Del 6 er runden som gjelder nå, og skrives om ved hver gjennomgang.
 
-Sist gjennomgått 2026-09-28. Fase 0, 1.1, 1.2 og deler av 4 er gjort samme dag.
+Sist gjennomgått 2026-09-28. Fase 0, 1, deler av 3 og det meste av 4 er gjort samme dag.
 
 ## 1. Hvor avhengighetene bor
 
@@ -216,6 +216,8 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 | `minimumReleaseAgeExclude` har ni gamle oppføringer (astro 6.4.7, designsystemet 1.15.0 og andre) | Unntak fra en sikkerhetsvakt ingen trenger lenger | Fase 4 |
 | Umbraco-minor går i gruppen «nuget non-major». Rutinen flagger minor av Umbraco.Cms fra juli, men ikke patch, uSync eller AzureBlob | uSync har re-nøklet i en patch før (17.3.6) | Fase 0 |
 | NuGet: ingen kjente sårbarheter. Umbraco, uSync og AzureBlob står på siste 17.x | Bra | Ingen |
+| Transitive pakker oppdateres aldri innenfor sine versjonskrav. brace-expansion og qs sto på sårbare versjoner selv om de fiksede var tillatt | Sikkerhetsfikser i transitive pakker kommer ikke inn av seg selv. Renovate har ikke «lock file maintenance» slått på | Fase 4 |
+| `pnpm run tokens:build` stopper på et spørsmål om å migrere `designsystemet.config.json` til nytt fargeskjema, og bygget gir 9 filer som er ulike de som er committet | Tokens-bygget kan ikke kjøres uten å svare på spørsmålet, og tokens i repoet er ikke i takt med generatoren. Gjaldt før denne runden | Egen sak |
 
 ### Fase 0: regler og beslutninger, før torsdag 1.10
 
@@ -233,7 +235,7 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 
 - [x] **Base-image til 10.0.12** (#810, image `70-dotnet-10-0-12` i tt02 og prod 28.9). PR som oppdaterer begge digestene hvis Renovate ikke har laget den. Deretter `pnpm run cms:build`, CI, nytt image, tt02, måling (5.6), og prod.
 - [x] **tt02-workerne synkes med main** (5.3). Prod er allerede oppdatert.
-- [ ] **Sårbarhetene i tokens-CLI-en.** Først `@digdir/designsystemet` 1.23.0 i roten. Fikser ikke det, overrides for `brace-expansion` (`^5.0.9`) og `qs` (`^6.16.0`). Verifiser med `pnpm audit --audit-level high`, og at `pnpm run tokens:build` gir samme `design-tokens-build/` som før (`git diff --stat`).
+- [x] **Sårbarhetene i tokens-CLI-en** (#812). Løst uten override: `minimatch` og `url` tillot allerede de fiksede versjonene, så `pnpm update -r --depth Infinity brace-expansion qs` holdt. Token-bygget ga identisk resultat med gammel og ny lockfil (kjørt med `yes n |` for å svare nei på migreringen).
 
 ### Fase 2: minor og patch fra torsdag
 
@@ -242,8 +244,8 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 
 ### Fase 3: major, én om gangen
 
-- [ ] **TypeScript 7 (#795),** bare i cache-workeren. Vitest (5.3), `wrangler types` og deploy med `--dry-run`. Frontend har ikke TypeScript som egen avhengighet.
-- [ ] **@astrojs/react 7.** Krever ny peer, `oxc-transform-react ^0.145.0`, som må legges til. Følg 5.2 med øyene.
+- [x] **TypeScript 7 (#795),** merget 28.9, bare i cache-workeren. Vitest (5.3), `wrangler types` og deploy med `--dry-run`. Frontend har ikke TypeScript som egen avhengighet.
+- [x] **@astrojs/react 7** (#813). `oxc-transform-react` er en valgfri peer, bare for React Compiler. Babel er ute av treet, så overridene for `@babel/core` og `browserslist` er fjernet. Klient-bundlene ble byte-identiske med 6.0.6, målt i prod mot tt02.
 - [ ] **pnpm 12.** `packageManager` i `package.json`. Les endringsnotatene for lockfil-format og innstillingene i `pnpm-workspace.yaml` (`overrides`, `minimumReleaseAge`, `allowBuilds`). `pnpm install --frozen-lockfile` skal virke i CI.
 - [ ] **vitest 5 i frontend.** Cache-workeren venter, se fase 0.
 - [ ] **@types/node:** installert er 25, runtime er Node 24. Bestem om typene skal følge runtime (`^24`), før 26 tas inn.
@@ -251,12 +253,13 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 
 ### Fase 4: rydding og vakter
 
-- [ ] **CI på `ubuntu-26.04` før 19. oktober.** Kjør en gang på `ubuntu-26.04`, eller lås `ubuntu-24.04` til det er testet.
+- [x] **CI på `ubuntu-26.04`:** hele CI var grønn der 28.9, så flyttingen 19. oktober krever ingen endring.
 - [x] **Fjern det doble testløpet** i frontend-jobben, og legg cache-workerens tester inn i CI.
 - [x] **`trivy-action`:** blir stående, se funnene.
 - [x] **Én bot for Actions.** Både Renovate (via `config:recommended`) og Dependabot (`.github/dependabot.yml`) oppdaterer Actions. Behold Renovate, som grupperer og låser med digest, og fjern versjonsoppdateringene i `dependabot.yml`. Sikkerhetsvarslene fra Dependabot beholdes.
 - [x] **Rydd `minimumReleaseAgeExclude`.** Ingen av oppføringene gjelder versjoner vi bruker.
-- [ ] **Hver override vurderes etter 5.8,** og overflødige fjernes.
+- [ ] **Hver override vurderes etter 5.8,** og overflødige fjernes. Gjort for `@babel/core` og `browserslist` (#813).
+- [ ] **Renovate `lockFileMaintenance`** månedlig, så transitive pakker følger med innenfor versjonskravene. Én PR i måneden, verifisert som 5.2.
 - [ ] **`compatibility_date`** i de tre workerne flyttes bevisst, med test på tt02.
 
 ## 7. Dette krever Lars
