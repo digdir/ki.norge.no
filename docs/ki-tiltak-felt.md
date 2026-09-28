@@ -1,39 +1,34 @@
 # Felt i ki-tiltak.json
 
-Referanse for den som fører inn tiltak i `apps/frontend/src/data/ki-tiltak.json`.
+Referanse for feltene i `apps/frontend/src/data/ki-tiltak.json`. Fila lages av importen fra registerets eksport og redigeres ikke for hånd, se [apps/frontend/src/data/README.md](../apps/frontend/src/data/README.md).
 
-## Den enkleste veien: lim inn fra e-posten
+E-posten fra skjemaet på /ki-tiltak har fortsatt en blokk som heter **TIL KI-TILTAK.JSON**. Den skal ikke limes inn i fila. Neste import overskriver den, fordi nye tiltak kommer inn via registeret.
 
-E-posten som kommer til `ki-tiltak@kin.norge.no` har nederst en blokk som heter **TIL KI-TILTAK.JSON**. Den er hele oppføringen, med ny id, riktige feltnavn og verdiene slik skjemaet har dem. Kopier blokken som den står, og lim den inn på linja rett etter `[` øverst i fila. Komma til slutt er med.
-
-Da trenger du ikke skrive noe for hånd. Det eneste som kan trenge vask er `virksomhet`, som er navnet innsenderen skrev, og `beskrivelse`, hvis dere vil språkvaske.
-
-## Hele modellen
+## Modellen
 
 ```json
 {
-  "id": "bda57bb4-992e-4b12-adb5-1fddaa34f8b4",
+  "id": "58d19bb6-5f0d-480b-ac94-378da3548f76",
   "navn": "#DataSaman",
   "virksomhet": "Entur AS",
   "orgnr": "917422575",
   "fagomrade": "Trafikk og transport",
   "beskrivelse": "Entur jobbar systematisk for å teste og utnytte moglegheitene som følgjer av forbetringar innan KI.",
   "fase": "Gjennomføring",
-
   "kiType": ["Generativ KI", "Språkteknologi"],
-  "kiTypeAnnet": "",
   "leveranse": ["Pilot"],
-  "leveranseAnnet": "",
   "kontaktinfo": "post@entur.no"
 }
 ```
 
-De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste er valgfrie og gjelder bare nye tiltak.
+`id`, `navn`, `virksomhet`, `orgnr` og `fagomrade` finnes på alle som publiseres. Resten er valgfritt.
 
-## De nye feltene
+Flere virksomheter skrives som lister i samme rekkefølge, med hovedvirksomheten først: `"virksomhet": ["Helse Bergen HF", "Helse Førde HF"]` og `"orgnr": ["983974724", "983974732"]`.
 
 | Felt | Type | Gyldige verdier |
 | --- | --- | --- |
+| `virksomhet` | tekst eller liste | Visningsnavn fra navnetabellen. Hovedvirksomheten først |
+| `orgnr` | tekst eller liste | Samme rekkefølge som `virksomhet` |
 | `fase` | tekst | `Innsikt og planlegging`, `Gjennomføring`, `I drift`. Vises som **Fase** |
 | `kiType` | liste | `Generativ KI`, `Prediktiv KI`, `Agentisk KI`, `Språkteknologi`, `Computer Vision`, `Anbefalingssystemer`, `Annet` |
 | `kiTypeAnnet` | tekst | Fritekst. Bare når `kiType` inneholder `Annet` |
@@ -41,48 +36,35 @@ De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste 
 | `leveranseAnnet` | tekst | Fritekst. Bare når `leveranse` inneholder `Annet` |
 | `kontaktinfo` | tekst | E-postadresse |
 
-**Det finnes ikke noe status-felt.** Det ble fjernet fordi kategorien ikke skal brukes. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
+Modellen på sida tåler også registerets form direkte, med `null` hvor som helst.
 
-**Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
+**Det finnes ikke noe status-felt.** `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?».
 
-## Regler som er verdt å kjenne
+## Visning
 
-**Valgfritt betyr virkelig valgfritt.** Utelat feltet, eller la det stå tomt, det gjør ingen forskjell. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
+**Flere virksomheter** vises én per linje i detaljvisningen, med hovedvirksomheten først. På kortene står de etter hverandre med komma, kuttet med «…» etter to linjer.
 
-**Ikke etterfyll de gamle.** De nye feltene gjelder bare tiltak som er sendt inn eller oppdatert via skjemaet på /ki-tiltak. Ingen skal gjette seg til hvilken KI-type en virksomhet bruker.
+**Uten verdi vises aldri.** Det gjelder null, tom tekst, tekst med bare mellomrom, tomme lister, og plassholderne `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt». Et felt uten verdi vises ikke i det hele tatt, heller ikke overskriften.
 
-**«Annet» erstattes av friteksten.** Skriver du `"leveranse": ["Pilot", "Annet"]` og `"leveranseAnnet": "Intern verktøykasse"`, viser sida «Pilot» og «Intern verktøykasse». Ordet «Annet» vises ikke. Står friteksten uten at `Annet` er i lista, blir teksten aldri vist, og en test stopper det.
+**«Annet» erstattes av friteksten.** `"leveranse": ["Pilot", "Annet"]` og `"leveranseAnnet": "Intern verktøykasse"` vises som «Pilot og Intern verktøykasse».
 
-**Kontaktadressen blir publisert.** Både på nettstedet og i git-historikken til et offentlig repo. En funksjonsadresse som `post@` er å foretrekke, men jobbadressen innsenderen selv har oppgitt er greit.
+**Kontaktadressen blir publisert.** Både på nettstedet og i git-historikken til et offentlig repo.
 
-**Hver oppføring trenger en unik id.** To tiltak med tom id får samme lenke, og da åpner begge det første. Blokken i e-posten har en ny id. Skriver du for hånd, lag en på [uuidgenerator.net](https://www.uuidgenerator.net/).
-
-## Lenker i beskrivelsen
-
-Skrives som markdown: `[Se rapporten](https://example.no/rapport)`.
-
-Bare lenker. Ikke fet skrift, ikke bilder, ikke HTML. Og bare `http` og `https`. Alt annet står som synlig tekst på sida, som ser ut som en feil, så en test fanger det først.
-
-Linjeskift skrives som `\n`. Linjer som starter med `-`, `•` eller `1.` blir punktlister ved visning.
-
-## Tegnsetting
-
-Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. Dette håndheves ikke av kode, med vilje: en beskrivelse som slutter med en forkortelse eller en URL ville blitt feil av en automatisk regel.
+**Lenker i beskrivelsen** skrives som markdown, `[Se rapporten](https://example.no/rapport)`. Bare `http` og `https`. Linjer som starter med `-`, `•` eller `1.` blir punktlister i detaljvisningen.
 
 ## Hva testene fanger
 
-`pnpm --dir apps/frontend run test:unit` kjører i CI på hver PR og stopper:
+`pnpm --filter ki-norge-frontend run test:unit` kjører i CI på hver PR og stopper:
 
-- syntaksfeil, som et manglende komma eller en manglende `{`. Feilmeldingen sier hvilken linje, viser linjene rundt og forklarer hva som pleier å være galt. I en PR vises den også som merknad på linja i fila
-- felt som er fjernet: `status`, og `formaal`, `oppstart` og `slutt` fra en eldre veiledning
-- ukjent verdi i `kiType` eller `leveranse`, altså skrivefeil
-- duplikater eller tomme strenger i de to listene
+- syntaksfeil, med linje og forklaring
+- felt som er fjernet: `status`, `formaal`, `oppstart` og `slutt`
+- ukjent verdi i `kiType` eller `leveranse`, og duplikater eller tomme verdier i dem
 - `Annet`-fritekst uten at `Annet` er valgt
 - `kontaktinfo` som ikke ser ut som en e-postadresse
 - lenke i beskrivelsen som ikke er `http` eller `https`
-- ukjent fase eller fagområde, og duplikate id-er
-- virksomhetsnavn med bare versaler, som `KF`. Skriv `Kommuneforlaget (KF)`
+- ukjent fase eller fagområde, publiserte tiltak uten fagområde, og duplikate id-er
+- virksomhetsnavn med bare versaler
+- publiserte orgnr uten navn i navnetabellen
+- mål i id-tabellen som ikke finnes
 
-Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.
-
-Nye felt stoppes ikke. De vises først når koden tar dem i bruk.
+Reglene for import og visning har egne enhetstester i `src/lib/ki-tiltak-modell.test.ts`.

@@ -1,0 +1,230 @@
+{
+  "840747972": {
+    "navn": "Finanstilsynet",
+    "registernavn": "FINANSTILSYNET"
+  },
+  "883971752": {
+    "navn": "Sunnaas sykehus HF",
+    "forslag": true,
+    "registernavn": "SUNNAAS SYKEHUS HF"
+  },
+  "883974832": {
+    "navn": "St. Olavs hospital HF",
+    "forslag": true,
+    "registernavn": "ST. OLAVS HOSPITAL HF"
+  },
+  "889640782": {
+    "navn": "Arbeids- og velferdsetaten",
+    "registernavn": "ARBEIDS- OG VELFERDSETATEN"
+  },
+  "892211442": {
+    "navn": "Norsk filminstitutt",
+    "registernavn": "NORSK FILMINSTITUTT"
+  },
+  "894166762": {
+    "navn": "Vestre Viken HF",
+    "forslag": true,
+    "registernavn": "VESTRE VIKEN HF"
+  },
+  "910976222": {
+    "navn": "Kommuneforlaget (KF)",
+    "registernavn": "Kommuneforlaget AS"
+  },
+  "917362246": {
+    "navn": "Toppindustrisenteret AS",
+    "registernavn": "TOPPINDUSTRISENTERET AS"
+  },
+  "917422575": {
+    "navn": "Entur AS",
+    "registernavn": "ENTUR AS"
+  },
+  "919477822": {
+    "navn": "Sikt – Kunnskapssektorens tjenesteleverandør",
+    "registernavn": "SIKT - KUNNSKAPSSEKTORENS TJENESTELEVERANDØR"
+  },
+  "919666102": {
+    "navn": "Artsdatabanken",
+    "registernavn": "ARTSDATABANKEN"
+  },
+  "964969590": {
+    "navn": "Hå kommune",
+    "registernavn": "HÅ KOMMUNE"
+  },
+  "965985166": {
+    "navn": "Lovisenberg Diakonale Sykehus AS",
+    "forslag": true,
+    "registernavn": "LOVISENBERG DIAKONALE SYKEHUS AS"
+  },
+  "970205039": {
+    "navn": "Norges vassdrags- og energidirektorat (NVE)",
+    "registernavn": "NORGES VASSDRAGS- OG ENERGIDIREKTORAT (NVE)"
+  },
+  "971032146": {
+    "navn": "KS – Kommunesektorens organisasjon",
+    "registernavn": "KS-KOMMUNESEKTORENS ORGANISASJON"
+  },
+  "971035854": {
+    "navn": "Universitetet i Oslo",
+    "registernavn": "UNIVERSITETET I OSLO"
+  },
+  "971278374": {
+    "navn": "Statsbygg",
+    "registernavn": "STATSBYGG"
+  },
+  "972417858": {
+    "navn": "Kommunal- og distriktsdepartementet",
+    "registernavn": "KOMMUNAL- OG DISTRIKTSDEPARTEMENTET"
+  },
+  "972417920": {
+    "navn": "Utenriksdepartementet",
+    "registernavn": "UTENRIKSDEPARTEMENTET"
+  },
+  "974760673": {
+    "navn": "Registerenheten i Brønnøysund",
+    "registernavn": "REGISTERENHETEN I BRØNNØYSUND"
+  },
+  "974761076": {
+    "navn": "Skatteetaten",
+    "registernavn": "SKATTEETATEN"
+  },
+  "974761424": {
+    "navn": "Departementenes sikkerhets- og serviceorganisasjon (DSS)",
+    "registernavn": "DEPARTEMENTENES SIKKERHETS- OG SERVICEORGANISASJON (DSS)"
+  },
+  "976029100": {
+    "navn": "Nasjonalbiblioteket",
+    "registernavn": "NASJONALBIBLIOTEKET"
+  },
+  "981544315": {
+    "navn": "Landbruksdirektoratet",
+    "registernavn": "LANDBRUKSDIREKTORATET"
+  },
+  "982463718": {
+    "navn": "Telenor ASA",
+    "registernavn": "TELENOR ASA"
+  },
+  "982531950": {
+    "navn": "Politidirektoratet",
+    "registernavn": "POLITIDIREKTORATET"
+  },
+  "982791952": {
+    "navn": "Diakonhjemmet Sykehus AS",
+    "forslag": true,
+    "registernavn": "DIAKONHJEMMET SYKEHUS AS"
+  },
+  "983971636": {
+    "navn": "Akershus universitetssykehus HF",
+    "forslag": true,
+    "registernavn": "AKERSHUS UNIVERSITETSSYKEHUS HF"
+  },
+  "983971709": {
+    "navn": "Sykehuset Innlandet HF",
+    "forslag": true,
+    "registernavn": "SYKEHUSET INNLANDET HF"
+  },
+  "983971768": {
+    "navn": "Sykehuset Østfold HF",
+    "forslag": true,
+    "registernavn": "SYKEHUSET ØSTFOLD HF"
+  },
+  "983974678": {
+    "navn": "Helse Stavanger HF",
+    "forslag": true,
+    "registernavn": "HELSE STAVANGER HF"
+  },
+  "983974694": {
+    "navn": "Helse Fonna HF",
+    "forslag": true,
+    "registernavn": "HELSE FONNA HF"
+  },
+  "983974724": {
+    "navn": "Helse Bergen HF",
+    "forslag": true,
+    "registernavn": "HELSE BERGEN HF"
+  },
+  "983974732": {
+    "navn": "Helse Førde HF",
+    "forslag": true,
+    "registernavn": "HELSE FØRDE HF"
+  },
+  "983974791": {
+    "navn": "Helse Nord-Trøndelag HF",
+    "forslag": true,
+    "registernavn": "HELSE NORD-TRØNDELAG HF"
+  },
+  "983974880": {
+    "navn": "Finnmarkssykehuset HF",
+    "forslag": true,
+    "registernavn": "FINNMARKSSYKEHUSET HF"
+  },
+  "983974899": {
+    "navn": "Universitetssykehuset Nord-Norge HF",
+    "forslag": true,
+    "registernavn": "UNIVERSITETSSYKEHUSET NORD-NORGE HF"
+  },
+  "983974910": {
+    "navn": "Nordlandssykehuset HF",
+    "forslag": true,
+    "registernavn": "NORDLANDSSYKEHUSET HF"
+  },
+  "983975259": {
+    "navn": "Sykehuset i Vestfold HF",
+    "forslag": true,
+    "registernavn": "SYKEHUSET I VESTFOLD HF"
+  },
+  "983975267": {
+    "navn": "Sykehuset Telemark HF",
+    "forslag": true,
+    "registernavn": "SYKEHUSET TELEMARK HF"
+  },
+  "985042667": {
+    "navn": "Nasjonalt organ for kvalitet i utdanningen (NOKUT)",
+    "registernavn": "NASJONALT ORGAN FOR KVALITET I UTDANNINGEN NOKUT"
+  },
+  "985198292": {
+    "navn": "Avinor AS",
+    "registernavn": "AVINOR AS"
+  },
+  "985399077": {
+    "navn": "Mattilsynet",
+    "registernavn": "MATTILSYNET"
+  },
+  "986128433": {
+    "navn": "Barne-, ungdoms- og familiedirektoratet",
+    "registernavn": "BARNE-, UNGDOMS- OG FAMILIEDIREKTORATET"
+  },
+  "986174613": {
+    "navn": "Havindustritilsynet",
+    "registernavn": "HAVINDUSTRITILSYNET"
+  },
+  "986252932": {
+    "navn": "Direktoratet for forvaltning og økonomistyring",
+    "registernavn": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING"
+  },
+  "991825827": {
+    "navn": "Digitaliseringsdirektoratet",
+    "registernavn": "DIGITALISERINGSDIREKTORATET"
+  },
+  "993467049": {
+    "navn": "Oslo universitetssykehus HF",
+    "forslag": true,
+    "registernavn": "OSLO UNIVERSITETSSYKEHUS HF"
+  },
+  "994598759": {
+    "navn": "Norsk helsenett SF",
+    "registernavn": "NORSK HELSENETT SF"
+  },
+  "997005562": {
+    "navn": "Helse Møre og Romsdal HF",
+    "forslag": true,
+    "registernavn": "HELSE MØRE OG ROMSDAL HF"
+  },
+  "998554640": {
+    "navn": "Statped",
+    "registernavn": "STATPED"
+  },
+  "999601391": {
+    "navn": "Miljødirektoratet",
+    "registernavn": "MILJØDIREKTORATET"
+  }
+}

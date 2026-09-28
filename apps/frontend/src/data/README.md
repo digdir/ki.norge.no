@@ -1,40 +1,53 @@
-# ki-tiltak.json
+# KI-tiltak-dataene
 
-Datasettet bak `/ki-tiltak`. Filen vedlikeholdes manuelt av redaksjonen. Det finnes ikke lenger noe byggeskript som genererer den, så det du skriver her er det siden viser.
+Datasettet bak `/ki-tiltak`. Ingenting her redigeres for hånd.
 
-Legg merke til at filen leses ved bygg, ikke ved hvert sidevisning. Endringer krever en ny deploy før de er synlige.
+Registeret er kilden. Tiltak sendes inn via skjemaet på /ki-tiltak til teamet som eier oversikten, og innholdet kurateres der. Vi viser det kuraterte innholdet. Skal en tekst, en fase eller et fagområde endres, skjer det i registeret, og kommer hit med neste import.
 
-## Legge til et tiltak
+| Fil | Hva | Lages av |
+| --- | --- | --- |
+| `ki-tiltak.json` | Tiltakene som publiseres | Importen |
+| `ki-tiltak-id-alias.json` | Gammel id til ny id, så gamle `?tiltak=`-lenker virker | Importen. Samler opp over flere importer |
+| `ki-tiltak-virksomheter.json` | Orgnr til visningsnavn | Importen fører `registernavn`. `navn` fylles inn av redaksjonen |
 
-Kopier et eksisterende objekt, lim det inn på riktig plass i lista, og fyll ut feltene.
+## Importere en ny eksport
 
-```json
-{
-  "id": "0b9ae3a2-8a0c-4c0e-9f4b-3c6d7e1a2b44",
-  "navn": "Samtaletrening med KI",
-  "virksomhet": "Barne-, ungdoms- og familiedirektoratet",
-  "orgnr": "986128433",
-  "fagomrade": "Familie og barn",
-  "beskrivelse": "En dialogbasert treningsplattform der offentlig ansatte kan øve på krevende samtaler med KI-simulerte personer i sårbare situasjoner."
-}
+```
+node scripts/importer-ki-tiltak.mjs ~/Downloads/ki-initiativer-2026-09-27.json --bare-rapport
+node scripts/importer-ki-tiltak.mjs ~/Downloads/ki-initiativer-2026-09-27.json
+pnpm --filter ki-norge-frontend run test:unit
 ```
 
-De seks feltene over er påkrevd. Nye tiltak kan i tillegg ha `fase`, `kiType`, `leveranse` og `kontaktinfo`, se [docs/ki-tiltak-felt.md](../../../../docs/ki-tiltak-felt.md). Der står også hvordan du limer inn et nytt tiltak rett fra e-posten.
+Kjør med `--bare-rapport` først. Da skrives ingenting, og du ser hva som vil skje.
 
-## Feltene
+**Eksportfila skal ikke inn i repoet.** Den har kontaktadresser for alle tiltakene, også de som ikke publiseres. Bare de tre filene over committes.
 
-| felt | krav |
-|---|---|
-| `id` | Unik. Lag en ny GUID, for eksempel med `uuidgen` i terminalen. Gjenbruk aldri en id |
-| `navn` | Tiltakets navn, slik det skal vises |
-| `virksomhet` | Visningsnavn med vanlig store og små bokstaver, ikke VERSALER |
-| `orgnr` | Ni siffer, som i Brønnøysundregisteret |
-| `fagomrade` | Nøyaktig én av verdiene i lista under |
-| `beskrivelse` | Fritekst. Vises avkortet til tre linjer på kortet, i sin helhet i detaljvisningen |
+`ki-tiltak.json` leses ved bygg. En ny import er ikke synlig før neste deploy.
 
-### Gyldige fagområder
+## Hva importen gjør
 
-Kopier verdien ordrett, medregnet komma og små bokstaver.
+1. **Rensing.** `\r\n` blir `\n`, og mellomrom på slutten av linjer fjernes. Verdier uten innhold utelates: tom tekst, bare mellomrom, tomme lister, og plassholderne `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt». I tekster satt sammen med `;` fjernes bitene som er plassholdere.
+2. **KI-type.** Registerets «Språkteknologi (NLP)» blir «Språkteknologi». Andre ukjente verdier rapporteres, og testene stopper dem.
+3. **Nummererte varianter** slås sammen. Registeret har ett tiltak per helseforetak for samme produkt, «BoneView 1» til «BoneView 4». Inntil noen bestemmer noe annet vises de som ett tiltak med alle virksomhetene. Valgene står i `slaaSammenVarianter` i `src/lib/ki-tiltak-modell.ts`.
+4. **Uten fagområde holdes tiltaket tilbake**, og står i rapporten, til fagområdet er satt i registeret.
+5. **Visningsnavn** slås opp på orgnr i `ki-tiltak-virksomheter.json`. Mangler en publisert virksomhet navn, stopper importen med en liste og skriver ingenting.
+6. **Id-er.** Får et tiltak ny id i registeret, matches det på navn, og den gamle id-en føres i `ki-tiltak-id-alias.json`. Rapporten sier hvor mange som fikk ny id siden forrige fil.
+
+## Navnetabellen
+
+```json
+"983974724": { "navn": "Helse Bergen HF", "forslag": true, "registernavn": "HELSE BERGEN HF" }
+```
+
+- `navn` er det som vises. Vanlig store og små bokstaver, ikke VERSALER.
+- `forslag` betyr at navnet er foreslått av en utvikler og ikke er sett av redaksjonen. Slett feltet når navnet er godkjent.
+- `registernavn` er navnet i siste eksport, ført inn av importen. Det brukes ikke på sida.
+
+Har importen stoppet på et manglende navn, legg inn `navn` for orgnr-et og kjør importen på nytt.
+
+## Gyldige fagområder
+
+Registeret må bruke disse ordrett. Et annet fagområde holdes tilbake, og står i rapporten.
 
 ```
 Arbeid
@@ -54,46 +67,6 @@ Virksomhet
 Økonomi, finans og forsikring
 ```
 
-Trenger du et fagområde som ikke står her, må det legges til i `FAGOMRADER` i `src/lib/ki-tiltak.ts` først. Si det til en utvikler.
+Et nytt fagområde legges til i `FAGOMRADER` i `src/lib/ki-tiltak-modell.ts`.
 
-## Punktlister i beskrivelse og formål
-
-JSON har ingen plass til formatering, så linjeskift skrives som `\n`. Linjer
-som starter med et kulepunkt blir en ekte punktliste i detaljvisningen.
-
-```json
-"beskrivelse": "Dette er noen eksempler:\n• Første punkt\n• Andre punkt\n• Tredje punkt"
-```
-
-Det gir en innledning etterfulgt av en liste. Både `•`, `-` og `*` fungerer som
-markør, og markøren fjernes før teksten vises.
-
-Tre ting å være klar over.
-
-**Et `\n` er to tegn**, bakstrek og n, ikke et ekte linjeskift. Trykker du enter
-midt inne i en tekst, blir filen ugyldig JSON og bygget stopper.
-
-**Kortet i oversikten viser ingen lister.** Der vises de tre første linjene som
-løpende tekst, siden kortet bare er en smakebit. Hele lista vises når man åpner
-tiltaket.
-
-**Lim aldri rett fra Word.** Da følger det med usynlige tegn og gjerne `·` eller
-`▪` i stedet for `•`. Gå via en ren tekstredigerer først.
-
-## Én fallgruve
-
-**Fase og fagområde er strenge.** En skrivefeil som `Gjennomføing` gjør at hele siden svarer med feil, ikke bare det ene kortet. Kopier verdien i stedet for å skrive den inn.
-
-## Sjekk før du committer
-
-```
-cd apps/frontend && pnpm run test:unit
-```
-
-Testene sjekker at fila er gyldig JSON, unike id-er, gyldige fagområder og faser, påkrevde felt, at ingen fjernede felt er med, og sorteringen. De kjører også i CI, så en feil stopper bygget, men det er raskere å oppdage den lokalt.
-
-Er det en syntaksfeil, sier testen `ki-tiltak.json > er gyldig JSON` hvilken linje det gjelder, og hva som trolig mangler. Oftest er det et komma mellom to tiltak, et komma for mye etter det siste, eller en `{` som mangler.
-
-## Videre
-
-Datasettet skal etter planen flyttes inn i Umbraco, slik at redaksjonen kan redigere tiltak i CMS-et i stedet for i denne filen. Fram til det er på plass er denne filen fasiten.
+Feltene og visningsreglene står i [docs/ki-tiltak-felt.md](../../../../docs/ki-tiltak-felt.md).

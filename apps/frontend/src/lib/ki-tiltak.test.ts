@@ -9,7 +9,10 @@ import {
   KI_TYPER,
   LEVERANSER,
   somTekst,
+  kiTiltakIdAlias,
+  slaaOppTiltak,
 } from './ki-tiltak';
+import navnetabell from '../data/ki-tiltak-virksomheter.json';
 
 const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
 
@@ -20,12 +23,17 @@ const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
  * dem. Redaksjonen endrer navn og tekst jevnlig, og en test som låser seg til
  * en bestemt formulering stopper dem i CI uten å fange en eneste reell feil.
  */
-const SEARCHABLE = ['navn', 'virksomhet', 'fagomrade', 'beskrivelse', 'fase'] as const;
+const SEARCHABLE = ['navn', 'virksomheter', 'fagomrade', 'beskrivelse', 'fase'] as const;
 type SearchField = (typeof SEARCHABLE)[number];
+
+function feltTekst(tiltak: KiTiltak, field: SearchField): string {
+  const verdi = tiltak[field] ?? '';
+  return Array.isArray(verdi) ? verdi.join(' ') : verdi;
+}
 
 function otherFields(tiltak: KiTiltak, exclude: SearchField): string {
   return SEARCHABLE.filter((f) => f !== exclude)
-    .map((f) => tiltak[f] ?? '')
+    .map((f) => feltTekst(tiltak, f))
     .join(' ')
     .toLowerCase();
 }
@@ -37,7 +45,7 @@ function otherFields(tiltak: KiTiltak, exclude: SearchField): string {
  */
 function uniqueQueryFor(field: SearchField): { tiltak: KiTiltak; query: string } | null {
   for (const tiltak of kiTiltak) {
-    const value = (tiltak[field] ?? '').trim();
+    const value = feltTekst(tiltak, field).trim();
     if (value.length === 0) continue;
     const others = otherFields(tiltak, field);
     // Korte felt brukes hele, lange felt ord for ord.
@@ -69,7 +77,8 @@ describe('ki-tiltak datasett', () => {
     for (const tiltak of kiTiltak) {
       expect(tiltak.id, `id mangler på ${tiltak.navn}`).toBeTruthy();
       expect(tiltak.navn, `navn mangler på ${tiltak.id}`).toBeTruthy();
-      expect(tiltak.virksomhet, `virksomhet mangler på ${tiltak.navn}`).toBeTruthy();
+      expect(tiltak.virksomheter.length, `virksomhet mangler på ${tiltak.navn}`).toBeGreaterThan(0);
+      expect(tiltak.virksomheter.every((v) => v.trim().length > 0), `tomt virksomhetsnavn på ${tiltak.navn}`).toBe(true);
     }
   });
 
@@ -155,8 +164,43 @@ describe('ki-tiltak datasett', () => {
 
   test('virksomhetsnavn er ikke bare versaler', () => {
     // Kuraterte visningsnavn skal ha erstattet VERSALENE fra kilden.
-    const shouty = kiTiltak.filter((t) => t.virksomhet === t.virksomhet.toUpperCase());
-    expect(shouty.map((t) => t.virksomhet)).toEqual([]);
+    const shouty = kiTiltak.flatMap((t) => t.virksomheter).filter((v) => v === v.toUpperCase());
+    expect(shouty).toEqual([]);
+  });
+
+  test('ingen publiserte tiltak mangler fagområde', () => {
+    // Importen holder dem tilbake til redaksjonen har satt fagområdet.
+    expect(kiTiltak.filter((t) => t.fagomrade.length === 0).map((t) => t.navn)).toEqual([]);
+  });
+
+  test('alle publiserte orgnr har visningsnavn i navnetabellen, og det er det som vises', () => {
+    const tabell: Record<string, { navn?: string }> = navnetabell;
+    for (const t of kiTiltak) {
+      expect(t.orgnr.length, `orgnr og virksomheter går ikke opp på ${t.navn}`).toBe(t.virksomheter.length);
+      t.orgnr.forEach((orgnr, i) => {
+        expect(tabell[orgnr]?.navn, `orgnr ${orgnr} på ${t.navn} mangler navn i ki-tiltak-virksomheter.json`).toBeTruthy();
+        expect(t.virksomheter[i], `${t.navn} viser ikke navnet fra tabellen`).toBe(tabell[orgnr]?.navn);
+      });
+    }
+  });
+});
+
+describe('id-tabellen', () => {
+  test('alle mål finnes blant de publiserte tiltakene', () => {
+    const ider = new Set(kiTiltak.map((t) => t.id));
+    const manglende = Object.entries(kiTiltakIdAlias).filter(([, til]) => !ider.has(til));
+    expect(manglende).toEqual([]);
+  });
+
+  test('ingen gammel id er også en id i bruk', () => {
+    const ider = new Set(kiTiltak.map((t) => t.id));
+    expect(Object.keys(kiTiltakIdAlias).filter((fra) => ider.has(fra))).toEqual([]);
+  });
+
+  test('en gammel id åpner tiltaket den peker på', () => {
+    for (const [fra, til] of Object.entries(kiTiltakIdAlias)) {
+      expect(slaaOppTiltak(fra)).toEqual({ tiltak: kiTiltak.find((t) => t.id === til), gammelId: true });
+    }
   });
 });
 
@@ -219,6 +263,12 @@ describe('filterTiltak', () => {
     const annet = FAGOMRADER.find((f) => f !== tiltak!.fagomrade);
     const uten = filterTiltak(kiTiltak, { query: tiltak!.navn, fagomrade: [annet!] });
     expect(uten.map((t) => t.id)).not.toContain(tiltak!.id);
+  });
+
+  test('søker i alle virksomhetene, ikke bare den første', () => {
+    const [a, b] = kiTiltak;
+    const flere: KiTiltak = { ...a, id: 'flere', virksomheter: ['Entur AS', 'Ruter AS', 'Vy'], orgnr: ['1', '2', '3'] };
+    expect(filterTiltak([flere, b], { ...EMPTY, query: 'ruter' }).map((t) => t.id)).toEqual(['flere']);
   });
 
   test('ingen treff gir tom liste', () => {
