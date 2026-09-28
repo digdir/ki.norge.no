@@ -16,6 +16,33 @@
       "matchManagers": ["nuget"],
       "matchPackageNames": ["Microsoft.OpenApi", "SQLitePCLRaw.*"],
       "allowedVersions": "<3.0.0"
+    },
+    {
+      "description": "Umbraco og uSync kan ha migreringer også i minor og patch (17.5 skrev om lenker i riktekst). De får egen PR, så de ikke går med i «nuget non-major» uten prod-lik test (docs/avhengigheter.md 5.5). Umbraco 17 er LTS, og 18 tas som egen, planlagt oppgradering.",
+      "matchManagers": ["nuget"],
+      "matchPackageNames": ["Umbraco.Cms", "Umbraco.Cms.*", "Umbraco.StorageProviders.*", "uSync", "uSync.*"],
+      "allowedVersions": "<18.0.0",
+      "groupName": "Umbraco og uSync",
+      "groupSlug": "umbraco",
+      "addLabels": ["umbraco"]
+    },
+    {
+      "description": ".NET 10 er LTS, og Umbraco 17 bygger på den. .NET 11 tas sammen med en Umbraco-versjon som støtter den.",
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["mcr.microsoft.com/dotnet/aspnet", "mcr.microsoft.com/dotnet/sdk"],
+      "allowedVersions": "<11"
+    },
+    {
+      "description": "Digest-PR-ene for base-imagene sto på vent i dashbordet fra juli til september og ble aldri laget. Microsoft bygger nye digests for sikkerhetsoppdateringer, så de skal ikke vente på modning.",
+      "matchManagers": ["dockerfile"],
+      "matchUpdateTypes": ["digest"],
+      "minimumReleaseAge": "0 days"
+    },
+    {
+      "description": "@cloudflare/vitest-pool-workers 0.22.0 krever vitest ^4.1.0. Fjern regelen når den støtter vitest 5.",
+      "matchFileNames": ["apps/cache-kinorgeportal/package.json"],
+      "matchPackageNames": ["vitest"],
+      "allowedVersions": "<5.0.0"
     }
   ]
 }
