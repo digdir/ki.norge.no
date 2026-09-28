@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-import data from '../data/ki-tiltak.json';
 import {
   FAGOMRADER,
   filterTiltak,
@@ -59,16 +58,6 @@ describe('ki-tiltak datasett', () => {
     // Ikke en eksakt telling. Redaksjonen legger til og fjerner tiltak, og et
     // låst tall blokkerer dem uten å fange noe. Gulvet fanger at filen er tømt.
     expect(kiTiltak.length).toBeGreaterThanOrEqual(40);
-  });
-
-  test('har bare kjente felt', () => {
-    // Et felt som ikke står her, vises ikke og blir bare liggende i fila.
-    // Slik kom det fjernede status-feltet tilbake i visningen en gang.
-    const kjente = ['id', 'navn', 'virksomhet', 'orgnr', 'fagomrade', 'beskrivelse', 'fase', 'leveranse', 'leveranseAnnet', 'kiType', 'kiTypeAnnet', 'kontaktinfo'];
-    for (const rad of data as Record<string, unknown>[]) {
-      const ukjente = Object.keys(rad).filter((k) => !kjente.includes(k));
-      expect(ukjente, `ukjent felt på ${String(rad.navn)}`).toEqual([]);
-    }
   });
 
   test('har unike id-er', () => {

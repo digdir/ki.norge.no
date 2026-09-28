@@ -90,9 +90,9 @@ tiltaket.
 cd apps/frontend && pnpm run test:unit
 ```
 
-Testene sjekker unike id-er, gyldige fagområder og faser, påkrevde felt, at det ikke finnes ukjente felt, og sorteringen. De kjører også i CI, så en feil stopper bygget, men det er raskere å oppdage den lokalt.
+Testene sjekker at fila er gyldig JSON, unike id-er, gyldige fagområder og faser, påkrevde felt, at ingen fjernede felt er med, og sorteringen. De kjører også i CI, så en feil stopper bygget, men det er raskere å oppdage den lokalt.
 
-Får du en feilmelding om JSON-syntaks, mangler det oftest et komma mellom to objekter, eller det står et komma etter det siste objektet i lista.
+Er det en syntaksfeil, sier testen `ki-tiltak.json > er gyldig JSON` hvilken linje det gjelder, og hva som trolig mangler. Oftest er det et komma mellom to tiltak, et komma for mye etter det siste, eller en `{` som mangler.
 
 ## Videre
 
