@@ -41,7 +41,7 @@ De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste 
 | `leveranseAnnet` | tekst | Fritekst. Bare når `leveranse` inneholder `Annet` |
 | `kontaktinfo` | tekst | E-postadresse |
 
-**Det finnes ikke noe status-felt.** Det ble fjernet fordi kategorien ikke skal brukes. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**. Et felt som ikke står i modellen over, stopper testene.
+**Det finnes ikke noe status-felt.** Det ble fjernet fordi kategorien ikke skal brukes. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
 
 **Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
 
@@ -73,12 +73,16 @@ Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. D
 
 `pnpm --dir apps/frontend run test:unit` kjører i CI på hver PR og stopper:
 
+- syntaksfeil, som et manglende komma eller en manglende `{`. Feilmeldingen sier hvilken linje, viser linjene rundt og forklarer hva som pleier å være galt. I en PR vises den også som merknad på linja i fila
+- felt som er fjernet: `status`, og `formaal`, `oppstart` og `slutt` fra en eldre veiledning
 - ukjent verdi i `kiType` eller `leveranse`, altså skrivefeil
 - duplikater eller tomme strenger i de to listene
 - `Annet`-fritekst uten at `Annet` er valgt
 - `kontaktinfo` som ikke ser ut som en e-postadresse
 - lenke i beskrivelsen som ikke er `http` eller `https`
-- ukjent fase eller fagområde, duplikate id-er, og felt som ikke står i modellen
+- ukjent fase eller fagområde, og duplikate id-er
 - virksomhetsnavn med bare versaler, som `KF`. Skriv `Kommuneforlaget (KF)`
 
 Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.
+
+Nye felt stoppes ikke. De vises først når koden tar dem i bruk.
