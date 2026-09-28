@@ -2,7 +2,7 @@
 
 Hvor avhengighetene i repoet bor, hvordan de oppdateres, fellene fra tidligere runder, og oppskriftene for å oppdatere og verifisere. Del 1 til 5 er varige. Del 6 er runden som gjelder nå, og skrives om ved hver gjennomgang.
 
-Sist gjennomgått 2026-09-28.
+Sist gjennomgått 2026-09-28. Fase 0, 1.1, 1.2 og deler av 4 er gjort samme dag.
 
 ## 1. Hvor avhengighetene bor
 
@@ -112,7 +112,7 @@ Deploy fra primær-checkouten på ren main: `pnpm run cache-kinorgeportal:deploy
 
 Sjekk etter deploy:
 
-- **Cache-workeren lagrer ikke no-store.** Hent `https://ki.test.norge.no/health` to ganger med tre sekunders mellomrom. `Date`-headeren skal være ulik.
+- **Cache-workeren lagrer ikke no-store.** Mål på innholdet, ikke på `Date`. Cloudflare setter ny `Date` også på svar fra Cache API, så like `Date` beviser ingenting. Hent `/health` to ganger med 20 sekunders mellomrom: svaret skal være ulikt, siden varighetene endrer seg. Hent forsiden to ganger: `news-card-<id>` får ny tilfeldig id ved hver rendering, så like id-er betyr at svaret kom fra cachen, og det skal den.
 - **Proxyen** svarer 302 til `/umbraco` på rot-URL-en, og mediefiler har `Cache-Control` (#686). tt02-frontend henter bilder direkte fra dis-core og ikke via proxyen, så på tt02 må media sjekkes mot proxy-verten.
 
 ### 5.4 NuGet og base-image
@@ -205,34 +205,34 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 | Funn | Konsekvens | Tiltak |
 | --- | --- | --- |
 | Base-imagene står på .NET 10.0.10 (14. juli). Dagens 10.0-image er 10.0.12 (21. september) | CMS-runtime i prod mangler to månedlige sikkerhetsoppdateringer | Fase 1 |
-| Digest-PR-ene for base-imagene står i «Pending Status Checks» i dashbordet, og ingen er laget siden juli | Mest sannsynlig blir de aldri modne, fordi Docker-digests ikke har tidsstempel Renovate kan telle tre dager fra. Ikke bekreftet | Fase 0 og 1 |
+| Digest-PR-ene for base-imagene står i «Pending Status Checks» i dashbordet, og ingen er laget siden juli | Bekreftet med Renovate lokalt: «digest update of mcr.microsoft.com/dotnet/sdk has no releaseTimestamp to age against». De blir aldri modne | Fase 0 og 1 |
 | Torsdag 1.10 åpnes PR-er for Umbraco 18, uSync 18, vitest 5, pnpm 12 og @astrojs/react 7 | Rutinen flagger dem, men beslutningen må tas | Fase 0 |
-| `cache-kinorgeportal-tt02` er deployet 11.6 og mangler #542. `cms-kinorgeportal-tt02` er deployet 15.7 og mangler #686 | Lite merkbart. `/health` (no-store) blir ikke cachet på tt02, målt 28.9 | Fase 1 |
+| `cache-kinorgeportal-tt02` er deployet 11.6 og mangler #542. `cms-kinorgeportal-tt02` er deployet 15.7 og mangler #686 | Lite merkbart. `/health` (no-store) ble ikke cachet på tt02 heller, målt på innholdet 28.9 | Fase 1 |
 | `pnpm audit`: 2 HIGH (brace-expansion) og 2 moderate (qs), alle via `@digdir/designsystemet` (tokens-CLI, bare utvikling) | Ikke i nettstedet. Trivy ser dem ikke | Fase 1 |
 | #742 (OpenApi 3) er «abandoned» og står åpen. #795 (TypeScript 7, bare cache-workeren) er flagget hver dag | Støy i rutinen | Fase 0 og 3 |
 | GitHub flytter `ubuntu-latest` til Ubuntu 26 fra 19. oktober | CI bytter OS uten en endring hos oss | Fase 4, før 19.10 |
-| `aquasecurity/trivy-action` er låst til en commit på `master`, ikke en release | Oppdateres ikke som en release | Fase 4 |
+| `aquasecurity/trivy-action` er låst til en commit på `master`, ikke en release | Siste release (v0.36.0, april) er eldre enn commiten vi står på (august, Trivy 0.74). Å bytte til releasen er en nedgradering, og SHA-pinnen er uforanderlig uansett | Blir stående |
 | CI kjører enhetstestene to ganger («Unit tests» og «Enhetstester»). Testene for cache-workeren kjører ikke i CI | Tregere CI, og ingen dekning av workeren | Fase 4 |
 | `minimumReleaseAgeExclude` har ni gamle oppføringer (astro 6.4.7, designsystemet 1.15.0 og andre) | Unntak fra en sikkerhetsvakt ingen trenger lenger | Fase 4 |
-| Umbraco-minor går i gruppen «nuget non-major» og merges av rutinen uten test 5.5 | Migreringer kan komme uten test (17.4.2 til 17.5.3 i juli) | Fase 0 |
+| Umbraco-minor går i gruppen «nuget non-major». Rutinen flagger minor av Umbraco.Cms fra juli, men ikke patch, uSync eller AzureBlob | uSync har re-nøklet i en patch før (17.3.6) | Fase 0 |
 | NuGet: ingen kjente sårbarheter. Umbraco, uSync og AzureBlob står på siste 17.x | Bra | Ingen |
 
 ### Fase 0: regler og beslutninger, før torsdag 1.10
 
-- [ ] **PR med Renovate-regler** (5.7):
+- [x] **PR med Renovate-regler** (5.7), #809:
   - Umbraco-familien og uSync holdes under 18 (`allowedVersions: "<18.0.0"`). Umbraco 17 er LTS, og 18 tas som egen, planlagt oppgradering.
   - `dotnet/aspnet` og `dotnet/sdk` holdes på 10 (`allowedVersions: "<11"`). .NET 10 er LTS, og Umbraco 17 bygger på den.
   - Digest-oppdateringer av base-image lages uten ventetid (`matchUpdateTypes: ["digest"]`, `minimumReleaseAge: "0 days"`).
   - `vitest` i cache-workeren holdes under 5 til `@cloudflare/vitest-pool-workers` støtter den (0.22.0 krever `^4.1.0`).
   - Umbraco og uSync får egen gruppe, så minor ikke havner i «nuget non-major».
-- [ ] **Rutinen** merger aldri PR-er som endrer Umbraco eller uSync (`prompt.md` på Lars' Mac, krever Lars).
-- [ ] **Lukk #742** (krever Lars).
+- [x] **Rutinen** merger aldri PR-er som endrer Umbraco eller uSync (`prompt.md` på Lars' Mac, krever Lars).
+- [x] **Lukk #742** (krever Lars).
 - [ ] **Etter torsdagens kjøring:** kom digest-PR-ene for base-imagene? Hvis ikke, se Renovate-loggen for repoet på developer.mend.io.
 
 ### Fase 1: sikkerhet og drift
 
-- [ ] **Base-image til 10.0.12.** PR som oppdaterer begge digestene hvis Renovate ikke har laget den. Deretter `pnpm run cms:build`, CI, nytt image, tt02, måling (5.6), og prod.
-- [ ] **tt02-workerne synkes med main** (5.3). Prod er allerede oppdatert.
+- [x] **Base-image til 10.0.12** (#810, image `70-dotnet-10-0-12` i tt02 og prod 28.9). PR som oppdaterer begge digestene hvis Renovate ikke har laget den. Deretter `pnpm run cms:build`, CI, nytt image, tt02, måling (5.6), og prod.
+- [x] **tt02-workerne synkes med main** (5.3). Prod er allerede oppdatert.
 - [ ] **Sårbarhetene i tokens-CLI-en.** Først `@digdir/designsystemet` 1.23.0 i roten. Fikser ikke det, overrides for `brace-expansion` (`^5.0.9`) og `qs` (`^6.16.0`). Verifiser med `pnpm audit --audit-level high`, og at `pnpm run tokens:build` gir samme `design-tokens-build/` som før (`git diff --stat`).
 
 ### Fase 2: minor og patch fra torsdag
@@ -252,10 +252,10 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 ### Fase 4: rydding og vakter
 
 - [ ] **CI på `ubuntu-26.04` før 19. oktober.** Kjør en gang på `ubuntu-26.04`, eller lås `ubuntu-24.04` til det er testet.
-- [ ] **Fjern det doble testløpet** i frontend-jobben, og legg cache-workerens tester inn i CI.
-- [ ] **`trivy-action` låses til en release** i stedet for `master`.
-- [ ] **Én bot for Actions.** Både Renovate (via `config:recommended`) og Dependabot (`.github/dependabot.yml`) oppdaterer Actions. Behold Renovate, som grupperer og låser med digest, og fjern versjonsoppdateringene i `dependabot.yml`. Sikkerhetsvarslene fra Dependabot beholdes.
-- [ ] **Rydd `minimumReleaseAgeExclude`.** Ingen av oppføringene gjelder versjoner vi bruker.
+- [x] **Fjern det doble testløpet** i frontend-jobben, og legg cache-workerens tester inn i CI.
+- [x] **`trivy-action`:** blir stående, se funnene.
+- [x] **Én bot for Actions.** Både Renovate (via `config:recommended`) og Dependabot (`.github/dependabot.yml`) oppdaterer Actions. Behold Renovate, som grupperer og låser med digest, og fjern versjonsoppdateringene i `dependabot.yml`. Sikkerhetsvarslene fra Dependabot beholdes.
+- [x] **Rydd `minimumReleaseAgeExclude`.** Ingen av oppføringene gjelder versjoner vi bruker.
 - [ ] **Hver override vurderes etter 5.8,** og overflødige fjernes.
 - [ ] **`compatibility_date`** i de tre workerne flyttes bevisst, med test på tt02.
 
