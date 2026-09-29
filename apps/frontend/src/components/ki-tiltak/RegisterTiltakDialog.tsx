@@ -131,7 +131,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
    * «Annet» hukes av igjen, ellers ville en gammel verdi blitt sendt med.
    */
   const toggleMulti =
-    (field: 'leveranse' | 'kiType', options: readonly string[], annetField: keyof TiltakForm) =>
+    (field: 'kiType', options: readonly string[], annetField: keyof TiltakForm) =>
     (value: string) =>
       setForm((previous) => {
         const chosen = previous[field];
@@ -405,16 +405,21 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   <Fieldset.Legend>
                     {labelWithBadge('Hva skal tiltaket levere?', true)}
                   </Fieldset.Legend>
-                  <Fieldset.Description>Du kan velge flere svar.</Fieldset.Description>
                   {LEVERANSER.map((leveranse, index) => (
-                    <Checkbox
+                    <Radio
                       key={leveranse}
                       id={index === 0 ? fieldId('leveranse') : undefined}
+                      name="tiltak-leveranse"
                       label={leveranse}
                       value={leveranse}
-                      checked={form.leveranse.includes(leveranse)}
-                      onChange={() =>
-                        toggleMulti('leveranse', LEVERANSER, 'leveranseAnnet')(leveranse)
+                      checked={form.leveranse === leveranse}
+                      onChange={(event) =>
+                        setForm((previous) => ({
+                          ...previous,
+                          leveranse: event.target.value,
+                          // Fritekstet hører til «Annet». Byttes valget, skal det ikke sendes med.
+                          ...(event.target.value === ANNET ? {} : { leveranseAnnet: '' }),
+                        }))
                       }
                     />
                   ))}
@@ -423,7 +428,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   )}
                 </Fieldset>
 
-                {form.leveranse.includes(ANNET) && (
+                {form.leveranse === ANNET && (
                   <Textfield
                     id={fieldId('leveranseAnnet')}
                     label="Beskriv nærmere"

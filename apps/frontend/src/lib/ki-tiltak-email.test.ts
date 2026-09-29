@@ -13,7 +13,7 @@ function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     fagomrade: 'Digitale teknologier',
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
-    leveranse: ['Pilot'],
+    leveranse: 'Pilot',
     ...overstyr,
   };
 }
@@ -34,14 +34,14 @@ describe('parseTiltakForm', () => {
       fagomrade: 'Trafikk og transport',
       kontaktinfo: 'post@entur.no',
       fase: 'Innsikt og planlegging',
-      leveranse: ['PoC', 'Annet'],
+      leveranse: 'Annet',
       leveranseAnnet: 'Rapport',
       kiType: ['Generativ KI'],
       samarbeid: [{ id: 'rad-1', navn: 'KS', orgnr: '971032146' }],
     });
     expect(result?.ansvarligNavn).toBe('Entur AS');
     expect(result?.samarbeid).toEqual([{ id: 'rad-1', navn: 'KS', orgnr: '971032146' }]);
-    expect(result?.leveranse).toEqual(['PoC', 'Annet']);
+    expect(result?.leveranse).toBe('Annet');
     expect(result?.kiType).toEqual(['Generativ KI']);
   });
 
@@ -58,18 +58,23 @@ describe('parseTiltakForm', () => {
     expect(result?.beskrivelse).toBe('Linje 1\nLinje 2');
   });
 
-  test('ukjente verdier i avkryssingsfeltene siles bort', () => {
+  test('ukjente verdier siles bort', () => {
     const result = parseTiltakForm({
-      leveranse: ['Pilot', 'Noe oppdiktet', 42],
+      leveranse: 'Noe oppdiktet',
       kiType: ['Agentisk KI', '<script>'],
     });
-    expect(result?.leveranse).toEqual(['Pilot']);
+    expect(result?.leveranse).toBe('');
     expect(result?.kiType).toEqual(['Agentisk KI']);
   });
 
+  test('en liste fra en gammel side i cachen godtas, og første gyldige verdi brukes', () => {
+    expect(parseTiltakForm({ leveranse: ['Noe oppdiktet', 42, 'MVP', 'Pilot'] })?.leveranse).toBe('MVP');
+    expect(parseTiltakForm({ leveranse: [] })?.leveranse).toBe('');
+  });
+
   test('avkryssede valg normaliseres til rekkefølgen i alternativlisten', () => {
-    const result = parseTiltakForm({ leveranse: ['Annet', 'PoC', 'MVP'] });
-    expect(result?.leveranse).toEqual(['PoC', 'MVP', 'Annet']);
+    const result = parseTiltakForm({ kiType: ['Språkteknologi', 'Generativ KI'] });
+    expect(result?.kiType).toEqual(['Generativ KI', 'Språkteknologi']);
   });
 
   test('felt med feil type blir tom streng i stedet for å velte', () => {
@@ -111,12 +116,12 @@ describe('lagEpost', () => {
   test('avkryssede valg listes på én linje, «Annet» med fritekst i parentes', () => {
     const { text } = buildEmail(
       form({
-        leveranse: ['PoC', 'Annet'],
+        leveranse: 'Annet',
         leveranseAnnet: 'Rapport',
         kiType: ['Generativ KI', 'Språkteknologi'],
       }),
     );
-    expect(text).toContain('Skal levere: PoC, Annet (Rapport)');
+    expect(text).toContain('Skal levere: Annet (Rapport)');
     expect(text).toContain('Type KI: Generativ KI, Språkteknologi');
   });
 
@@ -164,13 +169,13 @@ describe('JSON-blokken i e-posten', () => {
     });
   });
 
-  test('flervalg står som lister, og fritekst bare når Annet er valgt', () => {
+  test('leveranse og kiType står som lister, og fritekst bare når Annet er valgt', () => {
     const { text } = buildEmail(
-      form({ leveranse: ['PoC', 'Annet'], leveranseAnnet: 'Rapport', kiType: ['Generativ KI'], kiTypeAnnet: 'glemt' }),
+      form({ leveranse: 'Annet', leveranseAnnet: 'Rapport', kiType: ['Generativ KI'], kiTypeAnnet: 'glemt' }),
       () => 'x',
     );
     const post = JSON.parse(blokk(text).replace(/,$/, ''));
-    expect(post.leveranse).toEqual(['PoC', 'Annet']);
+    expect(post.leveranse).toEqual(['Annet']);
     expect(post.leveranseAnnet).toBe('Rapport');
     expect(post.kiType).toEqual(['Generativ KI']);
     expect(post).not.toHaveProperty('kiTypeAnnet');

@@ -27,9 +27,9 @@ export interface TiltakForm {
   kontaktinfo: string;
   /** «Hvilken fase er tiltaket i?» Ett valg fra FASER. */
   fase: string;
-  /** «Hva skal tiltaket levere?» Flere valg fra LEVERANSER. */
-  leveranse: string[];
-  /** Fritekst, påkrevd når leveranse inneholder «Annet». */
+  /** «Hva skal tiltaket levere?» Ett valg fra LEVERANSER. */
+  leveranse: string;
+  /** Fritekst, påkrevd når leveranse er «Annet». */
   leveranseAnnet: string;
   /** «Hvilken type KI bruker dere i tiltaket?» Valgfritt, flere valg. */
   kiType: string[];
@@ -62,7 +62,7 @@ export function emptyForm(): TiltakForm {
     fagomrade: '',
     kontaktinfo: '',
     fase: '',
-    leveranse: [],
+    leveranse: '',
     leveranseAnnet: '',
     kiType: [],
     kiTypeAnnet: '',

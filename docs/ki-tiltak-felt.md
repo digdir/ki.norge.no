@@ -43,6 +43,8 @@ De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste 
 
 **Det finnes ikke noe status-felt.** Det ble fjernet fordi kategorien ikke skal brukes. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
 
+**Skjemaet gir ett leveranse-valg.** «Hva skal tiltaket levere?» er radioknapper, så en ny innsending har alltid én verdi i `leveranse`. Feltet er likevel en liste i modellen, siden eldre tiltak kan ha flere. E-posten til redaksjonen skriver det som en liste med ett element.
+
 **Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
 
 ## Flere virksomheter
