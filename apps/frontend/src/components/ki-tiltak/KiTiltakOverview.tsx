@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Chip, Heading, Label, Paragraph, Search } from '@digdir/designsystemet-react';
 import { FunnelIcon } from '@navikt/aksel-icons';
-import { filterTiltak, kiTiltak, slaaOppTiltak, type KiTiltak, type KiTiltakFilter } from '../../lib/ki-tiltak';
+import { filterTiltak, kiTiltak, type KiTiltak, type KiTiltakFilter } from '../../lib/ki-tiltak';
 import KiTiltakDetail, { DETAIL_DIALOG_ID } from './KiTiltakDetail';
 import KiTiltakFilterPanel from './KiTiltakFilterPanel';
 import KiTiltakCard from './KiTiltakCard';
@@ -32,16 +32,10 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
     const syncFromUrl = () => {
       const url = new URL(window.location.href);
       const id = url.searchParams.get('tiltak');
-      const found = id === null ? null : slaaOppTiltak(id);
+      const found = id === null ? null : (kiTiltak.find((t) => t.id === id) ?? null);
 
       if (found) {
-        if (found.gammelId) {
-          // Lenke med id fra før en import. Skriv om til dagens id, så en delt
-          // url peker riktig også etter at id-tabellen en gang ryddes.
-          url.searchParams.set('tiltak', found.tiltak.id);
-          window.history.replaceState(window.history.state, '', url);
-        }
-        setSelected(found.tiltak);
+        setSelected(found);
         return;
       }
 
