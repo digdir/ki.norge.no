@@ -56,6 +56,8 @@ De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste 
 
 I detaljvisningen står de én per linje. På kortet står de etter hverandre med komma, kuttet med «…» etter to linjer. Søket går i alle.
 
+Har skjemaet flere virksomheter, skriver e-postblokken **TIL KI-TILTAK.JSON** `virksomhet` og `orgnr` som lister, med ansvarlig virksomhet først og samarbeidsvirksomhetene etter.
+
 ## Regler som er verdt å kjenne
 
 **Valgfritt betyr virkelig valgfritt.** Utelat feltet, la det stå tomt, eller sett det til `null`, det gjør ingen forskjell. `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt» regnes også som tomt, uten hensyn til store og små bokstaver, og det samme gjør en liste med bare slike verdier. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
