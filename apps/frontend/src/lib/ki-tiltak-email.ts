@@ -30,8 +30,7 @@ function readString(kilde: Record<string, unknown>, navn: string): string {
  * Bare verdier som står i alternativlisten slipper gjennom. Skjemaet kan ikke
  * produsere noe annet, så filteret gjelder POST-er som går rett på ruta og
  * ellers kunne lagt vilkårlig tekst inn i e-posten til redaksjonen. Ukjente
- * verdier forsvinner i stillhet: en tom leveranse fanges av valideringen,
- * og kiType er valgfritt.
+ * verdier forsvinner i stillhet, siden kiType er valgfritt.
  *
  * Resultatet følger rekkefølgen i alternativlisten, ikke i innsendingen, slik
  * at e-posten alltid lister valgene likt.
@@ -44,6 +43,20 @@ function readStringArray(
   const value = kilde[navn];
   if (!Array.isArray(value)) return [];
   return tillatte.filter((option) => value.includes(option));
+}
+
+/**
+ * Leser et felt med ett valg. Ukjent verdi gir tom streng, som valideringen
+ * fanger.
+ *
+ * Skjemaet sendte før en liste for leveranse. En side som ligger i
+ * nettleserens cache kan fortsatt gjøre det en stund, og da brukes første
+ * gyldige verdi i stedet for å avvise innsendingen.
+ */
+function readChoice(kilde: Record<string, unknown>, navn: string, tillatte: readonly string[]): string {
+  const value = kilde[navn];
+  const kandidater = Array.isArray(value) ? value : [value];
+  return kandidater.find((v): v is string => typeof v === 'string' && tillatte.includes(v)) ?? '';
 }
 
 /** Kontrolltegn, linjeskift inkludert. */
@@ -98,7 +111,7 @@ export function parseTiltakForm(body: unknown): TiltakForm | null {
     fagomrade: readLine(body, 'fagomrade'),
     kontaktinfo: readLine(body, 'kontaktinfo'),
     fase: readLine(body, 'fase'),
-    leveranse: readStringArray(body, 'leveranse', LEVERANSER),
+    leveranse: readChoice(body, 'leveranse', LEVERANSER),
     leveranseAnnet: readLine(body, 'leveranseAnnet'),
     kiType: readStringArray(body, 'kiType', KI_TYPER),
     kiTypeAnnet: readLine(body, 'kiTypeAnnet'),
@@ -145,8 +158,9 @@ export function tiltakJson(form: TiltakForm, id: string): string {
     beskrivelse: form.beskrivelse.trim(),
   };
   if (form.fase.trim()) post.fase = form.fase.trim();
-  if (form.leveranse.length > 0) post.leveranse = form.leveranse;
-  if (form.leveranse.includes(ANNET) && form.leveranseAnnet.trim()) post.leveranseAnnet = form.leveranseAnnet.trim();
+  // Modellen har leveranse som liste, siden eldre tiltak kan ha flere.
+  if (form.leveranse) post.leveranse = [form.leveranse];
+  if (form.leveranse === ANNET && form.leveranseAnnet.trim()) post.leveranseAnnet = form.leveranseAnnet.trim();
   if (form.kiType.length > 0) post.kiType = form.kiType;
   if (form.kiType.includes(ANNET) && form.kiTypeAnnet.trim()) post.kiTypeAnnet = form.kiTypeAnnet.trim();
   if (form.kontaktinfo.trim()) post.kontaktinfo = form.kontaktinfo.trim();
@@ -171,7 +185,7 @@ export function buildEmail(form: TiltakForm, nyId: () => string = () => crypto.r
     line('Navn', navn),
     line('Tema', form.fagomrade),
     line('Fase', form.fase),
-    line('Skal levere', valgt(form.leveranse, form.leveranseAnnet)),
+    line('Skal levere', valgt(form.leveranse ? [form.leveranse] : [], form.leveranseAnnet)),
     line('Type KI', valgt(form.kiType, form.kiTypeAnnet)),
     '',
     'BESKRIVELSE',
