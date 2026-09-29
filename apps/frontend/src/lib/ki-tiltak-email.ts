@@ -133,6 +133,23 @@ function line(label: string, value: string): string {
   return `${label}: ${value.trim().length > 0 ? value.trim() : '(ikke oppgitt)'}`;
 }
 
+/**
+ * Hovedvirksomheten først, deretter samarbeidsradene, som i #806. Uten
+ * samarbeid blir det tekst, som i resten av ki-tiltak.json. Med samarbeid
+ * blir begge lister i samme rekkefølge, og en rad uten orgnr får tom tekst på
+ * plassen, så navn og nummer ikke glir fra hverandre.
+ */
+function virksomheter(form: TiltakForm): { virksomhet: string | string[]; orgnr: string | string[] } {
+  const rader = form.samarbeid
+    .map((row) => ({ navn: row.navn.trim(), orgnr: row.orgnr.trim() }))
+    .filter((row) => row.navn || row.orgnr);
+  if (rader.length === 0) return { virksomhet: form.ansvarligNavn.trim(), orgnr: form.ansvarligOrgnr.trim() };
+  return {
+    virksomhet: [form.ansvarligNavn.trim(), ...rader.map((row) => row.navn)],
+    orgnr: [form.ansvarligOrgnr.trim(), ...rader.map((row) => row.orgnr)],
+  };
+}
+
 export interface Email {
   subject: string;
   text: string;
@@ -152,8 +169,7 @@ export function tiltakJson(form: TiltakForm, id: string): string {
   const post: Record<string, unknown> = {
     id,
     navn: form.navn.trim(),
-    virksomhet: form.ansvarligNavn.trim(),
-    orgnr: form.ansvarligOrgnr.trim(),
+    ...virksomheter(form),
     fagomrade: form.fagomrade.trim(),
     beskrivelse: form.beskrivelse.trim(),
   };

@@ -47,9 +47,22 @@ De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste 
 
 **Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
 
+## Flere virksomheter
+
+`virksomhet` og `orgnr` kan være lister i samme rekkefølge, med hovedvirksomheten først:
+
+```json
+"virksomhet": ["Helse Bergen HF", "Helse Førde HF"],
+"orgnr": ["983974724", "983974732"]
+```
+
+I detaljvisningen står de én per linje. På kortet står de etter hverandre med komma, kuttet med «…» etter to linjer. Søket går i alle.
+
+Har skjemaet flere virksomheter, skriver e-postblokken **TIL KI-TILTAK.JSON** `virksomhet` og `orgnr` som lister, med ansvarlig virksomhet først og samarbeidsvirksomhetene etter.
+
 ## Regler som er verdt å kjenne
 
-**Valgfritt betyr virkelig valgfritt.** Utelat feltet, eller la det stå tomt, det gjør ingen forskjell. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
+**Valgfritt betyr virkelig valgfritt.** Utelat feltet, la det stå tomt, eller sett det til `null`, det gjør ingen forskjell. `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt» regnes også som tomt, uten hensyn til store og små bokstaver, og det samme gjør en liste med bare slike verdier. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
 
 **Ikke etterfyll de gamle.** De nye feltene gjelder bare tiltak som er sendt inn eller oppdatert via skjemaet på /ki-tiltak. Ingen skal gjette seg til hvilken KI-type en virksomhet bruker.
 

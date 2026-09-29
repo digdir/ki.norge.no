@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { newPartnerRow, emptyForm, type TiltakForm } from '../components/ki-tiltak/tiltakForm';
-import { buildEmail, parseTiltakForm } from './ki-tiltak-email';
+import { buildEmail, parseTiltakForm, tiltakJson } from './ki-tiltak-email';
+import { tilKiTiltak } from './ki-tiltak';
 
 function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
   return {
@@ -182,5 +183,57 @@ describe('JSON-blokken i e-posten', () => {
 
   test('hver e-post får en ny id', () => {
     expect(blokk(buildEmail(form()).text)).not.toBe(blokk(buildEmail(form()).text));
+  });
+});
+
+describe('JSON-blokken med flere virksomheter (#806)', () => {
+  const post = (f: TiltakForm) => JSON.parse(tiltakJson(f, 'x').replace(/,$/, ''));
+
+  test('uten samarbeid står virksomhet og orgnr som tekst, som i dag', () => {
+    const p = post(form());
+    expect(p.virksomhet).toBe('Digitaliseringsdirektoratet');
+    expect(p.orgnr).toBe('991825827');
+  });
+
+  test('med samarbeid blir begge lister, med hovedvirksomheten først', () => {
+    const p = post(
+      form({
+        samarbeid: [
+          { ...newPartnerRow(), navn: ' KS ', orgnr: '971032146' },
+          { ...newPartnerRow(), navn: 'Entur AS', orgnr: '917422575' },
+        ],
+      }),
+    );
+    expect(p.virksomhet).toEqual(['Digitaliseringsdirektoratet', 'KS', 'Entur AS']);
+    expect(p.orgnr).toEqual(['991825827', '971032146', '917422575']);
+  });
+
+  test('en rad uten orgnr får tom tekst på plassen, og helt tomme rader tas ikke med', () => {
+    const p = post(
+      form({
+        samarbeid: [
+          { ...newPartnerRow(), navn: 'KS', orgnr: '' },
+          { ...newPartnerRow(), navn: ' ', orgnr: ' ' },
+          { ...newPartnerRow(), navn: 'Entur AS', orgnr: '917422575' },
+        ],
+      }),
+    );
+    expect(p.virksomhet).toEqual(['Digitaliseringsdirektoratet', 'KS', 'Entur AS']);
+    expect(p.orgnr).toEqual(['991825827', '', '917422575']);
+  });
+
+  test('blokken gjennom tilKiTiltak gir virksomheter og orgnr i riktig rekkefølge', () => {
+    const t = tilKiTiltak(
+      post(
+        form({
+          samarbeid: [
+            { ...newPartnerRow(), navn: 'KS', orgnr: '' },
+            { ...newPartnerRow(), navn: 'Entur AS', orgnr: '917422575' },
+          ],
+        }),
+      ),
+    );
+    expect(t.virksomheter).toEqual(['Digitaliseringsdirektoratet', 'KS', 'Entur AS']);
+    expect(t.orgnr).toEqual(['991825827', '', '917422575']);
   });
 });

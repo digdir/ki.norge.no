@@ -116,7 +116,16 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             {tiltak.navn}
           </Heading>
 
-          <p className="tiltak-detalj-virksomhet">{tiltak.virksomhet}</p>
+          {tiltak.virksomheter.length > 1 ? (
+            // Én per linje, hovedvirksomheten først (#806).
+            <ul className="tiltak-detalj-virksomhet tiltak-detalj-virksomheter">
+              {tiltak.virksomheter.map((navn) => (
+                <li key={navn}>{navn}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="tiltak-detalj-virksomhet">{tiltak.virksomheter[0]}</p>
+          )}
 
           {tiltak.beskrivelse.length > 0 && (
             <section className="tiltak-detalj-felt">

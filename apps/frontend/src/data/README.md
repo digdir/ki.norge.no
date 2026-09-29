@@ -27,10 +27,21 @@ De seks feltene over er påkrevd. Nye tiltak kan i tillegg ha `fase`, `kiType`, 
 |---|---|
 | `id` | Unik. Lag en ny GUID, for eksempel med `uuidgen` i terminalen. Gjenbruk aldri en id |
 | `navn` | Tiltakets navn, slik det skal vises |
-| `virksomhet` | Visningsnavn med vanlig store og små bokstaver, ikke VERSALER |
-| `orgnr` | Ni siffer, som i Brønnøysundregisteret |
+| `virksomhet` | Visningsnavn med vanlig store og små bokstaver, ikke VERSALER. Flere virksomheter skrives som liste, med hovedvirksomheten først |
+| `orgnr` | Ni siffer, som i Brønnøysundregisteret. Liste i samme rekkefølge når `virksomhet` er liste |
 | `fagomrade` | Nøyaktig én av verdiene i lista under |
 | `beskrivelse` | Fritekst. Vises avkortet til tre linjer på kortet, i sin helhet i detaljvisningen |
+
+Flere virksomheter:
+
+```json
+"virksomhet": ["Helse Bergen HF", "Helse Førde HF"],
+"orgnr": ["983974724", "983974732"]
+```
+
+I detaljvisningen står de én per linje. På kortet står de etter hverandre med komma, kuttet med «…» etter to linjer.
+
+Et felt uten verdi vises ikke. Det gjelder `null`, tom tekst, bare mellomrom, tomme lister, og `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt».
 
 ### Gyldige fagområder
 
