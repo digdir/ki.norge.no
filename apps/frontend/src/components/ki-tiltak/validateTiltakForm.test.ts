@@ -17,7 +17,7 @@ function validForm(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     fagomrade: 'Digitale teknologier',
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
-    leveranse: ['Pilot'],
+    leveranse: 'Pilot',
     ...overstyr,
   };
 }
@@ -63,10 +63,11 @@ describe('validateTiltakForm', () => {
       ['tema', { fagomrade: '' }, 'fagomrade', ERROR_MESSAGE.fagomrade],
       ['kontaktinfo', { kontaktinfo: '  ' }, 'kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty],
       ['fase', { fase: '' }, 'fase', ERROR_MESSAGE.fase],
-      ['leveranse', { leveranse: [] }, 'leveranse', ERROR_MESSAGE.leveranse],
+      ['leveranse', { leveranse: '' }, 'leveranse', ERROR_MESSAGE.leveranse],
+      ['ukjent leveranse', { leveranse: 'Noe oppdiktet' }, 'leveranse', ERROR_MESSAGE.leveranse],
       [
         'fritekst når «Annet» er krysset av',
-        { leveranse: ['Annet'], leveranseAnnet: '  ' },
+        { leveranse: 'Annet', leveranseAnnet: '  ' },
         'leveranseAnnet',
         ERROR_MESSAGE.leveranseAnnet,
       ],
@@ -194,7 +195,7 @@ describe('validateTiltakForm', () => {
     });
 
     test('«Annet» i leveranse med fritekst er gyldig', () => {
-      const form = validForm({ leveranse: ['Annet'], leveranseAnnet: 'Rapport' });
+      const form = validForm({ leveranse: 'Annet', leveranseAnnet: 'Rapport' });
       expect(validateTiltakForm(form)).toHaveLength(0);
     });
   });
