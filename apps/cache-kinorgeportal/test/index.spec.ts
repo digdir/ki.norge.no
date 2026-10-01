@@ -67,4 +67,39 @@ describe("frontend-cache", () => {
 
 		expect(fetcher.fetch).toHaveBeenCalledTimes(2);
 	});
+
+	it("preview cookie goes straight to origin, and the draft is never stored for anyone else", async () => {
+		const { env, fetcher } = mockEnv((req) =>
+			(req.headers.get("Cookie") ?? "").includes("preview=")
+				? new Response("kladd", { status: 200, headers: { "Cache-Control": "private, no-store" } })
+				: new Response("publisert", { status: 200, headers: { "Cache-Control": "public, s-maxage=3600" } }),
+		);
+		const get = async (cookie?: string) => {
+			const ctx = createExecutionContext();
+			const headers = cookie ? { Cookie: cookie } : undefined;
+			const res = await worker.fetch(new Request("https://test.local/preview-1", { headers }), env, ctx);
+			await waitOnExecutionContext(ctx);
+			return res.text();
+		};
+
+		expect(await get()).toBe("publisert");
+		expect(await get("ki_admin=x; preview=hemmelig")).toBe("kladd");
+		expect(await get()).toBe("publisert");
+
+		expect(fetcher.fetch).toHaveBeenCalledTimes(2);
+	});
+
+	it("other cookies that merely contain the word are still served from cache", async () => {
+		const { env, fetcher } = mockEnv(
+			() => new Response("publisert", { status: 200, headers: { "Cache-Control": "public, s-maxage=3600" } }),
+		);
+		for (const cookie of [undefined, "xpreview=1", "preview_seen=1"]) {
+			const ctx = createExecutionContext();
+			const headers = cookie ? { Cookie: cookie } : undefined;
+			await worker.fetch(new Request("https://test.local/preview-2", { headers }), env, ctx);
+			await waitOnExecutionContext(ctx);
+		}
+
+		expect(fetcher.fetch).toHaveBeenCalledTimes(1);
+	});
 });
