@@ -1,4 +1,4 @@
-import { ANNET, FAGOMRADER, FASER } from '../../lib/ki-tiltak';
+import { ANNET, FAGOMRADER, FASER, LEVERANSER } from '../../lib/ki-tiltak';
 import { hasValidCheckDigit, hasOrgnrFormat } from './organisationNumber';
 import { DESCRIPTION_MAX, type TiltakForm } from './tiltakForm';
 
@@ -13,7 +13,7 @@ export type FieldKey =
   | 'beskrivelse'
   | 'fagomrade'
   | 'kontaktinfo'
-  | 'status'
+  | 'fase'
   | 'leveranse'
   | 'leveranseAnnet'
   | 'kiTypeAnnet'
@@ -40,7 +40,7 @@ export const ERROR_MESSAGE = {
   fagomrade: 'Velg tema for tiltaket',
   kontaktinfoEmpty: 'Legg til kontaktinfo',
   kontaktinfoFormat: 'Sjekk e-postadressen, den må inneholde @',
-  status: 'Velg fase for tiltaket',
+  fase: 'Velg fase for tiltaket',
   leveranse: 'Velg hva tiltaket skal levere',
   leveranseAnnet: 'Skriv hva du mener med «Annet»',
   forLangt: 'Teksten er for lang',
@@ -142,11 +142,11 @@ export function validateTiltakForm(form: TiltakForm): ValidationError[] {
     add('kontaktinfo', tooLong(kontaktinfo, MAX_LENGTH.kort));
   }
 
-  if (!inList(form.status, FASER)) add('status', ERROR_MESSAGE.status);
+  if (!inList(form.fase, FASER)) add('fase', ERROR_MESSAGE.fase);
 
-  if (form.leveranse.length === 0) {
+  if (!inList(form.leveranse, LEVERANSER)) {
     add('leveranse', ERROR_MESSAGE.leveranse);
-  } else if (form.leveranse.includes(ANNET) && form.leveranseAnnet.trim().length === 0) {
+  } else if (form.leveranse === ANNET && form.leveranseAnnet.trim().length === 0) {
     add('leveranseAnnet', ERROR_MESSAGE.leveranseAnnet);
   } else {
     add('leveranseAnnet', tooLong(form.leveranseAnnet, MAX_LENGTH.kort));

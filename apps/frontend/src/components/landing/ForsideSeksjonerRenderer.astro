@@ -14,7 +14,6 @@ import KiTiltakEntryCard from '../shared/KiTiltakEntryCard.astro';
 import { getMediaUrl, getCardImage, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
 import { velgAktuelt, velgLaerAvAndre, velgLenke, velgVeiledning } from '../../lib/forside-seksjoner';
 import { hendelseTilEventCard } from '../../lib/kalender';
-import { splitLastWord } from '../../lib/text';
 
 interface Props {
   seksjoner: ForsideSeksjon[];
@@ -174,7 +173,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
   if (block.contentType === 'forsideSandkasse') {
     const sandkasseLinkId = `sandkasse-link-${block.id}`;
     // Pilen limes til siste ord så den ikke brekker alene (#464)
-    const sandkasseTittel = splitLastWord(block.overskrift ?? '');
+    const sandkasseTittel = (block.overskrift ?? '').trim();
     // Vakta må stå på den ferdige URLen, ikke på mediet. Delivery API sender
     // picker-objekter som finnes men er tomme, så `block.illustrasjon &&` slapp
     // gjennom og rendret <img src="">.
@@ -199,7 +198,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
           <div class="sandkasse-card-text">
             <h2 class="sandkasse-title">
               <a id={sandkasseLinkId} href={block.lenkeUrl || '/sandkasse'}>
-                {sandkasseTittel.head}<span class="u-nowrap">{sandkasseTittel.last}<span class="sandkasse-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span>
+                {sandkasseTittel}<span class="sandkasse-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span>
               </a>
             </h2>
             <p class="sandkasse-desc ds-paragraph" data-size="lg">{block.tekst || 'Juridisk veiledning for deg som ønsker å utvikle et risikofylt KI-prosjekt.'}</p>

@@ -39,12 +39,18 @@ function excerptOf(body: string, max = 220): string {
 const LEX_WEIGHT = 0.6;
 const SEM_WEIGHT = 0.4;
 
+const SOURCE = ['title', 'url', 'type', 'body'];
+
+function lexicalQuery(query: string) {
+  return { multi_match: { query, fields: ['title^2', 'body'] } };
+}
+
 function retrieverBody(query: string, size: number) {
-  const lex = { standard: { query: { multi_match: { query, fields: ['title^2', 'body'] } } } };
+  const lex = { standard: { query: lexicalQuery(query) } };
   const sem = { standard: { query: { semantic: { field: 'body_semantic', query } } } };
   return {
     size,
-    _source: ['title', 'url', 'type', 'body'],
+    _source: SOURCE,
     retriever: {
       linear: {
         retrievers: [
@@ -78,7 +84,25 @@ const LEX_GATE_MIN_SCORE = 1;
 
 // Ren BM25-probe, kun for gate-scoren (size 1, ingen _source).
 function lexicalGateBody(query: string) {
-  return { size: 1, _source: false, query: { multi_match: { query, fields: ['title^2', 'body'] } } };
+  return { size: 1, _source: false, query: lexicalQuery(query) };
+}
+
+interface EsResponse {
+  status?: number;
+  error?: { type?: string; reason?: string };
+  hits?: { max_score?: number | null; hits?: { _source: Record<string, string> }[] };
+}
+
+const esHeaders = (contentType: string) => ({ Authorization: `ApiKey ${ES_API_KEY}`, 'Content-Type': contentType });
+
+async function bm25Search(query: string, size: number): Promise<EsResponse> {
+  const res = await fetch(`${ES_ENDPOINT}/${INDEX}/_search`, {
+    method: 'POST',
+    headers: esHeaders('application/json'),
+    body: JSON.stringify({ size, _source: SOURCE, query: lexicalQuery(query) }),
+  });
+  if (!res.ok) throw new Error(`ES search ${res.status}: ${await res.text()}`);
+  return (await res.json()) as EsResponse;
 }
 
 export async function hybridSearch(query: string, size = TOP_N): Promise<SearchHit[]> {
@@ -93,19 +117,31 @@ export async function hybridSearch(query: string, size = TOP_N): Promise<SearchH
 
   const res = await fetch(`${ES_ENDPOINT}/${INDEX}/_msearch`, {
     method: 'POST',
-    headers: { Authorization: `ApiKey ${ES_API_KEY}`, 'Content-Type': 'application/x-ndjson' },
+    headers: esHeaders('application/x-ndjson'),
     body: ndjson,
   });
   if (!res.ok) throw new Error(`ES msearch ${res.status}: ${await res.text()}`);
-  const { responses } = (await res.json()) as {
-    responses: { hits?: { max_score?: number | null; hits?: { _source: Record<string, string> }[] } }[];
-  };
+  const { responses } = (await res.json()) as { responses: EsResponse[] };
   const [lexResp, hybridResp] = responses ?? [];
+
+  if (lexResp?.error) throw new Error(`ES msearch probe ${lexResp.status}: ${lexResp.error.type}`);
 
   // Ingen nøkkelord-forankring i innholdet → behandle som ingen treff (#544).
   if ((lexResp?.hits?.max_score ?? 0) < LEX_GATE_MIN_SCORE) return [];
 
-  return (hybridResp?.hits?.hits ?? []).map((h) => {
+  let ranked = hybridResp;
+  if (!ranked || ranked.error) {
+    // _msearch svarer 200 selv når én del feiler. Den semantiske modellen skalerer
+    // til null og kaldstarter, og da er BM25 alene bedre enn «Ingen resultater» (#822).
+    console.error('ES hybridsøk feilet, faller tilbake til BM25', {
+      status: ranked?.status,
+      type: ranked?.error?.type,
+      reason: ranked?.error?.reason,
+    });
+    ranked = await bm25Search(q, size);
+  }
+
+  return (ranked.hits?.hits ?? []).map((h) => {
     const s = h._source;
     return { title: s.title, url: s.url, type: s.type, excerpt: excerptOf(s.body) };
   });

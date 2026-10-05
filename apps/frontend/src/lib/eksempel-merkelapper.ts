@@ -1,9 +1,9 @@
 /**
  * Merkelappene redaktøren setter på et eksempel: sektor og type KI.
  *
- * Ordlistene eies av CMS-et (avkrysningslister), og type KI bruker de samme
- * ordene som KI_TYPER i ki-tiltak.ts. Frontend har derfor ingen egen liste,
- * og viser verdiene i rekkefølgen CMS-et leverer dem.
+ * Begge er Tags-felt i CMS-et, altså fritekst der forslagene er tagger brukt
+ * før i samme gruppe. Frontend har derfor ingen egen ordliste, og viser
+ * verdiene i rekkefølgen CMS-et leverer dem.
  */
 
 /** Tåler både liste og enkeltverdi. Alt annet, og tomme verdier, gir tom liste. */

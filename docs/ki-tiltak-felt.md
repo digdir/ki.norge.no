@@ -2,7 +2,11 @@
 
 Referanse for den som fører inn tiltak i `apps/frontend/src/data/ki-tiltak.json`.
 
-Feltnavnene er med vilje identiske med feltene i innsendingsskjemaet og i e-posten som kommer til `ki-tiltak@kin.norge.no`. Avskriften skal være mekanisk: står det `kiType` i e-posten, heter det `kiType` i fila.
+## Den enkleste veien: lim inn fra e-posten
+
+E-posten som kommer til `ki-tiltak@kin.norge.no` har nederst en blokk som heter **TIL KI-TILTAK.JSON**. Den er hele oppføringen, med ny id, riktige feltnavn og verdiene slik skjemaet har dem. Kopier blokken som den står, og lim den inn på linja rett etter `[` øverst i fila. Komma til slutt er med.
+
+Da trenger du ikke skrive noe for hånd. Det eneste som kan trenge vask er `virksomhet`, som er navnet innsenderen skrev, og `beskrivelse`, hvis dere vil språkvaske.
 
 ## Hele modellen
 
@@ -14,7 +18,7 @@ Feltnavnene er med vilje identiske med feltene i innsendingsskjemaet og i e-post
   "orgnr": "917422575",
   "fagomrade": "Trafikk og transport",
   "beskrivelse": "Entur jobbar systematisk for å teste og utnytte moglegheitene som følgjer av forbetringar innan KI.",
-  "status": "Gjennomføring",
+  "fase": "Gjennomføring",
 
   "kiType": ["Generativ KI", "Språkteknologi"],
   "kiTypeAnnet": "",
@@ -24,29 +28,49 @@ Feltnavnene er med vilje identiske med feltene i innsendingsskjemaet og i e-post
 }
 ```
 
-De seks øverste er påkrevd og finnes på alle 58 oppføringene fra før. De fem nederste er nye og valgfrie.
+De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste er valgfrie og gjelder bare nye tiltak.
 
 ## De nye feltene
 
 | Felt | Type | Gyldige verdier |
 | --- | --- | --- |
+| `fase` | tekst | `Innsikt og planlegging`, `Gjennomføring`, `I drift`. Vises som **Fase** |
 | `kiType` | liste | `Generativ KI`, `Prediktiv KI`, `Agentisk KI`, `Språkteknologi`, `Computer Vision`, `Anbefalingssystemer`, `Annet` |
 | `kiTypeAnnet` | tekst | Fritekst. Bare når `kiType` inneholder `Annet` |
 | `leveranse` | liste | `PoC`, `MVP`, `Pilot`, `Løsning i produksjon`, `Annet` |
 | `leveranseAnnet` | tekst | Fritekst. Bare når `leveranse` inneholder `Annet` |
 | `kontaktinfo` | tekst | E-postadresse |
 
-`status` er feltet som heter **Fase** i skjemaet og i visningen. Det finnes fra før. Gyldige verdier er `Innsikt og planlegging`, `Gjennomføring` og `I drift`.
+**Det finnes ikke noe status-felt.** Det ble fjernet fordi kategorien ikke skal brukes. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
+
+**Skjemaet gir ett leveranse-valg.** «Hva skal tiltaket levere?» er radioknapper, så en ny innsending har alltid én verdi i `leveranse`. Feltet er likevel en liste i modellen, siden eldre tiltak kan ha flere. E-posten til redaksjonen skriver det som en liste med ett element.
+
+**Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
+
+## Flere virksomheter
+
+`virksomhet` og `orgnr` kan være lister i samme rekkefølge, med hovedvirksomheten først:
+
+```json
+"virksomhet": ["Helse Bergen HF", "Helse Førde HF"],
+"orgnr": ["983974724", "983974732"]
+```
+
+I detaljvisningen står de én per linje. På kortet står de etter hverandre med komma, kuttet med «…» etter to linjer. Søket går i alle.
+
+Har skjemaet flere virksomheter, skriver e-postblokken **TIL KI-TILTAK.JSON** `virksomhet` og `orgnr` som lister, med ansvarlig virksomhet først og samarbeidsvirksomhetene etter.
 
 ## Regler som er verdt å kjenne
 
-**Valgfritt betyr virkelig valgfritt.** Utelat feltet, eller la det stå tomt, det gjør ingen forskjell. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
+**Valgfritt betyr virkelig valgfritt.** Utelat feltet, la det stå tomt, eller sett det til `null`, det gjør ingen forskjell. `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt» regnes også som tomt, uten hensyn til store og små bokstaver, og det samme gjør en liste med bare slike verdier. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
 
 **Ikke etterfyll de gamle.** De nye feltene gjelder bare tiltak som er sendt inn eller oppdatert via skjemaet på /ki-tiltak. Ingen skal gjette seg til hvilken KI-type en virksomhet bruker.
 
 **«Annet» erstattes av friteksten.** Skriver du `"leveranse": ["Pilot", "Annet"]` og `"leveranseAnnet": "Intern verktøykasse"`, viser sida «Pilot» og «Intern verktøykasse». Ordet «Annet» vises ikke. Står friteksten uten at `Annet` er i lista, blir teksten aldri vist, og en test stopper det.
 
-**Kontaktadressen blir publisert.** Både på nettstedet og i git-historikken til et offentlig repo. Bruk en virksomhetsadresse, ikke en personlig.
+**Kontaktadressen blir publisert.** Både på nettstedet og i git-historikken til et offentlig repo. En funksjonsadresse som `post@` er å foretrekke, men jobbadressen innsenderen selv har oppgitt er greit.
+
+**Hver oppføring trenger en unik id.** To tiltak med tom id får samme lenke, og da åpner begge det første. Blokken i e-posten har en ny id. Skriver du for hånd, lag en på [uuidgenerator.net](https://www.uuidgenerator.net/).
 
 ## Lenker i beskrivelsen
 
@@ -64,11 +88,16 @@ Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. D
 
 `pnpm --dir apps/frontend run test:unit` kjører i CI på hver PR og stopper:
 
+- syntaksfeil, som et manglende komma eller en manglende `{`. Feilmeldingen sier hvilken linje, viser linjene rundt og forklarer hva som pleier å være galt. I en PR vises den også som merknad på linja i fila
+- felt som er fjernet: `status`, og `formaal`, `oppstart` og `slutt` fra en eldre veiledning
 - ukjent verdi i `kiType` eller `leveranse`, altså skrivefeil
 - duplikater eller tomme strenger i de to listene
 - `Annet`-fritekst uten at `Annet` er valgt
 - `kontaktinfo` som ikke ser ut som en e-postadresse
 - lenke i beskrivelsen som ikke er `http` eller `https`
-- ukjent fagområde eller status, og duplikate id-er, som fra før
+- ukjent fase eller fagområde, og duplikate id-er
+- virksomhetsnavn med bare versaler, som `KF`. Skriv `Kommuneforlaget (KF)`
 
 Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.
+
+Nye felt stoppes ikke. De vises først når koden tar dem i bruk.

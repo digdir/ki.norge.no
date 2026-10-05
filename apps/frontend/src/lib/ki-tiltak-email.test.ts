@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { newPartnerRow, emptyForm, type TiltakForm } from '../components/ki-tiltak/tiltakForm';
-import { buildEmail, parseTiltakForm } from './ki-tiltak-email';
+import { buildEmail, parseTiltakForm, tiltakJson } from './ki-tiltak-email';
+import { tilKiTiltak } from './ki-tiltak';
 
 function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
   return {
@@ -11,8 +12,8 @@ function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     beskrivelse: 'Vi tester en KI-assistent som foreslår enklere formuleringer.',
     fagomrade: 'Digitale teknologier',
     kontaktinfo: 'postmottak@digdir.no',
-    status: 'Gjennomføring',
-    leveranse: ['Pilot'],
+    fase: 'Gjennomføring',
+    leveranse: 'Pilot',
     ...overstyr,
   };
 }
@@ -32,15 +33,15 @@ describe('parseTiltakForm', () => {
       beskrivelse: 'En beskrivelse',
       fagomrade: 'Trafikk og transport',
       kontaktinfo: 'post@entur.no',
-      status: 'Innsikt og planlegging',
-      leveranse: ['PoC', 'Annet'],
+      fase: 'Innsikt og planlegging',
+      leveranse: 'Annet',
       leveranseAnnet: 'Rapport',
       kiType: ['Generativ KI'],
       samarbeid: [{ id: 'rad-1', navn: 'KS', orgnr: '971032146' }],
     });
     expect(result?.ansvarligNavn).toBe('Entur AS');
     expect(result?.samarbeid).toEqual([{ id: 'rad-1', navn: 'KS', orgnr: '971032146' }]);
-    expect(result?.leveranse).toEqual(['PoC', 'Annet']);
+    expect(result?.leveranse).toBe('Annet');
     expect(result?.kiType).toEqual(['Generativ KI']);
   });
 
@@ -57,18 +58,23 @@ describe('parseTiltakForm', () => {
     expect(result?.beskrivelse).toBe('Linje 1\nLinje 2');
   });
 
-  test('ukjente verdier i avkryssingsfeltene siles bort', () => {
+  test('ukjente verdier siles bort', () => {
     const result = parseTiltakForm({
-      leveranse: ['Pilot', 'Noe oppdiktet', 42],
+      leveranse: 'Noe oppdiktet',
       kiType: ['Agentisk KI', '<script>'],
     });
-    expect(result?.leveranse).toEqual(['Pilot']);
+    expect(result?.leveranse).toBe('');
     expect(result?.kiType).toEqual(['Agentisk KI']);
   });
 
+  test('en liste fra en gammel side i cachen godtas, og første gyldige verdi brukes', () => {
+    expect(parseTiltakForm({ leveranse: ['Noe oppdiktet', 42, 'MVP', 'Pilot'] })?.leveranse).toBe('MVP');
+    expect(parseTiltakForm({ leveranse: [] })?.leveranse).toBe('');
+  });
+
   test('avkryssede valg normaliseres til rekkefølgen i alternativlisten', () => {
-    const result = parseTiltakForm({ leveranse: ['Annet', 'PoC', 'MVP'] });
-    expect(result?.leveranse).toEqual(['PoC', 'MVP', 'Annet']);
+    const result = parseTiltakForm({ kiType: ['Språkteknologi', 'Generativ KI'] });
+    expect(result?.kiType).toEqual(['Generativ KI', 'Språkteknologi']);
   });
 
   test('felt med feil type blir tom streng i stedet for å velte', () => {
@@ -110,12 +116,12 @@ describe('lagEpost', () => {
   test('avkryssede valg listes på én linje, «Annet» med fritekst i parentes', () => {
     const { text } = buildEmail(
       form({
-        leveranse: ['PoC', 'Annet'],
+        leveranse: 'Annet',
         leveranseAnnet: 'Rapport',
         kiType: ['Generativ KI', 'Språkteknologi'],
       }),
     );
-    expect(text).toContain('Skal levere: PoC, Annet (Rapport)');
+    expect(text).toContain('Skal levere: Annet (Rapport)');
     expect(text).toContain('Type KI: Generativ KI, Språkteknologi');
   });
 
@@ -139,5 +145,95 @@ describe('lagEpost', () => {
     // aldri markup. Vi verken escaper eller fjerner dem.
     expect(subject).toContain('<script>alert(1)</script>');
     expect(text).toContain('<b>hei</b>');
+  });
+});
+
+describe('JSON-blokken i e-posten', () => {
+  const blokk = (text: string) => text.split('ki-tiltak.json:\n\n')[1].split('\n\nSvar på')[0];
+
+  test('limt inn etter [ gir gyldig JSON med én post mer', async () => {
+    const fil = (await import('node:fs')).readFileSync(
+      new URL('../data/ki-tiltak.json', import.meta.url),
+      'utf-8',
+    );
+    const { text } = buildEmail(form(), () => '11111111-2222-4333-8444-555555555555');
+    const limt = fil.replace('[', `[\n${blokk(text)}`);
+    const data = JSON.parse(limt);
+    expect(data).toHaveLength(JSON.parse(fil).length + 1);
+    expect(data[0]).toMatchObject({
+      id: '11111111-2222-4333-8444-555555555555',
+      navn: 'KI-assistent for klarspråk i vedtak',
+      orgnr: '991825827',
+      fase: 'Gjennomføring',
+      kontaktinfo: 'postmottak@digdir.no',
+    });
+  });
+
+  test('leveranse og kiType står som lister, og fritekst bare når Annet er valgt', () => {
+    const { text } = buildEmail(
+      form({ leveranse: 'Annet', leveranseAnnet: 'Rapport', kiType: ['Generativ KI'], kiTypeAnnet: 'glemt' }),
+      () => 'x',
+    );
+    const post = JSON.parse(blokk(text).replace(/,$/, ''));
+    expect(post.leveranse).toEqual(['Annet']);
+    expect(post.leveranseAnnet).toBe('Rapport');
+    expect(post.kiType).toEqual(['Generativ KI']);
+    expect(post).not.toHaveProperty('kiTypeAnnet');
+  });
+
+  test('hver e-post får en ny id', () => {
+    expect(blokk(buildEmail(form()).text)).not.toBe(blokk(buildEmail(form()).text));
+  });
+});
+
+describe('JSON-blokken med flere virksomheter (#806)', () => {
+  const post = (f: TiltakForm) => JSON.parse(tiltakJson(f, 'x').replace(/,$/, ''));
+
+  test('uten samarbeid står virksomhet og orgnr som tekst, som i dag', () => {
+    const p = post(form());
+    expect(p.virksomhet).toBe('Digitaliseringsdirektoratet');
+    expect(p.orgnr).toBe('991825827');
+  });
+
+  test('med samarbeid blir begge lister, med hovedvirksomheten først', () => {
+    const p = post(
+      form({
+        samarbeid: [
+          { ...newPartnerRow(), navn: ' KS ', orgnr: '971032146' },
+          { ...newPartnerRow(), navn: 'Entur AS', orgnr: '917422575' },
+        ],
+      }),
+    );
+    expect(p.virksomhet).toEqual(['Digitaliseringsdirektoratet', 'KS', 'Entur AS']);
+    expect(p.orgnr).toEqual(['991825827', '971032146', '917422575']);
+  });
+
+  test('en rad uten orgnr får tom tekst på plassen, og helt tomme rader tas ikke med', () => {
+    const p = post(
+      form({
+        samarbeid: [
+          { ...newPartnerRow(), navn: 'KS', orgnr: '' },
+          { ...newPartnerRow(), navn: ' ', orgnr: ' ' },
+          { ...newPartnerRow(), navn: 'Entur AS', orgnr: '917422575' },
+        ],
+      }),
+    );
+    expect(p.virksomhet).toEqual(['Digitaliseringsdirektoratet', 'KS', 'Entur AS']);
+    expect(p.orgnr).toEqual(['991825827', '', '917422575']);
+  });
+
+  test('blokken gjennom tilKiTiltak gir virksomheter og orgnr i riktig rekkefølge', () => {
+    const t = tilKiTiltak(
+      post(
+        form({
+          samarbeid: [
+            { ...newPartnerRow(), navn: 'KS', orgnr: '' },
+            { ...newPartnerRow(), navn: 'Entur AS', orgnr: '917422575' },
+          ],
+        }),
+      ),
+    );
+    expect(t.virksomheter).toEqual(['Digitaliseringsdirektoratet', 'KS', 'Entur AS']);
+    expect(t.orgnr).toEqual(['991825827', '', '917422575']);
   });
 });

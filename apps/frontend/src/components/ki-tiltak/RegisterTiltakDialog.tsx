@@ -131,7 +131,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
    * «Annet» hukes av igjen, ellers ville en gammel verdi blitt sendt med.
    */
   const toggleMulti =
-    (field: 'leveranse' | 'kiType', options: readonly string[], annetField: keyof TiltakForm) =>
+    (field: 'kiType', options: readonly string[], annetField: keyof TiltakForm) =>
     (value: string) =>
       setForm((previous) => {
         const chosen = previous[field];
@@ -379,7 +379,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
               </div>
 
               <div className="tiltak-seksjon">
-                <Fieldset className="tiltak-status-felt">
+                <Fieldset className="tiltak-valg-felt">
                   <Fieldset.Legend>
                     {labelWithBadge('Hvilken fase er tiltaket i?', true)}
                   </Fieldset.Legend>
@@ -388,33 +388,38 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                       key={fase}
                       // Bare den første radioknappen får ankeret, slik at lenken
                       // i feiloppsummeringen lander på et fokuserbart element.
-                      id={index === 0 ? fieldId('status') : undefined}
+                      id={index === 0 ? fieldId('fase') : undefined}
                       name="tiltak-fase"
                       label={fase}
                       value={fase}
-                      checked={form.status === fase}
-                      onChange={(event) => update('status')(event.target.value)}
+                      checked={form.fase === fase}
+                      onChange={(event) => update('fase')(event.target.value)}
                     />
                   ))}
-                  {message('status') !== undefined && (
-                    <ValidationMessage>{message('status')}</ValidationMessage>
+                  {message('fase') !== undefined && (
+                    <ValidationMessage>{message('fase')}</ValidationMessage>
                   )}
                 </Fieldset>
 
-                <Fieldset className="tiltak-status-felt">
+                <Fieldset className="tiltak-valg-felt">
                   <Fieldset.Legend>
                     {labelWithBadge('Hva skal tiltaket levere?', true)}
                   </Fieldset.Legend>
-                  <Fieldset.Description>Du kan velge flere svar.</Fieldset.Description>
                   {LEVERANSER.map((leveranse, index) => (
-                    <Checkbox
+                    <Radio
                       key={leveranse}
                       id={index === 0 ? fieldId('leveranse') : undefined}
+                      name="tiltak-leveranse"
                       label={leveranse}
                       value={leveranse}
-                      checked={form.leveranse.includes(leveranse)}
-                      onChange={() =>
-                        toggleMulti('leveranse', LEVERANSER, 'leveranseAnnet')(leveranse)
+                      checked={form.leveranse === leveranse}
+                      onChange={(event) =>
+                        setForm((previous) => ({
+                          ...previous,
+                          leveranse: event.target.value,
+                          // Fritekstet hører til «Annet». Byttes valget, skal det ikke sendes med.
+                          ...(event.target.value === ANNET ? {} : { leveranseAnnet: '' }),
+                        }))
                       }
                     />
                   ))}
@@ -423,7 +428,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   )}
                 </Fieldset>
 
-                {form.leveranse.includes(ANNET) && (
+                {form.leveranse === ANNET && (
                   <Textfield
                     id={fieldId('leveranseAnnet')}
                     label="Beskriv nærmere"
@@ -433,7 +438,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   />
                 )}
 
-                <Fieldset className="tiltak-status-felt">
+                <Fieldset className="tiltak-valg-felt">
                   <Fieldset.Legend>
                     {labelWithBadge('Hvilken type KI bruker dere i tiltaket?', false)}
                   </Fieldset.Legend>

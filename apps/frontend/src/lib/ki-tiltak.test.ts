@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
   FAGOMRADER,
-  ALLE_STATUSER,
   filterTiltak,
   kiTiltak,
   type KiTiltak,
@@ -9,6 +8,10 @@ import {
   visValg,
   KI_TYPER,
   LEVERANSER,
+  somTekst,
+  tilKiTiltak,
+  utenVerdi,
+  virksomhetTekst,
 } from './ki-tiltak';
 
 const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
@@ -20,12 +23,17 @@ const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
  * dem. Redaksjonen endrer navn og tekst jevnlig, og en test som låser seg til
  * en bestemt formulering stopper dem i CI uten å fange en eneste reell feil.
  */
-const SEARCHABLE = ['navn', 'virksomhet', 'fagomrade', 'beskrivelse', 'status'] as const;
+const SEARCHABLE = ['navn', 'virksomheter', 'fagomrade', 'beskrivelse', 'fase'] as const;
 type SearchField = (typeof SEARCHABLE)[number];
+
+function feltTekst(tiltak: KiTiltak, field: SearchField): string {
+  const verdi = tiltak[field] ?? '';
+  return Array.isArray(verdi) ? verdi.join(' ') : verdi;
+}
 
 function otherFields(tiltak: KiTiltak, exclude: SearchField): string {
   return SEARCHABLE.filter((f) => f !== exclude)
-    .map((f) => tiltak[f])
+    .map((f) => feltTekst(tiltak, f))
     .join(' ')
     .toLowerCase();
 }
@@ -37,7 +45,7 @@ function otherFields(tiltak: KiTiltak, exclude: SearchField): string {
  */
 function uniqueQueryFor(field: SearchField): { tiltak: KiTiltak; query: string } | null {
   for (const tiltak of kiTiltak) {
-    const value = tiltak[field].trim();
+    const value = feltTekst(tiltak, field).trim();
     if (value.length === 0) continue;
     const others = otherFields(tiltak, field);
     // Korte felt brukes hele, lange felt ord for ord.
@@ -69,20 +77,14 @@ describe('ki-tiltak datasett', () => {
     for (const tiltak of kiTiltak) {
       expect(tiltak.id, `id mangler på ${tiltak.navn}`).toBeTruthy();
       expect(tiltak.navn, `navn mangler på ${tiltak.id}`).toBeTruthy();
-      expect(tiltak.virksomhet, `virksomhet mangler på ${tiltak.navn}`).toBeTruthy();
+      expect(tiltak.virksomheter.length, `virksomhet mangler på ${tiltak.navn}`).toBeGreaterThan(0);
+      expect(tiltak.virksomheter.every((v) => v.trim().length > 0), `tomt virksomhetsnavn på ${tiltak.navn}`).toBe(true);
     }
   });
 
   test('bruker bare fagområder fra FAGOMRADER', () => {
     for (const tiltak of kiTiltak) {
       expect(FAGOMRADER, `ukjent fagområde på ${tiltak.navn}`).toContain(tiltak.fagomrade);
-    }
-  });
-
-  test('bruker bare kjente statusverdier', () => {
-    for (const tiltak of kiTiltak) {
-      if (tiltak.status === '') continue;
-      expect(ALLE_STATUSER, `ukjent status på ${tiltak.navn}`).toContain(tiltak.status);
     }
   });
 
@@ -162,8 +164,8 @@ describe('ki-tiltak datasett', () => {
 
   test('virksomhetsnavn er ikke bare versaler', () => {
     // Kuraterte visningsnavn skal ha erstattet VERSALENE fra kilden.
-    const shouty = kiTiltak.filter((t) => t.virksomhet === t.virksomhet.toUpperCase());
-    expect(shouty.map((t) => t.virksomhet)).toEqual([]);
+    const shouty = kiTiltak.flatMap((t) => t.virksomheter).filter((v) => v === v.toUpperCase());
+    expect(shouty).toEqual([]);
   });
 });
 
@@ -228,6 +230,12 @@ describe('filterTiltak', () => {
     expect(uten.map((t) => t.id)).not.toContain(tiltak!.id);
   });
 
+  test('søker i alle virksomhetene, ikke bare den første', () => {
+    const [a, b] = kiTiltak;
+    const flere: KiTiltak = { ...a, id: 'flere', virksomheter: ['Entur AS', 'Ruter AS', 'Vy'], orgnr: ['1', '2', '3'] };
+    expect(filterTiltak([flere, b], { ...EMPTY, query: 'ruter' }).map((t) => t.id)).toEqual(['flere']);
+  });
+
   test('ingen treff gir tom liste', () => {
     expect(filterTiltak(kiTiltak, { ...EMPTY, query: 'zzzfinnesikke' })).toEqual([]);
   });
@@ -258,5 +266,80 @@ describe('visValg', () => {
 
   test('fritekst som bare er mellomrom teller som tom', () => {
     expect(visValg(['Annet'], '   ')).toEqual(['Annet']);
+  });
+});
+
+describe('somTekst', () => {
+  test('ett, to og flere valg leses som vanlig norsk', () => {
+    expect(somTekst(['I drift'])).toBe('I drift');
+    expect(somTekst(['PoC', 'MVP'])).toBe('PoC og MVP');
+    expect(somTekst(['Generativ KI', 'Prediktiv KI', 'Språkteknologi'])).toBe('Generativ KI, Prediktiv KI og Språkteknologi');
+  });
+});
+
+describe('utenVerdi', () => {
+  test.each([null, undefined, '', '   ', [], [''], [null, ' ', 'NA']])('%j har ingen verdi', (v) => {
+    expect(utenVerdi(v)).toBe(true);
+  });
+
+  test.each(['NA', 'na', ' N/A ', '-', '–', 'null', 'NULL', 'Ikke oppgitt', ' ikke OPPGITT '])(
+    'plassholderen %j har ingen verdi',
+    (v) => {
+      expect(utenVerdi(v)).toBe(true);
+    },
+  );
+
+  test.each(['Pilot', ['', 'Pilot'], 'NAV', '--', 'ikke oppgitt ennå'])('%j har verdi', (v) => {
+    expect(utenVerdi(v)).toBe(false);
+  });
+});
+
+describe('tilKiTiltak', () => {
+  test('én virksomhet som tekst blir en liste med én', () => {
+    const t = tilKiTiltak({ id: 'a', navn: 'X', virksomhet: 'Entur AS', orgnr: '917422575', fagomrade: 'Arbeid' });
+    expect(t.virksomheter).toEqual(['Entur AS']);
+    expect(t.orgnr).toEqual(['917422575']);
+  });
+
+  test('flere virksomheter beholder rekkefølgen, med hovedvirksomheten først', () => {
+    const t = tilKiTiltak({ id: 'a', navn: 'X', virksomhet: ['Entur AS', 'Ruter AS', 'Vy'], orgnr: ['1', '2', '3'] });
+    expect(t.virksomheter).toEqual(['Entur AS', 'Ruter AS', 'Vy']);
+    expect(virksomhetTekst(t)).toBe('Entur AS, Ruter AS, Vy');
+  });
+
+  test('virksomhet og orgnr pares før tomme fjernes', () => {
+    const t = tilKiTiltak({ id: 'a', navn: 'X', virksomhet: [null, 'Ruter AS', 'NA'], orgnr: ['1', '2', null] });
+    expect(t.virksomheter).toEqual(['Ruter AS']);
+    expect(t.orgnr).toEqual(['2']);
+  });
+
+  test('null, tomme lister og plassholdere forsvinner, så ingenting av det vises', () => {
+    expect(
+      tilKiTiltak({
+        id: 'a',
+        navn: 'X',
+        virksomhet: null,
+        orgnr: null,
+        fagomrade: null,
+        beskrivelse: 'NA',
+        fase: null,
+        kiType: [],
+        kiTypeAnnet: ' ',
+        leveranse: ['N/A', '-'],
+        leveranseAnnet: 'ikke oppgitt',
+        kontaktinfo: null,
+      }),
+    ).toEqual({ id: 'a', navn: 'X', virksomheter: [], orgnr: [], fagomrade: '', beskrivelse: '' });
+  });
+
+  test('plassholdere fjernes fra listene, og verdiene trimmes', () => {
+    const t = tilKiTiltak({ id: 'a', navn: 'X', kiType: ['NA', ' Generativ KI '], leveranse: 'Pilot' });
+    expect(t.kiType).toEqual(['Generativ KI']);
+    expect(t.leveranse).toEqual(['Pilot']);
+  });
+
+  test('fase som plassholder er ingen fase, men en ukjent fase kaster fortsatt', () => {
+    expect(tilKiTiltak({ id: 'a', navn: 'X', fase: 'NA' }).fase).toBeUndefined();
+    expect(() => tilKiTiltak({ id: 'a', navn: 'X', fase: 'Ferdig' })).toThrow(/Ukjent fase på X/);
   });
 });

@@ -87,12 +87,19 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 .tiltak-hero-tittel {
   color: var(--ds-color-brand1-background-default);
   margin: 0 0 var(--ds-size-4);
-  max-width: 60%;
   font-weight: var(--ds-font-weight-regular);
   /* Ingen --ds-line-height-* er nær prototypens 1.08 (nærmeste er
      --ds-line-height-sm på 1.3, likt overskriftens egen standardverdi), så
      literalen er beholdt som eneste unntak fra tokenkravet her. */
   line-height: 1.08;
+}
+
+/* På mobil får tittelen hele bredden. Med 60 % av 327 px ble det 196 px, og
+   «Offentlige» fikk ikke plass på én linje i 60 px. */
+@media (min-width: 768px) {
+  .tiltak-hero-tittel {
+    max-width: 60%;
+  }
 }
 
 .tiltak-hero-ingress {
@@ -172,6 +179,10 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   font-size: var(--ds-body-sm-font-size);
   line-height: var(--ds-body-sm-line-height);
   color: var(--tiltak-tekst-dempet);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .tiltak-kort-beskrivelse {
@@ -453,6 +464,11 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   margin: 0;
   font-size: var(--ds-body-md-font-size);
   color: var(--ds-color-neutral-text-subtle);
+}
+
+.tiltak-detalj-virksomheter {
+  list-style: none;
+  padding: 0;
 }
 
 .tiltak-detalj-merkelapp {
@@ -831,7 +847,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 
 /* Samme avstand mellom etikett og kontroll som Field bruker
    (--dsc-field-content-spacing), men uten selve ds-field-elementet. */
-.tiltak-status-felt {
+.tiltak-valg-felt {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
@@ -843,7 +859,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    målte #3E263D ligger nærmest --ds-color-accent-text-default (#541321),
    samme token som send-knappen bruker, og ikke den lysere brand-rosa
    --ds-color-base-default som er forvalget. */
-.tiltak-status-felt .ds-input[type="radio"] {
+.tiltak-valg-felt .ds-input[type="radio"] {
   --dsc-input-accent-color: var(--ds-color-accent-text-default);
 }
 
@@ -853,7 +869,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    Fieldset.Legend rendres som <legend class="ds-label"> og alternativene som
    <label class="ds-label">, så elementnavnet skiller dem: legenden («Status»)
    beholder 600, alternativene settes tilbake til normal vekt. */
-.tiltak-status-felt label.ds-label {
+.tiltak-valg-felt label.ds-label {
   font-weight: var(--ds-font-weight-regular);
 }
 

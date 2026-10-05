@@ -1,6 +1,6 @@
 import { Button, Dialog, Heading, Paragraph, Tag } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
-import { visValg, type KiTiltak } from '../../lib/ki-tiltak';
+import { somTekst, visValg, type KiTiltak } from '../../lib/ki-tiltak';
 import { toTextBlocks, toInline } from './textBlocks';
 
 interface Props {
@@ -34,19 +34,13 @@ function Linjetekst({ text }: { text: string }) {
   );
 }
 
-/** Seksjon med merkelapper. Rendrer ingenting når lista er tom. */
-function Merkelapper({ tittel, verdier }: { tittel: string; verdier: string[] }) {
+/** Seksjon med verdiene som vanlig tekst. Rendrer ingenting når lista er tom. */
+function Tekstfelt({ tittel, verdier }: { tittel: string; verdier: string[] }) {
   if (verdier.length === 0) return null;
   return (
     <section className="tiltak-detalj-felt">
       <h3 className="tiltak-detalj-merkelapp">{tittel}</h3>
-      <div className="tiltak-detalj-tagger">
-        {verdier.map((v) => (
-          <Tag key={v} variant="outline" data-size="sm">
-            {v}
-          </Tag>
-        ))}
-      </div>
+      <Paragraph>{somTekst(verdier)}</Paragraph>
     </section>
   );
 }
@@ -122,7 +116,16 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             {tiltak.navn}
           </Heading>
 
-          <p className="tiltak-detalj-virksomhet">{tiltak.virksomhet}</p>
+          {tiltak.virksomheter.length > 1 ? (
+            // Én per linje, hovedvirksomheten først (#806).
+            <ul className="tiltak-detalj-virksomhet tiltak-detalj-virksomheter">
+              {tiltak.virksomheter.map((navn) => (
+                <li key={navn}>{navn}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="tiltak-detalj-virksomhet">{tiltak.virksomheter[0]}</p>
+          )}
 
           {tiltak.beskrivelse.length > 0 && (
             <section className="tiltak-detalj-felt">
@@ -131,21 +134,14 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             </section>
           )}
 
-          <Merkelapper tittel="Type KI" verdier={visValg(tiltak.kiType, tiltak.kiTypeAnnet)} />
+          <Tekstfelt tittel="Type KI" verdier={visValg(tiltak.kiType, tiltak.kiTypeAnnet)} />
 
-          <Merkelapper
+          <Tekstfelt
             tittel="Hva tiltaket skal levere"
             verdier={visValg(tiltak.leveranse, tiltak.leveranseAnnet)}
           />
 
-          {tiltak.status.length > 0 && (
-            <section className="tiltak-detalj-felt">
-              <h3 className="tiltak-detalj-merkelapp">Fase</h3>
-              <Tag variant="outline" data-size="sm">
-                {tiltak.status}
-              </Tag>
-            </section>
-          )}
+          <Tekstfelt tittel="Fase" verdier={tiltak.fase ? [tiltak.fase] : []} />
 
           {tiltak.kontaktinfo && tiltak.kontaktinfo.trim().length > 0 && (
             <section className="tiltak-detalj-felt">
@@ -170,7 +166,7 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             midlertidig adresse, slik at teksten ikke må endres to ganger.
           */}
           <Paragraph className="tiltak-detalj-kontakt">
-            Vil du oppdatere beskrivelsen av eller statusen til tiltaket? Ta kontakt på{' '}
+            Vil du oppdatere beskrivelsen av eller fasen til tiltaket? Ta kontakt på{' '}
             <a href="mailto:ki-tiltak@kin.norge.no">ki-tiltak@kin.norge.no</a>.
           </Paragraph>
         </Dialog.Block>

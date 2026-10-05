@@ -1,33 +1,26 @@
 import data from '../data/ki-tiltak.json';
 
 /**
- * Feltet holder to generasjoner verdier med vilje.
- *
- * Skjemaet spør nå «Hvilken fase er tiltaket i?» og gir de tre FASER-verdiene.
- * De 28 eldre oppføringene i ki-tiltak.json beholder sine gamle verdier, siden
- * ingen visning lenger viser feltet og en omskriving derfor ikke gir noe.
- * toStatus kaster på ukjente verdier, så begge settene må stå her.
+ * `fase` kommer fra skjemaets «Hvilken fase er tiltaket i?» og finnes bare på
+ * tiltak som er sendt inn eller oppdatert via skjemaet. toFase kaster på
+ * ukjente verdier, så en skrivefeil i ki-tiltak.json stopper bygget i stedet
+ * for å vises på nettstedet. Det gamle status-feltet er fjernet helt.
  */
-export type KiTiltakStatus =
-  | ''
-  | 'Planlagt'
-  | 'Pågående'
-  | 'Avsluttet'
-  | 'Innsikt og planlegging'
-  | 'Gjennomføring'
-  | 'I drift';
+export type KiTiltakFase = (typeof FASER)[number];
 
 export interface KiTiltak {
   /** GUID fra kinorge.json */
   id: string;
   navn: string;
-  /** Kuratert visningsnavn, for eksempel "Entur AS" */
-  virksomhet: string;
-  orgnr: string;
+  /** Visningsnavn, for eksempel "Entur AS". Hovedvirksomheten først. */
+  virksomheter: string[];
+  /** Samme rekkefølge som virksomheter. */
+  orgnr: string[];
   /** Alltid nøyaktig ett fagområde per tiltak */
   fagomrade: string;
   beskrivelse: string;
-  status: KiTiltakStatus;
+  /** Fra skjemaet. Vises som «Fase». De eldre oppføringene har det ikke. */
+  fase?: KiTiltakFase;
   /**
    * Metadata fra innsendingsskjemaet. Alle er valgfrie, og gjelder bare tiltak
    * som er sendt inn eller oppdatert via skjemaet på /ki-tiltak. De eldre
@@ -56,7 +49,7 @@ export const FAGOMRADER = [
   'Forskning',
   'Helse og omsorg',
   'Informasjonssikkerhet',
-  'Innbygger - granuleres/omdøpes',
+  'Innbygger',
   'Kultur, idrett og fritid',
   'Natur, klima og miljø',
   'Personvern',
@@ -65,9 +58,6 @@ export const FAGOMRADER = [
   'Virksomhet',
   'Økonomi, finans og forsikring',
 ] as const;
-
-/** Gamle statusverdier. Står bare i datasettet, ingen velger dem lenger. */
-const ELDRE_STATUSER = ['Planlagt', 'Pågående', 'Avsluttet'] as const;
 
 /** «Hvilken fase er tiltaket i?» Ett valg. */
 export const FASER = ['Innsikt og planlegging', 'Gjennomføring', 'I drift'] as const;
@@ -89,20 +79,83 @@ export const KI_TYPER = [
 /** Verdien som utløser fritekstfeltet «Beskriv nærmere». */
 export const ANNET = 'Annet';
 
-/** Alt feltet kan inneholde: tom, de gamle verdiene, og de nye fasene. */
-export const ALLE_STATUSER = ['', ...ELDRE_STATUSER, ...FASER] as const;
+const PLASSHOLDERE = new Set(['na', 'n/a', '-', '–', 'null', 'ikke oppgitt']);
 
-const STATUS_VALUES: readonly KiTiltakStatus[] = ALLE_STATUSER;
+/**
+ * Sann for alt som ikke skal vises: null, undefined, tom tekst, bare
+ * mellomrom, plassholderne NA, N/A, -, –, null og «ikke oppgitt» (uten hensyn
+ * til store og små bokstaver), og lister med bare slike verdier.
+ */
+export function utenVerdi(verdi: unknown): boolean {
+  if (verdi === null || verdi === undefined) return true;
+  if (typeof verdi === 'string') return PLASSHOLDERE.has(verdi.trim().toLowerCase()) || verdi.trim() === '';
+  if (Array.isArray(verdi)) return verdi.every(utenVerdi);
+  return false;
+}
 
-function toStatus(value: string): KiTiltakStatus {
-  const matches = STATUS_VALUES.find((s) => s === value);
-  if (matches === undefined) throw new Error(`Ukjent status i ki-tiltak.json: "${value}"`);
+type Tekst = string | null | undefined;
+
+/** Et tiltak slik det står i ki-tiltak.json. Virksomhet og orgnr kan være tekst eller liste, og alle felt kan være null. */
+export interface RawTiltak {
+  id: string;
+  navn: string;
+  virksomhet?: Tekst | Tekst[];
+  orgnr?: Tekst | Tekst[];
+  fagomrade?: Tekst;
+  beskrivelse?: Tekst;
+  fase?: Tekst;
+  kiType?: Tekst | Tekst[];
+  kiTypeAnnet?: Tekst;
+  leveranse?: Tekst | Tekst[];
+  leveranseAnnet?: Tekst;
+  kontaktinfo?: Tekst;
+}
+
+const somListe = (verdi: Tekst | Tekst[]): Tekst[] => (Array.isArray(verdi) ? verdi : [verdi]);
+const tekst = (verdi: unknown): string | undefined => (utenVerdi(verdi) ? undefined : String(verdi).trim());
+const liste = (verdi: Tekst | Tekst[]): string[] | undefined => {
+  const verdier = somListe(verdi).map(tekst).filter((v): v is string => v !== undefined);
+  return verdier.length > 0 ? verdier : undefined;
+};
+
+function toFase(value: Tekst, navn: string): KiTiltakFase | undefined {
+  const fase = tekst(value);
+  if (fase === undefined) return undefined;
+  const matches = FASER.find((f) => f === fase);
+  if (matches === undefined) throw new Error(`Ukjent fase på ${navn} i ki-tiltak.json: "${fase}"`);
   return matches;
 }
 
-// Vite typer et JSON-import strukturelt, så status kommer inn som string.
-// Narrowingen gjøres i runtime her i stedet for med en type-assertion.
-type RawTiltak = Omit<KiTiltak, 'status'> & { status: string };
+/**
+ * Fra fila til modellen sida bruker. Felt uten verdi blir borte, så
+ * visningen aldri viser «NA» eller en tom overskrift. Virksomhet og orgnr
+ * pares på plass før tomme fjernes, så de ikke glir fra hverandre.
+ */
+export function tilKiTiltak(raw: RawTiltak): KiTiltak {
+  const orgnr = somListe(raw.orgnr);
+  const par = somListe(raw.virksomhet)
+    .map((navn, i) => ({ navn: tekst(navn), orgnr: tekst(orgnr[i]) ?? '' }))
+    .filter((v): v is { navn: string; orgnr: string } => v.navn !== undefined);
+  const tiltak: KiTiltak = {
+    id: raw.id,
+    navn: raw.navn,
+    virksomheter: par.map((v) => v.navn),
+    orgnr: par.map((v) => v.orgnr),
+    fagomrade: tekst(raw.fagomrade) ?? '',
+    beskrivelse: tekst(raw.beskrivelse) ?? '',
+    fase: toFase(raw.fase, raw.navn),
+    leveranse: liste(raw.leveranse),
+    leveranseAnnet: tekst(raw.leveranseAnnet),
+    kiType: liste(raw.kiType),
+    kiTypeAnnet: tekst(raw.kiTypeAnnet),
+    kontaktinfo: tekst(raw.kontaktinfo),
+  };
+  for (const felt of Object.keys(tiltak) as (keyof KiTiltak)[]) {
+    if (tiltak[felt] === undefined) delete tiltak[felt];
+  }
+  return tiltak;
+}
+
 const rawData: RawTiltak[] = data;
 
 /**
@@ -113,8 +166,13 @@ const rawData: RawTiltak[] = data;
  * flytte posten. Det er en byrde uten gevinst når koden kan sortere selv.
  */
 export const kiTiltak: KiTiltak[] = rawData
-  .map((row) => ({ ...row, status: toStatus(row.status) }))
+  .map(tilKiTiltak)
   .sort((a, b) => a.navn.localeCompare(b.navn, 'nb', { sensitivity: 'base', numeric: true }));
+
+/** «Entur AS, Ruter, Vy». Slik vises virksomhetene på kortet. */
+export function virksomhetTekst(tiltak: KiTiltak): string {
+  return tiltak.virksomheter.join(', ');
+}
 
 export interface KiTiltakFilter {
   query: string;
@@ -134,10 +192,10 @@ export function filterTiltak(items: KiTiltak[], filter: KiTiltakFilter): KiTilta
 
     const haystack = [
       tiltak.navn,
-      tiltak.virksomhet,
+      ...tiltak.virksomheter,
       tiltak.beskrivelse,
       tiltak.fagomrade,
-      tiltak.status,
+      tiltak.fase ?? '',
     ]
       .join(' ')
       .toLowerCase();
@@ -161,4 +219,11 @@ export function visValg(valg?: string[], annet?: string): string[] {
   return valg
     .map((v) => (v === 'Annet' && fritekst ? fritekst : v))
     .filter((v) => v.trim().length > 0);
+}
+
+const listeformat = new Intl.ListFormat('nb', { style: 'long', type: 'conjunction' });
+
+/** «Generativ KI, Prediktiv KI og Språkteknologi». Slik vises flervalgene i detaljvisningen. */
+export function somTekst(verdier: string[]): string {
+  return listeformat.format(verdier);
 }

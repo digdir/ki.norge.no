@@ -1,6 +1,5 @@
 ---
 import AkselIcon from './AkselIcon.astro';
-import { splitLastWord } from '../../lib/text';
 import type { CardImage } from '../../lib/umbraco';
 
 interface Props {
@@ -19,7 +18,6 @@ const id = `featured-card-${crypto.randomUUID().slice(0, 8)}`;
 const cardImage: CardImage | undefined = typeof image === 'string' ? { src: image } : image;
 
 // Pilen limes til siste ord så den ikke brekker alene (#464)
-const titleParts = splitLastWord(title);
 ---
 
 <article class="featured-card" data-clickdelegatefor={id}>
@@ -40,7 +38,7 @@ const titleParts = splitLastWord(title);
     )}
   </div>
   <div class="featured-card-body">
-    <h3 class="featured-card-title"><a id={id} href={href}>{titleParts.head}<span class="u-nowrap">{titleParts.last}<span class="featured-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></span></a></h3>
+    <h3 class="featured-card-title"><a id={id} href={href}>{title}<span class="featured-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></a></h3>
     {lead && <p class="featured-card-lead">{lead}</p>}
     {tags.length > 0 && (
       <ul class="featured-card-tags">
