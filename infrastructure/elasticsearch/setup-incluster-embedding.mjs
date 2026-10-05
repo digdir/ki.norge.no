@@ -6,8 +6,9 @@
 // via Eland (int8, ~1.33 GB) — see README "In-cluster embedding setup".
 //
 // This script is idempotent:
-//   1. starts the trained-model deployment with adaptive allocations, min 1
-//      (stays warm — avoids cold-start latency on the interactive search box),
+//   1. starts the trained-model deployment with adaptive allocations, min 1.
+//      On Elastic Serverless this does not give min 1: the endpoint stays at
+//      min 0 and scales to zero when idle (measured 2026-10-05, see README),
 //   2. creates the `e5-large-incluster` inference endpoint referencing it,
 //   3. probes it.
 //
