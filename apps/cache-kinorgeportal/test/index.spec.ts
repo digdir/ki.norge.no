@@ -102,4 +102,27 @@ describe("frontend-cache", () => {
 
 		expect(fetcher.fetch).toHaveBeenCalledTimes(1);
 	});
+
+	it("http is redirected to https before cache or origin", async () => {
+		const { env, fetcher } = mockEnv(() => new Response("origin-body", { status: 200 }));
+
+		const ctx = createExecutionContext();
+		const res = await worker.fetch(new Request("http://ki.norge.no/artikler/x?side=2"), env, ctx);
+		await waitOnExecutionContext(ctx);
+
+		expect(res.status).toBe(301);
+		expect(res.headers.get("Location")).toBe("https://ki.norge.no/artikler/x?side=2");
+		expect(fetcher.fetch).not.toHaveBeenCalled();
+	});
+
+	it("localhost over http is left alone, so wrangler dev works", async () => {
+		const { env, fetcher } = mockEnv(() => new Response("origin-body", { status: 200 }));
+
+		const ctx = createExecutionContext();
+		const res = await worker.fetch(new Request("http://localhost:8787/"), env, ctx);
+		await waitOnExecutionContext(ctx);
+
+		expect(res.status).toBe(200);
+		expect(fetcher.fetch).toHaveBeenCalledTimes(1);
+	});
 });

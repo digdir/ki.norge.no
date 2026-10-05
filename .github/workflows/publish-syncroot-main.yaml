@@ -41,8 +41,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Inputene går via env og ikke rett inn i skriptet. Ellers kjører en
+      # image-tag med ' i seg som shell, med tilgangen dette jobbet har til prod.
       - name: Update image tag
-        run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/${{ inputs.environment }}/kustomization.yaml
+        env:
+          IMAGE_TAG: ${{ inputs.image-tag }}
+          TARGET_ENV: ${{ inputs.environment }}
+        run: |
+          if [[ ! "$IMAGE_TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo "Ugyldig image-tag. Bruk en Docker-tag: bokstaver, tall, _ . og -, maks 128 tegn." >&2
+            exit 1
+          fi
+          case "$TARGET_ENV" in
+            tt02|prod) ;;
+            *) echo "Ukjent miljø: $TARGET_ENV" >&2; exit 1 ;;
+          esac
+          yq -i '(.images[] | select(.name == "umbraco")).newTag = strenv(IMAGE_TAG)' "./syncroot/$TARGET_ENV/kustomization.yaml"
 
       - name: Update db connection string
         if: inputs.database == 'AzureSQL'

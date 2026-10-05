@@ -557,6 +557,7 @@ interface CompatResponse<T> {
 // ── Umbraco RichText JSON → HTML converter ──────────────────────
 
 import { applyDsClasses, normalizeNbsp } from './richtext-classes';
+import { attributeIsSafe, tagVerdict, urlIsSafe } from './richtext-safety';
 
 interface RichTextNode {
   tag: string;
@@ -575,7 +576,7 @@ export function absolutizeMediaUrls(html: string): string {
   );
 }
 
-function richTextToHtml(node: RichTextNode): string {
+export function richTextToHtml(node: RichTextNode): string {
   // Text node
   if (node.tag === '#text') {
     return escapeHtml(normalizeNbsp(node.text || ''));
@@ -593,9 +594,14 @@ function richTextToHtml(node: RichTextNode): string {
   // Comment node
   if (node.tag === '#comment') return '';
 
-  // Self-closing tags
-  const selfClosing = ['br', 'hr', 'img', 'input'];
+  // Se lib/richtext-safety.ts. Innhold fra CMS-et skal ikke kunne kjøre skript.
+  const verdict = tagVerdict(node.tag);
+  if (verdict === 'drop') return '';
   const children = (node.elements || []).map(richTextToHtml).join('');
+  if (verdict === 'unwrap') return children;
+
+  // Self-closing tags
+  const selfClosing = ['br', 'hr', 'img'];
 
   // Heading tags — inject id for TOC anchor links
   if (/^h[1-6]$/.test(node.tag)) {
@@ -651,7 +657,7 @@ function renderAttributes(attrs?: Record<string, unknown>): string {
       }
     } else {
       const href = route.path + (typeof route.queryString === 'string' ? route.queryString : '');
-      out.push(` href="${escapeHtml(href)}"`);
+      if (urlIsSafe(href)) out.push(` href="${escapeHtml(href)}"`);
     }
   }
 
@@ -667,6 +673,7 @@ function renderAttributes(attrs?: Record<string, unknown>): string {
     // shapes from future Tiptap versions
     if (value == null) continue;
     if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') continue;
+    if (!attributeIsSafe(key, String(value))) continue;
     out.push(` ${key}="${escapeHtml(String(value))}"`);
   }
   return out.join('');

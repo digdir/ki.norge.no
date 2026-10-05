@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { adminToken, isAdminCookie, keyMatches, safeEqual } from './admin-access';
+import { adminToken, isAdminCookie, keyMatches, requiresAdmin, safeEqual } from './admin-access';
 
 const HEMMELIG = 'en-lang-og-tilfeldig-hemmelighet';
 
@@ -64,5 +64,37 @@ describe('keyMatches', () => {
     expect(keyMatches('', HEMMELIG)).toBe(false);
     expect(keyMatches(null, HEMMELIG)).toBe(false);
     expect(keyMatches('', '')).toBe(false);
+  });
+});
+
+describe('requiresAdmin', () => {
+  test('de beskyttede rutene', () => {
+    expect(requiresAdmin('/status')).toBe(true);
+    expect(requiresAdmin('/api/status-checks')).toBe(true);
+  });
+
+  // Begge svarte 200 uten cookie i prod, fordi sjekken var et eksakt oppslag.
+  test('skråstrek til slutt slipper ikke forbi', () => {
+    expect(requiresAdmin('/api/status-checks/')).toBe(true);
+    expect(requiresAdmin('/api/status-checks//')).toBe(true);
+    expect(requiresAdmin('/status/')).toBe(true);
+  });
+
+  test('markdown-varianten av statussiden er også beskyttet', () => {
+    expect(requiresAdmin('/status.md')).toBe(true);
+    expect(requiresAdmin('/status/.md')).toBe(true);
+  });
+
+  test('prosentkodet sti beskyttes som den dekodede', () => {
+    expect(requiresAdmin('/api/status%2Dchecks')).toBe(true);
+    expect(requiresAdmin('/%73tatus')).toBe(true);
+  });
+
+  test('vanlige sider og ugyldig koding krever ikke admin', () => {
+    expect(requiresAdmin('/')).toBe(false);
+    expect(requiresAdmin('/statusside')).toBe(false);
+    expect(requiresAdmin('/artikler/status')).toBe(false);
+    expect(requiresAdmin('/api/search')).toBe(false);
+    expect(requiresAdmin('/%E0%A4%A')).toBe(false);
   });
 });

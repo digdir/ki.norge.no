@@ -40,6 +40,12 @@
       "minimumReleaseAge": "0 days"
     },
     {
+      "description": "Typene for Node følger runtime, som er Node 24 i CI. Løftes til <27 når Node 26 blir LTS 28.10.2026 og CI flyttes dit.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<25"
+    },
+    {
       "description": "@cloudflare/vitest-pool-workers 0.22.0 krever vitest ^4.1.0. Fjern regelen når den støtter vitest 5.",
       "matchFileNames": ["apps/cache-kinorgeportal/package.json"],
       "matchPackageNames": ["vitest"],
