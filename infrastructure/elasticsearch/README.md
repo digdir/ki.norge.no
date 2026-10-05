@@ -113,6 +113,8 @@ Compare the resolved mapping with `ki-content.component-template.json`.
 - The embedding deployment uses **adaptive allocations**. For an interactive search
   box pin **min 1** (stays warm, bills continuously); it is currently **min 0**
   (scale-to-zero) to save cost in dev — the first query after idle cold-starts e5-large.
+- While e5-large cold-starts, the semantic half of `_msearch` fails inside a 200 response.
+  The frontend logs it and falls back to a plain BM25 search, so users still get keyword hits (#822).
 - **No reranker** is used — the hybrid (BM25 + dense) query path is fully in-cluster/EU.
   Rerankers were evaluated (`eval/BASELINE.md`): jina (EIS) is best + fast but US +
   CC-BY-NC; in-cluster bge-reranker-v2-m3 matches its quality (Apache-2.0, EU) but
