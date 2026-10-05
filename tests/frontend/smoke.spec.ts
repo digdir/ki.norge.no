@@ -30,15 +30,20 @@ for (const { path, label } of PUBLIC_URLS) {
   });
 }
 
+// Publisert innhold er åpent i Delivery API. Nøkkelen trengs bare hvis det endres,
+// og hører da hjemme i miljøet, ikke i et offentlig repo.
+const deliveryApiHeaders = process.env.UMBRACO_API_KEY
+  ? { 'Api-Key': process.env.UMBRACO_API_KEY }
+  : undefined;
+
 test('Artikkel detail page renders for first article', async ({ page, request }) => {
   // Pick an actual artikkel slug from the Delivery API
-  const apiKey = 'ki-norge-delivery-key-2025';
   const cms = process.env.TARGET === 'local'
     ? 'http://localhost:5000'
     : 'https://kinorgeportal.prod.dis-core.altinn.cloud';
 
   const res = await request.get(`${cms}/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1`, {
-    headers: { 'Api-Key': apiKey },
+    headers: deliveryApiHeaders,
   });
   const data = await res.json();
   const slug = data.items?.[0]?.properties?.slug;
@@ -50,13 +55,12 @@ test('Artikkel detail page renders for first article', async ({ page, request })
 });
 
 test('Eksempel detail page renders for first eksempel', async ({ page, request }) => {
-  const apiKey = 'ki-norge-delivery-key-2025';
   const cms = process.env.TARGET === 'local'
     ? 'http://localhost:5000'
     : 'https://kinorgeportal.prod.dis-core.altinn.cloud';
 
   const res = await request.get(`${cms}/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1`, {
-    headers: { 'Api-Key': apiKey },
+    headers: deliveryApiHeaders,
   });
   const data = await res.json();
   const slug = data.items?.[0]?.properties?.slug;
