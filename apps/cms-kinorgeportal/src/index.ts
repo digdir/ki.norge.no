@@ -14,10 +14,23 @@ export interface Env {
  */
 const MEDIA_CACHE_CONTROL = "public, max-age=604800";
 
+/**
+ * cms.ki.norge.no svarte på ren http, også innloggingsskjemaet til backoffice.
+ * norge.no er ikke HSTS-preloadet, så en redaktør som skrev adressen uten
+ * https kunne sende passordet i klartekst.
+ */
+const HSTS = "max-age=31536000";
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
+
 export default {
   async fetch(request, env, ctx) {
     const targetBase = env.ORIGIN;
     const url = new URL(request.url);
+
+    if (url.protocol === "http:" && !LOCAL_HOSTS.has(url.hostname)) {
+      url.protocol = "https:";
+      return Response.redirect(url.toString(), 301);
+    }
 
     // CMS-et er headless og har ingenting på rot; send folk til backoffice.
     if (url.pathname === "/") {
@@ -44,6 +57,12 @@ export default {
 
     const response: Response = await fetch(proxyRequest);
 
+    // Backoffice bruker websocket. En kopi av svaret mister den.
+    if (response.webSocket) return response;
+
+    const proxied = new Response(response.body, response);
+    proxied.headers.set("Strict-Transport-Security", HSTS);
+
     // Kun media, og kun når origin ikke selv har sagt noe. Backoffice og
     // Delivery API skal ikke caches i nettleseren.
     if (
@@ -51,11 +70,9 @@ export default {
       response.ok &&
       !response.headers.has("Cache-Control")
     ) {
-      const cached = new Response(response.body, response);
-      cached.headers.set("Cache-Control", MEDIA_CACHE_CONTROL);
-      return cached;
+      proxied.headers.set("Cache-Control", MEDIA_CACHE_CONTROL);
     }
 
-    return response;
+    return proxied;
   },
 } satisfies ExportedHandler<Env>;

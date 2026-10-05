@@ -42,6 +42,11 @@ jobs:
       - name: Cache-worker-tester
         run: pnpm --filter cache-kinorgeportal exec vitest run
 
+      # CMS-proxyen foran cms.ki.norge.no har ingen egne avhengigheter, så testene
+      # kjører på Node sin innebygde testløper.
+      - name: CMS-proxy-tester
+        run: node --test 'apps/cms-kinorgeportal/test/*.test.ts'
+
       - name: Build
         working-directory: apps/frontend
         run: pnpm run build
