@@ -1,5 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
-import { adminToken, isAdminCookie, keyMatches } from './lib/admin-access';
+import { adminToken, isAdminCookie, keyMatches, requiresAdmin } from './lib/admin-access';
 import {
   htmlToMarkdown,
   prefersMarkdown,
@@ -38,10 +38,6 @@ const CACHE_MAX_AGE = 60 * 10; // 10 minutes edge cache (s-maxage)
 // *.workers.dev preview URLs and localhost are intentionally NOT listed, so
 // CMS preview and editor access stay open without a key.
 const GATED_HOSTS = new Set(['ki.norge.no', 'ki.test.norge.no']);
-
-// Ruter som krever ki_admin-cookie. Statussiden og API-et den henter fra hører
-// sammen: beskytter du bare siden, ligger dataene fortsatt åpne på API-ruta.
-const ADMIN_ONLY_PATHS = new Set(['/status', '/api/status-checks']);
 
 // /health er et maskin-endepunkt som /api/*, selv om adressen er lik
 // info.altinn.no/health. Uten dette ville holdesiden svart 200 på den i
@@ -174,7 +170,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Statussiden og datakilden bak den krever admin-cookie. /api/status-checks
   // sto utenfor og var offentlig lesbar på prod, selv om ruta selv dokumenterte
   // at middlewaren beskyttet den. Den svarer med interne vertsnavn i dis-core.
-  if (ADMIN_ONLY_PATHS.has(url.pathname) && !(await isAdmin())) {
+  if (requiresAdmin(url.pathname) && !(await isAdmin())) {
     return new Response('Ikke autorisert. Trenger ki_admin-cookie. Bruk /admin-tilgang?key=<secret>', {
       status: 401,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
@@ -217,7 +213,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const isApiRoute = isMachineRoute(url.pathname);
-  const isAdminRoute = ADMIN_ONLY_PATHS.has(url.pathname) || url.pathname === '/admin-tilgang';
+  const isAdminRoute = requiresAdmin(url.pathname) || url.pathname === '/admin-tilgang';
 
   const isReadRequest = context.request.method === 'GET' || context.request.method === 'HEAD';
   // /.well-known/ er maskin-endepunkter med egne ruter, ikke sider. Uten dette

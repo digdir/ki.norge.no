@@ -8,7 +8,31 @@
  * /admin-tilgang-lenken. Roteres hemmeligheten, slutter alle gamle cookier å gjelde.
  */
 
+import { pathFromMarkdownPath } from './markdown-paths';
+
 const encoder = new TextEncoder();
+
+// Statussiden og API-et den henter fra hører sammen: beskytter du bare siden,
+// ligger dataene fortsatt åpne på API-ruta.
+const ADMIN_ONLY_PATHS = new Set(['/status', '/api/status-checks']);
+
+const withoutTrailingSlash = (path: string) => path.replace(/\/+$/, '') || '/';
+
+/**
+ * Om stien er en av admin-rutene, slik ruteren ser den. Astro svarer også på
+ * /api/status-checks/ og /status.md, og et eksakt oppslag på url.pathname slapp
+ * dem forbi uten cookie.
+ */
+export function requiresAdmin(pathname: string): boolean {
+  let path = pathname;
+  try {
+    path = decodeURI(pathname);
+  } catch {
+    // Ugyldig prosentkoding når aldri en rute, så den rå stien holder.
+  }
+  const page = pathFromMarkdownPath(withoutTrailingSlash(path)) ?? path;
+  return ADMIN_ONLY_PATHS.has(withoutTrailingSlash(page));
+}
 
 /** Sammenligner uten å avsløre gjennom tiden hvor langt de to strengene er like. */
 export function safeEqual(a: string, b: string): boolean {
