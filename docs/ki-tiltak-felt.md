@@ -96,7 +96,6 @@ Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. D
 - `kontaktinfo` som ikke ser ut som en e-postadresse
 - lenke i beskrivelsen som ikke er `http` eller `https`
 - ukjent fase eller fagområde, og duplikate id-er
-- virksomhetsnavn med bare versaler, som `KF`. Skriv `Kommuneforlaget (KF)`
 
 Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.
 

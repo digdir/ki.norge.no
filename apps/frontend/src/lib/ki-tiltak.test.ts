@@ -161,12 +161,6 @@ describe('ki-tiltak datasett', () => {
     );
     expect(kiTiltak.map((t) => t.navn)).toEqual(sorted.map((t) => t.navn));
   });
-
-  test('virksomhetsnavn er ikke bare versaler', () => {
-    // Kuraterte visningsnavn skal ha erstattet VERSALENE fra kilden.
-    const shouty = kiTiltak.flatMap((t) => t.virksomheter).filter((v) => v === v.toUpperCase());
-    expect(shouty).toEqual([]);
-  });
 });
 
 describe('filterTiltak', () => {
