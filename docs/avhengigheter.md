@@ -249,7 +249,7 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 - [x] **@astrojs/react 7** (#813). `oxc-transform-react` er en valgfri peer, bare for React Compiler. Babel er ute av treet, så overridene for `@babel/core` og `browserslist` er fjernet. Klient-bundlene ble byte-identiske med 6.0.6, målt i prod mot tt02.
 - [x] **pnpm 12** (#826, runde 2). `packageManager` i `package.json`. Les endringsnotatene for lockfil-format og innstillingene i `pnpm-workspace.yaml` (`overrides`, `minimumReleaseAge`, `allowBuilds`). `pnpm install --frozen-lockfile` skal virke i CI.
 - [x] **vitest 5 i frontend** (#825, runde 2). Cache-workeren venter, se fase 0.
-- [ ] **@types/node:** installert er 25, runtime er Node 24. Bestem om typene skal følge runtime (`^24`), før 26 tas inn.
+- [x] **@types/node** følger runtime: låst til `^24`, og Renovate holder den under 25 til Node 26 blir LTS (#831).
 - [ ] **Umbraco 18** tas ikke i denne runden. Bestemmes sammen med Lars når det er grunn til det, og følger 5.5 fullt ut.
 
 ### Fase 4: rydding og vakter
