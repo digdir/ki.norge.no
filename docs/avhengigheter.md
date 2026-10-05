@@ -284,7 +284,7 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 
 ### Gjenstår
 
-- [ ] **Fjern `js-yaml`-overriden** etter 5.8.
+- [x] **Fjern `js-yaml`-overriden** etter 5.8 (#830). Løst versjon er 4.3.2 før og etter, og Trivy gir 0 funn.
 - [ ] **`compatibility_date`** i de tre workerne flyttes bevisst, med test på tt02.
 - [ ] **Neste torsdag:** kom alle PR-ene som sto under «Awaiting Schedule»?
 
