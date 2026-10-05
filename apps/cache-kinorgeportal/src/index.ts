@@ -8,8 +8,19 @@ function hasPreviewCookie(request: Request): boolean {
 	return cookie.split(";").some((part) => part.trim().startsWith("preview="));
 }
 
+// ki.norge.no svarte 200 på ren http, og hele besøket kunne fortsette der.
+// norge.no er ikke HSTS-preloadet, og HSTS-headeren frontend setter, virker bare
+// når siden først er lastet over https.
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
+		const requestUrl = new URL(request.url);
+		if (requestUrl.protocol === "http:" && !LOCAL_HOSTS.has(requestUrl.hostname)) {
+			requestUrl.protocol = "https:";
+			return Response.redirect(requestUrl.toString(), 301);
+		}
+
 		try {
 			if (request.method !== "GET" || hasPreviewCookie(request)) {
 				return await env.FRONTEND.fetch(request);
