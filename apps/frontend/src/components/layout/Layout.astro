@@ -30,7 +30,7 @@ const {
   bodyColor = 'accent',
 } = Astro.props;
 
-const isPreview = Astro.url.searchParams.has('preview') || Astro.cookies.has('preview');
+const isPreview = Astro.locals.isPreview;
 const currentPath = Astro.url.pathname;
 // Use Astro.site (configured in astro.config.mjs) — never trust Astro.url
 // origin since it returns localhost when behind Azure's reverse proxy.
