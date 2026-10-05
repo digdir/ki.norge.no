@@ -20,6 +20,14 @@ const MEDIA_CACHE_CONTROL = "public, max-age=604800";
  * https kunne sende passordet i klartekst.
  */
 const HSTS = "max-age=31536000";
+
+/**
+ * SVG kan inneholde skript, og Umbraco renser ikke opplastede SVG-er. Åpnet
+ * direkte på cms.ki.norge.no kjører skriptet på backoffice-opphavet, med
+ * innloggingen til den som klikket. I et <img> kjører skript uansett ikke, så
+ * dette endrer ikke hvordan bildene vises på nettstedet.
+ */
+const SVG_CSP = "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 export default {
@@ -71,6 +79,13 @@ export default {
       !response.headers.has("Cache-Control")
     ) {
       proxied.headers.set("Cache-Control", MEDIA_CACHE_CONTROL);
+    }
+
+    if (url.pathname.startsWith("/media/")) {
+      proxied.headers.set("X-Content-Type-Options", "nosniff");
+      if (response.headers.get("Content-Type")?.startsWith("image/svg+xml")) {
+        proxied.headers.set("Content-Security-Policy", SVG_CSP);
+      }
     }
 
     return proxied;
