@@ -3,6 +3,7 @@
   "extends": [
     "local>digdir/renovate-config"
   ],
+  "prHourlyLimit": 0,
   "packageRules": [
     {
       "description": "Overrides i pnpm-workspace.yaml er gulv for sikkerhetsfikser. En major-bump der tvinger en versjon ingen avhengighet har bedt om, og pnpm sier ikke fra.",

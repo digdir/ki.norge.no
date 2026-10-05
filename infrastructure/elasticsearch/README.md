@@ -110,11 +110,20 @@ Compare the resolved mapping with `ki-content.component-template.json`.
 ## Notes (Serverless)
 - Shards/replicas/ILM are platform-managed, so the template carries mappings only;
   `norwegian` is a built-in analyzer.
-- The embedding deployment uses **adaptive allocations**. For an interactive search
-  box pin **min 1** (stays warm, bills continuously); it is currently **min 0**
-  (scale-to-zero) to save cost in dev — the first query after idle cold-starts e5-large.
-- While e5-large cold-starts, the semantic half of `_msearch` fails inside a 200 response.
-  The frontend logs it and falls back to a plain BM25 search, so users still get keyword hits (#822).
+- The cluster is Elastic Serverless (9.6.0). The `e5-large-incluster` endpoint has
+  **adaptive allocations min 0, max 8**, so e5-large scales to zero when idle and the
+  first query after that cold-starts it (normally 30–60 s).
+- **Min 1 cannot be set from here on Serverless** (measured 2026-10-05).
+  `PUT _inference/text_embedding/e5-large-incluster/_update` with min 1 answers 200,
+  but the value is not stored; reading it back still shows 0.
+  `_ml/trained_models/.../deployment/_update` answers 409, because the deployment is
+  owned by the inference endpoint.
+- From 2026-09-05 to 2026-10-05 the model was allocated 82 % of the time and was
+  scaled to 0 nine times. On 2026-10-02 there was no ML node from 10:05 to 13:52.
+  The scaling history is in `.ml-notifications-000002`.
+- While e5-large is cold or missing, the semantic half of `_msearch` fails inside a
+  200 response. The frontend logs it and falls back to a plain BM25 search, so users
+  still get keyword hits (#824).
 - **No reranker** is used — the hybrid (BM25 + dense) query path is fully in-cluster/EU.
   Rerankers were evaluated (`eval/BASELINE.md`): jina (EIS) is best + fast but US +
   CC-BY-NC; in-cluster bge-reranker-v2-m3 matches its quality (Apache-2.0, EU) but

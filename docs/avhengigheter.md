@@ -1,8 +1,8 @@
 # Avhengigheter
 
-Hvor avhengighetene i repoet bor, hvordan de oppdateres, fellene fra tidligere runder, og oppskriftene for å oppdatere og verifisere. Del 1 til 5 er varige. Del 6 er runden som gjelder nå, og skrives om ved hver gjennomgang.
+Hvor avhengighetene i repoet bor, hvordan de oppdateres, fellene fra tidligere runder, og oppskriftene for å oppdatere og verifisere. Del 1 til 5 er varige. Del 6 og 7 er en løpende logg, én del per runde.
 
-Sist gjennomgått 2026-09-28. Fase 0, 1, deler av 3 og det meste av 4 er gjort samme dag.
+Sist gjennomgått 2026-10-05 (runde 2).
 
 ## 1. Hvor avhengighetene bor
 
@@ -21,10 +21,10 @@ Sist gjennomgått 2026-09-28. Fase 0, 1, deler av 3 og det meste av 4 er gjort s
 
 ## 2. Slik går det i dag
 
-- **Renovate** bruker det delte oppsettet `digdir/renovate-config` (bygger på `config:recommended`). Det kjører torsdager før 07:00 og krever at en versjon er tre dager gammel. Minor og patch samles i én PR per økosystem («npm non-major dependencies», «nuget non-major dependencies»). Docker og Actions låses med digest. Våre egne regler står i `renovate.json`. Status for alt ligger i Dependency Dashboard (issue #214).
+- **Renovate** bruker det delte oppsettet `digdir/renovate-config` (bygger på `config:recommended`). Det kjører torsdager før 07:00 og krever at en versjon er tre dager gammel. Minor og patch samles i én PR per økosystem («npm non-major dependencies», «nuget non-major dependencies»). Docker og Actions låses med digest. Våre egne regler står i `renovate.json`. `prHourlyLimit: 0` gjør at alle PR-ene i vinduet lages samme morgen. `prConcurrentLimit` (10) gjelder fortsatt. Status for alt ligger i Dependency Dashboard (issue #214).
 - **pnpm** krever i tillegg at en versjon er 24 timer gammel (`minimumReleaseAge: 1440` i `pnpm-workspace.yaml`). Det blokkerer hardt, ikke bare med en advarsel.
 - **Dependabot** lager sikkerhets-PR-er for npm (repo-innstilling) og månedlige PR-er for Actions (`.github/dependabot.yml`).
-- **Rutinen** er en launchd-jobb på Lars' Mac (`no.digdir.ki-norge.dep-routine`), som kjører morgen og ettermiddag. Den merger minor, patch og digest på grønn CI, og flagger major og runtime. Loggen ligger i `~/projects/TODO/Avhengigheter-logg.md`. Den kjører bare når Mac-en er våken.
+- **Rutinen** er en launchd-jobb på Lars' Mac (`no.digdir.ki-norge.dep-routine`), som kjører morgen og ettermiddag. Den merger minor, patch og digest på grønn CI, og flagger major og runtime. Loggen ligger i `~/projects/TODO/Avhengigheter-logg.md`. Den kjører bare når Mac-en er våken, og venter på nett etter oppvåkning.
 
 Dette gjør ingen av dem:
 
@@ -39,7 +39,8 @@ Dette gjør ingen av dem:
 
 - **Astro-major kommer ufullstendig fra bot.** `astro`, `@astrojs/cloudflare`, `@astrojs/node` og `@astrojs/react` må flyttes sammen, og Node-kravet sjekkes (#618).
 - **Astro-patch kan heve gulv som overrides skjuler.** 7.2.9 krevde `sharp ^0.35.4`, og overriden vår ville vunnet stille. `@cloudflare/vite-plugin` sjekker wrangler-versjonen ved bygg, ikke ved install (#728).
-- **Overrides leses bare fra `pnpm-workspace.yaml`, og vinner stille over hver pakkes versjonskrav.** En override fjernes bare når løst versjon er målt før og etter (#791 nanoid). Major-bump av overrides er slått av i `renovate.json`.
+- **pnpm 12 stopper på ukjente nøkler i `pnpm-workspace.yaml`** (`ERR_PNPM_UNRECOGNIZED_WORKSPACE_SETTINGS`), så en skrivefeil i en innstilling feiler nå i stedet for å bli ignorert.
+- **Overrides leses bare fra `pnpm-workspace.yaml`, og vinner stille over hver pakkes versjonskrav.** Gjelder fortsatt i pnpm 12. En override fjernes bare når løst versjon er målt før og etter (#791 nanoid). Major-bump av overrides er slått av i `renovate.json`.
 - **Aldri `minimumReleaseAgeExclude` for å komme forbi ventetiden.** Det skrur av en vakt mot forsyningskjedeangrep. Vent, eller ta forrige patch.
 - **Microsoft.OpenApi 3 brekker swagger ved kjøring mens CI er grønn** (#742). Pinnene på Microsoft.OpenApi og SQLitePCLRaw i csproj løfter transitive pakker over Umbracos eget gulv og må bli (#791).
 - **Umbraco-minor kan inneholde migreringer som skriver om innhold**, som 17.5 som skrev om lenker i riktekst. `UpgradeUnattended=true` ligger i `appsettings.json` (#595). Uten den svarer Delivery API 200 med tom liste.
@@ -55,7 +56,7 @@ Dette gjør ingen av dem:
 2. **Grønn CI er ikke nok.** Hver PR får verifiseringen for sitt område i del 5.
 3. **tt02 før prod,** med samme image-tag og samme main-commit.
 4. **Baseline før, måling etter.** Tall, ikke inntrykk.
-5. **Stopp og spør Lars** ved alt som står i del 7.
+5. **Stopp og spør Lars** ved alt som står i del 8.
 
 ## 5. Oppskrifter
 
@@ -229,7 +230,7 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
   - Umbraco og uSync får egen gruppe, så minor ikke havner i «nuget non-major».
 - [x] **Rutinen** merger aldri PR-er som endrer Umbraco eller uSync (`prompt.md` på Lars' Mac, krever Lars).
 - [x] **Lukk #742** (krever Lars).
-- [ ] **Etter torsdagens kjøring:** kom digest-PR-ene for base-imagene? Hvis ikke, se Renovate-loggen for repoet på developer.mend.io.
+- [x] **Etter torsdagens kjøring:** digest-PR-ene kom ikke. Se runde 2.
 
 ### Fase 1: sikkerhet og drift
 
@@ -239,15 +240,15 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 
 ### Fase 2: minor og patch fra torsdag
 
-- [ ] **npm non-major:** astro 7.3.5, `@astrojs/cloudflare` 14.3.3, wrangler, designsystemet 1.23.0 og aksel-ikoner 8.17.2. Følg 5.2 med skjermbilder, siden designsystemet og ikonene kan endre utseende. Sjekk sharp- og wrangler-kravene fra 3.
-- [ ] **nuget non-major:** OpenTelemetry 1.19.1 og MailKit 4.18.1. `cms:build`, CI, og ut med neste CMS-image.
+- [x] **npm non-major** (#820): astro 7.3.5, `@astrojs/cloudflare` 14.3.3, wrangler, designsystemet 1.23.0 og aksel-ikoner 8.17.2. Følg 5.2 med skjermbilder, siden designsystemet og ikonene kan endre utseende. Sjekk sharp- og wrangler-kravene fra 3.
+- [x] **nuget non-major** (#819): OpenTelemetry 1.19.1 og MailKit 4.18.1. `cms:build`, CI, og ut med neste CMS-image.
 
 ### Fase 3: major, én om gangen
 
 - [x] **TypeScript 7 (#795),** merget 28.9, bare i cache-workeren. Vitest (5.3), `wrangler types` og deploy med `--dry-run`. Frontend har ikke TypeScript som egen avhengighet.
 - [x] **@astrojs/react 7** (#813). `oxc-transform-react` er en valgfri peer, bare for React Compiler. Babel er ute av treet, så overridene for `@babel/core` og `browserslist` er fjernet. Klient-bundlene ble byte-identiske med 6.0.6, målt i prod mot tt02.
-- [ ] **pnpm 12.** `packageManager` i `package.json`. Les endringsnotatene for lockfil-format og innstillingene i `pnpm-workspace.yaml` (`overrides`, `minimumReleaseAge`, `allowBuilds`). `pnpm install --frozen-lockfile` skal virke i CI.
-- [ ] **vitest 5 i frontend.** Cache-workeren venter, se fase 0.
+- [x] **pnpm 12** (#826, runde 2). `packageManager` i `package.json`. Les endringsnotatene for lockfil-format og innstillingene i `pnpm-workspace.yaml` (`overrides`, `minimumReleaseAge`, `allowBuilds`). `pnpm install --frozen-lockfile` skal virke i CI.
+- [x] **vitest 5 i frontend** (#825, runde 2). Cache-workeren venter, se fase 0.
 - [ ] **@types/node:** installert er 25, runtime er Node 24. Bestem om typene skal følge runtime (`^24`), før 26 tas inn.
 - [ ] **Umbraco 18** tas ikke i denne runden. Bestemmes sammen med Lars når det er grunn til det, og følger 5.5 fullt ut.
 
@@ -262,7 +263,32 @@ Ellers blir overriden stående, med en kommentar om hvorfor.
 - [ ] **Renovate `lockFileMaintenance`** månedlig, så transitive pakker følger med innenfor versjonskravene. Én PR i måneden, verifisert som 5.2.
 - [ ] **`compatibility_date`** i de tre workerne flyttes bevisst, med test på tt02.
 
-## 7. Dette krever Lars
+## 7. Runde 2 (fra 2026-10-01)
+
+### Funn
+
+| Funn | Konsekvens | Tiltak |
+| --- | --- | --- |
+| Torsdag 1.10 laget Renovate bare #819 og #820. Standardgrensen er 2 PR-er i timen, og vi har ett vindu i uka (før 07:00 torsdag) | vitest 5, pnpm 12, digestene for base-imagene, uSync 17.4.3, trivy-digesten og cosign-pinnen ble liggende under «Awaiting Schedule» i #214 | `prHourlyLimit: 0` i `renovate.json` |
+| Rutinen feilet fra 1.10. Nettet var ikke oppe når Mac-en våknet | Kjøringene fra 1.10 feilet | Rutinen venter nå på nett |
+| pnpm 12 stopper på ukjente nøkler i `pnpm-workspace.yaml` når den kjørende versjonen oppfyller `packageManager` | En skrivefeil feiler nå i stedet for å bli ignorert stille. Prøvd med `minimumReleaseAg`, som ga `ERR_PNPM_UNRECOGNIZED_WORKSPACE_SETTINGS` | Ingen. Alle nøklene våre gjenkjennes |
+| Overrides vinner fortsatt stille i pnpm 12 | Med `js-yaml` satt til `4.1.0` låste pnpm 12 4.1.0, selv om astro krever `^4.3.2`, uten advarsel | Regelen i 3 gjelder |
+| astro krever nå selv `js-yaml ^4.3.2` | Overriden `^4.3.1` beskytter ikke lenger mot noe | Fjernes etter 5.8 |
+
+### Gjort
+
+- [x] **npm non-major** (#820) og **nuget non-major** (#819), verifisert etter 5.2 og 5.4.
+- [x] **vitest 5 i frontend** (#825), laget for hånd siden Renovate-PR-en ikke kom. Cache-workeren blir på vitest 4.
+- [x] **pnpm 12** (#826), laget for hånd. `pnpm/action-setup` måtte til v6.1.0 for å støtte pnpm 12. Lockfila fikk bare pnpm sitt eget dokument (`packageManagerDependencies`), ingen prosjektpakker flyttet seg. `overrides`, `minimumReleaseAge` og `allowBuilds` er prøvd og leses.
+- [x] **`prHourlyLimit: 0`** i `renovate.json`.
+
+### Gjenstår
+
+- [ ] **Fjern `js-yaml`-overriden** etter 5.8.
+- [ ] **`compatibility_date`** i de tre workerne flyttes bevisst, med test på tt02.
+- [ ] **Neste torsdag:** kom alle PR-ene som sto under «Awaiting Schedule»?
+
+## 8. Dette krever Lars
 
 - CMS-deploy til prod når auto-modus stopper kommandoen. Det har skjedd.
 - Å lukke PR-er, kommentere eller poste noe på GitHub.
