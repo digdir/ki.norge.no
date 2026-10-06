@@ -1,4 +1,5 @@
 import data from '../data/ki-tiltak.json';
+import virksomhetsnavn from '../data/ki-tiltak-virksomhetsnavn.json';
 
 /**
  * `fase` kommer fra skjemaets «Hvilken fase er tiltaket i?» og finnes bare på
@@ -126,16 +127,29 @@ function toFase(value: Tekst, navn: string): KiTiltakFase | undefined {
   return matches;
 }
 
+export type Navnekilde = 'tabell' | 'register';
+
+/**
+ * Hvor virksomhetsnavnene på sida kommer fra. «tabell» slår opp orgnr i
+ * ki-tiltak-virksomhetsnavn.json og faller tilbake til navnet i dataene når
+ * orgnr mangler der. «register» viser navnene slik de står i dataene, som i
+ * Brønnøysundregisteret. Bryteren finnes for å kunne bytte raskt.
+ */
+export const VIRKSOMHETSNAVN: Navnekilde = 'tabell';
+
+const navnetabell: Record<string, string> = virksomhetsnavn;
+
 /**
  * Fra fila til modellen sida bruker. Felt uten verdi blir borte, så
  * visningen aldri viser «NA» eller en tom overskrift. Virksomhet og orgnr
  * pares på plass før tomme fjernes, så de ikke glir fra hverandre.
  */
-export function tilKiTiltak(raw: RawTiltak): KiTiltak {
+export function tilKiTiltak(raw: RawTiltak, navnekilde: Navnekilde = VIRKSOMHETSNAVN): KiTiltak {
   const orgnr = somListe(raw.orgnr);
   const par = somListe(raw.virksomhet)
     .map((navn, i) => ({ navn: tekst(navn), orgnr: tekst(orgnr[i]) ?? '' }))
-    .filter((v): v is { navn: string; orgnr: string } => v.navn !== undefined);
+    .filter((v): v is { navn: string; orgnr: string } => v.navn !== undefined)
+    .map((v) => (navnekilde === 'tabell' ? { ...v, navn: navnetabell[v.orgnr] ?? v.navn } : v));
   const tiltak: KiTiltak = {
     id: raw.id,
     navn: raw.navn,
@@ -166,7 +180,7 @@ const rawData: RawTiltak[] = data;
  * flytte posten. Det er en byrde uten gevinst når koden kan sortere selv.
  */
 export const kiTiltak: KiTiltak[] = rawData
-  .map(tilKiTiltak)
+  .map((raw) => tilKiTiltak(raw))
   .sort((a, b) => a.navn.localeCompare(b.navn, 'nb', { sensitivity: 'base', numeric: true }));
 
 /** «Entur AS, Ruter, Vy». Slik vises virksomhetene på kortet. */
