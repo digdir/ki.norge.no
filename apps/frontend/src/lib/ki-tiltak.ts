@@ -131,13 +131,30 @@ export type Navnekilde = 'tabell' | 'register';
 
 /**
  * Hvor virksomhetsnavnene på sida kommer fra. «tabell» slår opp orgnr i
- * ki-tiltak-virksomhetsnavn.json og faller tilbake til navnet i dataene når
- * orgnr mangler der. «register» viser navnene slik de står i dataene, som i
- * Brønnøysundregisteret. Bryteren finnes for å kunne bytte raskt.
+ * ki-tiltak-virksomhetsnavn.json, og gjør navnet i dataene om fra VERSALER
+ * når orgnr mangler der. «register» viser navnene slik de står i dataene, som
+ * i Brønnøysundregisteret. Bryteren finnes for å kunne bytte raskt.
  */
 export const VIRKSOMHETSNAVN: Navnekilde = 'tabell';
 
 const navnetabell: Record<string, string> = virksomhetsnavn;
+
+const FORKORTELSER = new Set(['AS', 'ASA', 'HF', 'RHF', 'IKS', 'KF', 'SF', 'KS', 'NAV', 'DFØ', 'NTNU', 'NVE', 'DSS', 'SSB', 'IKT', 'KI']);
+
+/**
+ * Reserve for virksomheter som ennå ikke står i navnetabellen. Et navn i bare
+ * VERSALER får stor forbokstav og ellers små, men kjente forkortelser beholdes.
+ * Stedsnavn blir feil («Helse bergen HF»), og derfor er tabellen førstevalget.
+ */
+export function vanligSkrift(navn: string): string {
+  if (navn !== navn.toUpperCase()) return navn;
+  const ord = navn
+    .toLowerCase()
+    .split(' ')
+    .map((w) => (FORKORTELSER.has(w.toUpperCase()) ? w.toUpperCase() : w))
+    .join(' ');
+  return ord.charAt(0).toUpperCase() + ord.slice(1);
+}
 
 /**
  * Fra fila til modellen sida bruker. Felt uten verdi blir borte, så
@@ -149,7 +166,7 @@ export function tilKiTiltak(raw: RawTiltak, navnekilde: Navnekilde = VIRKSOMHETS
   const par = somListe(raw.virksomhet)
     .map((navn, i) => ({ navn: tekst(navn), orgnr: tekst(orgnr[i]) ?? '' }))
     .filter((v): v is { navn: string; orgnr: string } => v.navn !== undefined)
-    .map((v) => (navnekilde === 'tabell' ? { ...v, navn: navnetabell[v.orgnr] ?? v.navn } : v));
+    .map((v) => (navnekilde === 'tabell' ? { ...v, navn: navnetabell[v.orgnr] ?? vanligSkrift(v.navn) } : v));
   const tiltak: KiTiltak = {
     id: raw.id,
     navn: raw.navn,

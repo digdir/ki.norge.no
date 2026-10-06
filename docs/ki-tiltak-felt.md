@@ -64,7 +64,7 @@ Har skjemaet flere virksomheter, skriver e-postblokken **TIL KI-TILTAK.JSON** `v
 
 `virksomhet` står som i eksporten, ofte i VERSALER fra Brønnøysundregisteret. Sida viser i stedet navnet fra `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json`, som slår opp på `orgnr`. Kommer en ny virksomhet med, legg til en linje der med orgnr og navnet med vanlige store og små bokstaver. Testene stopper hvis et orgnr mangler.
 
-`VIRKSOMHETSNAVN` i `apps/frontend/src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard, med navnet i dataene som reserve) og `'register'` (navnene slik de står i dataene). Den finnes for å kunne bytte raskt.
+`VIRKSOMHETSNAVN` i `apps/frontend/src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene slik de står i dataene). Den finnes for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav og ellers små bokstaver, med kjente forkortelser som HF og AS beholdt. Det blir feil for stedsnavn, og derfor er tabellen førstevalget.
 
 ## Regler som er verdt å kjenne
 

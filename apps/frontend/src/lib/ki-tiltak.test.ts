@@ -11,6 +11,7 @@ import {
   somTekst,
   tilKiTiltak,
   utenVerdi,
+  vanligSkrift,
   virksomhetTekst,
   VIRKSOMHETSNAVN,
 } from './ki-tiltak';
@@ -306,10 +307,18 @@ describe('utenVerdi', () => {
 });
 
 describe('tilKiTiltak', () => {
-  test('navnetabellen erstatter registerets navn, med registeret som reserve', () => {
+  test('navnetabellen erstatter registerets navn, og ukjente gjøres om fra VERSALER', () => {
     const raw = { id: 'a', navn: 'X', virksomhet: ['ENTUR AS', 'UKJENT AS'], orgnr: ['917422575', '000000000'] };
-    expect(tilKiTiltak(raw, 'tabell').virksomheter).toEqual(['Entur AS', 'UKJENT AS']);
+    expect(tilKiTiltak(raw, 'tabell').virksomheter).toEqual(['Entur AS', 'Ukjent AS']);
     expect(tilKiTiltak(raw, 'register').virksomheter).toEqual(['ENTUR AS', 'UKJENT AS']);
+  });
+
+  test.each([
+    ['HELSE BERGEN HF', 'Helse bergen HF'],
+    ['DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING', 'Direktoratet for forvaltning og økonomistyring'],
+    ['Kommuneforlaget AS', 'Kommuneforlaget AS'],
+  ])('vanligSkrift(%j) blir %j', (inn, ut) => {
+    expect(vanligSkrift(inn)).toBe(ut);
   });
 
   test('én virksomhet som tekst blir en liste med én', () => {

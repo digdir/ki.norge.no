@@ -107,7 +107,7 @@ Er det en syntaksfeil, sier testen `ki-tiltak.json > er gyldig JSON` hvilken lin
 
 ## Virksomhetsnavn
 
-`ki-tiltak-virksomhetsnavn.json` gir hvert orgnr et visningsnavn med vanlige store og små bokstaver. Ny virksomhet i dataene betyr en ny linje der, ellers stopper testene. `VIRKSOMHETSNAVN` i `src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene i dataene), for å kunne bytte raskt.
+`ki-tiltak-virksomhetsnavn.json` gir hvert orgnr et visningsnavn med vanlige store og små bokstaver. Ny virksomhet i dataene betyr en ny linje der, ellers stopper testene. `VIRKSOMHETSNAVN` i `src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene i dataene), for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav i stedet for VERSALER, til den er lagt inn.
 
 ## Videre
 
