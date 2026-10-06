@@ -8,6 +8,7 @@ import {
 } from './lib/html-to-markdown';
 import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 import { CONTENT_SIGNAL } from './lib/robots';
+import { DEV_CSP, FALLBACK_CSP } from './lib/csp';
 import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, withoutSecret } from './lib/preview';
 
 /**
@@ -259,11 +260,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // ── Security headers (apply to all responses) ──
   // Defends against clickjacking, MIME sniffing, leaking referrer to other origins,
-  // and protocol downgrade. CSP is intentionally loose for now (allows inline styles
-  // because Astro inlines critical CSS, and Google Fonts is allowed); tighten later.
-  // X-Frame-Options is intentionally NOT set globally — it would block the CMS preview
-  // iframe on /umbraco/section/content/.../preview from embedding the frontend. CSP
-  // frame-ancestors below is the modern replacement and lets the CMS embed us.
+  // and protocol downgrade. CSP-en står i lib/csp.ts.
   if (!response.headers.has('X-Content-Type-Options')) {
     response.headers.set('X-Content-Type-Options', 'nosniff');
   }
@@ -284,39 +281,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // 1 year, include subdomains, preload-eligible. Cloudflare terminates TLS at the edge.
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
-  if (!response.headers.has('Content-Security-Policy')) {
-    // Loose CSP — allows inline styles (Astro) and same-origin scripts.
-    // Tighten by removing 'unsafe-inline' from style-src once Astro can be configured to nonce.
-    // Google Fonts er fjernet fra style-src og font-src fordi fontene na er selvhostet.
-    response.headers.set(
-      'Content-Security-Policy',
-      [
-        "default-src 'self'",
-        // challenges.cloudflare.com er Turnstile pa «Del KI-tiltak». Widgeten
-        // laster et skript og rendrer seg selv i en iframe, sa den trenger bade
-        // script-src og frame-src under.
-        "script-src 'self' 'unsafe-inline' https://survey.skyra.no https://siteimproveanalytics.com https://challenges.cloudflare.com",
-        "style-src 'self' 'unsafe-inline' https://altinncdn.no https://survey.skyra.no",
-        "font-src 'self' https://altinncdn.no data:",
-        // CMS-hoster (union av alle reelle origins). Frontend henter media fra CMS,
-        // sa img-src/connect-src ma tillate dem ellers blokkeres bildene. Den dode
-        // Container Apps-hosten er fjernet.
-        // Siteimprove sender sidevisnings-beacon som bilde (image.aspx), derfor img-src.
-        "img-src 'self' data: https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.siteimproveanalytics.io",
-        "connect-src 'self' https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://cms.ki.norge.no https://survey.skyra.no https://*.skyra.no https://*.siteimproveanalytics.io",
-        // Allow CMS to embed the frontend in the preview iframe. Prod og tt02 CMS
-        // (dis-core + workers.dev) pluss localhost CMS dev-origin slik at preview
-        // virker i dev ogsa. cms.ki.test.norge.no ble aldri lagt til da backoffice
-        // flyttet hit i #481, så forhåndsvisning i tt02-backoffice ble blokkert
-        // av nettleseren ("refused to connect").
-        "frame-ancestors 'self' https://cms.ki.norge.no https://cms.ki.test.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
-        // Uten en egen frame-src faller Turnstile-iframen tilbake pa
-        // default-src 'self' og blir blokkert.
-        "frame-src 'self' https://challenges.cloudflare.com",
-        "base-uri 'self'",
-        "form-action 'self'",
-      ].join('; '),
-    );
+  // Sider har allerede CSP-en fra Astro, med hasher for inline-skriptene. Et tomt
+  // 404- eller 500-svar bytter Astro ut med feilsiden, og da vinner headerne herfra
+  // over feilsidens egne. Reservepolicyen der ville blokkert skriptene på 404-siden.
+  if (response.body !== null && !response.headers.has('Content-Security-Policy')) {
+    response.headers.set('Content-Security-Policy', import.meta.env.DEV ? DEV_CSP : FALLBACK_CSP);
   }
 
   // Don't cache preview, API, or admin routes — eller sider som selv har bedt om
