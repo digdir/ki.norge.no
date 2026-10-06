@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { isProdHost } from '../lib/prod-hosts';
 import { AI_CRAWLERS, DISALLOWED_PATHS } from '../lib/robots';
 
-function group(userAgents: string[]): string {
+function group(userAgents: readonly string[]): string {
   return [
     ...userAgents.map((agent) => `User-agent: ${agent}`),
     '',

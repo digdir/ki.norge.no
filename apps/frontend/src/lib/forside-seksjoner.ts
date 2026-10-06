@@ -101,7 +101,7 @@ function slaaOppAktuelt(kort: ForsideKort[] | undefined, kilder: AktueltKilder):
 
 function slaaOppEksempler(kort: ForsideKort[] | undefined, eksempler: any[]): EksempelKort[] {
   return (kort ?? [])
-    .map((k) => {
+    .map((k): EksempelKort | null => {
       const eks = k.id ? eksempler.find((e) => e.id === k.id) : undefined;
       return eks
         ? { href: `/eksempler/${eks.slug}`, title: eks.tittel, lead: k.ingress || eks.ingress || undefined }
