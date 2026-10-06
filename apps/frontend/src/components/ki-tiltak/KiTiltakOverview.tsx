@@ -1,19 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Chip, Heading, Label, Paragraph, Search } from '@digdir/designsystemet-react';
 import { FunnelIcon } from '@navikt/aksel-icons';
-import { filterTiltak, kiTiltak, type KiTiltak, type KiTiltakFilter } from '../../lib/ki-tiltak';
+import {
+  FILTERETIKETTER,
+  FILTERGRUPPER,
+  TOMT_FILTER,
+  filterTiltak,
+  kiTiltak,
+  utenKategorier,
+  type FilterGruppe,
+  type KiTiltak,
+  type KiTiltakFilter,
+} from '../../lib/ki-tiltak';
 import KiTiltakDetail, { DETAIL_DIALOG_ID } from './KiTiltakDetail';
 import KiTiltakFilterPanel from './KiTiltakFilterPanel';
 import KiTiltakCard from './KiTiltakCard';
 import PromoBanner from './PromoBanner';
 import RegisterTiltakDialog from './RegisterTiltakDialog';
 
-const EMPTY_FILTER: KiTiltakFilter = { query: '', fagomrade: [] };
-
 /* Prototypen viser 40 tiltak først og laster 20 av gangen etter det. */
 const FIRST_PAGE = 40;
 const NEXT_PAGE = 20;
-const GROUP_LABELS = { fagomrade: 'Fag- og temaområde' } as const;
 
 interface Props {
   /** Offentlig Turnstile-nøkkel, videreført til innsendingsskjemaet. */
@@ -21,7 +28,7 @@ interface Props {
 }
 
 export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
-  const [filter, setFilter] = useState<KiTiltakFilter>(EMPTY_FILTER);
+  const [filter, setFilter] = useState<KiTiltakFilter>(TOMT_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [selected, setSelected] = useState<KiTiltak | null>(null);
@@ -73,18 +80,15 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
 
   const visible = useMemo(() => matches.slice(0, visibleCount), [matches, visibleCount]);
 
-  const hasActiveFilter =
-    filter.query.trim().length > 0 || filter.fagomrade.length > 0;
+  const activeChips = FILTERGRUPPER.flatMap((group) => filter[group].map((value) => ({ group, value })));
+
+  const hasActiveFilter = filter.query.trim().length > 0 || activeChips.length > 0;
 
   const countText = hasActiveFilter
     ? `Viser ${matches.length} av ${kiTiltak.length} tiltak`
     : `${kiTiltak.length} tiltak`;
 
-  const activeChips = [
-    ...filter.fagomrade.map((value) => ({ group: 'fagomrade' as const, value })),
-  ];
-
-  const removeChip = (group: 'fagomrade', value: string) =>
+  const removeChip = (group: FilterGruppe, value: string) =>
     setFilter((previous) => ({ ...previous, [group]: previous[group].filter((v) => v !== value) }));
 
   const openTiltak = (tiltak: KiTiltak) => {
@@ -156,7 +160,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
         {activeChips.map(({ group, value }) => (
           <Chip.Removable
             key={`${group}-${value}`}
-            aria-label={`Fjern filter ${GROUP_LABELS[group]}: ${value}`}
+            aria-label={`Fjern filter ${FILTERETIKETTER[group]}: ${value}`}
             onClick={() => removeChip(group, value)}
           >
             {/*
@@ -164,7 +168,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
               tilgjengelige navn kommer fra aria-label over, så oppdelingen her
               er rent visuell.
             */}
-            <span className="tiltak-chip-gruppe">{`${GROUP_LABELS[group]}: `}</span>
+            <span className="tiltak-chip-gruppe">{`${FILTERETIKETTER[group]}: `}</span>
             <strong>{value}</strong>
           </Chip.Removable>
         ))}
@@ -174,7 +178,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
             variant="tertiary"
             data-size="sm"
             className="tiltak-nullstill"
-            onClick={() => setFilter((previous) => ({ ...previous, fagomrade: [] }))}
+            onClick={() => setFilter(utenKategorier)}
           >
             Nullstill
           </Button>

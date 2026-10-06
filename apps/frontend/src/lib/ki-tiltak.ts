@@ -1,6 +1,6 @@
 import data from '../data/ki-tiltak.json';
 import virksomhetsnavn from '../data/ki-tiltak-virksomhetsnavn.json';
-import { FASER } from './ki-tiltak-verdier';
+import { FAGOMRADER, FASER, KI_TYPER, LEVERANSER } from './ki-tiltak-verdier';
 
 /**
  * `fase` kommer fra skjemaets «Hvilken fase er tiltaket i?» og finnes bare på
@@ -172,30 +172,82 @@ export function virksomhetTekst(tiltak: KiTiltak): string {
 export interface KiTiltakFilter {
   query: string;
   fagomrade: string[];
+  fase: string[];
+  leveranse: string[];
+  kiType: string[];
+}
+
+/** Kategoriene i filterpanelet, i den rekkefølgen de vises. */
+export type FilterGruppe = Exclude<keyof KiTiltakFilter, 'query'>;
+export const FILTERGRUPPER: readonly FilterGruppe[] = ['fagomrade', 'fase', 'leveranse', 'kiType'];
+
+export const TOMT_FILTER: KiTiltakFilter = { query: '', fagomrade: [], fase: [], leveranse: [], kiType: [] };
+
+/** Overskriften i panelet og prefikset på chipen. */
+export const FILTERETIKETTER: Record<FilterGruppe, string> = {
+  fagomrade: 'Fag- og temaområde',
+  fase: 'Fase',
+  leveranse: 'Hva tiltaket skal levere',
+  kiType: 'Type KI',
+};
+
+/** Valgene i hver kategori, i skjemaets rekkefølge. */
+export const FILTERVALG: Record<FilterGruppe, readonly string[]> = {
+  fagomrade: FAGOMRADER,
+  fase: FASER,
+  leveranse: LEVERANSER,
+  kiType: KI_TYPER,
+};
+
+/** Fjerner alle kategorivalg, men lar søketeksten stå. */
+export function utenKategorier(filter: KiTiltakFilter): KiTiltakFilter {
+  return { ...TOMT_FILTER, query: filter.query };
+}
+
+/** Verdiene et tiltak har i en kategori. kiType og leveranse er lister, de andre ett valg. */
+export function verdierI(tiltak: KiTiltak, gruppe: FilterGruppe): string[] {
+  if (gruppe === 'kiType') return tiltak.kiType ?? [];
+  if (gruppe === 'leveranse') return tiltak.leveranse ?? [];
+  if (gruppe === 'fase') return tiltak.fase ? [tiltak.fase] : [];
+  return [tiltak.fagomrade];
 }
 
 /**
- * Fritekstsøk kombinert med fasettfiltre. Grupper er ELLER internt og OG mot
- * hverandre. Tom gruppe betyr ingen begrensning fra den gruppen.
+ * Teksten fritekstsøket leter i. Det samme som sida viser om tiltaket, kort og
+ * detaljvisning, med virksomhetsnavnene slik de står etter navnetabellen.
+ */
+function sokbarTekst(tiltak: KiTiltak): string {
+  return [
+    tiltak.navn,
+    ...tiltak.virksomheter,
+    tiltak.beskrivelse,
+    tiltak.fagomrade,
+    tiltak.fase ?? '',
+    ...(tiltak.kiType ?? []),
+    tiltak.kiTypeAnnet ?? '',
+    ...(tiltak.leveranse ?? []),
+    tiltak.leveranseAnnet ?? '',
+    tiltak.kontaktinfo ?? '',
+  ]
+    .join(' ')
+    .toLowerCase();
+}
+
+/**
+ * Fritekstsøk kombinert med fasettfiltre. Innen en kategori holder det at ett
+ * av valgene treffer, på tvers av kategoriene må alle treffe. For lister som
+ * kiType holder det at tiltaket har én av de valgte verdiene. Tom kategori
+ * betyr ingen begrensning fra den.
  */
 export function filterTiltak(items: KiTiltak[], filter: KiTiltakFilter): KiTiltak[] {
   const q = filter.query.trim().toLowerCase();
 
   return items.filter((tiltak) => {
-    if (filter.fagomrade.length > 0 && !filter.fagomrade.includes(tiltak.fagomrade)) return false;
-    if (q.length === 0) return true;
-
-    const haystack = [
-      tiltak.navn,
-      ...tiltak.virksomheter,
-      tiltak.beskrivelse,
-      tiltak.fagomrade,
-      tiltak.fase ?? '',
-    ]
-      .join(' ')
-      .toLowerCase();
-
-    return haystack.includes(q);
+    for (const gruppe of FILTERGRUPPER) {
+      const valgt = filter[gruppe];
+      if (valgt.length > 0 && !verdierI(tiltak, gruppe).some((v) => valgt.includes(v))) return false;
+    }
+    return q.length === 0 || sokbarTekst(tiltak).includes(q);
   });
 }
 

@@ -10,6 +10,8 @@ import {
   LEVERANSER,
   somTekst,
   tilKiTiltak,
+  TOMT_FILTER,
+  utenKategorier,
   utenVerdi,
   vanligSkrift,
   virksomhetTekst,
@@ -17,7 +19,7 @@ import {
 } from './ki-tiltak';
 import virksomhetsnavn from '../data/ki-tiltak-virksomhetsnavn.json';
 
-const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
+const EMPTY: KiTiltakFilter = TOMT_FILTER;
 
 /**
  * Feltene filterTiltak søker i.
@@ -230,6 +232,7 @@ describe('filterTiltak', () => {
     expect(tiltak, 'datasettet er tomt').toBeDefined();
 
     const treff = filterTiltak(kiTiltak, {
+      ...EMPTY,
       query: tiltak!.navn,
       fagomrade: [tiltak!.fagomrade],
     });
@@ -238,7 +241,7 @@ describe('filterTiltak', () => {
 
     // Samme søk, men med et fagområde tiltaket ikke har, skal utelukke det.
     const annet = FAGOMRADER.find((f) => f !== tiltak!.fagomrade);
-    const uten = filterTiltak(kiTiltak, { query: tiltak!.navn, fagomrade: [annet!] });
+    const uten = filterTiltak(kiTiltak, { ...EMPTY, query: tiltak!.navn, fagomrade: [annet!] });
     expect(uten.map((t) => t.id)).not.toContain(tiltak!.id);
   });
 
@@ -250,6 +253,76 @@ describe('filterTiltak', () => {
 
   test('ingen treff gir tom liste', () => {
     expect(filterTiltak(kiTiltak, { ...EMPTY, query: 'zzzfinnesikke' })).toEqual([]);
+  });
+});
+
+describe('filterTiltak med fase, leveranse og type KI', () => {
+  const grunn: KiTiltak = { id: '', navn: '', virksomheter: [], orgnr: [], fagomrade: 'Arbeid', beskrivelse: '' };
+  const a: KiTiltak = { ...grunn, id: 'a', fase: 'I drift', kiType: ['Generativ KI', 'Språkteknologi'], leveranse: ['Pilot'] };
+  const b: KiTiltak = { ...grunn, id: 'b', fase: 'Gjennomføring', kiType: ['Prediktiv KI'], leveranse: ['MVP', 'Pilot'] };
+  const c: KiTiltak = { ...grunn, id: 'c', fagomrade: 'Helse og omsorg', fase: 'I drift' };
+  const alle = [a, b, c];
+  const ider = (filter: Partial<KiTiltakFilter>) => filterTiltak(alle, { ...EMPTY, ...filter }).map((t) => t.id);
+
+  test('fase filtrerer på ett valg', () => {
+    expect(ider({ fase: ['I drift'] })).toEqual(['a', 'c']);
+  });
+
+  test('innen en kategori holder det at ett valg treffer', () => {
+    expect(ider({ fase: ['I drift', 'Gjennomføring'] })).toEqual(['a', 'b', 'c']);
+    expect(ider({ kiType: ['Språkteknologi', 'Prediktiv KI'] })).toEqual(['a', 'b']);
+  });
+
+  test('en liste treffer når tiltaket har minst én av de valgte verdiene', () => {
+    expect(ider({ kiType: ['Generativ KI'] })).toEqual(['a']);
+    expect(ider({ leveranse: ['Pilot'] })).toEqual(['a', 'b']);
+  });
+
+  test('tiltak uten verdi i kategorien faller ut når kategorien er valgt', () => {
+    expect(ider({ leveranse: ['PoC'] })).toEqual([]);
+    expect(ider({ kiType: ['Generativ KI', 'Prediktiv KI'] })).not.toContain('c');
+  });
+
+  test('på tvers av kategoriene må alle treffe', () => {
+    expect(ider({ fase: ['I drift'], leveranse: ['Pilot'] })).toEqual(['a']);
+    expect(ider({ fagomrade: ['Arbeid'], fase: ['I drift'] })).toEqual(['a']);
+    expect(ider({ fase: ['Gjennomføring'], kiType: ['Generativ KI'] })).toEqual([]);
+    expect(ider({ query: 'pilot', fase: ['Gjennomføring'] })).toEqual(['b']);
+  });
+
+  test('nullstilling fjerner alle kategorier, men ikke søket', () => {
+    const filter: KiTiltakFilter = { query: 'x', fagomrade: ['Arbeid'], fase: ['I drift'], leveranse: ['Pilot'], kiType: ['Annet'] };
+    expect(utenKategorier(filter)).toEqual({ ...EMPTY, query: 'x' });
+  });
+});
+
+describe('fritekstsøk i metadata fra skjemaet', () => {
+  const grunn: KiTiltak = { id: 'm', navn: 'Tiltak', virksomheter: [], orgnr: [], fagomrade: 'Arbeid', beskrivelse: '' };
+  const treff = (tiltak: KiTiltak, query: string) => filterTiltak([tiltak], { ...EMPTY, query }).length === 1;
+
+  test('søker i kiType og kiTypeAnnet', () => {
+    expect(treff({ ...grunn, kiType: ['Computer Vision'] }, 'computer vision')).toBe(true);
+    expect(treff({ ...grunn, kiType: ['Annet'], kiTypeAnnet: 'Klassifisering' }, 'klassifisering')).toBe(true);
+  });
+
+  test('søker i leveranse og leveranseAnnet', () => {
+    expect(treff({ ...grunn, leveranse: ['Løsning i produksjon'] }, 'i produksjon')).toBe(true);
+    expect(treff({ ...grunn, leveranse: ['Annet'], leveranseAnnet: 'Veileder' }, 'veileder')).toBe(true);
+  });
+
+  test('søker i kontaktinfo', () => {
+    expect(treff({ ...grunn, kontaktinfo: 'ki@etat.no' }, 'etat.no')).toBe(true);
+  });
+
+  test('uten metadata gir ordene ingen treff', () => {
+    expect(treff(grunn, 'språkteknologi')).toBe(false);
+  });
+
+  test('«Språkteknologi» finner tiltakene som har den typen', () => {
+    const forventet = kiTiltak.filter((t) => t.kiType?.includes('Språkteknologi')).map((t) => t.id);
+    expect(forventet.length).toBeGreaterThan(0);
+    const funnet = filterTiltak(kiTiltak, { ...EMPTY, query: 'Språkteknologi' }).map((t) => t.id);
+    expect(funnet).toEqual(expect.arrayContaining(forventet));
   });
 });
 
