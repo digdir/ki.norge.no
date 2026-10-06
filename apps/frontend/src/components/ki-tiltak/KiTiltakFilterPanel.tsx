@@ -1,6 +1,15 @@
 import { useMemo } from 'react';
 import { Button, Checkbox, Dialog, Fieldset, Heading } from '@digdir/designsystemet-react';
-import { FAGOMRADER, kiTiltak, type KiTiltakFilter } from '../../lib/ki-tiltak';
+import {
+  FILTERETIKETTER,
+  FILTERGRUPPER,
+  FILTERVALG,
+  kiTiltak,
+  utenKategorier,
+  verdierI,
+  type FilterGruppe,
+  type KiTiltakFilter,
+} from '../../lib/ki-tiltak';
 
 interface Props {
   open: boolean;
@@ -8,8 +17,6 @@ interface Props {
   filter: KiTiltakFilter;
   setFilter: React.Dispatch<React.SetStateAction<KiTiltakFilter>>;
 }
-
-type Group = 'fagomrade';
 
 const FILTER_DIALOG_ID = 'tiltak-filter-dialog';
 
@@ -29,16 +36,24 @@ function optionLabel(name: string, count: number) {
 
 export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }: Props) {
   // Antall regnes mot hele datasettet, ikke mot gjeldende treff, så tallene
-  // ikke krymper mens brukeren huker av.
+  // ikke krymper mens brukeren huker av. Et tiltak med flere KI-typer teller
+  // én gang under hver av dem.
   const count = useMemo(() => {
-    const fagomrade = new Map<string, number>();
+    const perGruppe = Object.fromEntries(FILTERGRUPPER.map((g) => [g, new Map<string, number>()])) as Record<
+      FilterGruppe,
+      Map<string, number>
+    >;
     for (const tiltak of kiTiltak) {
-      fagomrade.set(tiltak.fagomrade, (fagomrade.get(tiltak.fagomrade) ?? 0) + 1);
+      for (const gruppe of FILTERGRUPPER) {
+        for (const verdi of verdierI(tiltak, gruppe)) {
+          perGruppe[gruppe].set(verdi, (perGruppe[gruppe].get(verdi) ?? 0) + 1);
+        }
+      }
     }
-    return { fagomrade };
+    return perGruppe;
   }, []);
 
-  const toggle = (group: Group, value: string) => {
+  const toggle = (group: FilterGruppe, value: string) => {
     setFilter((previous) => {
       const selected = previous[group];
       return {
@@ -48,7 +63,7 @@ export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }
     });
   };
 
-  const reset = () => setFilter((previous) => ({ ...previous, fagomrade: [] }));
+  const reset = () => setFilter(utenKategorier);
 
   return (
     <Dialog
@@ -67,19 +82,26 @@ export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }
       </Dialog.Block>
 
       <Dialog.Block className="tiltak-panel-kropp">
-        <Fieldset>
-          <Fieldset.Legend>Fag- og temaområde</Fieldset.Legend>
-          {FAGOMRADER.filter((f) => (count.fagomrade.get(f) ?? 0) > 0).map((fagomrade) => (
-            <Checkbox
-              key={fagomrade}
-              label={optionLabel(fagomrade, count.fagomrade.get(fagomrade) ?? 0)}
-              value={fagomrade}
-              checked={filter.fagomrade.includes(fagomrade)}
-              onChange={() => toggle('fagomrade', fagomrade)}
-            />
-          ))}
-        </Fieldset>
-
+        {FILTERGRUPPER.map((gruppe) => {
+          // Valg uten tiltak vises ikke, og en kategori uten noen valg igjen
+          // faller bort helt i stedet for å stå som en tom overskrift.
+          const valg = FILTERVALG[gruppe].filter((v) => (count[gruppe].get(v) ?? 0) > 0);
+          if (valg.length === 0) return null;
+          return (
+            <Fieldset key={gruppe}>
+              <Fieldset.Legend>{FILTERETIKETTER[gruppe]}</Fieldset.Legend>
+              {valg.map((verdi) => (
+                <Checkbox
+                  key={verdi}
+                  label={optionLabel(verdi, count[gruppe].get(verdi) ?? 0)}
+                  value={verdi}
+                  checked={filter[gruppe].includes(verdi)}
+                  onChange={() => toggle(gruppe, verdi)}
+                />
+              ))}
+            </Fieldset>
+          );
+        })}
       </Dialog.Block>
 
       <Dialog.Block className="tiltak-panel-fot">
