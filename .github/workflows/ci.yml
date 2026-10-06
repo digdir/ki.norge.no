@@ -38,6 +38,11 @@ jobs:
         working-directory: apps/frontend
         run: pnpm run test:unit
 
+      # astro sync lager typene i .astro/ som tsconfig inkluderer.
+      - name: Typesjekk
+        working-directory: apps/frontend
+        run: pnpm run typecheck
+
       # Cache-workeren foran ki.norge.no har egne tester, som ikke kjørte noe sted.
       - name: Cache-worker-tester
         run: pnpm --filter cache-kinorgeportal exec vitest run

@@ -14,6 +14,7 @@
     "deploy:prod": "pnpm run deploy:check-main && CLOUDFLARE_ENV=prod astro build && wrangler deploy --env prod && node scripts/purge-cache.mjs prod",
     "deploy:tt02:preview": "CLOUDFLARE_ENV=tt02 astro build && wrangler deploy --env tt02 && node scripts/purge-cache.mjs tt02",
     "test:unit": "vitest run",
+    "typecheck": "astro sync && tsc --noEmit",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
     "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
     "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots",
@@ -41,6 +42,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "postcss-nesting": "^14.0.0",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.3"
   }
 }

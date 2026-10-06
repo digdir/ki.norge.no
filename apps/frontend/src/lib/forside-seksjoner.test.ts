@@ -145,6 +145,21 @@ describe('velgLaerAvAndre', () => {
     const valg = velgLaerAvAndre(laer({ kort: [{ id: 'slettet' }, { id: 'e1' }] }), EKSEMPLER);
     expect(valg?.kort.map((k) => k.href)).toEqual(['/eksempler/eksempel-1']);
   });
+
+  it('dropper kort uten id', () => {
+    const valg = velgLaerAvAndre(laer({ kort: [{}, { id: 'e1' }] }), EKSEMPLER);
+    expect(valg?.kort.map((k) => k.href)).toEqual(['/eksempler/eksempel-1']);
+  });
+
+  it('bruker ingressen på kortet foran eksemplets egen', () => {
+    const valg = velgLaerAvAndre(laer({ kort: [{ id: 'e1', ingress: 'Egen ingress' }] }), EKSEMPLER);
+    expect(valg?.kort[0].lead).toBe('Egen ingress');
+  });
+
+  it('gir lead undefined når verken kortet eller eksemplet har ingress', () => {
+    const valg = velgLaerAvAndre(laer({ kort: [{ id: 'e3' }] }), [{ id: 'e3', slug: 'uten', tittel: 'Uten', ingress: '' }]);
+    expect(valg?.kort).toStrictEqual([{ href: '/eksempler/uten', title: 'Uten', lead: undefined }]);
+  });
 });
 
 describe('velgVeiledning', () => {
