@@ -1,0 +1,33 @@
+{
+  "ee046e19-3361-4ec1-88d3-8d8b67bd7f59": {
+    "tiltak": "KF Tsetlin, forklarbar KI for offentlig sektor",
+    "hvorfor": "Eksporten har bare noen av valgene fra skjemaet. Marie og Dorte vil vise alt KF valgte, og det står i skjemainnsendingen (#847).",
+    "sett": {
+      "leveranse": ["PoC", "MVP", "Pilot", "Løsning i produksjon"],
+      "kiType": ["Generativ KI", "Prediktiv KI", "Agentisk KI", "Språkteknologi", "Anbefalingssystemer", "Annet"],
+      "kiTypeAnnet": "Klassifisering"
+    }
+  },
+  "a2e6e5f2-77b6-451b-be2a-02142f85896e": {
+    "tiltak": "KI-støttet regelverks- og konsekvensanalyse (DFØ REKA)",
+    "hvorfor": "Eksporten har bare noen av valgene fra skjemaet. Marie og Dorte vil vise alt DFØ valgte (#847). Ingen kiTypeAnnet, Annet er ikke valgt.",
+    "sett": {
+      "leveranse": ["MVP", "Pilot", "Løsning i produksjon"],
+      "kiType": ["Generativ KI", "Agentisk KI", "Språkteknologi", "Anbefalingssystemer"]
+    }
+  },
+  "34f626f4-9ffb-4ffc-8772-ee5d99808631": {
+    "tiltak": "Trace4EU-prosjektet",
+    "hvorfor": "Beskrivelsen slutter med spørsmålstegn i eksporten. Dorte har bekreftet at det skal være punktum (#847).",
+    "erstatt": {
+      "beskrivelse": { "fra": "sporing av sjømat?", "til": "sporing av sjømat." }
+    }
+  },
+  "e03243ab-d743-4809-9c65-58525cb09f38": {
+    "tiltak": "Felles digital tilskuddsforvaltning for stat, fylkeskommuner og kommuner",
+    "hvorfor": "Eksporten mangler fagområde. Samme fagområde som den gamle oppføringen av tiltaket (#847).",
+    "sett": {
+      "fagomrade": "Demokrati og styresett"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import data from '../data/ki-tiltak.json';
 import virksomhetsnavn from '../data/ki-tiltak-virksomhetsnavn.json';
+import { FASER } from './ki-tiltak-verdier';
 
 /**
  * `fase` kommer fra skjemaets «Hvilken fase er tiltaket i?» og finnes bare på
@@ -41,44 +42,7 @@ export interface KiTiltak {
   kontaktinfo?: string;
 }
 
-/** Alfabetisk (nb). Alle 15 er i bruk i datasettet. */
-export const FAGOMRADER = [
-  'Arbeid',
-  'Demokrati og styresett',
-  'Digitale teknologier',
-  'Familie og barn',
-  'Forskning',
-  'Helse og omsorg',
-  'Informasjonssikkerhet',
-  'Innbygger',
-  'Kultur, idrett og fritid',
-  'Natur, klima og miljø',
-  'Personvern',
-  'Plan, bygg og eiendom',
-  'Trafikk og transport',
-  'Virksomhet',
-  'Økonomi, finans og forsikring',
-] as const;
-
-/** «Hvilken fase er tiltaket i?» Ett valg. */
-export const FASER = ['Innsikt og planlegging', 'Gjennomføring', 'I drift'] as const;
-
-/** «Hva skal tiltaket levere?» Flere valg. */
-export const LEVERANSER = ['PoC', 'MVP', 'Pilot', 'Løsning i produksjon', 'Annet'] as const;
-
-/** «Hvilken type KI bruker dere i tiltaket?» Flere valg, valgfritt. */
-export const KI_TYPER = [
-  'Generativ KI',
-  'Prediktiv KI',
-  'Agentisk KI',
-  'Språkteknologi',
-  'Computer Vision',
-  'Anbefalingssystemer',
-  'Annet',
-] as const;
-
-/** Verdien som utløser fritekstfeltet «Beskriv nærmere». */
-export const ANNET = 'Annet';
+export { FAGOMRADER, FASER, LEVERANSER, KI_TYPER, ANNET } from './ki-tiltak-verdier';
 
 const PLASSHOLDERE = new Set(['na', 'n/a', '-', '–', 'null', 'ikke oppgitt']);
 

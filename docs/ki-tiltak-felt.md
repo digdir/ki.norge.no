@@ -60,6 +60,20 @@ I detaljvisningen står de én per linje. På kortet står de etter hverandre me
 
 Har skjemaet flere virksomheter, skriver e-postblokken **TIL KI-TILTAK.JSON** `virksomhet` og `orgnr` som lister, med ansvarlig virksomhet først og samarbeidsvirksomhetene etter.
 
+## Ny eksport fra registeret
+
+Hele lista byttes med én kommando fra roten av repoet:
+
+```bash
+node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<eksport>.json
+```
+
+1. Skriptet skriver `apps/frontend/src/data/ki-tiltak.json`. Det setter «NA» og «N/A» til `null`, fjerner NA-biter mellom «;», og bytter registerets varianter, som «Språkteknologi (NLP)», til våre verdier.
+2. Les rapporten. Den viser hvor mange NA og varianter som er rettet, hvilke overstyringer som er brukt, og hva som trenger en hånd: ukjente verdier, orgnr uten navn og tiltak uten fagområde.
+3. Legg nye orgnr inn i `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json` med vanlige store og små bokstaver.
+4. Skal noe i eksporten rettes for hånd, legg det i `apps/frontend/src/data/ki-tiltak-overstyringer.json` under tiltakets id, med `sett` for hele felt eller `erstatt` for en tekstbit, og et `hvorfor`. Da overlever rettingen neste eksport.
+5. Kjør `pnpm --dir apps/frontend run test:unit`.
+
 ## Virksomhetsnavn
 
 `virksomhet` står som i eksporten, ofte i VERSALER fra Brønnøysundregisteret. Sida viser i stedet navnet fra `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json`, som slår opp på `orgnr`. Kommer en ny virksomhet med, legg til en linje der med orgnr og navnet med vanlige store og små bokstaver. Testene stopper hvis et orgnr mangler.
