@@ -27,7 +27,7 @@ De seks feltene over er påkrevd. Nye tiltak kan i tillegg ha `fase`, `kiType`, 
 |---|---|
 | `id` | Unik. Lag en ny GUID, for eksempel med `uuidgen` i terminalen. Gjenbruk aldri en id |
 | `navn` | Tiltakets navn, slik det skal vises |
-| `virksomhet` | Visningsnavn med vanlig store og små bokstaver, ikke VERSALER. Flere virksomheter skrives som liste, med hovedvirksomheten først |
+| `virksomhet` | Navnet slik det står i eksporten, også i VERSALER. Sida viser navnet fra navnetabellen, se under. Flere virksomheter skrives som liste, med hovedvirksomheten først |
 | `orgnr` | Ni siffer, som i Brønnøysundregisteret. Liste i samme rekkefølge når `virksomhet` er liste |
 | `fagomrade` | Nøyaktig én av verdiene i lista under |
 | `beskrivelse` | Fritekst. Vises avkortet til tre linjer på kortet, i sin helhet i detaljvisningen |
@@ -105,6 +105,11 @@ Testene sjekker at fila er gyldig JSON, unike id-er, gyldige fagområder og fase
 
 Er det en syntaksfeil, sier testen `ki-tiltak.json > er gyldig JSON` hvilken linje det gjelder, og hva som trolig mangler. Oftest er det et komma mellom to tiltak, et komma for mye etter det siste, eller en `{` som mangler.
 
+## Virksomhetsnavn
+
+`ki-tiltak-virksomhetsnavn.json` gir hvert orgnr et visningsnavn med vanlige store og små bokstaver. Ny virksomhet i dataene betyr en ny linje der, ellers stopper testene. `VIRKSOMHETSNAVN` i `src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene i dataene), for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav i stedet for VERSALER, til den er lagt inn.
+
 ## Videre
 
 Datasettet skal etter planen flyttes inn i Umbraco, slik at redaksjonen kan redigere tiltak i CMS-et i stedet for i denne filen. Fram til det er på plass er denne filen fasiten.
+

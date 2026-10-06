@@ -11,8 +11,11 @@ import {
   somTekst,
   tilKiTiltak,
   utenVerdi,
+  vanligSkrift,
   virksomhetTekst,
+  VIRKSOMHETSNAVN,
 } from './ki-tiltak';
+import virksomhetsnavn from '../data/ki-tiltak-virksomhetsnavn.json';
 
 const EMPTY: KiTiltakFilter = { query: '', fagomrade: [] };
 
@@ -162,10 +165,19 @@ describe('ki-tiltak datasett', () => {
     expect(kiTiltak.map((t) => t.navn)).toEqual(sorted.map((t) => t.navn));
   });
 
-  test('virksomhetsnavn er ikke bare versaler', () => {
-    // Kuraterte visningsnavn skal ha erstattet VERSALENE fra kilden.
-    const shouty = kiTiltak.flatMap((t) => t.virksomheter).filter((v) => v === v.toUpperCase());
-    expect(shouty).toEqual([]);
+  test('sida viser navnet fra tabellen når bryteren står på tabell', () => {
+    if (VIRKSOMHETSNAVN !== 'tabell') return;
+    for (const t of kiTiltak) {
+      t.orgnr.forEach((o, i) => {
+        if (o in virksomhetsnavn) expect(t.virksomheter[i], `navn på ${t.navn}`).toBe(virksomhetsnavn[o as keyof typeof virksomhetsnavn]);
+      });
+    }
+  });
+
+  // En ny virksomhet i eksporten trenger et visningsnavn, ellers står den i VERSALER.
+  test('alle orgnr i dataene har navn i ki-tiltak-virksomhetsnavn.json', () => {
+    const mangler = [...new Set(kiTiltak.flatMap((t) => t.orgnr))].filter((o) => o && !(o in virksomhetsnavn));
+    expect(mangler).toEqual([]);
   });
 });
 
@@ -295,6 +307,20 @@ describe('utenVerdi', () => {
 });
 
 describe('tilKiTiltak', () => {
+  test('navnetabellen erstatter registerets navn, og ukjente gjøres om fra VERSALER', () => {
+    const raw = { id: 'a', navn: 'X', virksomhet: ['ENTUR AS', 'UKJENT AS'], orgnr: ['917422575', '000000000'] };
+    expect(tilKiTiltak(raw, 'tabell').virksomheter).toEqual(['Entur AS', 'Ukjent AS']);
+    expect(tilKiTiltak(raw, 'register').virksomheter).toEqual(['ENTUR AS', 'UKJENT AS']);
+  });
+
+  test.each([
+    ['HELSE BERGEN HF', 'Helse bergen HF'],
+    ['DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING', 'Direktoratet for forvaltning og økonomistyring'],
+    ['Kommuneforlaget AS', 'Kommuneforlaget AS'],
+  ])('vanligSkrift(%j) blir %j', (inn, ut) => {
+    expect(vanligSkrift(inn)).toBe(ut);
+  });
+
   test('én virksomhet som tekst blir en liste med én', () => {
     const t = tilKiTiltak({ id: 'a', navn: 'X', virksomhet: 'Entur AS', orgnr: '917422575', fagomrade: 'Arbeid' });
     expect(t.virksomheter).toEqual(['Entur AS']);

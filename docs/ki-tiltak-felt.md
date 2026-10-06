@@ -60,6 +60,12 @@ I detaljvisningen står de én per linje. På kortet står de etter hverandre me
 
 Har skjemaet flere virksomheter, skriver e-postblokken **TIL KI-TILTAK.JSON** `virksomhet` og `orgnr` som lister, med ansvarlig virksomhet først og samarbeidsvirksomhetene etter.
 
+## Virksomhetsnavn
+
+`virksomhet` står som i eksporten, ofte i VERSALER fra Brønnøysundregisteret. Sida viser i stedet navnet fra `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json`, som slår opp på `orgnr`. Kommer en ny virksomhet med, legg til en linje der med orgnr og navnet med vanlige store og små bokstaver. Testene stopper hvis et orgnr mangler.
+
+`VIRKSOMHETSNAVN` i `apps/frontend/src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene slik de står i dataene). Den finnes for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav og ellers små bokstaver, med kjente forkortelser som HF og AS beholdt. Det blir feil for stedsnavn, og derfor er tabellen førstevalget.
+
 ## Regler som er verdt å kjenne
 
 **Valgfritt betyr virkelig valgfritt.** Utelat feltet, la det stå tomt, eller sett det til `null`, det gjør ingen forskjell. `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt» regnes også som tomt, uten hensyn til store og små bokstaver, og det samme gjør en liste med bare slike verdier. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
@@ -96,7 +102,7 @@ Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. D
 - `kontaktinfo` som ikke ser ut som en e-postadresse
 - lenke i beskrivelsen som ikke er `http` eller `https`
 - ukjent fase eller fagområde, og duplikate id-er
-- virksomhetsnavn med bare versaler, som `KF`. Skriv `Kommuneforlaget (KF)`
+- orgnr som mangler navn i `ki-tiltak-virksomhetsnavn.json`
 
 Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.
 
