@@ -48,14 +48,14 @@
 				// Turnstile på «Del KI-tiltak». Site key er offentlig og hører hjemme
 				// her; fyll den inn fra widgeten i Cloudflare-dashbordet. Hemmeligheten
 				// settes med wrangler secret put TURNSTILE_SECRET_KEY --env tt02
-				// Står den tom, slipper innsendinger gjennom ukontrollert og ruta
-				// logger det som en feil.
+				// Står den tom, avviser ruta innsendinger med 503.
 				"TURNSTILE_SITE_KEY": "0x4AAAAAAEnMGfLvgsIVZ_Cl",
 				"LAUNCH_MODE": "live",
 			},
+			// Egne id-er, så tt02 ikke deler teller med prod.
 			"ratelimits": [
-				{ "name": "TILTAK_LIMIT", "namespace_id": "73101", "simple": { "limit": 5, "period": 60 } },
-				{ "name": "SEARCH_LIMIT", "namespace_id": "73102", "simple": { "limit": 60, "period": 60 } },
+				{ "name": "TILTAK_LIMIT", "namespace_id": "73111", "simple": { "limit": 5, "period": 60 } },
+				{ "name": "SEARCH_LIMIT", "namespace_id": "73112", "simple": { "limit": 60, "period": 60 } },
 			],
 		},
 		"prod": {
@@ -78,8 +78,7 @@
 				// Turnstile på «Del KI-tiltak». Site key er offentlig og hører hjemme
 				// her; fyll den inn fra widgeten i Cloudflare-dashbordet. Hemmeligheten
 				// settes med wrangler secret put TURNSTILE_SECRET_KEY --env prod
-				// Står den tom, slipper innsendinger gjennom ukontrollert og ruta
-				// logger det som en feil.
+				// Står den tom, avviser ruta innsendinger med 503.
 				"TURNSTILE_SITE_KEY": "0x4AAAAAAEnMGfLvgsIVZ_Cl",
 				// Holding page on ki.norge.no until launch. Flip to "live" to go public.
 				"LAUNCH_MODE": "live",
