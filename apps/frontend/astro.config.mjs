@@ -19,4 +19,5 @@ export default defineConfig({
   ],
   site: 'https://ki.norge.no',
   adapter: useNodeAdapter ? node({ mode: 'standalone' }) : cloudflare(),
+  devToolbar: { enabled: false },
 });
