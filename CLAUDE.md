@@ -125,7 +125,7 @@ Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 - Ingen dark mode (bevisst valg)
 - Ingen Tailwind
 - pere/nb-nn-translation krever `use_fast=True` for tokenizer (tokenizer.json, ikke spiece.model)
-- Admin-tilgang via `/admin-tilgang?key=<ADMIN_SECRET>` setter ki_admin cookie (30 dager)
+- Admin-tilgang via skjemaet på `/admin-tilgang` (eller `?key=<ADMIN_SECRET>`) setter ki_admin cookie, som utløper på serveren etter 30 dager
 - Kommer-snart-modus aktiveres med `LAUNCH_MODE=coming-soon` env var
 
 ## Stilpreferanser (kommentarer, issues, commit-meldinger)

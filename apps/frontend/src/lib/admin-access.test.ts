@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { adminToken, isAdminCookie, keyMatches, requiresAdmin, safeEqual } from './admin-access';
+import { ADMIN_COOKIE_MAX_AGE, adminToken, handleAdminAccess, isAdminCookie, keyMatches, requiresAdmin, safeEqual } from './admin-access';
 
 const HEMMELIG = 'en-lang-og-tilfeldig-hemmelighet';
 
@@ -20,15 +20,17 @@ describe('adminToken', () => {
     expect(await adminToken('')).toBeNull();
   });
 
-  test('er stabil, og avslører ikke hemmeligheten', async () => {
-    const a = await adminToken(HEMMELIG);
-    expect(a).toBe(await adminToken(HEMMELIG));
-    expect(a).toMatch(/^[0-9a-f]{64}$/);
-    expect(a).not.toContain(HEMMELIG);
+  test('bærer utløpet, og avslører ikke hemmeligheten', async () => {
+    const now = Date.UTC(2026, 9, 6);
+    const token = (await adminToken(HEMMELIG, now))!;
+    expect(token).toMatch(/^v2\.\d+\.[0-9a-f]{64}$/);
+    expect(Number(token.split('.')[1])).toBe(now / 1000 + ADMIN_COOKIE_MAX_AGE);
+    expect(token).not.toContain(HEMMELIG);
   });
 
   test('ny hemmelighet gir ny verdi', async () => {
-    expect(await adminToken(HEMMELIG)).not.toBe(await adminToken(`${HEMMELIG}-rotert`));
+    const now = Date.now();
+    expect(await adminToken(HEMMELIG, now)).not.toBe(await adminToken(`${HEMMELIG}-rotert`, now));
   });
 });
 
@@ -47,10 +49,86 @@ describe('isAdminCookie', () => {
     expect(await isAdminCookie(gammel, `${HEMMELIG}-rotert`)).toBe(false);
   });
 
+  test('avvises etter 30 dager, selv om nettleseren beholder den', async () => {
+    const satt = Date.now();
+    const token = (await adminToken(HEMMELIG, satt))!;
+    expect(await isAdminCookie(token, HEMMELIG, satt + (ADMIN_COOKIE_MAX_AGE - 60) * 1000)).toBe(true);
+    expect(await isAdminCookie(token, HEMMELIG, satt + (ADMIN_COOKIE_MAX_AGE + 1) * 1000)).toBe(false);
+  });
+
+  test('et forlenget utløp gir feil signatur', async () => {
+    const [versjon, utlop, sig] = (await adminToken(HEMMELIG))!.split('.');
+    const forlenget = `${versjon}.${Number(utlop) + 365 * 24 * 3600}.${sig}`;
+    expect(await isAdminCookie(forlenget, HEMMELIG)).toBe(false);
+  });
+
+  test('cookien fra før utløpet kom med, slipper ikke inn', async () => {
+    expect(await isAdminCookie('a'.repeat(64), HEMMELIG)).toBe(false);
+  });
+
   test('uten hemmelighet slipper ingenting inn, heller ikke tom cookie', async () => {
     expect(await isAdminCookie('', '')).toBe(false);
     expect(await isAdminCookie('1', '')).toBe(false);
     expect(await isAdminCookie(undefined, HEMMELIG)).toBe(false);
+  });
+});
+
+describe('handleAdminAccess', () => {
+  const URL_ = 'https://ki.norge.no/admin-tilgang';
+  const alltid = async () => true;
+  const post = (key: string) =>
+    new Request(URL_, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ key }),
+    });
+
+  test('uten nøkkel vises skjemaet, uncachet og uten mulighet for innramming', async () => {
+    const res = await handleAdminAccess(new Request(URL_), HEMMELIG, alltid);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('method="post"');
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
+    expect(res.headers.get('Content-Security-Policy')).toContain("frame-ancestors 'none'");
+  });
+
+  test('riktig nøkkel fra skjemaet gir cookie og videresending', async () => {
+    const res = await handleAdminAccess(post(HEMMELIG), HEMMELIG, alltid);
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toBe('/status');
+    const cookie = res.headers.get('Set-Cookie')!;
+    const verdi = cookie.match(/^ki_admin=([^;]+)/)![1];
+    expect(await isAdminCookie(verdi, HEMMELIG)).toBe(true);
+    expect(cookie).toContain(`Max-Age=${ADMIN_COOKIE_MAX_AGE}`);
+  });
+
+  test('lenken med ?key= virker fortsatt', async () => {
+    const res = await handleAdminAccess(new Request(`${URL_}?key=${HEMMELIG}`), HEMMELIG, alltid);
+    expect(res.status).toBe(302);
+  });
+
+  test('feil nøkkel gir 401 uten cookie', async () => {
+    for (const req of [post('feil'), new Request(`${URL_}?key=feil`), post('')]) {
+      const res = await handleAdminAccess(req, HEMMELIG, alltid);
+      expect(res.status).toBe(401);
+      expect(res.headers.get('Set-Cookie')).toBeNull();
+    }
+  });
+
+  test('over grensen gir 429, også med riktig nøkkel', async () => {
+    const res = await handleAdminAccess(post(HEMMELIG), HEMMELIG, async () => false);
+    expect(res.status).toBe(429);
+    expect(res.headers.get('Set-Cookie')).toBeNull();
+  });
+
+  test('å vise skjemaet teller ikke som forsøk', async () => {
+    let forsok = 0;
+    await handleAdminAccess(new Request(URL_), HEMMELIG, async () => (forsok++, true));
+    expect(forsok).toBe(0);
+  });
+
+  test('uten hemmelighet slipper ingen nøkkel inn', async () => {
+    expect((await handleAdminAccess(post(''), '', alltid)).status).toBe(401);
+    expect((await handleAdminAccess(post('noe'), '', alltid)).status).toBe(401);
   });
 });
 

@@ -56,19 +56,19 @@ export function clientKey(request: Request): string {
 }
 
 /**
- * Sant når kallet skal slippe gjennom.
+ * Sant når kallet skal slippe gjennom. keyPrefix gir en egen teller i samme binding.
  *
  * Slipper med vilje gjennom når bindingen mangler eller feiler. En manglende
  * grense skal ikke ta ned skjemaet eller søket, og alvorligheten er lav: dette
  * er en bremse, ikke en tilgangskontroll.
  */
-export async function withinRateLimit(name: LimiterName, request: Request): Promise<boolean> {
+export async function withinRateLimit(name: LimiterName, request: Request, keyPrefix = ''): Promise<boolean> {
   const bindings = await loadBindings();
   const limiter = bindings?.[name];
   if (!limiter) return true;
 
   try {
-    const { success } = await limiter.limit({ key: clientKey(request) });
+    const { success } = await limiter.limit({ key: keyPrefix + clientKey(request) });
     return success;
   } catch {
     console.error('[rate-limit] bindingen svarte ikke, slipper gjennom', { limiter: name });
