@@ -105,6 +105,20 @@ Testene sjekker at fila er gyldig JSON, unike id-er, gyldige fagområder og fase
 
 Er det en syntaksfeil, sier testen `ki-tiltak.json > er gyldig JSON` hvilken linje det gjelder, og hva som trolig mangler. Oftest er det et komma mellom to tiltak, et komma for mye etter det siste, eller en `{` som mangler.
 
+## Ny eksport fra registeret
+
+Hele lista byttes med én kommando fra roten av repoet:
+
+```bash
+node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<eksport>.json
+```
+
+1. Skriptet skriver `ki-tiltak.json`. Det setter «NA» og «N/A» til `null`, fjerner NA-biter mellom «;», og bytter registerets varianter, som «Språkteknologi (NLP)», til våre verdier.
+2. Les rapporten. Den viser hvor mange NA og varianter som er rettet, hvilke overstyringer som er brukt, og hva som trenger en hånd: ukjente verdier, orgnr uten navn og tiltak uten fagområde.
+3. Legg nye orgnr inn i `ki-tiltak-virksomhetsnavn.json` med vanlige store og små bokstaver.
+4. Skal noe i eksporten rettes for hånd, legg det i `ki-tiltak-overstyringer.json` under tiltakets id, med `sett` for hele felt eller `erstatt` for en tekstbit, og et `hvorfor`. Da overlever rettingen neste eksport.
+5. Kjør `pnpm --dir apps/frontend run test:unit`.
+
 ## Virksomhetsnavn
 
 `ki-tiltak-virksomhetsnavn.json` gir hvert orgnr et visningsnavn med vanlige store og små bokstaver. Ny virksomhet i dataene betyr en ny linje der, ellers stopper testene. `VIRKSOMHETSNAVN` i `src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene i dataene), for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav i stedet for VERSALER, til den er lagt inn.
