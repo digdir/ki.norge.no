@@ -9,11 +9,14 @@ rendrer med realistisk innhold. Kun for utvikling.
 Fra repo-rot:
 
 ```bash
-npm run frontend:dev:mock
+pnpm run frontend:dev:mock
+pnpm run frontend:dev:mock --port 4324   # flagg går videre til astro dev
 ```
 
-Starter mock-CMS (port 5050) og Astro dev-server mot den i samme kommando.
-Ctrl-C stopper begge. Krever `pnpm install` i `apps/frontend` forst.
+Starter mock-CMS (port 5050, `MOCK_PORT` for en annen) og Astro dev-server mot
+den i samme kommando. Ctrl-C, eller `pnpm exec astro dev stop` i
+`apps/frontend`, stopper begge. Mock-porten kan ikke være 5060 eller 5061, de
+blokkeres av fetch. Krever `pnpm install` i `apps/frontend` først.
 
 Bare mock-serveren alene: `npm run mock-cms`.
 
