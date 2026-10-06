@@ -35,7 +35,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
         options.Authority = authority;
-        options.RequireHttpsMetadata = false;
+        options.RequireHttpsMetadata = true;
 
         options.ResponseType = "code";
 

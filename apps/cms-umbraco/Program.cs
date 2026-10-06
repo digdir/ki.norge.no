@@ -118,12 +118,35 @@ if (!string.IsNullOrEmpty(configuredBackOfficeHost) &&
     });
 }
 
+// Backoffice skal ikke kunne rammes inn fra andre nettsteder. Frontenden i
+// forhåndsvisningen er en annen sak, den styres av frontendens egen CSP.
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var headers = context.Response.Headers;
+        if (headers.ContentType.ToString().StartsWith("text/html", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!headers.ContentSecurityPolicy.ToString().Contains("frame-ancestors", StringComparison.OrdinalIgnoreCase))
+            {
+                headers.Append("Content-Security-Policy", "frame-ancestors 'self'");
+            }
+            if (!headers.ContainsKey("X-Frame-Options"))
+            {
+                headers.XFrameOptions = "SAMEORIGIN";
+            }
+        }
+        return Task.CompletedTask;
+    });
+    await next(context);
+});
+
 // ── Health endpoints (before Umbraco middleware so they always respond) ──
 // /api/health: liveness — process is alive, no DB check. Used for fast probes.
 // /api/health/ready: readiness — DB reachable, Umbraco initialized. Used for traffic decisions.
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", ts = DateTime.UtcNow }));
 
-app.MapGet("/api/health/ready", (Umbraco.Cms.Core.Services.IContentTypeService cts) =>
+app.MapGet("/api/health/ready", (Umbraco.Cms.Core.Services.IContentTypeService cts, ILogger<Program> logger) =>
 {
     try
     {
@@ -134,34 +157,39 @@ app.MapGet("/api/health/ready", (Umbraco.Cms.Core.Services.IContentTypeService c
     }
     catch (Exception ex)
     {
-        return Results.Json(new { status = "not_ready", reason = ex.Message }, statusCode: 503);
+        logger.LogError(ex, "Readiness-sjekken feilet");
+        return Results.Json(new { status = "not_ready", reason = "readiness check failed" }, statusCode: 503);
     }
 });
 
-// Diagnostic endpoint — check composer state (before Umbraco middleware)
-app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService cts,
-    Umbraco.Cms.Core.Services.IDataTypeService dts) =>
+// Viser tilstanden composeren lager. Composeren kjører bare lokalt og i CI, så
+// endepunktet finnes bare der.
+if (app.Environment.IsDevelopment())
 {
-    var artikkel = cts.Get("artikkel");
-    var hasIngress = artikkel?.PropertyTypes.Any(p => p.Alias == "ingress") ?? false;
-    var hasBilde = artikkel?.PropertyTypes.Any(p => p.Alias == "artikkelBilde") ?? false;
-
-    var rteDts = dts.GetByEditorAlias("Umbraco.RichText").ToList();
-    var toolbarInfo = rteDts.Select(dt =>
+    app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService cts,
+        Umbraco.Cms.Core.Services.IDataTypeService dts) =>
     {
-        var config = dt.ConfigurationData;
-        var toolbar = config?.TryGetValue("toolbar", out var tb) == true
-            ? System.Text.Json.JsonSerializer.Serialize(tb)
-            : "none";
-        return new { dt.Name, dt.Id, ToolbarPreview = toolbar.Length > 200 ? toolbar.Substring(0, 200) : toolbar };
-    });
+        var artikkel = cts.Get("artikkel");
+        var hasIngress = artikkel?.PropertyTypes.Any(p => p.Alias == "ingress") ?? false;
+        var hasBilde = artikkel?.PropertyTypes.Any(p => p.Alias == "artikkelBilde") ?? false;
 
-    return Results.Ok(new
-    {
-        artikkelFields = new { hasIngress, hasBilde },
-        richTextDataTypes = toolbarInfo
+        var rteDts = dts.GetByEditorAlias("Umbraco.RichText").ToList();
+        var toolbarInfo = rteDts.Select(dt =>
+        {
+            var config = dt.ConfigurationData;
+            var toolbar = config?.TryGetValue("toolbar", out var tb) == true
+                ? System.Text.Json.JsonSerializer.Serialize(tb)
+                : "none";
+            return new { dt.Name, dt.Id, ToolbarPreview = toolbar.Length > 200 ? toolbar.Substring(0, 200) : toolbar };
+        });
+
+        return Results.Ok(new
+        {
+            artikkelFields = new { hasIngress, hasBilde },
+            richTextDataTypes = toolbarInfo
+        });
     });
-});
+}
 
 app.UseUmbraco()
     .WithMiddleware(u =>
