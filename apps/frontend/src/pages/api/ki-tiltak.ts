@@ -3,7 +3,7 @@ import { validateTiltakForm } from '../../components/ki-tiltak/validateTiltakFor
 import { emailIsConfigured, sendTiltakEmail } from '../../lib/graph-email';
 import { buildEmail, parseTiltakForm } from '../../lib/ki-tiltak-email';
 import { clientKey, withinRateLimit } from '../../lib/rate-limit';
-import { turnstileIsConfigured, verifyTurnstile } from '../../lib/turnstile';
+import { verifyTurnstile } from '../../lib/turnstile';
 
 export const prerender = false;
 
@@ -64,19 +64,21 @@ export const POST: APIRoute = async ({ request }) => {
     // Etter valideringen, slik at en åpenbart ugyldig kropp ikke koster en
     // rundtur til Cloudflare. Tokenet er engangs, så klienten henter et nytt
     // ved neste forsøk.
-    if (!(await verifyTurnstile(readToken(body), clientKey(request)))) {
+    const turnstile = await verifyTurnstile(
+      readToken(body),
+      clientKey(request),
+      new URL(request.url).hostname,
+    );
+    if (turnstile === 'not_configured') {
+      return jsonResponse({ error: 'turnstile_not_configured' }, 503);
+    }
+    if (turnstile === 'rejected') {
       return jsonResponse({ error: 'turnstile_failed' }, 403);
     }
 
     if (!emailIsConfigured) {
       console.error('[ki-tiltak] innsending mottatt, men e-post er ikke konfigurert');
       return jsonResponse({ error: 'not_configured' }, 503);
-    }
-
-    if (!turnstileIsConfigured) {
-      // Verifiseringen slipper gjennom når nøklene mangler, slik at lokal dev
-      // virker. I drift er det en feil, og den skal være synlig i loggen.
-      console.error('[ki-tiltak] Turnstile er ikke konfigurert, innsending slapp gjennom ukontrollert');
     }
 
     const { subject, text } = buildEmail(form);

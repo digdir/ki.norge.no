@@ -26,19 +26,55 @@ export const turnstileIsConfigured = Boolean(SITE_KEY && SECRET_KEY);
 /** Site key er offentlig og sendes til nettleseren av ki-tiltak.astro. */
 export const turnstileSiteKey = SITE_KEY;
 
+/**
+ * Vertene skjemaet brukes på. Site key er den samme i tt02 og prod, så et token
+ * løst på en av dem er gyldig mot begge. Lista sjekkes mot hostname i svaret fra
+ * siteverify, som er der widgeten ble løst.
+ */
+const FORM_HOSTNAMES = new Set([
+  'ki.norge.no',
+  'ki.test.norge.no',
+  'ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev',
+  'ki-norge-frontend-tt02.digitaliseringsdirektoratet.workers.dev',
+]);
+
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+export type TurnstileResult = 'ok' | 'rejected' | 'not_configured';
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isFormHostname(solvedOn: unknown, requestHostname: string): boolean {
+  if (typeof solvedOn !== 'string') return false;
+  if (FORM_HOSTNAMES.has(solvedOn)) return true;
+  return LOCAL_HOSTNAMES.has(requestHostname) && solvedOn === requestHostname;
 }
 
 /**
  * Sjekker tokenet fra widgeten mot Cloudflare.
  *
+ * Mangler nøklene, avvises innsendingen. Unntaket er lokal utvikling, avgjort
+ * av vertsnavnet i forespørselen og ikke av en env-var som kan glemmes i drift.
+ *
  * Tokenet er engangs og varer i 300 sekunder. Klienten må derfor hente et nytt
  * ved neste forsøk, og skjemaet nullstiller widgeten når en innsending feiler.
  */
-export async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
-  if (!turnstileIsConfigured) return true;
-  if (token.length === 0) return false;
+export async function verifyTurnstile(
+  token: string,
+  ip: string,
+  requestHostname: string,
+): Promise<TurnstileResult> {
+  if (!turnstileIsConfigured) {
+    if (LOCAL_HOSTNAMES.has(requestHostname)) {
+      console.warn('[turnstile] ikke konfigurert, slipper gjennom på localhost');
+      return 'ok';
+    }
+    console.error('[turnstile] ikke konfigurert, innsending avvist');
+    return 'not_configured';
+  }
+  if (token.length === 0) return 'rejected';
 
   const body = new URLSearchParams({ secret: SECRET_KEY, response: token });
   if (ip !== 'ukjent') body.set('remoteip', ip);
@@ -51,23 +87,27 @@ export async function verifyTurnstile(token: string, ip: string): Promise<boolea
     });
     if (!response.ok) {
       console.error('[turnstile] siteverify svarte ikke ok', { status: response.status });
-      return false;
+      return 'rejected';
     }
 
     const data: unknown = await response.json();
-    if (!isObject(data)) return false;
+    if (!isObject(data)) return 'rejected';
 
     if (data.success !== true) {
       // Feilkodene kommer fra Cloudflare, ikke fra innsenderen, og sier noe om
       // oppsettet vårt. De logges, men sendes aldri videre til klienten.
       console.error('[turnstile] token avvist', { codes: data['error-codes'] });
-      return false;
+      return 'rejected';
     }
-    return true;
+    if (!isFormHostname(data.hostname, requestHostname)) {
+      console.error('[turnstile] token løst på en annen vert', { hostname: data.hostname });
+      return 'rejected';
+    }
+    return 'ok';
   } catch {
     // Nettverksfeil mot Cloudflare. Vi avviser heller enn å slippe gjennom:
     // dette er en sikkerhetskontroll, i motsetning til hastighetsgrensa.
     console.error('[turnstile] kunne ikke nå siteverify');
-    return false;
+    return 'rejected';
   }
 }
