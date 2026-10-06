@@ -152,7 +152,7 @@ Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 - CMS (prod): https://kinorgeportal.prod.dis-core.altinn.cloud/umbraco (Altinn dis-core)
 - CMS (tt02): https://kinorgeportal.tt02.dis-core.altinn.cloud/umbraco
 - Status: /status (krever ki_admin cookie)
-- Domene: ki.norge.no (Cloudflare Partial-zone på norge.no, DNS ikke satt opp ennå)
+- Domene: ki.norge.no (Cloudflare Partial-zone på norge.no, DNS satt opp)
 
 ## Teamet
 
