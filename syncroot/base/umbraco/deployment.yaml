@@ -19,12 +19,15 @@ spec:
         linkerd.io/inject: enabled
     spec:
       serviceAccountName: umbraco
-      # Imaget bestemmer brukeren (app, 1654). fsGroup gjør umbraco-data (Azure
-      # Disk) skrivbar for den, også filene root laget før. runAsUser og
-      # runAsNonRoot står ikke her ennå, så et eldre image som kjører som root,
-      # fortsatt starter ved en tilbakerulling. Always heller enn OnRootMismatch,
-      # så filer root lager under en tilbakerulling også blir rettet. Volumene er små.
+      # 1654 er app-brukeren i .NET-imaget. fsGroup gjør umbraco-data (Azure Disk)
+      # skrivbar for den, også filene root laget før. Krever image 72 eller nyere,
+      # eldre image kjører som root og starter ikke med dette. linkerd-containerne
+      # har egen runAsUser og overstyrer podnivået. Always heller enn
+      # OnRootMismatch, så hele volumet rettes ved hver start. Volumene er små.
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
         fsGroup: 1654
         fsGroupChangePolicy: Always
       nodeSelector:
