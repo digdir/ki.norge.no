@@ -1,1048 +1,8 @@
 [
   {
-    "id": "4008f11e-7165-4097-9cda-2d512583474a",
-    "navn": "#DataSaman",
-    "virksomhet": "ENTUR AS",
-    "orgnr": "917422575",
-    "fagomrade": "Trafikk og transport",
-    "beskrivelse": "Entur jobbar systematisk for å teste og utnytte moglegheitene som følgjer av forbetringar innan KI, både for interne produktivitetsforbetringar og for betre og meir effektive tenester som forbetrar kundeopplevingane.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "1184d9ae-4d94-4465-9472-0934062346dd",
-    "navn": "AI-Rad Companion Prostate MR",
-    "virksomhet": "VESTRE VIKEN HF",
-    "orgnr": "894166762",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "- Redusere tidsbruk\r\n- Støtteverktøy",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "005792aa-0eea-437d-ac27-30f7201ee081",
-    "navn": "Aktivitetsdata for vurdering og tilpasning",
-    "virksomhet": "KS-KOMMUNESEKTORENS ORGANISASJON",
-    "orgnr": "971032146",
-    "fagomrade": "Forskning",
-    "beskrivelse": "Aktivitetsdata for vurdering og tilpasning (AVT) er et FoU-prosjekt fra 2017 som KS eier. Prosjektet utforsket bruk av aktivitetsdata til læringsanalyse. Det ble valgt inn i Datatilsynets sandkasse for ansvarlig KI i 2021, og har fått stor oppmerksomhet for sine mål og delte erfaringer. AVT-prosjektet er avsluttet i sin tidligere form. Det er nå erstattet av \"Bruk-piloten\", som utforsker bruksbaserte betalingsmodeller.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a68c82ca-ff11-40ee-84a5-c35d2b22f377",
-    "navn": "ART-plan",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Hvert år får rundt 2200 pasienter i Bergen stråleterapi som en del av kreftbehandlingen. For å minimere bivirkningene av strålingen er det avgjørende at dedikert programvare har informasjon om hver pasients anatomiske forhold. Derfor må ikke bare svulsten, men også friskt vev, defineres på CT-bilder – en prosess som er både tid- og ressurskrevende. ART-plan fra Therapancea utfører denne oppgaven på få minutter.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "19b0ed65-0d40-4d54-b3a0-2774737245b0",
-    "navn": "Artsoraklet",
-    "virksomhet": "ARTSDATABANKEN",
-    "orgnr": "919666102",
-    "fagomrade": "Natur, klima og miljø",
-    "beskrivelse": "Artsdatabanken deltar i europeiske samarbeid om bildegjenkjenning av arter og tilbyr dette til allmennheten via appen Artsorakelet. Samme teknologi kan benyttes som støtteverktøy til å kvalitetssikre funndata. Målet er å øke kvaliteten på virksomhetens tjenester.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "9a15d537-617e-478f-a8e5-64e243387fb2",
-    "navn": "AuroNote",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Effektivisere skriving av møtenotater",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "86916c15-201b-4806-b942-4bd56ed26c39",
-    "navn": "Automatisk deteksjon av scankvalitet",
-    "virksomhet": "ST. OLAVS HOSPITAL HF",
-    "orgnr": "883974832",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Tidsbesparelse av manuelt kvalitetssikringsarbeid på lab; tidsbesparelse for leger som må sende snitt for re-scanning",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "69a4b68b-f159-42b2-a5a7-dfdc00eae1a9",
-    "navn": "Automatisk gjenkjenning av feilkoding i medisinske koder med KI",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Prosjektet skal forbedre kvaliteten på medisinsk koding ved å utvikle et KI-verktøy som kan analysere epikriser og polikliniske notater fra DIPS Arena. Algoritmen bygger på dyplæring og trenes til å predikere ICD-10 diagnosekoder basert på epikrisetekster. Ved å hente ut 10.000 slike dokumenter og koble dem mot diagnosekoder, kan algoritmen identifisere avvik mellom tekst og koder og foreslå riktige medisinske koder. Helsepersonell vil deretter vurdere eventuelle endringer. Dette bidrar til mer presis registrering, bedre grunnlag for forskning, og riktig økonomisk kompensasjon for sykehuset. Dataene vil så langt det er mulig deidentifiseres, men NPR-ID og oppholdsdata vil være tilgjengelige for kobling mellom epikriser og DIPS-data. All analyse foregår på et sikkert lagringsområde satt opp av Helse Vest IKT.",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "6d51bace-ab88-4076-a8b5-0547e6a1ea1a",
-    "navn": "AVIEW LCS",
-    "virksomhet": "AKERSHUS UNIVERSITETSSYKEHUS HF",
-    "orgnr": "983971636",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Raskere og mer effektiv arbeidsflyt. Rask diagnostikk gir raskere pasient behandling. Raskere læringskurve for nyutdannede radiologer. Utfordrende elementer å måle konkret i kr/øre",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "0187a04b-4d17-4de6-8123-4b860977241c",
-    "navn": "bemanningsplanlegging",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Øke presisjon på bemanningsplan",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "bf880163-27da-4ef8-947c-8b5e4ab6b586",
-    "navn": "Biobeat",
-    "virksomhet": "HELSE MØRE OG ROMSDAL HF",
-    "orgnr": "997005562",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "e49986aa-66de-45fe-9bcf-7dd377c3408a",
-    "navn": "BioView Duet-3",
-    "virksomhet": "ST. OLAVS HOSPITAL HF",
-    "orgnr": "883974832",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Gjenkjenning og klassifisering av celler på prøver fremstilt med fluorescens in-situ hybridisering, Programvaren effektiviserer prosessen noe med at den presorterer celler. Programvaren vil kunne gi en statistikk av prosentandel av de ferdigsorterte cellene. Den vil også kunne vise en og en celle som gjør vurderingen enklere enn å mikroskopere manuelt. En annen fordel er at vi har et digitalt bilde til arkivering.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "b28ad059-a9b5-477b-ab5b-b6e56f309910",
-    "navn": "BoneView 1",
-    "virksomhet": [
-      "HELSE MØRE OG ROMSDAL HF",
-      "HELSE NORD-TRØNDELAG HF",
-      "ST. OLAVS HOSPITAL HF"
-    ],
-    "orgnr": [
-      "997005562",
-      "983974791",
-      "883974832"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Bidrar til kortere ventetid både for pasienter og for helsepersonell.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "9946d0f2-5801-42b2-9967-227de574c559",
-    "navn": "BoneView 2",
-    "virksomhet": [
-      "AKERSHUS UNIVERSITETSSYKEHUS HF",
-      "DIAKONHJEMMET SYKEHUS AS",
-      "FINNMARKSSYKEHUSET HF",
-      "HELSE BERGEN HF",
-      "HELSE FONNA HF",
-      "HELSE FØRDE HF",
-      "HELSE MØRE OG ROMSDAL HF",
-      "HELSE NORD-TRØNDELAG HF",
-      "HELSE STAVANGER HF",
-      "LOVISENBERG DIAKONALE SYKEHUS AS",
-      "NORDLANDSSYKEHUSET HF",
-      "OSLO UNIVERSITETSSYKEHUS HF",
-      "ST. OLAVS HOSPITAL HF",
-      "SUNNAAS SYKEHUS HF",
-      "SYKEHUSET I VESTFOLD HF",
-      "SYKEHUSET INNLANDET HF",
-      "SYKEHUSET ØSTFOLD HF",
-      "SYKEHUSET TELEMARK HF",
-      "UNIVERSITETSSYKEHUSET NORD-NORGE HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "983971636",
-      "982791952",
-      "983974880",
-      "983974724",
-      "983974694",
-      "983974732",
-      "997005562",
-      "983974791",
-      "983974678",
-      "965985166",
-      "983974910",
-      "993467049",
-      "883974832",
-      "883971752",
-      "983975259",
-      "983971709",
-      "983971768",
-      "983975267",
-      "983974899",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "bd4a03d0-6bbc-4d80-9e73-35ab5f0283be",
-    "navn": "BoneView 3",
-    "virksomhet": [
-      "AKERSHUS UNIVERSITETSSYKEHUS HF",
-      "OSLO UNIVERSITETSSYKEHUS HF",
-      "SYKEHUSET I VESTFOLD HF",
-      "SYKEHUSET INNLANDET HF",
-      "SYKEHUSET ØSTFOLD HF",
-      "SYKEHUSET TELEMARK HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "983971636",
-      "993467049",
-      "983975259",
-      "983971709",
-      "983971768",
-      "983975267",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Understøtte klinisk drift ; Raskere vurderinger ; -Frigjøre helsepersonell\r\n- Redusere ventetid\r\n- Øke kapasitet ; Få mer kunnskap om KI, redusere svartid, færre avbrytelser på vakt",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "efadd6f7-eeb8-4fc3-b3f6-65e60cea77be",
-    "navn": "BoneView 4",
-    "virksomhet": [
-      "HELSE BERGEN HF",
-      "HELSE FONNA HF",
-      "HELSE FØRDE HF",
-      "HELSE STAVANGER HF"
-    ],
-    "orgnr": [
-      "983974724",
-      "983974694",
-      "983974732",
-      "983974678"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Etter å ha køyrt ein mini-konkurranse, inngår Helse Vest RHF no ein kontrakt med Philips som har KI-applikasjonen Boneview. Dette verktøyet skal bidra i det viktige i arbeidet med å redusere ventetida for pasientane.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "0bb7bc93-8e60-486e-891c-a0e2e1d51886",
-    "navn": "BoneXpert 1",
-    "virksomhet": "HELSE MØRE OG ROMSDAL HF",
-    "orgnr": "997005562",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Vurdere treffsikkerhet slutthøydeestimat ved hjelp av KI-verktøy, kvalitetssikring",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "c26ab39e-c525-4efe-b9c2-3245d38564ca",
-    "navn": "BoneXpert 2",
-    "virksomhet": "HELSE NORD RHF",
-    "orgnr": "883658752",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "5eb9dff0-fb16-42d7-be40-5677ea776528",
-    "navn": "BoneXpert 3",
-    "virksomhet": "HELSE SØR-ØST RHF",
-    "orgnr": "991324968",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Vurdere treffsikkerhet slutthøydeestimat v.hj.a. KI-verktøy, kvalitetssikring",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "fc58d480-4eaf-45a4-8c30-f9443ba52996",
-    "navn": "Braive",
-    "virksomhet": "LOVISENBERG DIAKONALE SYKEHUS AS",
-    "orgnr": "965985166",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Redusere tiden klinikere bruker på journaloppgaver",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "a8756452-a249-49d8-9b0d-c1b122d08410",
-    "navn": "Bruk av KI",
-    "virksomhet": "NASJONALT ORGAN FOR KVALITET I UTDANNINGEN NOKUT",
-    "orgnr": "985042667",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Undersøke hvordan KI kan brukes i faglig tilsyn i høyere yrkesfaglig utdanning.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "ec1b70c8-ae7c-4d44-89d9-7967b36d3613",
-    "navn": "Bruk av KI som verktøy for økt effektivisering ved besvaring av spørsmål til Trygg Mammamedisin",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Prosjektet skal ta i bruk KI/Copilot Studio for å effektivisere svarprosessen i TMM, en tjeneste for gravide og ammende med spørsmål om legemiddelbruk. KI skal generere utkast til svar basert på tidligere spørsmål lagret i en database, noe som kan redusere svartid, styrke kvaliteten og frigjøre ressurser. Løsningen utvikles i samarbeid med Helse Vest IKT og skal etter prosjektet tas i bruk som fast verktøy i tjenesten.",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "c7002b05-7411-4030-a72c-7e992cf8be85",
-    "navn": "Casegeneratoren",
-    "virksomhet": "BARNE-, UNGDOMS- OG FAMILIEDIREKTORATET",
-    "orgnr": "986128433",
-    "fagomrade": "Familie og barn",
-    "beskrivelse": "En dialogbasert treningsplattform der offentlig ansatte kan øve på krevende samtaler. Dialogtreneren bruker kunstig intelligens til å simulere samtaler med fiktive voldsutsatte.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "744974c7-8220-4cd1-92dd-7e051165b597",
-    "navn": "CellaVision 1",
-    "virksomhet": "UNIVERSITETSSYKEHUSET NORD-NORGE HF",
-    "orgnr": "983974899",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "1bf41a8d-afd3-4749-8499-47a4ddb0041c",
-    "navn": "CellaVision 2",
-    "virksomhet": "SYKEHUSET I VESTFOLD HF",
-    "orgnr": "983975259",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "7735e4cf-55fd-4dfd-880b-6a43fc044921",
-    "navn": "Cercare Perfusion",
-    "virksomhet": "OSLO UNIVERSITETSSYKEHUS HF",
-    "orgnr": "993467049",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Understøtte klinisk drift",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "f8e42ce2-2e18-40c9-a56e-bd99d5d35699",
-    "navn": "Chatboten Rosa",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Vi har utviklet en app basert på KI for å gi pasienter et informasjonsverktøy om arvelig bryst- og eggstokkreft, som de kan bruke hvor som helst og når som helst. KI er i dette prosjektet knyttet opp møt å forstå pasientenes spørsmål og plukke det rette, forutdefinerte svaret, fra en database. Dermed vil ikke appen være i stand til å formulere egne svar.\r\nSvarene er også konstruert slik at bruker skal lett skjønne dersom Rosa plukker ut et feil svar. Brukerne kan også manøvrere seg via “klikking” i appen.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "eee9a201-04ee-4326-afd3-6d124fd87f92",
-    "navn": "ChestEye Quality",
-    "virksomhet": [
-      "SYKEHUSET I VESTFOLD HF",
-      "SYKEHUSET ØSTFOLD HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "983975259",
-      "983971768",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Gi beslutningstøtte til radiologi, kvalitetsforbedring ; -Frigjøre helsepersonell\r\n- Redusere ventetid\r\n- Triagering",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "27828644-4b6f-4d55-a4d9-28ff4c0716c1",
-    "navn": "ChestLink",
-    "virksomhet": [
-      "SYKEHUSET I VESTFOLD HF",
-      "SYKEHUSET ØSTFOLD HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "983975259",
-      "983971768",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Raskere presvar på thorax screening, (NAS Råde) ; -Frigjøre helsepersonell\r\n- Redusere ventetid\r\n- Øke kapasitet",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "789318d5-4a27-4a8f-a673-6027256cdd21",
-    "navn": "Contextflow ADVANCE Chest CT",
-    "virksomhet": [
-      "OSLO UNIVERSITETSSYKEHUS HF",
-      "SYKEHUSET ØSTFOLD HF"
-    ],
-    "orgnr": [
-      "993467049",
-      "983971768"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Understøtte klinisk drift ; Gi beslutningstøtte til radiologi, kvalitetsforbedring",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "7a02f1d5-e54a-4901-b167-d91d4929f51a",
-    "navn": "Copilot Studio",
-    "virksomhet": "FINANSTILSYNET",
-    "orgnr": "840747972",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Arbeidet med Copilot Studio er i startfasen. Vi har utviklet to mindre PoCer, samt en aktiv agent tilknyttet arbeidet med følsomhetsetiketter. Målet er bedre beslutningsstøtte, bedre samhandling og effektivisering.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "b8f36bd8-5b57-46d9-8955-5bc42f36264e",
-    "navn": "Corsano Cardiowatch 287",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "kontinuerlig måling av vitalia, effektivisering av NEWS skåring, re-triagering",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "406dcdde-e48b-4786-a4e3-6ca029817c51",
-    "navn": "Datadrevet Statsbygg",
-    "virksomhet": "STATSBYGG",
-    "orgnr": "971278374",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Statsbygg vil sikre riktig og god dataflyt mellom aktørene i verdikjeden og effektivisere egen og andres virksomhet og etablere kompetanse for og innføre KI og maskinlæring. Satsningen innebærer å\n- utvikle arkitektur for Statsbyggs dataplattform\n- bygge kapabiliteter innen informasjonsforvaltning (data stewards)\n- utrede KI-muligheter og gjennomføre eksperimenter\n- etablere en felles dataplattform tilrettelagt for intern datadeling\n- utnytte data riktig og ha kvalitetssikrede prosesser for bruk av data\n- tilrettelegge for deling om sambruk av data internt og med eksterne aktører.\nPlanlagte gevinster er økt effektivisering og kvalitet i verdikjeden samt store besparelser innen fakturakontroll- og oppfølging.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "b5ab60bd-b9fa-4c42-9984-061762b748c4",
-    "navn": "Deepinsight Hero",
-    "virksomhet": "LOVISENBERG DIAKONALE SYKEHUS AS",
-    "orgnr": "965985166",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Forbedre planlegging av operasjonsstuer",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "8821cc63-c2ab-4180-b4d6-7ba6a8894216",
-    "navn": "DFØ-HR",
-    "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
-    "orgnr": "986252932",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Vi jobber kontinuerlig med å automatisere lønnsproduksjonen. Vi utvikler tjenesten DFØ-HR, og tilpasser løsningen til de forskjellige kundesegmentene. Dette omfatter alt fra å automatisere og forenkle for de minste og mest standardiserte kundene, til å tilpasse løsningen for de største og mest avanserte kundene våre.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "e1b95423-b2ae-47e3-889b-0250a42d22d7",
-    "navn": "Digitalisere ansattreisen",
-    "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
-    "orgnr": "986252932",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Vi jobber med å digitalisere og automatisere ansattreisen helt fra vi planlegger å ansette eller leie inn personell, til å administrere roller og tilganger til personens reise gjennom sitt ansattforhold i DFØ til vedkommende slutter hos oss.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "867c08d7-8aca-4859-9130-c93381f4ecd9",
-    "navn": "Digitalisere tilsyn",
-    "virksomhet": "HÅ KOMMUNE",
-    "orgnr": "964969590",
-    "fagomrade": "Familie og barn",
-    "beskrivelse": "En digital løsning kan gjøre tilsynet av barnehager bedre på tre områder:\n 1. Mer systematisk innhenting og bruk av informasjon.\n 2. Bedre og raskere risikovurdering.\n 3. Mer effektiv bruk av ressurser og kompetanse.\n I dag bruker vi manuelle metoder og regneark. Vi vil utvikle et system som samler, strukturerer, lagrer, bearbeider og analyserer data, og automatiserer oppgaver blant annet ved hjelp av KI. Løsningen skal utvikles i samarbeid med tre andre kommuner. Kompetansen vi får kan være nyttig for andre deler av den kommunale forvaltningen og for andre kommuner.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "9c62128e-4aa8-4fca-ab9d-b1d02fddaa75",
-    "navn": "DIPS",
-    "virksomhet": [
-      "HELSE BERGEN HF",
-      "HELSE FONNA HF",
-      "HELSE FØRDE HF",
-      "HELSE STAVANGER HF"
-    ],
-    "orgnr": [
-      "983974724",
-      "983974694",
-      "983974732",
-      "983974678"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "31c6f91c-d1b4-4fd8-94ab-0d363765614f",
-    "navn": "Dragon medical one 1",
-    "virksomhet": "HELSE NORD RHF",
-    "orgnr": "883658752",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "cc8e00c8-5cb5-49c0-bd97-887cb97ca650",
-    "navn": "Dragon medical one 2",
-    "virksomhet": [
-      "LOVISENBERG DIAKONALE SYKEHUS AS",
-      "SYKEHUSET INNLANDET HF"
-    ],
-    "orgnr": [
-      "965985166",
-      "983971709"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Reduserer behovet for skrivetjenester og  tiden klinikere bruker på å skrive selv",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "b7eb397c-fb0f-40da-a56d-e8492cee63d2",
-    "navn": "Dragon medical one 3",
-    "virksomhet": "HELSE VEST RHF",
-    "orgnr": "983658725",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "3404b846-5dd7-4ff1-94cf-4df89ee0cfa4",
-    "navn": "Effektiv ressursbruk gjennom forbedring og fornying",
-    "virksomhet": "HAVINDUSTRITILSYNET",
-    "orgnr": "986174613",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Som en del av vår kontinuerlige forbedring utvikles teknologi slik at det bidrar til effektiv ressursbruk og økt brukervennlighet. Styringsportalen er et eksempel på slik utvikling.\nKunstig intelligens (KI) er også et satsingsområde i Havindustritilsynet. Vi har tatt i bruk Microsofts Copilot, og vil bruke den til å forbedre arbeidsprosessene våre. Samtidig må vi sikre personvern og unngå deling av sårbare data. Vi har etablert en prosjektgruppe som skal se nærmere på disse utfordringene.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a5e4d369-b83e-4e6d-99a6-f33e0d1885d1",
-    "navn": "Effektivisering av controller-oppgaver",
-    "virksomhet": "NORSK FILMINSTITUTT",
-    "orgnr": "892211442",
-    "fagomrade": "Kultur, idrett og fritid",
-    "beskrivelse": "Prosjektet skal gjennom automatisering, digitalisering og bruk av kunstig intelligens effektivisere og forbedre administrative og saksbehandlingsrelaterte støtteoppgaver.\n Automatisert dataflyt mellom saksbehandlingsverktøyet og Unit4 erstatter manuelt arbeid.\n KI-assistent sjekker om innrapporterte data oppfyller nødvendige krav, og varsler saksbehandler og controller om mangler.\n KI-assistent søker i prosjekter som har fått støtte tidligere og identifiserer og anbefaler sammenkobling av prosjekter som ser ut til å høre sammen.\n KI-verktøy for behandling av innsynsbegjæringer identifiserer og samler alle relevante dokumenter fra arkivet. Systemet foreslår også sladding av personopplysninger og forretningssensitiv informasjon i tråd med gjeldende regelverk, og basert på historisk praksis.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "ecfe2ed1-b28f-4b42-9bb4-78ee7e95e9d2",
-    "navn": "Ethos",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Online adaptiv stråleterapi med Ethos bruker KI-trente algoritmer til å tilpasse behandlingen til pasientens anatomi i sanntid, før hver behandling. Systemet genererer automatisk en ny behandlingsplan basert på dagens bilde, og gjør det mulig å justere for endringer som svulstbevegelse eller organskjevhet. KI gjør prosessen rask og presis, og gir bedre målretting og potensielt færre bivirkninger.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "1bb1e3a3-d8dd-4eeb-a166-cc4061e90167",
-    "navn": "EyeArt AI Eye Screening System",
-    "virksomhet": [
-      "OSLO UNIVERSITETSSYKEHUS HF",
-      "SYKEHUSET I VESTFOLD HF",
-      "SYKEHUSET INNLANDET HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "993467049",
-      "983975259",
-      "983971709",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Vil minske synstap med KI-løsning - Helse Sør-Øst RHF ; - Triagering av øyebunnsbilder\r\n-Tidlig deteksjon (diabetes/AMD)",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "fa7e8763-174e-489a-86be-3177dab0b26c",
-    "navn": "Fellesløft for KI-standarder",
-    "virksomhet": "HAVINDUSTRITILSYNET",
-    "orgnr": "986174613",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Det pågår et omfattende arbeid med å standardisere kunstig intelligens, både nasjonalt og internasjonalt. Havindustritilsynet deltar aktivt i dette standardiseringsarbeidet. Havindustritilsynet har sendt ut et brev til næringen hvor det var samlet sentral informasjon om oppfølging av KI og sikkerhet. Dette fordi Havindustritilsynet ønsker å bidra med faglig veiledning og informasjon om oppfølging av kunstig intelligens",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "cbd78aeb-0ee2-4c24-a834-9c2e89be4999",
-    "navn": "Fellesløsning generativ KI",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
-    "orgnr": "991825827",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Fellesløsningen for generativ KI skal gi offentlig sektor et felles fundament for å ta i bruk KI raskt, trygt og ansvarlig. Målgruppen er statlige og kommunale virksomheter som vil forbedre tjenester, arbeidsprosesser og samhandling ved hjelp av KI. Digitaliseringsdirektoratet etablerer en felles plattform som gir tilgang til språkmodeller, data og gjenbrukbare KI-komponenter, med innebygd sikkerhet, styring, logging og kostnadskontroll. Målet er å senke terskelen for innovasjon, redusere dobbeltarbeid og gi hele offentlig sektor større handlingsrom til å utvikle bedre og mer sammenhengende tjenester for innbyggere og næringsliv.",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [
-      "Løsning i produksjon"
-    ],
-    "kiType": [
-      "Generativ KI",
-      "Agentisk KI"
-    ],
-    "kontaktinfo": "frank.robert.sveinsbo@digdir.no"
-  },
-  {
-    "id": "1a77957c-1f5c-4a17-a873-fe2428baced1",
-    "navn": "Finanstilsynet GPT",
-    "virksomhet": "FINANSTILSYNET",
-    "orgnr": "840747972",
-    "fagomrade": "Økonomi, finans og forsikring",
-    "beskrivelse": "Oppsett og utvikling av Finanstilsynets egen GPT-løsning i Azure. Løsningen brukes i administrative oppgaver og i tilsynsarbeidet, særlig for å jobbe med ustrukturerte data og dokumenter. Målet er å gi bedre beslutningsstøtte",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "85fb76bc-2b1d-4f65-95ec-36e2df4c948c",
-    "navn": "Flytte løsninger til sky",
-    "virksomhet": "UTENRIKSDEPARTEMENTET",
-    "orgnr": "972417920",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Flytte onprem SharePoint til SharePoint online. Enhet for digitale tjenester.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a9fd7183-d8fa-4305-b746-dd8d1dab7e7d",
-    "navn": "Forbedret og forenklet søknadsprosess",
-    "virksomhet": "NORSK FILMINSTITUTT",
-    "orgnr": "892211442",
-    "fagomrade": "Kultur, idrett og fritid",
-    "beskrivelse": "Hovedprodukt 1 er en søknadsportal med innebygd kunstig intelligens som skal forenkle og effektivisere søknadsprosessen. Portalen har en veiledende chatbot som bistår brukerne med å avklare spørsmål og sikre at søknaden er korrekt og komplett før innsending. For å ivareta personvern og sikkerhet i tråd med GDPR, vil systemet ikke lagre data som søkeren legger inn underveis i søknadsprosessen. Informasjonen brukes kun midlertidig for å gi veiledning og tilbakemelding og slettes umiddelbart etter bruk. Dette sikrer at opplysningene ikke blir en del av vurderingsgrunnlaget for søknaden, samtidig som søkerens personlige data beskyttes på en forsvarlig måte.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "951eb357-4d26-4672-b7d4-c0d4ae6c24fb",
-    "navn": "Generativ KI for utarbeiding av epikriser ved psykisk helsevern og tverrfaglig spesialisert rusbehandling",
-    "virksomhet": "HELSE STAVANGER HF",
-    "orgnr": "983974678",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "I tverrfaglig spesialisert rusbehandling og psykisk helsevern bruker ansatte mye tid til dokumentasjon og administrative oppgaver som fortrenger pasientkontakt, undersøkelse og behandling av pasientene. Det er særlig tidkrevende å skrive epikriser fordi det krever integrasjon av psykisk, psykososial og somatisk informasjon fra lange og komplekse behandlingsforløp. Klinikere rapporterer også dokumentasjonskravene som belastende. Prosjektet utarbeider og evaluerer en prototype som automatisk sammenfatter ustrukturert og strukturert journaldata til epikriser ved bruk av eksisterende generative KI-modeller. Dette skal frigjøre tid til pasientbehandling og redusere dokumentasjonsbyrden for klinikere. Prosjektet er et samarbeid mellom Helse Stavanger, Helse Førde, Helse Vest IKT og DIPS.",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "f53be2b7-0eb2-4492-9f01-9e4e0add0bd0",
-    "navn": "Genius Digital Diagnostics System 1",
-    "virksomhet": "ST. OLAVS HOSPITAL HF",
-    "orgnr": "883974832",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "KI-løsningen analyserer digitaliserte cytologiske preparater (celleprøver fra livmorhals), og velger ut representative celler eller grupper av celler, i stedet for at jobben må gjøres manuelt i mikroskop. De cellene som KI-løsningen har plukket ut, kan bioingeniører og patologer se på skjerm. De stiller diagnose ut fra de utvalgte cellene. \nDette reduserer tiden det tar å undersøke et cytologisk preparat med omtrent 50% i gjennomsnitt. \nSiden KI-løsningen ikke blir sliten, forventer vi bedre pasientsikkerhet. \nDigitaliseringen gjør det mye raskere å hente fram tidligere prøver fra pasienten.\nÅ bruke skjerm i stedet for mikroskop, er bedre ergonomisk. \nPersonellet opplever at løsningen er brukervennlig, sikker og har forbedret arbeidsforholdene.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "75c15812-33c0-4f32-a523-372ae655dab5",
-    "navn": "Genius Digital Diagnostics System 2",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Vi innførte en maskin som screener/scanner livmorhalsprøver, der en AI basert algoritme velger ut celler som presenteres digitalt i et bildegalleri. Cellene vil så vurderes av bioingeniører og patologer for diagnose. Maskinene er knyttet til en virtuell server og bildene overføres automatisk til et bildegalleri som vil vises på egne skjermer (Review stations), noe ala digital patologi.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "dfd317e5-65bf-4432-acce-71a8802a5edc",
-    "navn": "GitHub Copilot",
-    "virksomhet": "FINANSTILSYNET",
-    "orgnr": "840747972",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "GitHub Copilot er en kodeassisten integrert i kodeeditorer, eks. Visual Studio Code. Utviklere i Finanstilsynets bruker den til å kode og teste. Det inkluderer blant annet forslag til linjer eller blokker med kode, generere enklere standardkode og repetitive kodeoppgaver, code review og debugging.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "7ff42451-9a52-47a3-a494-1dd34e804340",
-    "navn": "HeartFlow FFRCT",
-    "virksomhet": "UNIVERSITETSSYKEHUSET NORD-NORGE HF",
-    "orgnr": "983974899",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "6966e163-c8e7-40bb-ba1f-239e4b79d346",
-    "navn": "Hodetraume",
-    "virksomhet": "OSLO UNIVERSITETSSYKEHUS HF",
-    "orgnr": "993467049",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Understøtte klinisk drift",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "a51fcd81-ea8f-4d31-ba92-d6a5edc05a51",
-    "navn": "HR-Henry",
-    "virksomhet": [
-      "HELSE MØRE OG ROMSDAL HF",
-      "HELSE NORD-TRØNDELAG HF",
-      "ST. OLAVS HOSPITAL HF"
-    ],
-    "orgnr": [
-      "997005562",
-      "983974791",
-      "883974832"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Frigjøre tid for ledere og HR-ansatte, og tydelige svar jamfør behov hos bruker.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "17c18fcb-4265-4da4-bf36-b396f2a87419",
-    "navn": "IcoBrain MS",
-    "virksomhet": "VESTRE VIKEN HF",
-    "orgnr": "894166762",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "-Frigjøre helsepersonell\r\n- Redusere ventetid\r\n- Øke kapasitet",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "c2b07c76-afd4-4338-add7-3d2cc9aeae63",
-    "navn": "Innføre datakatalog og bruk av dataplattformer",
-    "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
-    "orgnr": "986252932",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "På tvers av alle fagområdene i DFØ jobber vi med å innføre datakatalog og bruk av dataplattformer. Det gjør vi blant annet for å kunne nyttiggjøre oss KI bedre og for å kunne gi kunder og brukere bedre tilgang på egne og åpne data.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "2dce7446-4eeb-41f9-8aff-381d01b7684f",
-    "navn": "Innovere gjennom data og KI.",
-    "virksomhet": "AVINOR AS",
-    "orgnr": "985198292",
-    "fagomrade": "Trafikk og transport",
-    "beskrivelse": "Avinor skal arbeide data -og innsiktsdrevet for å øke produktivitet og forbedre operasjonell planlegging. Prosjekter pågår for å identifisere og gjennomføre konkrete brukstilfeller for KI samt økt utnyttelse av KI i det daglige arbeidet.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "598e498e-7ba9-43b6-b53d-a0b01ba212b1",
-    "navn": "Innrapportering HAL",
-    "virksomhet": "UTENRIKSDEPARTEMENTET",
-    "orgnr": "972417920",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Ferdigstille innrapporteringsløsningen med blant annet kunstig intelligens. Formålet er å redusere teknisk gjeld.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "ee046e19-3361-4ec1-88d3-8d8b67bd7f59",
-    "navn": "KF Tsetlin, forklarbar KI for offentlig sektor",
-    "virksomhet": "Kommuneforlaget AS",
-    "orgnr": "910976222",
-    "fagomrade": "Demokrati og styresett",
-    "beskrivelse": "Når KI-en følger logiske steg, som er nødvendig i en rettferdig, demokratisk og transparent offentlig forvaltning, kan vi vise hvordan KI har kommet frem til en konklusjon. Dette er mulig med Tsetlin-maskiner, som er norsk KI utviklet av UiA/CAIR. KF samarbeider med UiA/CAIR om å gjøre dette enkelt tilgjengelig som digitale offentlige goder (digital public goods). Det er altså fri, gratis programvare som alle kan bruke. De er tilgjengelige fra KI-plattformen Langflow, en lav-kode og fri programvare basert på Python-programmeringsspråket. [Hent KF Tsetlin her](https://bitbucket.org/kf-no/workspace/projects/KFLANGFLOW)",
-    "fase": "I drift",
-    "leveranse": [
-      "PoC",
-      "MVP",
-      "Pilot",
-      "Løsning i produksjon"
-    ],
-    "kiType": [
-      "Generativ KI",
-      "Prediktiv KI",
-      "Agentisk KI",
-      "Språkteknologi",
-      "Anbefalingssystemer",
-      "Annet"
-    ],
-    "kontaktinfo": "haakon.meland.eriksen@kf.no",
-    "kiTypeAnnet": "Klassifisering"
-  },
-  {
-    "id": "647d928c-0302-4235-af25-98d46f377462",
-    "navn": "KI for automatisering i postmottak",
-    "virksomhet": "NORGES VASSDRAGS- OG ENERGIDIREKTORAT (NVE)",
-    "orgnr": "970205039",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Anskaffelse. Avtale signeres før årsskiftet.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "3ffa6697-379f-4ded-8161-efcf67a515f2",
-    "navn": "KI i anskaffelser",
-    "virksomhet": "DEPARTEMENTENES SIKKERHETS- OG SERVICEORGANISASJON (DSS)",
-    "orgnr": "974761424",
-    "fagomrade": "Økonomi, finans og forsikring",
-    "beskrivelse": "Prosjektet har utviklet en prototype (minimum viable product) av et verktøy . Verktøyet er delvis testet, men det er behov for å teste mer.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "7fe1364a-d008-4f3e-9165-2d83a3dc2280",
-    "navn": "KI i Nasjonal arkitektur",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
-    "orgnr": "991825827",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Tiltaket bruker KI til å gjøre Nasjonal arkitektur til et praktisk verktøy for alle som digitaliserer i offentlig sektor. Kapabiliteter for arkitektur, fellesressurser, fellesløsninger og datasett fra data.norge.no benyttes som kunnskapskilder. Brukere kan beskrive behovet sitt med egne ord og få konkret hjelp: hvilke arkitekturvalg som er relevante, hvilke fellesløsninger, standarder og data som kan gjenbrukes, og hva som eventuelt mangler. Beslutningstakere får innsikt til å prioritere riktig og unngå kostbare duplikater. Tjenesteutviklere og arkitekter får en verktøykasse og et felles vokabular som gjør det raskere å bygge sammenhengende tjenester. KI gir beslutningsstøtte, ikke beslutninger. KI finner relevante ressurser og data, analyserer gap og tilpasser svar til behovet.",
-    "fase": "Gjennomføring",
-    "leveranse": [
-      "MVP"
-    ],
-    "kiType": [
-      "Generativ KI"
-    ],
-    "kontaktinfo": "nasjonalarkitektur@digdir.no"
-  },
-  {
-    "id": "0a31860a-b9ce-4c14-9d0b-52d129f3db2a",
-    "navn": "KI i NAV",
-    "virksomhet": "ARBEIDS- OG VELFERDSETATEN",
-    "orgnr": "889640782",
-    "fagomrade": "Arbeid",
-    "beskrivelse": "I 2024 ble det gjennomført tre tverrfaglige KI-eksperimenter:\n- «Trygg tekst» i produktområde arbeid.\n- Veilederassistenten «Bob» hos NKS\n- Pilot for Microsoft M365 Copilot. Læring fra disse er tatt med inn i planleggingen for 2025. Formålet er å effektivisere og legge om og forenkle arbeidsrutiner.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "0b3887bc-84a6-42b3-a13c-f06e519cb127",
-    "navn": "KI i skogsforvaltningen",
-    "virksomhet": "LANDBRUKSDIREKTORATET",
-    "orgnr": "981544315",
-    "fagomrade": "Natur, klima og miljø",
-    "beskrivelse": "Droner og kunstig intelligens (KI) kan gjøre skogforvaltningen mer effektiv. Landbruksdirektoratet har testet droner gjennom SmartForest-prosjektet for å kartlegge skog. I testen ble droner og KI brukt til å registrere skogplanter på 30 ulike områder. Tidsbruken for telling ble halvert sammenlignet med manuell kartlegging, men teknologien oppdaget færre enn halvparten av plantene. Direktoratet vil fortsette å teste og videreutvikle teknologien i samarbeid med SmartForest-partnerne. Målet er å finne gode måter å bruke ny teknologi og KI i skogforvaltningen",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "2e9baf99-0b7a-4259-8474-16c14486fcb4",
-    "navn": "KI-assistert saksbehandling",
-    "virksomhet": "NORSK FILMINSTITUTT",
-    "orgnr": "892211442",
-    "fagomrade": "Kultur, idrett og fritid",
-    "beskrivelse": "Hovedprodukt 2 er en integrert KI-assistent for saksbehandling som skal støtte saksbehandlere i alle faser av prosessen. KI-assistenten vil integreres direkte i eksisterende saksbehandlingssystemer. Assistenten vil kunne\n- vurdere søknader\n- utføre avanserte søk i vedlegg og trekke ut relevante opplysninger\n- generere presise sammendrag av innsendte dokumenter\n- generere tekstforslag basert på saksbehandlerens skjønnsmessige vurderinger\nMålet er økt effektivitet og omlegging og forenkling av arbeidsrutiner. Assistenten bidrar til en smidigere prosess, reduserer risikoen for feil og styrker beslutningsgrunnlaget i hver enkelt sak.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "35f5ebc7-7349-4de0-8905-f6a0be0cd9bb",
-    "navn": "KI-basert søkemotor",
-    "virksomhet": [
-      "HELSE BERGEN HF",
-      "HELSE FONNA HF",
-      "HELSE FØRDE HF",
-      "HELSE STAVANGER HF"
-    ],
-    "orgnr": [
-      "983974724",
-      "983974694",
-      "983974732",
-      "983974678"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Utvikling av en KI-løsning som gir en samlet inngang til prosedyrer, retningslinjer, lovverk og dokumentasjon fra EK/EQS, personalhåndbok, metodebok, intranett og flere kilder. Løsningen skal tilby intelligent søk. Målet er å effektivisere informasjonsflyt, redusere tidsbruk og styrke etterlevelse av krav og regelverk.\r\n\r\nFokus i første omgang vil være en utprøving på EK ettersom vi her allerede har tilgang til API. Må deretter vurdere veien videre. Her vil KI-verktøy i Azure bli brukt.",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "08551dd6-0742-40d8-8fc8-4992cd7d60e8",
-    "navn": "KI-lab",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
-    "orgnr": "991825827",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Digdirs KI-lab for å utforske og utvikle KI-løysingar som kan forbetre offentlege tenester og gjere dei meir tilgjengelege, effektive og rettferdige.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "c28c7633-a13f-485c-a974-3ebb4e1ca82f",
-    "navn": "KI-øye injeksjonsplanlegging",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Trene KI på OCT-scans slik at KI kan gi støtte ved øye injeksjoer på individnivå",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "36b9232c-fbfc-400e-8899-51a494d126a9",
-    "navn": "KI-satsing",
-    "virksomhet": "SIKT - KUNNSKAPSSEKTORENS TJENESTELEVERANDØR",
-    "orgnr": "919477822",
-    "fagomrade": "Forskning",
-    "beskrivelse": "KI-satsingen skal utvikle en nasjonal plattform for kunstig intelligens (KI) innen kunnskapssektoren. Det skal skapes integrasjon med store generative KI-modeller, inkludert norske modeller med åpen kildekode. Videre skal regjeringens satsing på norske og samiske språkmodeller for KI tilgjengeliggjøres, gjennom samarbeid med relevante aktører.\nKI-satsingen er særlig rettet mot grunnskolen hvor tilrettelegging for trygg og pedagogisk bruk av KI er særlig viktig blant annet i undervisningsplanlegging, læringsressurser og digital kompetanseutvikling. Sikt KI skal bidra med nytteeffekter ved å tilby skoler, universiteter, forskningsmiljøer og andre aktører trygg og skalerbar tilgang til KI-verktøy som fremmer læring, innovasjon og dataanalyse.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "cd6daef2-05bc-4f88-896f-ccdd8d717774",
-    "navn": "KI-satsning",
-    "virksomhet": "NORGES VASSDRAGS- OG ENERGIDIREKTORAT (NVE)",
-    "orgnr": "970205039",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": null,
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a2e6e5f2-77b6-451b-be2a-02142f85896e",
+    "id": "f6be6500-c8f9-4f7e-8c64-e11caf278c06",
     "navn": "KI-støttet regelverks- og konsekvensanalyse",
-    "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring (DFØ)",
     "orgnr": "986252932",
     "fagomrade": "Virksomhet",
     "beskrivelse": "REKA (regelverks- og konsekvensanalyse) er en prototype for KI-støttet analyse av hvordan endringer i statens økonomiregelverk påvirker statlige virksomheter. Verktøyet bygger strukturerte virksomhetsprofiler fra offentlige årsrapporter og tildelingsbrev, og bruker disse som grunnlag for å identifisere forenklingsmuligheter og analysere konsekvenser av foreslåtte regelverksendringer. Målgruppen er regelverksforvaltere og fagmiljøer i DFØ som trenger et mer systematisk beslutningsgrunnlag. En pilot ble gjennomført våren 2026 og evaluert videre i august. Verktøyet er beslutningsstøtte, mennesker skal fortsatt gjøre faglige vurderinger og kvalitetssikre.",
@@ -1061,957 +21,492 @@
     "kontaktinfo": "jorgen.kongsro@dfo.no"
   },
   {
-    "id": "390a354a-d8c2-4ada-8a76-5aaf8541a1f6",
-    "navn": "KIKO - gastro",
-    "virksomhet": "UNIVERSITETSSYKEHUSET NORD-NORGE HF",
-    "orgnr": "983974899",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Ressurs/personellbesparende. Bedre pasientsikkerhet. Økt trygghet for ansatt/pasient",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "529afae1-cd10-4614-b21b-9a12a94d45c3",
-    "navn": "Klang AI",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Effektivisere skriving av møtenotater",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "01270022-39b7-4df6-bfbc-7c607807d191",
-    "navn": "Konteringforslag",
-    "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
-    "orgnr": "986252932",
-    "fagomrade": "Økonomi, finans og forsikring",
-    "beskrivelse": "Vi jobber med konteringsforslag der kunstig intelligens benyttes for å gi attestanter forslag til kontering. Dette vil potensielt spare arbeid der attestanter må utføre manuelle oppgaver i dag.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a8e2b3cd-cb80-4685-beba-c33e7ed40d5a",
-    "navn": "Kontrolltårn",
-    "virksomhet": "OSLO UNIVERSITETSSYKEHUS HF",
-    "orgnr": "993467049",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Algoritmisk planlegging av operasjonsprogrammet, Bedre utnyttelse av kirurgiske res",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "6f0b50eb-fded-4fd6-b590-1bc257aa21b3",
-    "navn": "Kundeveileder på nettsiden",
-    "virksomhet": "NORGES VASSDRAGS- OG ENERGIDIREKTORAT (NVE)",
-    "orgnr": "970205039",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Lage en kundeveileder som sikrer at besøkende som oppsøker nettsiden blir ledet til riktig ressurs veileder eller søknadsskjema. Potensielt prosjekt for bruk av KI.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a82d50c8-197f-4d92-96df-1bd78db2f7c4",
-    "navn": "Kunnskap om norske våtmarksområder",
-    "virksomhet": "MILJØDIREKTORATET",
-    "orgnr": "999601391",
-    "fagomrade": "Natur, klima og miljø",
-    "beskrivelse": "Miljødirektoratet kobler fjernmålt data fra satellitt med maskinlæring for å utvikle bedre og mer heldekkende kart med stedfestet informasjon. Kartverket, Nibio, Nina, Norsk regnesentral og Miljødirektoratet jobber sammen for å finne ut om KI sammen med satelittbilder kan gi mer kunnskap om norske våtmarksområder.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "defcd735-039c-409e-899b-aa4911c40bea",
-    "navn": "Kunnskapsassistenten",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
-    "orgnr": "991825827",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Utforske, i praksis, hvordan generativ KI kan hjelpe oss med å forenkle, effektivisere og forbedre måten vi jobber med kunnskap.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "26e0cc34-79bb-42c8-9f7f-2296b8cd94dc",
-    "navn": "Kunstig intelligens",
-    "virksomhet": "STATPED",
-    "orgnr": "998554640",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Statped vurderer ulike nye bruksområder for kunstig intelligens. Statped er i startgropen for et samarbeid med Sintef om å bruke KI for å oversette i sanntid fra tegnspråk til tekst og tale.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "1d70515e-00eb-4c24-91ad-16c9def49167",
-    "navn": "Kunstig intelligens i patologi",
-    "virksomhet": "ST. OLAVS HOSPITAL HF",
-    "orgnr": "883974832",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Redusert tidsbruk per prøve\r\nKortere svartider\r\nØkt diagnostisk kvalitet og redusert variasjon\r\nRedusert behov for tilleggsanalyser\r\nMer bærekraftig arbeidsflyt",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "0e71900f-4af6-4ecb-aa73-80ed3386b5cb",
-    "navn": "Kunstig intelligens i UD",
-    "virksomhet": "UTENRIKSDEPARTEMENTET",
-    "orgnr": "972417920",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Vurdere bruk av KI i UD. Enhet for digitale tjenster.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "e2e0b027-4220-4eb6-a50d-980d650658fe",
-    "navn": "Lunit INSIGHT CXR",
-    "virksomhet": [
-      "SYKEHUSET ØSTFOLD HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "983971768",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Raskere presvar på thorax screening, (NAS Råde) ; -Frigjøre helsepersonell\r\n- Redusere ventetid\r\n- Triagering",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "9af272a4-3a6b-424e-aac0-9b3e5322f107",
-    "navn": "Mabel Translate",
-    "virksomhet": "SUNNAAS SYKEHUS HF",
-    "orgnr": "883971752",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Sikker digital oversettelse i pasientkontakt 24/7",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "c70f520f-a202-4602-85f3-0756326253ae",
-    "navn": "Mage-Tarm-skole chatbot",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Finne svar på pasientspørsmål for ernæringsfysiologer i stor mengde av rettningslinjer og forskningsartikkler.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "89a61dcb-82b3-4681-86c4-d516faf4edf1",
-    "navn": "Medbric",
-    "virksomhet": [
-      "HELSE BERGEN HF",
-      "HELSE FONNA HF",
-      "HELSE FØRDE HF",
-      "HELSE STAVANGER HF"
-    ],
-    "orgnr": [
-      "983974724",
-      "983974694",
-      "983974732",
-      "983974678"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "7df4055e-d122-46b2-b3bb-e6b4e254964b",
-    "navn": "Mimir",
-    "virksomhet": "VESTLAND FYLKESKOMMUNE",
-    "orgnr": "821311632",
-    "fagomrade": "Arbeid",
-    "beskrivelse": "Mimir er den interne KI-assistenten for alle tilsette i Vestland fylkeskommune.\r\n\r\nMimir hjelper med å skrive og forbetre tekstar, analysere dokument, lage filer og diagram, og hente informasjon frå interne kjelder som SharePoint og strategidokument, i tillegg til Lovdata via API.\r\n\r\nMålet er at tilsette skal bruke mindre tid på rutineoppgåver, og at dei har ein trygg KI-assistent i staden for eksterne tenester. Vi utviklar løysinga sjølve på Azure-plattforma vår, og brukarane kan velje mellom fleire språkmodellar.\r\n\r\nData blir lagra i EU, blir ikkje brukt til å trene modellane, og innlogging skjer via Entra ID.\r\n\r\nFleire avdelingar har fått eigne assistentar i Mimir, som er tilpassa deira behov med egne kunnskapsbasar og verktøy. Alle tilsette får opplæring gjennom Mimir Akademi.",
+    "id": "2b2ce2df-ba00-467c-9f24-5fcfd3571602",
+    "navn": "KF Tsetlin, forklarbar KI for offentlig sektor",
+    "virksomhet": "Kommuneforlaget (KF)",
+    "orgnr": "910976222",
+    "fagomrade": "Demokrati og styresett",
+    "beskrivelse": "Når KI-en følger logiske steg, som er nødvendig i en rettferdig, demokratisk og transparent offentlig forvaltning, kan vi vise hvordan KI har kommet frem til en konklusjon. Dette er mulig med Tsetlin-maskiner, som er norsk KI utviklet av UiA/CAIR. KF samarbeider med UiA/CAIR om å gjøre dette enkelt tilgjengelig som digitale offentlige goder (digital public goods). Det er altså fri, gratis programvare som alle kan bruke. De er tilgjengelige fra KI-plattformen Langflow, en lav-kode og fri programvare basert på Python-programmeringsspråket. [Hent KF Tsetlin her](https://bitbucket.org/kf-no/workspace/projects/KFLANGFLOW)",
     "fase": "I drift",
     "leveranse": [
+      "PoC",
+      "MVP",
+      "Pilot",
       "Løsning i produksjon"
     ],
-    "kiType": [
-      "Generativ KI",
-      "Agentisk KI"
-    ],
-    "kontaktinfo": "Teknologiutvikling@vlfk.no"
-  },
-  {
-    "id": "fa4a1292-1b41-49d1-928b-23b6a3ec0ef9",
-    "navn": "MS365 Copilot",
-    "virksomhet": "FINANSTILSYNET",
-    "orgnr": "840747972",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Finanstilsynet har gjennomført to piloter, ROS og DPIA, og vedtatt å innføre Copilot i virksomheten. Ansatte må fullføre obligatorisk innføringskurs før lisens tildeles. Formålet er bedre beslutningsstøtte, effektivisering og kompetanseheving.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "8bba921f-8397-4e12-ab9f-0b6dd0172d62",
-    "navn": "Nemonoor",
-    "virksomhet": "TOPPINDUSTRISENTERET AS",
-    "orgnr": "917362246",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Nemonoor er en nasjonal hub for kunstig intelligens (KI) som har som mål å hjelpe norske bedrifter med å ta i bruk teknologien. Nemonoor tilbyr tilgang til en rekke KI-verktøy og -plattformer, og  veiledning og rådgivning om hvordan KI kan brukes i din bedrift. De kan hjelpe deg med å identifisere potensielle bruksområder, velge riktige verktøy og komme i gang med KI-prosjekter. De tilbyr også kurs og workshops for å øke din bedrifts kunnskap om KI, og hjelper deg å finne relevant kompetanse og talent.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "ca53c534-b8cf-4c7f-b1ef-a96b09fe3f32",
-    "navn": "Nettløsninger",
-    "virksomhet": "MATTILSYNET",
-    "orgnr": "985399077",
-    "fagomrade": "Innbygger",
-    "beskrivelse": "Forvalte og videreutvikle mattilsynet.no og innholdsplattformen, styrke publisering og røkting av innhold, utforske bruk av KI for innholdsoppslag.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "033c455b-7589-45aa-b65f-abd055473ae7",
-    "navn": "NFIs digitaliseringsprosjekt 2025-27",
-    "virksomhet": "NORSK FILMINSTITUTT",
-    "orgnr": "892211442",
-    "fagomrade": "Kultur, idrett og fritid",
-    "beskrivelse": "For å effektivisere skal Norsk filminstitutt forbedre og forenkle søknadsprosessen for tilskuddsordninger. Tiltaket består av tre hovedprodukter:\n1. Forbedre og forenkle søknadsprosessen.\n2. KI-assistert saksbehandling.\n3. Effektiviserte støtteprossesser.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "22205581-0006-4b7e-a8b1-a1c5f01a600a",
-    "navn": "Norske og samiske språkmodeller",
-    "virksomhet": "NASJONALBIBLIOTEKET",
-    "orgnr": "976029100",
-    "fagomrade": "Forskning",
-    "beskrivelse": "Nasjonalbibliotekets samling og kompetanse er sentrale i utviklingen av norsk språkteknologi og forskningsinfrastruktur. Utviklingen innenfor kunstig intelligens og maskinlæring har gjort behovet for norsk språk og innhold til utvikling og trening av denne typen teknologi stadig viktigere. Nasjonalbiblioteket skal\n- produsere og tilby grunnlagsmateriale til bruk i språkteknologi, maskinlæring og kunstig intelligens\n- trene, oppdatere og tilgjengeliggjøre språkmodeller som andre kan bruke til å utvikle KI-baserte verktøy.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "68f81acd-434f-4a9f-b722-6fd37ddfa911",
-    "navn": "Noteless",
-    "virksomhet": [
-      "SYKEHUSET ØSTFOLD HF",
-      "SYKEHUSET TELEMARK HF"
-    ],
-    "orgnr": [
-      "983971768",
-      "983975267"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "mer tid til pasient ; Effektivisering av journalskriving",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "d1c54870-c5b0-4376-9195-19fb47e285b5",
-    "navn": "Nytt verdsettelsessystem for fritidsbolig",
-    "virksomhet": "SKATTEETATEN",
-    "orgnr": "974761076",
-    "fagomrade": "Plan, bygg og eiendom",
-    "beskrivelse": "Prosjektet Tydelig informasjon om mine eiendommer (TIME) har som mål å etablere en maskinlæringsbasert modell for å verdsette fritidsboliger. Dette skal gi mer presise formuesverdier som skattepliktige kan bruke i egenfastsetting, og samtidig redusere behovet for manuell saksbehandling og skjønn. Opprinnelig planlagt innført i 2026, men utsatt til 2027 etter dialog med Finansdepartementet.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "8fb7bef8-c200-4412-9785-cf2b88ae76ea",
-    "navn": "Offentlige tjenester i Europa",
-    "virksomhet": "REGISTERENHETEN I BRØNNØYSUND",
-    "orgnr": "974760673",
-    "fagomrade": "Demokrati og styresett",
-    "beskrivelse": "EBSI-VECTOR (Enabled verifiable credentialt and trusted organisations registries) bruker blockchain-teknologi for å forbedre offentlige tjenester i Europa. Målet er å gjøre det lettere for borgere og bedrifter å samhandle med offentlige myndigheter på tvers av landegrenser. Prosjektet fokuserer på fire områder:\r\n- Digital identitet: Lage en sikker og pålitelig digital identitetsløsning for borgere i Europa.\r\n- E-signering: Lage en sikker og pålitelig løsning for elektronisk signering av dokumenter.\r\n- Datadeling: Lage en sikker og pålitelig plattform for deling av data mellom offentlige myndigheter.\r\n- Tjenester på tvers av landegrenser: Gjøre det lettere for borgere og bedrifter å få tilgang til offentlige tjenester på tvers av landegrenser.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "7fc05f5a-3f10-42eb-abfd-18a819aac2dd",
-    "navn": "OIP-1 Endo-Aid 1",
-    "virksomhet": "UNIVERSITETSSYKEHUSET NORD-NORGE HF",
-    "orgnr": "983974899",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Kvalitetssikring ved endoskopi",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "f30ab6a1-a239-4bcd-a344-d8dd7b968981",
-    "navn": "OIP-1 Endo-Aid 2",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Gi beslutningstøtte ved undersøkelser med endoskopi",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "3a45d0d0-79d4-461e-b903-55c21d2ae347",
-    "navn": "Omilon",
-    "virksomhet": [
-      "HELSE BERGEN HF",
-      "HELSE FONNA HF",
-      "HELSE FØRDE HF",
-      "HELSE STAVANGER HF"
-    ],
-    "orgnr": [
-      "983974724",
-      "983974694",
-      "983974732",
-      "983974678"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "cc7cb72e-9a86-49da-a92b-cba841f47c1d",
-    "navn": "Operasjonsplanlegging",
-    "virksomhet": "VESTRE VIKEN HF",
-    "orgnr": "894166762",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "- Bedre ressursutnyttelse\r\n-Forutse operasjonstid",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "ddab5028-8e72-4c34-80b8-327628b5f398",
-    "navn": "Ordrett Transkripsjon",
-    "virksomhet": [
-      "HELSE BERGEN HF",
-      "HELSE FONNA HF",
-      "HELSE FØRDE HF",
-      "HELSE STAVANGER HF"
-    ],
-    "orgnr": [
-      "983974724",
-      "983974694",
-      "983974732",
-      "983974678"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "«Ordrett transkripsjon» er en tjeneste tar imot lydopptak av samtaler og transkribere disse ordrett. Som bruker logger man seg inn i løsningen med sin vanlig Helse Vest brukerkonto, laster opp lydopptak og så vente. Når transkripsjon er ferdig, får bruker en epost om det og kan laste ned sin transkripsjon. Helle databehandling skjer innenfor Helse Vest. https://taler.ihelse.net/",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "ffb1a6ed-8c89-4631-81f4-31f62dd67660",
-    "navn": "Overgang til skyløsning",
-    "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
-    "orgnr": "986252932",
-    "fagomrade": "Økonomi, finans og forsikring",
-    "beskrivelse": "Systemleverandører DFØ benytter i økonomitjenestene har varslet at de fremover vil gå over til skyløsninger. Vi jobber langsiktig for å tilpasse oss en slik overgang. Her følger vi statens prosjektmodell og er nå i gang med en Konseptvalgutredning (KVU). Dette er et stort satsningsområde der vi forventer å ta ut et potensiale for bedre digitalisering og automatisering av økonomiprosessene i staten, selv om det enda er for tidlig å peke på konkrete prosesser som vil bli digitalisert som følge av dette. I første omgang gjelder dette systemer på regnskapsområdet. Målet er effektivisering og å legge om og forenkle arbeidsrutiner.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a8febddf-a41a-48e1-b390-94140562d8aa",
-    "navn": "Pilot CoPilot i Digdir",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
-    "orgnr": "991825827",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Tiltaket er delt i to. Del 1 er kontroll på virksomhetsdata, dette er største del av tiltaket og gjennomføres før sommeren. Del 2 er selve gjennomføring av pilot før programvaren vurderes på nytt etter sommeren. Formålet er effektivisering.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "11a9151a-6fc6-463f-850f-b9a1bd83135f",
-    "navn": "Plaud Note",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Effektivisere skriving av møtenotater",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "75c91dc8-8c9a-45a4-966e-2038f1ec6078",
-    "navn": "Prediksjon av oppdrag for portørtjenesten",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "KI brukes for å predikere antall oppdrag for portørtjenesten per vakt. Det kjører en rapport som de ansatte kan se på.",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "3fa9ca41-73a0-4306-86ca-60ef43422127",
-    "navn": "Prediksjon av pasientstrøm og bemanningsplanlegging",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Prediksjon og simulasjon av pasientflyt og bemanning i hele sykehuset",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "17640f86-04fe-4263-b252-40ba97ae81ff",
-    "navn": "Preparation of the development of the AI-on-demand plattform",
-    "virksomhet": [
-      "TELENOR ASA",
-      "TELENOR ASA"
-    ],
-    "orgnr": [
-      "982463718",
-      "982463718"
-    ],
-    "fagomrade": "Forskning",
-    "beskrivelse": "Pre-PAI skal forberede europeisk vitenskap og industri på den kommende æraen med exascale kunstig intelligens (AI) ved å tilby verktøy, ressurser og kompetanseutvikling med å utvikle en omfattende plattform for å støtte AI-forskning og -innovasjon på exascale-nivå. Exascale AI representerer et betydelig sprang fremover i AI-ytelse, med potensiale til å løse komplekse vitenskapelige og industrielle utfordringer. Men for å realisere dette potensialet, er det nødvendig med betydelige investeringer i infrastruktur, programvare og kompetanseutvikling. PRE-PAI-prosjektets fokusområder: Utvikler en exascale AI-plattform: PRE-PAI vil utvikle en plattform som gir forskere og bedrifter tilgang til den nødvendige infrastrukturen og programvaren for å utføre AI-beregninger på exascale-nivå. Støtter AI-forskning og -innovasjon: PRE-PAI vil tilby støtte til AI-forskningsprosjekter og innovasjon i en rekke sektorer. Utvikler kompetanse: PRE-PAI vil tilby opplæring og kompetanseutvikling for å forberede arbeidsstyrken på den kommende æraen med exascale AI.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "2e01fb45-65c3-40c8-9efe-1eb8047d0122",
-    "navn": "PRETAI-Lymfeknuter",
-    "virksomhet": "HELSE MØRE OG ROMSDAL HF",
-    "orgnr": "997005562",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "PRETAI-Lymfeknuter (opprinnelig navn); Bygger AI-verktøy for deteksjon av mediastinale lymfeknuter i samarbeid med Contextflow, Østerrike",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "bfe18178-a308-4b0a-ae48-60eab0f7d1f8",
-    "navn": "Prøvetaking",
-    "virksomhet": "MATTILSYNET",
-    "orgnr": "985399077",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Effektivisere og automatisere prøvetaking, sikre god datafangst, digitalisere prøvetakingsprosessen, utvikle integrasjoner mot laboratorier.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "4cb37e41-ac90-47cb-afff-ba25f4ff2a8c",
-    "navn": "Qumea",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Forhindre fall, liggesår og uønskede hendelser ved sengetun",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "3e4e24c6-7951-41dc-9564-c88a6b134358",
-    "navn": "RayStation 1",
-    "virksomhet": [
-      "HELSE MØRE OG ROMSDAL HF",
-      "ST. OLAVS HOSPITAL HF"
-    ],
-    "orgnr": [
-      "997005562",
-      "883974832"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Raskere kontinuering i stråleterapi, Automatisk inntegning av risikoorgan ifm planlegging av stråleterapi, Prostatakreft, Thorax, Proximal bronchial tree samt modeller utviklet av andre for bekken, abdomen, thorax og hode/hals ; Raskere kontinuering i stråleterapi, Automatisk inntegning av risikoorgan ifm planlegging av stråleterapi, brystkreft HMR og St Olavs, HMR i tillegg: Prostatakreft, Thorax, Proximal bronchial tree (CT) - blir klinisk tilgjengelig i 2026, Hippocampus (MR) planlagt 2027",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "e7b65c6d-5a00-4dd7-b031-bee58e9cf2de",
-    "navn": "RayStation 2",
-    "virksomhet": "UNIVERSITETSSYKEHUSET NORD-NORGE HF",
-    "orgnr": "983974899",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Redusert tidsbruk for stråleterapeut, bidrar til mer ensartet og standardisert behanlding, økt kvalitet på behandling ved å i større grad unngå risiko organer under stråleterapi",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "0d3e5858-5ef7-4a99-a237-a0c43ab7352b",
-    "navn": "RayStation 3",
-    "virksomhet": "OSLO UNIVERSITETSSYKEHUS HF",
-    "orgnr": "993467049",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Konturrering risikoorganer, Thorax, Abdomen, Mannlig bekken, ØNH, lymfeknuter validert og planlegges innført",
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "2c9427ac-fc2c-443d-bed0-aa4bec4fb810",
-    "navn": "Regulatorisk sandkasse",
-    "virksomhet": "DATATILSYNET",
-    "orgnr": "974761467",
-    "fagomrade": "Virksomhet",
-    "beskrivelse": "Den regulatoriske sandkassen skal tilby gratis veiledning til utvalgte private og offentlige virksomheter, av forskjellige typer og størrelser, på tvers av ulike sektorer.  Den overordnede målsettingen med den regulatoriske sandkassen i Datatilsynet er å stimulere til personvernvennlig innovasjon og digitalisering. Sandkassen ser på særlig på tiltak som gjelder personvernvennlig bruk av kunstig intelligens.",
-    "fase": "I drift",
-    "leveranse": [],
     "kiType": [
       "Generativ KI",
       "Prediktiv KI",
       "Agentisk KI",
       "Språkteknologi",
-      "Computer Vision",
-      "Anbefalingssystemer"
+      "Anbefalingssystemer",
+      "Annet"
     ],
-    "kontaktinfo": "sandkasse@datatilsynet.no"
+    "kiTypeAnnet": "Klassifisering",
+    "kontaktinfo": "haakon.meland.eriksen@kf.no"
   },
   {
-    "id": "6f0318e0-de6f-4d43-b659-bc9d4123b66f",
-    "navn": "RespView",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Forskningsprosjekt, MDR CE godkjenning",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "id": "bda57bb4-992e-4b12-adb5-1fddaa34f8b4",
+    "navn": "#DataSaman",
+    "virksomhet": "Entur AS",
+    "orgnr": "917422575",
+    "fagomrade": "Trafikk og transport",
+    "beskrivelse": "Entur jobbar systematisk for å teste og utnytte moglegheitene som følgjer av forbetringar innan KI, både for interne produktivitetsforbetringar og for betre og meir effektive tenester som forbetrar kundeopplevingane."
   },
   {
-    "id": "45094634-a800-44c8-82f9-574c65e7560f",
-    "navn": "RevealDx",
-    "virksomhet": "HELSE MØRE OG ROMSDAL HF",
-    "orgnr": "997005562",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "PRETAI-Perifer lesjon (opprinnelig navn); Estimere risiko for malignitet i perifere lungelesjoner",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "id": "72b5969b-30c7-477d-a2f4-1c97eef86ec4",
+    "navn": "Aktivitetsdata for vurdering og tilpasning",
+    "virksomhet": "KS – Kommunesektorens organisasjon",
+    "orgnr": "971032146",
+    "fagomrade": "Forskning",
+    "beskrivelse": "Aktivitetsdata for vurdering og tilpasning (AVT) er et FoU-prosjekt fra 2017 som KS eier. Prosjektet utforsket bruk av aktivitetsdata til læringsanalyse. Det ble valgt inn i Datatilsynets sandkasse for ansvarlig KI i 2021, og har fått stor oppmerksomhet for sine mål og delte erfaringer. AVT-prosjektet er avsluttet i sin tidligere form. Det er nå erstattet av \"Bruk-piloten\", som utforsker bruksbaserte betalingsmodeller."
   },
   {
-    "id": "6234f869-8d8e-412f-bf23-cd7647ad5622",
-    "navn": "Robot Henriksen",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Bedret oversikt, riktig pasient til riktig time, effektivisering, oppgavedeling",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "id": "4f630b87-c8fe-4f97-b6ee-a8aec617b4d6",
+    "navn": "Artsoraklet",
+    "virksomhet": "Artsdatabanken",
+    "orgnr": "919666102",
+    "fagomrade": "Natur, klima og miljø",
+    "beskrivelse": "Artsdatabanken deltar i europeiske samarbeid om bildegjenkjenning av arter og tilbyr dette til allmennheten via appen Artsorakelet. Samme teknologi kan benyttes som støtteverktøy til å kvalitetssikre funndata. Målet er å øke kvaliteten på virksomhetens tjenester."
   },
   {
-    "id": "714bef1a-64ec-4425-8832-306ef794d55a",
-    "navn": "Robotic Process Automation",
-    "virksomhet": "FINANSTILSYNET",
+    "id": "af99db99-0a91-4707-8b0d-65a79783ceb2",
+    "navn": "Bruk av KI",
+    "virksomhet": "Nasjonalt organ for kvalitet i utdanningen (NOKUT)",
+    "orgnr": "985042667",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Undersøke hvordan KI kan brukes i faglig tilsyn i høyere yrkesfaglig utdanning."
+  },
+  {
+    "id": "77a251f9-0dc2-46fc-a72b-1597f9728800",
+    "navn": "Casegeneratoren",
+    "virksomhet": "Barne-, ungdoms- og familiedirektoratet",
+    "orgnr": "986128433",
+    "fagomrade": "Familie og barn",
+    "beskrivelse": "En dialogbasert treningsplattform der offentlig ansatte kan øve på krevende samtaler. Dialogtreneren bruker kunstig intelligens til å simulere samtaler med fiktive voldsutsatte."
+  },
+  {
+    "id": "c6d18ddd-5dfb-4031-8363-993c9b385f68",
+    "navn": "Copilot Studio",
+    "virksomhet": "Finanstilsynet",
     "orgnr": "840747972",
     "fagomrade": "Virksomhet",
-    "beskrivelse": "RPA står for Robotic Process Automation, og er en teknologi som brukes til å automatisere repeterende og regelbaserte oppgaver i digitale systemer. I Finanstilsynet har RPA blitt brukt til å effektivisere saksbehandling, refusjoner, registreringer og dokumentflyt, blant annet gjennom roboten Finn-Robert. Finanstilsynet startet selve utviklingen av RPA i begynnelsen av 2020, og har en diversifisert portefølje med mer enn 50 aktive RPA-prosesser. Formålet er å effektivisere og frigjøre og flytte ressurser dit det er behov.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
+    "beskrivelse": "Arbeidet med Copilot Studio er i startfasen. Vi har utviklet to mindre PoCer, samt en aktiv agent tilknyttet arbeidet med følsomhetsetiketter. Målet er bedre beslutningsstøtte, bedre samhandling og effektivisering."
   },
   {
-    "id": "ac668966-0bf2-4bc5-a5f6-912cdc8deb90",
-    "navn": "Samarbeidsorgan for samisk KI",
-    "virksomhet": "KOMMUNAL- OG DISTRIKTSDEPARTEMENTET",
-    "orgnr": "972417858",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Kommunal- og distriktsdepartementet og Sametinget har startet arbeidet med å etablere et samarbeidsorgan for samiske programmerere og teknologimiljøer. Initiativet skal samle fagpersoner og institusjoner med kompetanse og interesse for samisk språk, data og teknologi, med vekt på utviklingen av samisk KI.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
+    "id": "d5e0b0fa-4e26-4678-a4d8-65dffd70d669",
+    "navn": "Datadrevet Statsbygg",
+    "virksomhet": "Statsbygg",
+    "orgnr": "971278374",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Statsbygg vil sikre riktig og god dataflyt mellom aktørene i verdikjeden og effektivisere egen og andres virksomhet og etablere kompetanse for og innføre KI og maskinlæring. Satsningen innebærer å \n- utvikle arkitektur for Statsbyggs dataplattform \n- bygge kapabiliteter innen informasjonsforvaltning (data stewards) \n- utrede KI-muligheter og gjennomføre eksperimenter \n- etablere en felles dataplattform tilrettelagt for intern datadeling \n- utnytte data riktig og ha kvalitetssikrede prosesser for bruk av data \n- tilrettelegge for deling om sambruk av data internt og med eksterne aktører. \nPlanlagte gevinster er økt effektivisering og kvalitet i verdikjeden samt store besparelser innen fakturakontroll- og oppfølging."
   },
   {
-    "id": "4cccccac-e7ef-45af-bd16-98ead2caee76",
-    "navn": "Saniguide",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Monitorering og rapportering etterlevelse av håndhygiene",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "a7348c16-ba08-4f4c-a57c-eec8b927753e",
-    "navn": "Sentralbordet",
-    "virksomhet": "DEPARTEMENTENES SIKKERHETS- OG SERVICEORGANISASJON (DSS)",
-    "orgnr": "974761424",
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Bruke KI til analysere samtalene. Det gir grunnlag for en KI-drevet assistent til sentralbordet.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "ead46d6e-1d10-4372-851b-6993d86c39e7",
-    "navn": "SMART-journal",
-    "virksomhet": [
-      "OSLO UNIVERSITETSSYKEHUS HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "993467049",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "-Redusere tidsbruk på dokumentasjon\r\n-Frigjøre tid til pasient ; effektivisere bla mottak, optimalisere pasientdokumentasjonen",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "4b854d4c-d802-4892-aad3-2286aa58bc73",
-    "navn": "Smartere vedlikehold av industriutstyr",
-    "virksomhet": [
-      "UNIVERSITETET I OSLO",
-      "UNIVERSITETET I OSLO"
-    ],
-    "orgnr": [
-      "971035854",
-      "971035854"
-    ],
-    "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Uforutsette feil på industriutstyr kan føre til kostbar driftsstans og tap av produktivitet. Prosjektet vil utvikle et innovativt system for smartere vedlikehold av industriutstyr. En kombinasjon av kunstig intelligens (AI) og Tingenes internett (IoT) skal forutsi og forhindre utstyrsfeil. Fokusområder:\r\n Utvikle AI-algoritmer som kan analysere data fra sensorer på industriutstyr for å forutsi når feil kan oppstå.\r\n Bygge en IoT-plattform for å samle inn data fra sensorer i sanntid.\r\n Integrere AI-algoritmene med IoT-plattformen for å gi en helhetlig løsning for smartere vedlikehold.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "a7a0c214-63d2-443a-a431-f2a6edc7f82a",
-    "navn": "Specbase KI",
-    "virksomhet": "HELSE BERGEN HF",
-    "orgnr": "983974724",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "SpecBase KI er et prosjekt for å utvikle KI modeller for en automatisert og forbedret kvalitetssikring av avanserte biokjemiske analyser av pasientprøver vha. massespektrometri.",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "7800c812-d1f9-415f-a483-2d6a67b7c4cd",
-    "navn": "Standardisere utviklingsplattformer",
-    "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
+    "id": "251e0f22-c234-45ec-99c3-78392487ce3b",
+    "navn": "Overgang til skyløsning",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring",
     "orgnr": "986252932",
-    "fagomrade": "Informasjonssikkerhet",
-    "beskrivelse": "Vi jobber med å automatisere oppsett av utviklingsplattformer og driftsmiljø både i sky og på on-premise. Dette vil gjøre at utviklere selv kan bestille miljøer. Miljøene vil da ha ferdig oppsatt sikkerhet, logging, overvåkning med mer. Dette tiltaket frigjør kapasitet i driftsmiljøet vårt, effektiviserer utviklingsteamene våre og bedrer sikkerheten vår.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
+    "fagomrade": "Økonomi, finans og forsikring",
+    "beskrivelse": "Systemleverandører DFØ benytter i økonomitjenestene har varslet at de fremover vil gå over til skyløsninger. Vi jobber langsiktig for å tilpasse oss en slik overgang. Her følger vi statens prosjektmodell og er nå i gang med en Konseptvalgutredning (KVU). Dette er et stort satsningsområde der vi forventer å ta ut et potensiale for bedre digitalisering og automatisering av økonomiprosessene i staten, selv om det enda er for tidlig å peke på konkrete prosesser som vil bli digitalisert som følge av dette. I første omgang gjelder dette systemer på regnskapsområdet. Målet er effektivisering og å legge om og forenkle arbeidsrutiner."
   },
   {
-    "id": "567aa51b-cc67-4561-a52a-3e3f0003a7b0",
-    "navn": "Styrke EBSI-nettverket",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
-    "orgnr": "991825827",
+    "id": "c1da41d3-6151-42ed-919d-d66a04686e96",
+    "navn": "DFØ-HR",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring",
+    "orgnr": "986252932",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Vi jobber kontinuerlig med å automatisere lønnsproduksjonen. Vi utvikler tjenesten DFØ-HR, og tilpasser løsningen til de forskjellige kundesegmentene. Dette omfatter alt fra å automatisere og forenkle for de minste og mest standardiserte kundene, til å tilpasse løsningen for de største og mest avanserte kundene våre."
+  },
+  {
+    "id": "638a7fa8-f4a9-42a9-bd97-f6b8ff366c11",
+    "navn": "Digitalisere ansattreisen",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring",
+    "orgnr": "986252932",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Vi jobber med å digitalisere og automatisere ansattreisen helt fra vi planlegger å ansette eller leie inn personell, til å administrere roller og tilganger til personens reise gjennom sitt ansattforhold i DFØ til vedkommende slutter hos oss."
+  },
+  {
+    "id": "002d74b6-a096-4b38-911d-e8db738e355b",
+    "navn": "Digitalisere tilsyn",
+    "virksomhet": "Hå kommune",
+    "orgnr": "964969590",
+    "fagomrade": "Familie og barn",
+    "beskrivelse": "En digital løsning kan gjøre tilsynet av barnehager bedre på tre områder: \n 1. Mer systematisk innhenting og bruk av informasjon. \n 2. Bedre og raskere risikovurdering. \n 3. Mer effektiv bruk av ressurser og kompetanse. \n I dag bruker vi manuelle metoder og regneark. Vi vil utvikle et system som samler, strukturerer, lagrer, bearbeider og analyserer data, og automatiserer oppgaver blant annet ved hjelp av KI. Løsningen skal utvikles i samarbeid med tre andre kommuner. Kompetansen vi får kan være nyttig for andre deler av den kommunale forvaltningen og for andre kommuner."
+  },
+  {
+    "id": "834cc6c3-4fbe-4c62-b1a0-ad817bef690f",
+    "navn": "Offentlige tjenester i Europa",
+    "virksomhet": "Registerenheten i Brønnøysund",
+    "orgnr": "974760673",
     "fagomrade": "Demokrati og styresett",
-    "beskrivelse": "Hovedoppgaven er å styrke EBSI-nettverket (European Blockchain Services Infrastructure) ved å legge til 18 nye valideringsnoder i produksjonsnettverket og levere omfattende støttetjenester til alle relevante EBSI-aktører. Gjennom å styrke EBSI-nettverket og tilby essensielle støttetjenester bidrar EBSI-NE til å akselerere adopsjonen av blokkjedeteknologi i hele Europa. EBSI-NE prosjektet er et samarbeid mellom 24 organisasjoner fra 14 europeiske land.\r\nDigdirs rolle i EBSI-NE-prosjektet handler primært om kommunikasjons- og formidlingsaktiviteter, slik som webinarer og workshops, sammen med Smart Innovation Norway og UiO Blockchain Lab.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
+    "beskrivelse": "EBSI-VECTOR (Enabled verifiable credentialt and trusted organisations registries) bruker blockchain-teknologi for å forbedre offentlige tjenester i Europa. Målet er å gjøre det lettere for borgere og bedrifter å samhandle med offentlige myndigheter på tvers av landegrenser. Prosjektet fokuserer på fire områder: \n- Digital identitet: Lage en sikker og pålitelig digital identitetsløsning for borgere i Europa. \n- E-signering: Lage en sikker og pålitelig løsning for elektronisk signering av dokumenter. \n- Datadeling: Lage en sikker og pålitelig plattform for deling av data mellom offentlige myndigheter. \n- Tjenester på tvers av landegrenser: Gjøre det lettere for borgere og bedrifter å få tilgang til offentlige tjenester på tvers av landegrenser."
   },
   {
-    "id": "f23ae758-bc74-40c9-a752-17e86dccb0bb",
-    "navn": "suiteHEART",
-    "virksomhet": "NORDLANDSSYKEHUSET HF",
-    "orgnr": "983974910",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "id": "58a292a0-9962-412c-9e09-b116ea68beb6",
+    "navn": "Effektiv ressursbruk gjennom forbedring og fornying",
+    "virksomhet": "Havindustritilsynet",
+    "orgnr": "986174613",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Som en del av vår kontinuerlige forbedring utvikles teknologi slik at det bidrar til effektiv ressursbruk og økt brukervennlighet. Styringsportalen er et eksempel på slik utvikling. \nKunstig intelligens (KI) er også et satsingsområde i Havindustritilsynet. Vi har tatt i bruk Microsofts Copilot, og vil bruke den til å forbedre arbeidsprosessene våre. Samtidig må vi sikre personvern og unngå deling av sårbare data. Vi har etablert en prosjektgruppe som skal se nærmere på disse utfordringene."
   },
   {
-    "id": "4075c439-a546-4965-a19e-11198b681407",
-    "navn": "Syngo via RT image suite",
-    "virksomhet": "HELSE NORD RHF",
-    "orgnr": "883658752",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "I drift",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "id": "680415b8-3b90-486d-a83a-10c0038abc48",
+    "navn": "Effektivisering av controller-oppgaver",
+    "virksomhet": "Norsk filminstitutt",
+    "orgnr": "892211442",
+    "fagomrade": "Kultur, idrett og fritid",
+    "beskrivelse": "Prosjektet skal gjennom automatisering, digitalisering og bruk av kunstig intelligens effektivisere og forbedre administrative og saksbehandlingsrelaterte støtteoppgaver. \n Automatisert dataflyt mellom saksbehandlingsverktøyet og Unit4 erstatter manuelt arbeid. \n KI-assistent sjekker om innrapporterte data oppfyller nødvendige krav, og varsler saksbehandler og controller om mangler. \n KI-assistent søker i prosjekter som har fått støtte tidligere og identifiserer og anbefaler sammenkobling av prosjekter som ser ut til å høre sammen. \n KI-verktøy for behandling av innsynsbegjæringer identifiserer og samler alle relevante dokumenter fra arkivet. Systemet foreslår også sladding av personopplysninger og forretningssensitiv informasjon i tråd med gjeldende regelverk, og basert på historisk praksis."
   },
   {
-    "id": "7872ac34-0969-4199-85d7-2a2f1ccd68f0",
-    "navn": "Syngo.via MR Prostate",
-    "virksomhet": "SYKEHUSET INNLANDET HF",
-    "orgnr": "983971709",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "automatisk voluminntegning for målretta biopsi, strukturerte rapporter",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "id": "468b75e1-178d-404c-9eeb-716b8a212465",
+    "navn": "Smartere vedlikehold av industriutstyr",
+    "virksomhet": "Universitetet i Oslo",
+    "orgnr": "971035854",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": "Uforutsette feil på industriutstyr kan føre til kostbar driftsstans og tap av produktivitet. Prosjektet vil utvikle et innovativt system for smartere vedlikehold av industriutstyr. En kombinasjon av kunstig intelligens (AI) og Tingenes internett (IoT) skal forutsi og forhindre utstyrsfeil. Fokusområder: \n Utvikle AI-algoritmer som kan analysere data fra sensorer på industriutstyr for å forutsi når feil kan oppstå. \n Bygge en IoT-plattform for å samle inn data fra sensorer i sanntid. \n Integrere AI-algoritmene med IoT-plattformen for å gi en helhetlig løsning for smartere vedlikehold."
   },
   {
-    "id": "fe6c85b3-b133-4eed-95f4-90b314d21e99",
-    "navn": "SynPlan 1",
-    "virksomhet": "FINNMARKSSYKEHUSET HF",
-    "orgnr": "983974880",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Ressursbesparende og kostnadsbesparende. Redusert deltid. Mer stabil arbeidsstyrke som kommer pasientene til gode",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "id": "3cf18547-ec31-4d65-b70f-74c47740e503",
+    "navn": "Felles digital tilskuddsforvaltning",
+    "virksomhet": "Kommunal- og distriktsdepartementet",
+    "orgnr": "972417858",
+    "fagomrade": "Demokrati og styresett",
+    "beskrivelse": "Kommunal- og distriktsdepartementet skal, i nært samarbeid med KS, lage en tilskuddsportal for søknad, utbetaling og rapportering om tilskudd , samt fagsystem for tilskuddsforvaltning med integrasjoner mot andre fellesløsninger som FIKS og Altinn. Prosjektet skal vurdere tilrettelegging for KI. Løsningen vil gjenbruke komponenter i det offentlige økosystemet. Løsningen vil ha nytte i form av mer effektiv tilskuddsforvaltning i det offentlige, samt mindre tid brukt på søknadsprosesser for næringslivet, frivilligheten og innbyggerne."
   },
   {
-    "id": "722af4fc-2733-4563-b4d5-4e6345564f6a",
-    "navn": "SynPlan 2",
-    "virksomhet": "VESTRE VIKEN HF",
-    "orgnr": "894166762",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "- Automatisere vaktplanlegging\r\n-Rettferdig fordeling",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "id": "f2aed301-05ac-4e90-8dc0-fdb62bef9ddc",
+    "navn": "Fellesløft for KI-standarder",
+    "virksomhet": "Havindustritilsynet",
+    "orgnr": "986174613",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": "Det pågår et omfattende arbeid med å standardisere kunstig intelligens, både nasjonalt og internasjonalt. Havindustritilsynet deltar aktivt i dette standardiseringsarbeidet. Havindustritilsynet har sendt ut et brev til næringen hvor det var samlet sentral informasjon om oppfølging av KI og sikkerhet. Dette fordi Havindustritilsynet ønsker å bidra med faglig veiledning og informasjon om oppfølging av kunstig intelligens"
   },
   {
-    "id": "3f8ba544-a35f-45b0-a627-0170ecf932b1",
-    "navn": "Tale til sammendrag",
-    "virksomhet": [
-      "SYKEHUSET INNLANDET HF",
-      "VESTRE VIKEN HF"
-    ],
-    "orgnr": [
-      "983971709",
-      "894166762"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "-Redusere tidsbruk på dokumentasjon",
-    "fase": "Innsikt og planlegging",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "id": "1343c05d-def5-464b-ae67-d558726a681f",
+    "navn": "Finanstilsynet GPT",
+    "virksomhet": "Finanstilsynet",
+    "orgnr": "840747972",
+    "fagomrade": "Økonomi, finans og forsikring",
+    "beskrivelse": "Oppsett og utvikling av Finanstilsynets egen GPT-løsning i Azure. Løsningen brukes i administrative oppgaver og i tilsynsarbeidet, særlig for å jobbe med ustrukturerte data og dokumenter. Målet er å gi bedre beslutningsstøtte"
   },
   {
-    "id": "d153cb84-6b76-4cfc-8af4-2665d82e6b48",
-    "navn": "Testuniverset",
-    "virksomhet": "NORSK HELSENETT SF",
-    "orgnr": "994598759",
-    "fagomrade": "Personvern",
-    "beskrivelse": "Formålet med tiltaket er å etablere Testunivers som en nasjonal sandkasse med testmiljøer, API'er og syntetiske data fra ulike helsesystemer, til bruk for forskning, utvikling, tidlig utprøving og testing av helseteknologi for helsepersonell. Brukere av tjenestene som inngår i testuniverset er tredjepartsleverandører, både offentlige og private aktører i helsesektoren, studenter og forskere.\nEksempler på bruksområder:\n-Effektiv og repeterbar generering av testdata med kvalitet som på produksjonsdata.\nSkalerbare datasett for for eksempel ytelsestesting.\n-Isolere produksjonsdata fra utviklingsprosesser og miljøer slik at færrest mulig får tilgang til produksjonsdata.\n-Trening av maskinlæringsmodeller og AI modeller.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
+    "id": "598053a0-d209-4b66-b2bb-64039636d737",
+    "navn": "Flytte løsninger til sky",
+    "virksomhet": "Utenriksdepartementet",
+    "orgnr": "972417920",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Flytte onprem SharePoint til SharePoint online. Enhet for digitale tjenester."
   },
   {
-    "id": "34f626f4-9ffb-4ffc-8772-ee5d99808631",
-    "navn": "Trace4EU-prosjektet",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
+    "id": "e9fe3a27-39b2-446b-978b-9316a5b3c23d",
+    "navn": "Forbedret og forenklet søknadsprosess",
+    "virksomhet": "Norsk filminstitutt",
+    "orgnr": "892211442",
+    "fagomrade": "Kultur, idrett og fritid",
+    "beskrivelse": "Hovedprodukt 1 er en søknadsportal med innebygd kunstig intelligens som skal forenkle og effektivisere søknadsprosessen. Portalen har en veiledende chatbot som bistår brukerne med å avklare spørsmål og sikre at søknaden er korrekt og komplett før innsending. For å ivareta personvern og sikkerhet i tråd med GDPR, vil systemet ikke lagre data som søkeren legger inn underveis i søknadsprosessen. Informasjonen brukes kun midlertidig for å gi veiledning og tilbakemelding og slettes umiddelbart etter bruk. Dette sikrer at opplysningene ikke blir en del av vurderingsgrunnlaget for søknaden, samtidig som søkerens personlige data beskyttes på en forsvarlig måte."
+  },
+  {
+    "id": "39ff8178-5814-47d4-9c94-3e7cb9921381",
+    "navn": "Generativ KI og KI-agenter",
+    "virksomhet": "Digitaliseringsdirektoratet",
     "orgnr": "991825827",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": ""
+  },
+  {
+    "id": "57881f36-93d4-41ca-80f9-38dd4b4e9843",
+    "navn": "GitHub Copilot",
+    "virksomhet": "Finanstilsynet",
+    "orgnr": "840747972",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "GitHub Copilot er en kodeassisten integrert i kodeeditorer, eks. Visual Studio Code. Utviklere i Finanstilsynets bruker den til å kode og teste. Det inkluderer blant annet forslag til linjer eller blokker med kode, generere enklere standardkode og repetitive kodeoppgaver, code review og debugging."
+  },
+  {
+    "id": "75999bde-1810-4418-a0fa-9bfc444a9331",
+    "navn": "Innføre datakatalog og bruk av dataplattformer",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring",
+    "orgnr": "986252932",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "På tvers av alle fagområdene i DFØ jobber vi med å innføre datakatalog og bruk av dataplattformer. Det gjør vi blant annet for å kunne nyttiggjøre oss KI bedre og for å kunne gi kunder og brukere bedre tilgang på egne og åpne data."
+  },
+  {
+    "id": "3b4c4da0-918d-4f82-8e5b-83adbefcf256",
+    "navn": "Innovere gjennom data og KI.",
+    "virksomhet": "Avinor AS",
+    "orgnr": "985198292",
+    "fagomrade": "Trafikk og transport",
+    "beskrivelse": "Avinor skal arbeide data -og innsiktsdrevet for å øke produktivitet og forbedre operasjonell planlegging. Prosjekter pågår for å identifisere og gjennomføre konkrete brukstilfeller for KI samt økt utnyttelse av KI i det daglige arbeidet."
+  },
+  {
+    "id": "271fb2ed-712f-4220-a0bc-96cf56c6d013",
+    "navn": "Innrapportering HAL",
+    "virksomhet": "Utenriksdepartementet",
+    "orgnr": "972417920",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Ferdigstille innrapporteringsløsningen med blant annet kunstig intelligens. Formålet er å redusere teknisk gjeld."
+  },
+  {
+    "id": "88768534-e861-4bd9-b6fe-a70ac56cad81",
+    "navn": "KI for automatisering i postmottak",
+    "virksomhet": "Norges vassdrags- og energidirektorat (NVE)",
+    "orgnr": "970205039",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": "Anskaffelse. Avtale signeres før årsskiftet."
+  },
+  {
+    "id": "e6f8f1f7-cda2-4f19-878c-6ec403d3e053",
+    "navn": "KI i anskaffelser",
+    "virksomhet": "Departementenes sikkerhets- og serviceorganisasjon (DSS)",
+    "orgnr": "974761424",
+    "fagomrade": "Økonomi, finans og forsikring",
+    "beskrivelse": "Prosjektet har utviklet en prototype (minimum viable product) av et verktøy . Verktøyet er delvis testet, men det er behov for å teste mer."
+  },
+  {
+    "id": "625c2e8d-c416-4853-a440-72c9f1660207",
+    "navn": "KI i NAV",
+    "virksomhet": "Arbeids- og velferdsetaten",
+    "orgnr": "889640782",
+    "fagomrade": "Arbeid",
+    "beskrivelse": "I 2024 ble det gjennomført tre tverrfaglige KI-eksperimenter: \n- «Trygg tekst» i produktområde arbeid. \n- Veilederassistenten «Bob» hos NKS \n- Pilot for Microsoft M365 Copilot. Læring fra disse er tatt med inn i planleggingen for 2025. Formålet er å effektivisere og legge om og forenkle arbeidsrutiner."
+  },
+  {
+    "id": "aac75240-cd2f-4c76-8ae0-67e62ac74829",
+    "navn": "KI i skogsforvaltningen",
+    "virksomhet": "Landbruksdirektoratet",
+    "orgnr": "981544315",
     "fagomrade": "Natur, klima og miljø",
-    "beskrivelse": "Trace4EU-prosjektet har som mål å forbedre sporbarheten i ulike bransjer ved hjelp av blokkjedeteknologi. Prosjektet skal utvikle en \"paraplyarkitektur\" basert på eksisterende EBSI-tjenester for å muliggjøre utvikling av sporbarhetsapplikasjoner for både fysiske og digitale eiendeler. Dette vil også bidra til økt åpenhet i Europa. Dette kan bli svært viktig for norsk markedsadgang og prising av norske produkter. Viktig bidrag til grønt skifte og sirkulær økonomi, blant annet gjennom digitale produktpass. Støttes av norsk use case for sporing av sjømat",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
+    "beskrivelse": "Droner og kunstig intelligens (KI) kan gjøre skogforvaltningen mer effektiv. Landbruksdirektoratet har testet droner gjennom SmartForest-prosjektet for å kartlegge skog. I testen ble droner og KI brukt til å registrere skogplanter på 30 ulike områder. Tidsbruken for telling ble halvert sammenlignet med manuell kartlegging, men teknologien oppdaget færre enn halvparten av plantene. Direktoratet vil fortsette å teste og videreutvikle teknologien i samarbeid med SmartForest-partnerne. Målet er å finne gode måter å bruke ny teknologi og KI i skogforvaltningen"
   },
   {
-    "id": "6cfe71d0-f59d-414e-ad2c-1cc60ff884bb",
-    "navn": "Transpara Breast AI 1",
-    "virksomhet": "HELSE MIDT-NORGE RHF",
-    "orgnr": "983658776",
+    "id": "05ef39d0-1c39-4510-b046-aafbe79136cc",
+    "navn": "KI-lab",
+    "virksomhet": "Digitaliseringsdirektoratet",
+    "orgnr": "991825827",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": "Digdirs KI-lab for å utforske og utvikle KI-løysingar som kan forbetre offentlege tenester og gjere dei meir tilgjengelege, effektive og rettferdige."
+  },
+  {
+    "id": "a3766cdb-c4d3-4bab-a3fd-0796db5b97be",
+    "navn": "KI-assistert saksbehandling",
+    "virksomhet": "Norsk filminstitutt",
+    "orgnr": "892211442",
+    "fagomrade": "Kultur, idrett og fritid",
+    "beskrivelse": "Hovedprodukt 2 er en integrert KI-assistent for saksbehandling som skal støtte saksbehandlere i alle faser av prosessen. KI-assistenten vil integreres direkte i eksisterende saksbehandlingssystemer. Assistenten vil kunne \n- vurdere søknader \n- utføre avanserte søk i vedlegg og trekke ut relevante opplysninger \n- generere presise sammendrag av innsendte dokumenter \n- generere tekstforslag basert på saksbehandlerens skjønnsmessige vurderinger \nMålet er økt effektivitet og omlegging og forenkling av arbeidsrutiner. Assistenten bidrar til en smidigere prosess, reduserer risikoen for feil og styrker beslutningsgrunnlaget i hver enkelt sak."
+  },
+  {
+    "id": "a52640e0-8fba-43c8-b8d9-2ad4b919b393",
+    "navn": "KI-satsing",
+    "virksomhet": "Sikt – Kunnskapssektorens tjenesteleverandør",
+    "orgnr": "919477822",
+    "fagomrade": "Forskning",
+    "beskrivelse": "KI-satsingen skal utvikle en nasjonal plattform for kunstig intelligens (KI) innen kunnskapssektoren. Det skal skapes integrasjon med store generative KI-modeller, inkludert norske modeller med åpen kildekode. Videre skal regjeringens satsing på norske og samiske språkmodeller for KI tilgjengeliggjøres, gjennom samarbeid med relevante aktører. \nKI-satsingen er særlig rettet mot grunnskolen hvor tilrettelegging for trygg og pedagogisk bruk av KI er særlig viktig blant annet i undervisningsplanlegging, læringsressurser og digital kompetanseutvikling. Sikt KI skal bidra med nytteeffekter ved å tilby skoler, universiteter, forskningsmiljøer og andre aktører trygg og skalerbar tilgang til KI-verktøy som fremmer læring, innovasjon og dataanalyse."
+  },
+  {
+    "id": "c8aabf68-ece5-40ae-91f4-5d3f14638a4b",
+    "navn": "KI-satsning",
+    "virksomhet": "Norges vassdrags- og energidirektorat (NVE)",
+    "orgnr": "970205039",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": ""
+  },
+  {
+    "id": "dd796ddb-f046-4459-92aa-f9fb017c5a92",
+    "navn": "Konteringforslag",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring",
+    "orgnr": "986252932",
+    "fagomrade": "Økonomi, finans og forsikring",
+    "beskrivelse": "Vi jobber med konteringsforslag der kunstig intelligens benyttes for å gi attestanter forslag til kontering. Dette vil potensielt spare arbeid der attestanter må utføre manuelle oppgaver i dag."
+  },
+  {
+    "id": "c65be7e7-7043-4e43-b23e-dd14f62d8496",
+    "navn": "Kundeveileder på nettsiden",
+    "virksomhet": "Norges vassdrags- og energidirektorat (NVE)",
+    "orgnr": "970205039",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Lage en kundeveileder som sikrer at besøkende som oppsøker nettsiden blir ledet til riktig ressurs veileder eller søknadsskjema. Potensielt prosjekt for bruk av KI."
+  },
+  {
+    "id": "26fd4048-2f76-40a0-82d8-264de005a6e1",
+    "navn": "Kunnskap om norske våtmarksområder",
+    "virksomhet": "Miljødirektoratet",
+    "orgnr": "999601391",
+    "fagomrade": "Natur, klima og miljø",
+    "beskrivelse": "Miljødirektoratet kobler fjernmålt data fra satellitt med maskinlæring for å utvikle bedre og mer heldekkende kart med stedfestet informasjon. Kartverket, Nibio, Nina, Norsk regnesentral og Miljødirektoratet jobber sammen for å finne ut om KI sammen med satelittbilder kan gi mer kunnskap om norske våtmarksområder."
+  },
+  {
+    "id": "0ba530ee-ba8f-4969-89c3-7687b9546fac",
+    "navn": "Kunnskapsassistenten",
+    "virksomhet": "Digitaliseringsdirektoratet",
+    "orgnr": "991825827",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Utforske, i praksis, hvordan generativ KI kan hjelpe oss med å forenkle, effektivisere og forbedre måten vi jobber med kunnskap."
+  },
+  {
+    "id": "82440615-11ef-4228-b47b-1b84bd899a3e",
+    "navn": "Kunstig intelligens",
+    "virksomhet": "Statped",
+    "orgnr": "998554640",
     "fagomrade": "Helse og omsorg",
-    "beskrivelse": "AIMS Norway: Kunstig intelligens i Mammografiprogrammet — teste tydeprosedyre som inkl. bruk av KI, reduksjon av arbeidsmengde for bl.a. radiologer, forskning",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "beskrivelse": "Statped vurderer ulike nye bruksområder for kunstig intelligens. Statped er i startgropen for et samarbeid med Sintef om å bruke KI for å oversette i sanntid fra tegnspråk til tekst og tale."
   },
   {
-    "id": "24e51a08-0469-4dbd-823d-9a80caf142c4",
-    "navn": "Transpara Breast AI 2",
-    "virksomhet": [
-      "NORDLANDSSYKEHUSET HF",
-      "UNIVERSITETSSYKEHUSET NORD-NORGE HF"
-    ],
-    "orgnr": [
-      "983974910",
-      "983974899"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
-  },
-  {
-    "id": "2fea870f-91ae-40ca-a88f-410cf6d1a927",
-    "navn": "Transpara Breast AI 3",
-    "virksomhet": "HELSE VEST RHF",
-    "orgnr": "983658725",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": null,
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
-  },
-  {
-    "id": "afdd99f5-347f-452b-b8d0-df4ac92094f6",
-    "navn": "TRUST (Technology Revising Ultrasound Solutions for Tomorrow)",
-    "virksomhet": [
-      "HELSE NORD-TRØNDELAG HF",
-      "ST. OLAVS HOSPITAL HF"
-    ],
-    "orgnr": [
-      "983974791",
-      "883974832"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "En del av TRUST prosjektet: ECHO – Clinical evaluation of aortic stenosis, Automatisk bildeanalyse av hjerteultralydbilder i sanntid for å optimalisere bildeopptak, redusere målevariasjonen og forbedre diagnostikk. Løsningen gir automatisk deteksjon av kreft, Gleason gradering og støtte til patologens diagnostiske vurdering. Den integreres i digital patologi løsningen og brukes som beslutningsstøtte.\r\n\"Løsningen gir automatisk deteksjon av kreft, Gleason gradering og støtte til patologens diagnostiske vurdering. Den integreres i digital patologi løsningen og brukes som beslutningsstøtte.\r\nForbedret standardisering av bildeopptak ved hjerteultralydundersøkelser. Forbedret diagnostisk presisjon. Ressursbesparende hjertemålinger.",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
-  },
-  {
-    "id": "e2c9f22a-bd02-4ea8-8ff8-52e63879913d",
-    "navn": "Tverrspråklig effektiv kommunikasjon",
-    "virksomhet": "POLITIDIREKTORATET",
-    "orgnr": "982531950",
-    "fagomrade": "Innbygger",
-    "beskrivelse": "Politiet ønsker å bruke KI og språkmodeller til å løse utfordringen med språkbarrierer i kommunikasjonen mellom politiet og innbyggere som ikke snakker norsk eller engelsk. Prosjektet Tverrspråklig effektiv kommunikasjon tar sikte på å forbedre første kontakt med politiet for brukere uten norsk eller engelsk-kunnskap for å sikre at alle brukere, uavhengig av språkbakgrunn, har lik tilgang til politiets førstelinje-tjenester. Å fjerne språkbarrierer kan øke tilgjengelighet, effektivitet, service og kvalitet på essensielle og livsviktige tjenester for alle samfunnsgrupper. Politiet er også opptatt av at løsningen som utvikles bør kunne benyttes på tvers av offentlig sektor.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "36a63c07-d016-44f0-8d09-2079adbadc9a",
-    "navn": "UiO GTP",
-    "virksomhet": "VESTRE VIKEN HF",
-    "orgnr": "894166762",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "- Administrativ støtte\r\n-Oversettelse/Oppsummering\r\n-Kodehjelp",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "9d73a848-089b-447f-a1b4-795b2f833880",
-    "navn": "Valgdatabase",
-    "virksomhet": "UTENRIKSDEPARTEMENTET",
+    "id": "4e3aaf89-cc2c-4b39-81f7-d9903bee5ba0",
+    "navn": "Kunstig intelligens i UD",
+    "virksomhet": "Utenriksdepartementet",
     "orgnr": "972417920",
     "fagomrade": "Digitale teknologier",
-    "beskrivelse": "Oppgradere valgdatabasen, migrere datasett til ny løsning med økt brukervennlighet, bredere brukerkrets, bruk av algoritmer til gjentakende prosesser og behandling av datasettet, samt bruk av et AI/maskinlæringsverktøy.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
+    "beskrivelse": "Vurdere bruk av KI i UD. Enhet for digitale tjenster."
   },
   {
-    "id": "7a36dfad-ed88-4923-880e-a12c442f448c",
+    "id": "9ef43211-5e7f-4e76-8b67-27a18ac7ea7e",
+    "navn": "MS365 Copilot",
+    "virksomhet": "Finanstilsynet",
+    "orgnr": "840747972",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Finanstilsynet har gjennomført to piloter, ROS og DPIA, og vedtatt å innføre Copilot i virksomheten. Ansatte må fullføre obligatorisk innføringskurs før lisens tildeles. Formålet er bedre beslutningsstøtte, effektivisering og kompetanseheving."
+  },
+  {
+    "id": "dacbe5b5-3a35-4fa7-a867-0e1fa35b3c7c",
+    "navn": "Nemonoor",
+    "virksomhet": "Toppindustrisenteret AS",
+    "orgnr": "917362246",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Nemonoor er en nasjonal hub for kunstig intelligens (KI) som har som mål å hjelpe norske bedrifter med å ta i bruk teknologien. Nemonoor tilbyr tilgang til en rekke KI-verktøy og -plattformer, og  veiledning og rådgivning om hvordan KI kan brukes i din bedrift. De kan hjelpe deg med å identifisere potensielle bruksområder, velge riktige verktøy og komme i gang med KI-prosjekter. De tilbyr også kurs og workshops for å øke din bedrifts kunnskap om KI, og hjelper deg å finne relevant kompetanse og talent."
+  },
+  {
+    "id": "efa141dd-f5ed-4b09-9ddf-1d1eed953c05",
+    "navn": "NFIs digitaliseringsprosjekt 2025-27",
+    "virksomhet": "Norsk filminstitutt",
+    "orgnr": "892211442",
+    "fagomrade": "Kultur, idrett og fritid",
+    "beskrivelse": "For å effektivisere skal Norsk filminstitutt forbedre og forenkle søknadsprosessen for tilskuddsordninger. Tiltaket består av tre hovedprodukter: \n1. Forbedre og forenkle søknadsprosessen. \n2. KI-assistert saksbehandling. \n3. Effektiviserte støtteprossesser."
+  },
+  {
+    "id": "2433ddff-9004-49ec-a0c1-7bb060fe3f6e",
+    "navn": "Nytt verdsettelsessystem for fritidsbolig",
+    "virksomhet": "Skatteetaten",
+    "orgnr": "974761076",
+    "fagomrade": "Plan, bygg og eiendom",
+    "beskrivelse": "Prosjektet Tydelig informasjon om mine eiendommer (TIME) har som mål å etablere en maskinlæringsbasert modell for å verdsette fritidsboliger. Dette skal gi mer presise formuesverdier som skattepliktige kan bruke i egenfastsetting, og samtidig redusere behovet for manuell saksbehandling og skjønn. Opprinnelig planlagt innført i 2026, men utsatt til 2027 etter dialog med Finansdepartementet."
+  },
+  {
+    "id": "cff20fca-fd82-4359-8a34-68de199af1bf",
+    "navn": "Pilot CoPilot i Digdir",
+    "virksomhet": "Digitaliseringsdirektoratet",
+    "orgnr": "991825827",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Tiltaket er delt i to. Del 1 er kontroll på virksomhetsdata, dette er største del av tiltaket og gjennomføres før sommeren. Del 2 er selve gjennomføring av pilot før programvaren vurderes på nytt etter sommeren. Formålet er effektivisering."
+  },
+  {
+    "id": "3dc08ab2-8bf9-401b-aa81-753e09d69ee3",
+    "navn": "Preparation of the development of the AI-on-demand plattform",
+    "virksomhet": "Telenor ASA",
+    "orgnr": "982463718",
+    "fagomrade": "Forskning",
+    "beskrivelse": "Pre-PAI skal forberede europeisk vitenskap og industri på den kommende æraen med exascale kunstig intelligens (AI) ved å tilby verktøy, ressurser og kompetanseutvikling med å utvikle en omfattende plattform for å støtte AI-forskning og -innovasjon på exascale-nivå. Exascale AI representerer et betydelig sprang fremover i AI-ytelse, med potensiale til å løse komplekse vitenskapelige og industrielle utfordringer. Men for å realisere dette potensialet, er det nødvendig med betydelige investeringer i infrastruktur, programvare og kompetanseutvikling. PRE-PAI-prosjektets fokusområder: Utvikler en exascale AI-plattform: PRE-PAI vil utvikle en plattform som gir forskere og bedrifter tilgang til den nødvendige infrastrukturen og programvaren for å utføre AI-beregninger på exascale-nivå. Støtter AI-forskning og -innovasjon: PRE-PAI vil tilby støtte til AI-forskningsprosjekter og innovasjon i en rekke sektorer. Utvikler kompetanse: PRE-PAI vil tilby opplæring og kompetanseutvikling for å forberede arbeidsstyrken på den kommende æraen med exascale AI."
+  },
+  {
+    "id": "a23af17b-f10d-4e16-88e4-d79ca65443a7",
+    "navn": "Nettløsninger",
+    "virksomhet": "Mattilsynet",
+    "orgnr": "985399077",
+    "fagomrade": "Innbygger",
+    "beskrivelse": "Forvalte og videreutvikle mattilsynet.no og innholdsplattformen, styrke publisering og røkting av innhold, utforske bruk av KI for innholdsoppslag."
+  },
+  {
+    "id": "c9a92f94-47f4-4f0e-af63-0cbbd88e4348",
+    "navn": "Prøvetaking",
+    "virksomhet": "Mattilsynet",
+    "orgnr": "985399077",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Effektivisere og automatisere prøvetaking, sikre god datafangst, digitalisere prøvetakingsprosessen, utvikle integrasjoner mot laboratorier."
+  },
+  {
+    "id": "646be44a-9d52-4059-8bc3-6bc0af4158c6",
+    "navn": "Styrke EBSI-nettverket",
+    "virksomhet": "Digitaliseringsdirektoratet",
+    "orgnr": "991825827",
+    "fagomrade": "Demokrati og styresett",
+    "beskrivelse": "Hovedoppgaven er å styrke EBSI-nettverket (European Blockchain Services Infrastructure) ved å legge til 18 nye valideringsnoder i produksjonsnettverket og levere omfattende støttetjenester til alle relevante EBSI-aktører. Gjennom å styrke EBSI-nettverket og tilby essensielle støttetjenester bidrar EBSI-NE til å akselerere adopsjonen av blokkjedeteknologi i hele Europa. EBSI-NE prosjektet er et samarbeid mellom 24 organisasjoner fra 14 europeiske land. \nDigdirs rolle i EBSI-NE-prosjektet handler primært om kommunikasjons- og formidlingsaktiviteter, slik som webinarer og workshops, sammen med Smart Innovation Norway og UiO Blockchain Lab."
+  },
+  {
+    "id": "283d7ef2-60a3-4492-b51e-6c9d3a43f7a5",
+    "navn": "Robotic Process Automation",
+    "virksomhet": "Finanstilsynet",
+    "orgnr": "840747972",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "RPA står for Robotic Process Automation, og er en teknologi som brukes til å automatisere repeterende og regelbaserte oppgaver i digitale systemer. I Finanstilsynet har RPA blitt brukt til å effektivisere saksbehandling, refusjoner, registreringer og dokumentflyt, blant annet gjennom roboten Finn-Robert. Finanstilsynet startet selve utviklingen av RPA i begynnelsen av 2020, og har en diversifisert portefølje med mer enn 50 aktive RPA-prosesser. Formålet er å effektivisere og frigjøre og flytte ressurser dit det er behov."
+  },
+  {
+    "id": "52a51bf7-d1b5-4e54-9d62-c8df2b9dea4e",
+    "navn": "Samarbeidsorgan for samisk KI",
+    "virksomhet": "Kommunal- og distriktsdepartementet",
+    "orgnr": "972417858",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": "Kommunal- og distriktsdepartementet og Sametinget har startet arbeidet med å etablere et samarbeidsorgan for samiske programmerere og teknologimiljøer. Initiativet skal samle fagpersoner og institusjoner med kompetanse og interesse for samisk språk, data og teknologi, med vekt på utviklingen av samisk KI."
+  },
+  {
+    "id": "33d3089b-8aa8-4f00-93ba-276b30e993a0",
+    "navn": "Standardisere utviklingsplattformer",
+    "virksomhet": "Direktoratet for forvaltning og økonomistyring",
+    "orgnr": "986252932",
+    "fagomrade": "Informasjonssikkerhet",
+    "beskrivelse": "Vi jobber med å automatisere oppsett av utviklingsplattformer og driftsmiljø både i sky og på on-premise. Dette vil gjøre at utviklere selv kan bestille miljøer. Miljøene vil da ha ferdig oppsatt sikkerhet, logging, overvåkning med mer. Dette tiltaket frigjør kapasitet i driftsmiljøet vårt, effektiviserer utviklingsteamene våre og bedrer sikkerheten vår."
+  },
+  {
+    "id": "ee1ed989-87aa-4d47-9abd-261fe7b2302f",
+    "navn": "Testuniverset",
+    "virksomhet": "Norsk helsenett SF",
+    "orgnr": "994598759",
+    "fagomrade": "Personvern",
+    "beskrivelse": "Formålet med tiltaket er å etablere Testunivers som en nasjonal sandkasse med testmiljøer, API'er og syntetiske data fra ulike helsesystemer, til bruk for forskning, utvikling, tidlig utprøving og testing av helseteknologi for helsepersonell. Brukere av tjenestene som inngår i testuniverset er tredjepartsleverandører, både offentlige og private aktører i helsesektoren, studenter og forskere. \nEksempler på bruksområder: \n-Effektiv og repeterbar generering av testdata med kvalitet som på produksjonsdata. \nSkalerbare datasett for for eksempel ytelsestesting. \n-Isolere produksjonsdata fra utviklingsprosesser og miljøer slik at færrest mulig får tilgang til produksjonsdata. \n-Trening av maskinlæringsmodeller og AI modeller."
+  },
+  {
+    "id": "579c7c07-2ea0-4b6e-992d-cc35c9b83461",
+    "navn": "Trace4EU-prosjektet",
+    "virksomhet": "Digitaliseringsdirektoratet",
+    "orgnr": "991825827",
+    "fagomrade": "Natur, klima og miljø",
+    "beskrivelse": "Trace4EU-prosjektet har som mål å forbedre sporbarheten i ulike bransjer ved hjelp av blokkjedeteknologi. Prosjektet skal utvikle en \"paraplyarkitektur\" basert på eksisterende EBSI-tjenester for å muliggjøre utvikling av sporbarhetsapplikasjoner for både fysiske og digitale eiendeler. Dette vil også bidra til økt åpenhet i Europa. Dette kan bli svært viktig for norsk markedsadgang og prising av norske produkter. Viktig bidrag til grønt skifte og sirkulær økonomi, blant annet gjennom digitale produktpass. Støttes av norsk use case for sporing av sjømat​"
+  },
+  {
+    "id": "ab853d06-9242-4aa3-abe4-f5db50cf792f",
+    "navn": "Norske og samiske språkmodeller",
+    "virksomhet": "Nasjonalbiblioteket",
+    "orgnr": "976029100",
+    "fagomrade": "Forskning",
+    "beskrivelse": "Nasjonalbibliotekets samling og kompetanse er sentrale i utviklingen av norsk språkteknologi og forskningsinfrastruktur. Utviklingen innenfor kunstig intelligens og maskinlæring har gjort behovet for norsk språk og innhold til utvikling og trening av denne typen teknologi stadig viktigere. Nasjonalbiblioteket skal \n- produsere og tilby grunnlagsmateriale til bruk i språkteknologi, maskinlæring og kunstig intelligens \n- trene, oppdatere og tilgjengeliggjøre språkmodeller som andre kan bruke til å utvikle KI-baserte verktøy."
+  },
+  {
+    "id": "069c1825-ae00-4478-99a4-9627dc1da945",
+    "navn": "Tverrspråklig effektiv kommunikasjon",
+    "virksomhet": "Politidirektoratet",
+    "orgnr": "982531950",
+    "fagomrade": "Innbygger",
+    "beskrivelse": "Politiet ønsker å bruke KI og språkmodeller til å løse utfordringen med språkbarrierer i kommunikasjonen mellom politiet og innbyggere som ikke snakker norsk eller engelsk. Prosjektet Tverrspråklig effektiv kommunikasjon tar sikte på å forbedre første kontakt med politiet for brukere uten norsk eller engelsk-kunnskap for å sikre at alle brukere, uavhengig av språkbakgrunn, har lik tilgang til politiets førstelinje-tjenester. Å fjerne språkbarrierer kan øke tilgjengelighet, effektivitet, service og kvalitet på essensielle og livsviktige tjenester for alle samfunnsgrupper. Politiet er også opptatt av at løsningen som utvikles bør kunne benyttes på tvers av offentlig sektor."
+  },
+  {
+    "id": "a01e6d7d-6dd9-45d7-8140-ba1f687fe37a",
+    "navn": "Sentralbordet",
+    "virksomhet": "Departementenes sikkerhets- og serviceorganisasjon (DSS)",
+    "orgnr": "974761424",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": "Bruke KI til analysere samtalene. Det gir grunnlag for en KI-drevet assistent til sentralbordet."
+  },
+  {
+    "id": "1f8ab66c-20e5-4eb9-9edf-09c061b0990f",
+    "navn": "Valgdatabase",
+    "virksomhet": "Utenriksdepartementet",
+    "orgnr": "972417920",
+    "fagomrade": "Digitale teknologier",
+    "beskrivelse": "Oppgradere valgdatabasen, migrere datasett til ny løsning med økt brukervennlighet, bredere brukerkrets, bruk av algoritmer til gjentakende prosesser og behandling av datasettet, samt bruk av et AI/maskinlæringsverktøy."
+  },
+  {
+    "id": "8eb1f434-8932-44e4-9b1d-52199c7a8e00",
     "navn": "Veiledning KI",
-    "virksomhet": "DIGITALISERINGSDIREKTORATET",
+    "virksomhet": "Digitaliseringsdirektoratet",
     "orgnr": "991825827",
     "fagomrade": "Digitale teknologier",
-    "beskrivelse": "For å bidra til kompetanseheving og oppfølging av regelverk skal Digdir oppdatere vedileder for KI.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
-    "id": "d6f74f66-8bbb-4617-8d41-65d6a4b952bd",
-    "navn": "Vidd",
-    "virksomhet": [
-      "DIAKONHJEMMET SYKEHUS AS",
-      "SUNNAAS SYKEHUS HF"
-    ],
-    "orgnr": [
-      "982791952",
-      "883971752"
-    ],
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "Pilotering av løsning ; Evaluering av effekt ulike i aktiviteter som krever dokumentasjon",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
-  },
-  {
-    "id": "60319a55-9574-450a-855f-68e577efe31a",
-    "navn": "Ward 24/7",
-    "virksomhet": "SYKEHUSET ØSTFOLD HF",
-    "orgnr": "983971768",
-    "fagomrade": "Helse og omsorg",
-    "beskrivelse": "kontinuerlig måling av vitalia, effektivisering av NEWS skåring",
-    "fase": "Gjennomføring",
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "beskrivelse": "For å bidra til kompetanseheving og oppfølging av regelverk skal Digdir oppdatere vedileder for KI."
   }
 ]
