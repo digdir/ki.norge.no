@@ -60,6 +60,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Prod refererer til tag og ikke digest, så en tag skal aldri skrives over.
+      # Bare «finnes ikke» slipper gjennom. Feiler oppslaget av en annen grunn,
+      # stopper jobben heller enn å anta at taggen er ledig.
+      - name: Avvis tag som finnes fra før
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo "Ugyldig tag. Bruk en Docker-tag: bokstaver, tall, _ . og -, maks 128 tegn." >&2
+            exit 1
+          fi
+          image="$REGISTRY/$IMAGE_NAME:$TAG"
+          if output=$(docker manifest inspect "$image" 2>&1); then
+            echo "Taggen $TAG finnes allerede i $REGISTRY/$IMAGE_NAME. Velg en ny tag." >&2
+            exit 1
+          fi
+          if ! grep -qiE 'manifest unknown|no such manifest' <<<"$output"; then
+            echo "Fikk ikke sjekket om $image finnes:" >&2
+            echo "$output" >&2
+            exit 1
+          fi
+          echo "Taggen $TAG er ledig."
+
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
