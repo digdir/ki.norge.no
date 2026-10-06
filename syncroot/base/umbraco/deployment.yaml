@@ -19,6 +19,14 @@ spec:
         linkerd.io/inject: enabled
     spec:
       serviceAccountName: umbraco
+      # Imaget bestemmer brukeren (app, 1654). fsGroup gjør umbraco-data (Azure
+      # Disk) skrivbar for den, også filene root laget før. runAsUser og
+      # runAsNonRoot står ikke her ennå, så et eldre image som kjører som root,
+      # fortsatt starter ved en tilbakerulling. Always heller enn OnRootMismatch,
+      # så filer root lager under en tilbakerulling også blir rettet. Volumene er små.
+      securityContext:
+        fsGroup: 1654
+        fsGroupChangePolicy: Always
       nodeSelector:
         kubernetes.io/arch: amd64
       containers:

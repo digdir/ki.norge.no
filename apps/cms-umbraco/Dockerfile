@@ -13,10 +13,11 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-USER root
+# Umbraco lager /app/Views ved oppstart og krasjer hvis den ikke får lov.
+RUN mkdir -p /app/umbraco/Data /app/umbraco/Logs /app/umbraco/mediacache /app/wwwroot/media /app/Views/Partials && \
+    chown -R $APP_UID:$APP_UID /app/umbraco /app/uSync /app/wwwroot/media
 
-RUN mkdir -p /app/umbraco/Data /app/umbraco/Logs /app/umbraco/mediacache /app/wwwroot/media && \
-    chmod -R 777 /app/umbraco /app/wwwroot/media
+USER $APP_UID
 
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
