@@ -43,7 +43,9 @@ jobs:
 
       # Inputene går via env og ikke rett inn i skriptet. Ellers kjører en
       # image-tag med ' i seg som shell, med tilgangen dette jobbet har til prod.
-      - name: Update image tag
+      # Podden låses til digesten taggen peker på nå, så en tag som flyttes
+      # senere ikke bytter imaget under oss.
+      - name: Pin image to digest
         env:
           IMAGE_TAG: ${{ inputs.image-tag }}
           TARGET_ENV: ${{ inputs.environment }}
@@ -56,7 +58,17 @@ jobs:
             tt02|prod) ;;
             *) echo "Ukjent miljø: $TARGET_ENV" >&2; exit 1 ;;
           esac
-          yq -i '(.images[] | select(.name == "umbraco")).newTag = strenv(IMAGE_TAG)' "./syncroot/$TARGET_ENV/kustomization.yaml"
+          kustomization="./syncroot/$TARGET_ENV/kustomization.yaml"
+          new_name=$(yq '.images[] | select(.name == "umbraco") | .newName' "$kustomization")
+          source_image="${new_name#altinncr.azurecr.io/}:$IMAGE_TAG"
+          IMAGE_DIGEST=$(docker buildx imagetools inspect "$source_image" --format '{{json .Manifest}}' | jq -r '.digest')
+          if [[ ! "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Fant ingen digest for $source_image. Finnes taggen?" >&2
+            exit 1
+          fi
+          export IMAGE_DIGEST
+          yq -i '(.images[] | select(.name == "umbraco")) |= (.newTag = strenv(IMAGE_TAG) | .digest = strenv(IMAGE_DIGEST))' "$kustomization"
+          echo "$source_image låst til $IMAGE_DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Update db connection string
         if: inputs.database == 'AzureSQL'

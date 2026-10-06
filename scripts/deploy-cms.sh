@@ -76,12 +76,12 @@ if command -v kubectl >/dev/null && kubectl --context "$KCTX" -n "$KNS" get pods
   for i in $(seq 1 60); do
     running=$(kubectl --context "$KCTX" -n "$KNS" get pods \
       -o jsonpath='{.items[0].spec.containers[?(@.name=="umbraco")].image}' \
-      --request-timeout=20s 2>/dev/null | sed 's/.*://')
+      --request-timeout=20s 2>/dev/null | sed 's|.*/||')
     ready=$(kubectl --context "$KCTX" -n "$KNS" get pods \
       -o jsonpath='{.items[0].status.containerStatuses[?(@.name=="umbraco")].ready}' \
       --request-timeout=20s 2>/dev/null)
     echo "  [$i] kjorende image=${running:-?} ready=${ready:-?}"
-    if [ "$running" = "$TAG" ] && [ "$ready" = "true" ]; then ROLLED=1; break; fi
+    if [[ "$running" == "umbraco:$TAG@sha256:"* ]] && [ "$ready" = "true" ]; then ROLLED=1; break; fi
     sleep 15
   done
   [ "$ROLLED" = "1" ] || fail "Image $TAG kjorer fortsatt ikke i $ENV etter ~15 min. Sjekk flux: kubectl --context $KCTX -n $KNS get ocirepository,kustomization"
