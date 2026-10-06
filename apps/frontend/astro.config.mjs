@@ -28,7 +28,7 @@ export default defineConfig({
   markdown: { syntaxHighlight: false },
   security: {
     csp: {
-      directives: OTHER_DIRECTIVES,
+      directives: [...OTHER_DIRECTIVES],
       scriptDirective: { resources: SCRIPT_SOURCES, hashes: INLINE_SCRIPT_FILES.map(sha256) },
       styleDirective: { resources: STYLE_SOURCES },
     },

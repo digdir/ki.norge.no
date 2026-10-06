@@ -40,7 +40,7 @@ export const OTHER_DIRECTIVES = [
   "frame-src 'self' https://challenges.cloudflare.com",
   "base-uri 'self'",
   "form-action 'self'",
-];
+] as const;
 
 const policy = (scriptSources: string[]) =>
   [...OTHER_DIRECTIVES, `script-src ${scriptSources.join(' ')}`, `style-src ${STYLE_SOURCES.join(' ')}`].join('; ');
