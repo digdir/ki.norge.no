@@ -97,7 +97,7 @@ Kode: `apps/cms-kinorgeportal`. Workere: `cms-kinorgeportal-prod` og `cms-kinorg
 
 `robots.txt` gir `Disallow: /` på alt som ikke er i `PROD_HOSTS`.
 
-Admin-tilgang til skjermede miljøer og `/status` skjer via `/admin-tilgang?key=<ADMIN_SECRET>`, som setter en `ki_admin`-cookie i 30 dager.
+Admin-tilgang til skjermede miljøer og `/status` skjer via skjemaet på `/admin-tilgang`, eller med `?key=<ADMIN_SECRET>`. Det setter en `ki_admin`-cookie som serveren godtar i 30 dager. Forsøkene er begrenset per IP-adresse.
 
 ## Altinn dis-core
 

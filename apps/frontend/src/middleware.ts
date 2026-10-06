@@ -1,5 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
-import { adminToken, isAdminCookie, keyMatches, requiresAdmin } from './lib/admin-access';
+import { handleAdminAccess, isAdminCookie, requiresAdmin } from './lib/admin-access';
 import {
   htmlToMarkdown,
   prefersMarkdown,
@@ -143,23 +143,11 @@ async function toMarkdownResponse(
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies } = context;
 
-  // Admin access (status page, coming-soon bypass).
-  // Visit /admin-tilgang?key=<ADMIN_SECRET> to set the ki_admin cookie.
+  // Admin access (status page, coming-soon bypass). /admin-tilgang setter
+  // ki_admin-cookien, fra skjemaet eller med ?key=<ADMIN_SECRET>.
   const adminSecret = process.env.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || '';
   if (url.pathname === '/admin-tilgang') {
-    const token = keyMatches(url.searchParams.get('key'), adminSecret) ? await adminToken(adminSecret) : null;
-    if (token) {
-      const res = new Response('Tilgang gitt! Du blir videresendt...', {
-        status: 302,
-        headers: { 'Location': '/status', 'Cache-Control': 'no-store' },
-      });
-      res.headers.append(
-        'Set-Cookie',
-        `ki_admin=${token}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax; HttpOnly; Secure`,
-      );
-      return res;
-    }
-    return new Response('Ugyldig nøkkel', { status: 401 });
+    return handleAdminAccess(context.request, adminSecret);
   }
 
   // Verdien må stemme med hemmeligheten, ikke bare finnes. Se lib/admin-access.ts.
@@ -171,7 +159,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // sto utenfor og var offentlig lesbar på prod, selv om ruta selv dokumenterte
   // at middlewaren beskyttet den. Den svarer med interne vertsnavn i dis-core.
   if (requiresAdmin(url.pathname) && !(await isAdmin())) {
-    return new Response('Ikke autorisert. Trenger ki_admin-cookie. Bruk /admin-tilgang?key=<secret>', {
+    return new Response('Ikke autorisert. Trenger ki_admin-cookie. Logg inn på /admin-tilgang.', {
       status: 401,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
