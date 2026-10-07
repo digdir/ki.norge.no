@@ -32,6 +32,12 @@ const DEFAULT_PATTERNS: Record<number, Variant[]> = {
 };
 const CYCLE: Variant[] = ['dark', 'light', 'medium'];
 const defaultVariant = (i: number): Variant => DEFAULT_PATTERNS[count]?.[i] ?? CYCLE[i % 3];
+
+// På mobil står kortene i én kolonne, og da blir de to lyse i 2x2-mønsteret
+// naboer og flyter sammen (#796). Rødt og rosa annenhver gang skiller best.
+const MOBILE_PATTERNS: Record<number, Variant[]> = {
+  4: ['dark', 'light', 'medium', 'light'],
+};
 ---
 
 <div class="example-link-cards" data-count={count}>
@@ -43,6 +49,7 @@ const defaultVariant = (i: number): Variant => DEFAULT_PATTERNS[count]?.[i] ?? C
       tags={card.tags}
       virksomhet={card.virksomhet}
       variant={card.variant ?? defaultVariant(i)}
+      mobileVariant={card.variant ? undefined : MOBILE_PATTERNS[count]?.[i]}
     />
   ))}
 </div>
