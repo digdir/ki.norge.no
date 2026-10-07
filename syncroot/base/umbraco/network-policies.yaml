@@ -9,7 +9,9 @@ spec:
     matchLabels:
       app.kubernetes.io/name: umbraco
   port: http
-  proxyProtocol: HTTP/2
+  # Kestrel snakker bare HTTP/1.1 i klartekst. Med HTTP/2 her svarer proxyen
+  # kubelet-probene med HTTP/2-rammer, og kubelet melder «malformed HTTP response».
+  proxyProtocol: HTTP/1
 ---
 apiVersion: policy.linkerd.io/v1beta2
 kind: HTTPRoute
@@ -47,3 +49,49 @@ metadata:
 spec:
   identities:
     - "altinn-traefik.traefik.serviceaccount.identity.linkerd.cluster.local"
+---
+# Linkerd tillater prober av seg selv bare når Server-en ikke har egne HTTPRoutes.
+# Ruta over gjør at kubelet ellers får 403. Exact og lengre enn «/», så disse vinner.
+# Stiene er offentlige via Traefik fra før, så hele nettet åpner ikke noe nytt.
+apiVersion: policy.linkerd.io/v1beta2
+kind: HTTPRoute
+metadata:
+  name: umbraco-probe-route
+spec:
+  parentRefs:
+    - name: umbraco-http-server
+      kind: Server
+      group: policy.linkerd.io
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /api/health
+          method: GET
+        - path:
+            type: Exact
+            value: /api/health/ready
+          method: GET
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: umbraco-probe-auth
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: HTTPRoute
+    name: umbraco-probe-route
+  requiredAuthenticationRefs:
+    - name: kubelet
+      kind: NetworkAuthentication
+      group: policy.linkerd.io
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: NetworkAuthentication
+metadata:
+  name: kubelet
+spec:
+  networks:
+    - cidr: 0.0.0.0/0
+    - cidr: ::/0

@@ -75,6 +75,34 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          # Kestrel lytter først når Umbraco har startet, og ved en oppgradering
+          # kjører migreringene før det. Gis det opp midt i en migrering, starter
+          # den på nytt hver gang, derfor 10 minutter. Målt lokalt: 2-7 sekunder.
+          # Probestiene må tillates i network-policies.yaml, ellers avviser linkerd dem.
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          # /api/health sjekker ikke databasen, så et kort databaseavbrudd gir ikke
+          # omstart. Startet Umbraco uten database, svarer den 500, og da gir en
+          # omstart et nytt forsøk.
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - name: umbraco-data
               mountPath: /app/umbraco/Data
