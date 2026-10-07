@@ -1,11 +1,9 @@
 {
   "ee046e19-3361-4ec1-88d3-8d8b67bd7f59": {
     "tiltak": "KF Tsetlin, forklarbar KI for offentlig sektor",
-    "hvorfor": "Eksporten har bare noen av valgene fra skjemaet. Marie og Dorte vil vise alt KF valgte, og det står i skjemainnsendingen (#847).",
+    "hvorfor": "Registeret tar bare imot én leveranse, så eksporten har bare PoC. Sida viser alle leveransene KF valgte i skjemaet (#847).",
     "sett": {
-      "leveranse": ["PoC", "MVP", "Pilot", "Løsning i produksjon"],
-      "kiType": ["Generativ KI", "Prediktiv KI", "Agentisk KI", "Språkteknologi", "Anbefalingssystemer", "Annet"],
-      "kiTypeAnnet": "Klassifisering"
+      "leveranse": ["PoC", "MVP", "Pilot", "Løsning i produksjon"]
     }
   },
   "a2e6e5f2-77b6-451b-be2a-02142f85896e": {
