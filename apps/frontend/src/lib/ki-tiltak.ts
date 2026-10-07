@@ -187,16 +187,19 @@ export const TOMT_FILTER: KiTiltakFilter = { query: '', fagomrade: [], fase: [],
 export const FILTERETIKETTER: Record<FilterGruppe, string> = {
   fagomrade: 'Fag- og temaområde',
   fase: 'Fase',
-  leveranse: 'Hva tiltaket skal levere',
+  leveranse: 'Leveranse',
   kiType: 'Type KI',
 };
 
-/** Valgene i hver kategori, i skjemaets rekkefølge. */
+/** Filtervalget for tiltak som mangler leveranse eller type KI. Det er ikke et valg i skjemaet. */
+export const IKKE_DEFINERT = 'Ikke definert';
+
+/** Valgene i hver kategori, i skjemaets rekkefølge, med «Ikke definert» sist. */
 export const FILTERVALG: Record<FilterGruppe, readonly string[]> = {
   fagomrade: FAGOMRADER,
   fase: FASER,
-  leveranse: LEVERANSER,
-  kiType: KI_TYPER,
+  leveranse: [...LEVERANSER, IKKE_DEFINERT],
+  kiType: [...KI_TYPER, IKKE_DEFINERT],
 };
 
 /** Fjerner alle kategorivalg, men lar søketeksten stå. */
@@ -204,12 +207,36 @@ export function utenKategorier(filter: KiTiltakFilter): KiTiltakFilter {
   return { ...TOMT_FILTER, query: filter.query };
 }
 
-/** Verdiene et tiltak har i en kategori. kiType og leveranse er lister, de andre ett valg. */
+const ellerIkkeDefinert = (verdier?: string[]) => (verdier && verdier.length > 0 ? verdier : [IKKE_DEFINERT]);
+
+/**
+ * Verdiene et tiltak har i en kategori. kiType og leveranse er lister, de andre
+ * ett valg. Mangler tiltaket kiType eller leveranse, er verdien «Ikke definert».
+ */
 export function verdierI(tiltak: KiTiltak, gruppe: FilterGruppe): string[] {
-  if (gruppe === 'kiType') return tiltak.kiType ?? [];
-  if (gruppe === 'leveranse') return tiltak.leveranse ?? [];
+  if (gruppe === 'kiType') return ellerIkkeDefinert(tiltak.kiType);
+  if (gruppe === 'leveranse') return ellerIkkeDefinert(tiltak.leveranse);
   if (gruppe === 'fase') return tiltak.fase ? [tiltak.fase] : [];
   return [tiltak.fagomrade];
+}
+
+/**
+ * Antall tiltak bak hvert filtervalg. Et tiltak med flere KI-typer teller én
+ * gang under hver av dem.
+ */
+export function tellFiltervalg(items: KiTiltak[]): Record<FilterGruppe, Map<string, number>> {
+  const perGruppe = Object.fromEntries(FILTERGRUPPER.map((g) => [g, new Map<string, number>()])) as Record<
+    FilterGruppe,
+    Map<string, number>
+  >;
+  for (const tiltak of items) {
+    for (const gruppe of FILTERGRUPPER) {
+      for (const verdi of verdierI(tiltak, gruppe)) {
+        perGruppe[gruppe].set(verdi, (perGruppe[gruppe].get(verdi) ?? 0) + 1);
+      }
+    }
+  }
+  return perGruppe;
 }
 
 /**

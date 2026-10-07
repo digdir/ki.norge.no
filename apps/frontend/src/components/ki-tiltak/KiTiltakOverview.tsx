@@ -15,12 +15,9 @@ import {
 import KiTiltakDetail, { DETAIL_DIALOG_ID } from './KiTiltakDetail';
 import KiTiltakFilterPanel from './KiTiltakFilterPanel';
 import KiTiltakCard from './KiTiltakCard';
+import { FIRST_PAGE, NEXT_PAGE } from './paging';
 import PromoBanner from './PromoBanner';
 import RegisterTiltakDialog from './RegisterTiltakDialog';
-
-/* Prototypen viser 40 tiltak først og laster 20 av gangen etter det. */
-const FIRST_PAGE = 40;
-const NEXT_PAGE = 20;
 
 interface Props {
   /** Offentlig Turnstile-nøkkel, videreført til innsendingsskjemaet. */
