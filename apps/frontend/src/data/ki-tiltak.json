@@ -1048,6 +1048,41 @@
     "kontaktinfo": null
   },
   {
+    "id": "96c88662-0e87-41ba-afc8-c5e38fe204d4",
+    "navn": "KI-støtte av søknader før levering",
+    "virksomhet": "PATENTSTYRET",
+    "orgnr": "971526157",
+    "fagomrade": "Innbygger",
+    "beskrivelse": "KI-agenter bistår søkerne med å kontrollere at søknaden oppfyller formelle krav før de sender søknaden. Målet er å oppdage formelle mangler tidlig og gjøre det enklere å levere korrekte søknader. For designsøknader kontrollerer løsningen om bildene oppfyller kravene og foreslår klasser i den internasjonale klassifiseringen av design (Locarno). For patentsøknader utvikler vi en løsning som kontrollerer om søknaden oppfyller formelle krav. Designagenten er i produksjon og tilgjengelig via Altinn. Patentagenten er under utvikling.",
+    "fase": "I drift",
+    "leveranse": [
+      "Løsning i produksjon"
+    ],
+    "kiType": [
+      "Generativ KI",
+      "Agentisk KI"
+    ],
+    "kontaktinfo": "tmt@patentstyret.no"
+  },
+  {
+    "id": "abc374f6-396c-4edc-ad9b-362dd41e4f6f",
+    "navn": "KI-støtte for kunnskapsarbeid og saksbehandling",
+    "virksomhet": "PATENTSTYRET",
+    "orgnr": "971526157",
+    "fagomrade": "Virksomhet",
+    "beskrivelse": "Vi bruker og tester KI-agenter som hjelper ansatte med å finne informasjon fra blant annet vårt kvalitetssystem (RAG), skrive utkast til brev, forbedre og oversette tekster og vurdere patent- og varemerkesøknader. Målet er å bruke mindre tid på informasjonsinnhenting og skrivearbeid og bidra til mer effektiv og enhetlig saksbehandling. Løsningene omfatter en intern chatbot-assistent, en brevassistent, en tekst- og oversettelsesassistent og agenter for fagspesifikk gransking. Patentagenten er under testing. De øvrige er i produksjon.",
+    "fase": "I drift",
+    "leveranse": [
+      "Løsning i produksjon"
+    ],
+    "kiType": [
+      "Generativ KI",
+      "Agentisk KI",
+      "Språkteknologi"
+    ],
+    "kontaktinfo": "tmt@patentstyret.no"
+  },
+  {
     "id": "a2e6e5f2-77b6-451b-be2a-02142f85896e",
     "navn": "KI-støttet regelverks- og konsekvensanalyse",
     "virksomhet": "DIREKTORATET FOR FORVALTNING OG ØKONOMISTYRING",
