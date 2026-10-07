@@ -5,18 +5,18 @@ Portal for kunstig intelligens i norsk offentlig sektor. Drives av Digitaliserin
 ## Kjøre lokalt
 
 ```bash
-# Frontend (Astro SSR, Node lokalt / Cloudflare Workers i prod)
+# Frontend (Astro SSR, Cloudflare-adapteren også lokalt)
 pnpm run frontend:dev         # http://localhost:4321
 
 # CMS (Umbraco .NET 10)
 pnpm run cms:dev              # http://localhost:5000/umbraco
                               # admin@ki.norge.no / KiNorge2025!
 
-# Frontend mot prod-CMS (trenger ikke lokal CMS)
+# Frontend mot prod-CMS (trenger ikke lokal CMS, kjører på Node-adapteren)
 pnpm run frontend:dev:prod
 ```
 
-Første gang CMS kjøres opprettes SQLite-databasen og alt innhold seedes automatisk (unattended install).
+Første gang CMS kjøres opprettes SQLite-databasen og admin-brukeren automatisk (unattended install). Innhold seedes ikke, se «Innholdsskriving fra kode» under.
 
 Innlogget bruker over er en lokal kastebruker mot din egen SQLite-fil. Den gir
 ikke tilgang til noe delt, og passordet er derfor ikke en hemmelighet. Ikke
@@ -25,11 +25,13 @@ Azure Key Vault per miljø, og er dokumentert i Confluence.
 
 ## Arkitektur
 
-Monorepo med to apper: frontend på Cloudflare Workers, CMS på Altinn dis-core (Kubernetes).
+Monorepo med to hovedapper, frontend på Cloudflare Workers og CMS på Altinn dis-core (Kubernetes), og to små workere foran dem.
 
 ```
 apps/frontend/          Astro SSR, Cloudflare Workers, designsystemet-react
 apps/cms-umbraco/       Umbraco 17, .NET 10, Azure SQL (prod), SQLite (lokalt)
+apps/cache-kinorgeportal/  Cache-worker foran ki.norge.no
+apps/cms-kinorgeportal/    Proxy-worker foran cms.ki.norge.no
 ```
 
 Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL (dis-core); lokalt brukes SQLite.
@@ -39,21 +41,20 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 **Stack:** Astro (server mode) + React (islands) + @digdir/designsystemet-react + @digdir/designsystemet-css
 
 **Sider** (`apps/frontend/src/pages/`)
-- Forsiden, artikler, eksempler, kalender, veiledning (guide + steg), sandkasse, om-oss, status (admin-only)
-- Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `kalender/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`, og toppnivå `[slug]` (CMS `side`-noder)
+- Forsiden, artikler, eksempler, kalender, veiledning (guide + steg), ki-tiltak, sandkasse, om-oss, status (admin-only)
+- Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `kalender/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`, `veiledning/[guide]/[step]/[stegartikkel]`, og toppnivå `[slug]` (CMS `side`-noder)
 - Søk er en modal (`SearchDialog`, kaller `/api/search`), ikke en egen side. Det finnes IKKE en `/kontakt`-, `/faq`-, `/sok`- eller `/ki-ordbok`-side i koden. Footer har en "Kontakt oss"-seksjon, men ingen kontaktside.
 
 **Nøkkelfiler**
 - `src/lib/umbraco.ts` — all datahenting fra CMS. Interfaces, fetch-funksjoner, mapItem() som mapper content types til TypeScript-typer
 - `src/lib/aksel-icons.ts` — statisk SVG-map for Aksel-ikoner (React-only pakke, kan ikke brukes direkte i Astro)
 - `src/lib/seo.ts` — JSON-LD structured data
-- `src/middleware.ts` — caching, admin-tilgang (ki_admin cookie), kommer-snart-modus, security headers (CSP, HSTS osv.)
-- `src/components/shared/ArticleBlocksRenderer.astro` — **eneste** sted artikkelmoduler rendres. Brukt av artikler/[slug], eksempler/[slug], sandkasse/index. CSS i `src/styles/article-blocks.css`. Endre denne én filen → alle sidene oppdateres.
-- `src/components/shared/BlocksRenderer.astro` — eldre/enklere blocks renderer (tekst, advarsel, lenkeliste, faqInnhold). Brukes ikke for artikkelmoduler.
+- `src/middleware.ts` — caching, admin-tilgang (ki_admin cookie), kommer-snart-modus, security headers (HSTS osv.)
+- `src/lib/csp.ts` — CSP-en. Astro setter den på sidene via `astro.config.mjs`, middleware på svar som mangler den
+- `src/components/shared/ArticleBlocksRenderer.astro` — **eneste** sted artikkelmoduler rendres. Brukt av artikler, eksempler, kalender, veiledning, sandkasse, om-oss og toppnivå `[slug]`. CSS i `src/styles/article-blocks.css`. Endre denne én filen → alle sidene oppdateres.
 - `src/components/shared/AkselIcon.astro` — rendrer Aksel-ikon etter navn
 - `src/components/shared/SearchDialog.tsx` — KI-søk dialog (React, client:load)
 - `src/components/shared/CookieNotice.astro` — minimal cookie-notice (essential cookies only)
-- `src/components/shared/BackToTop.astro` — flytende back-to-top knapp på lange sider
 - `src/styles/global.css`, `search-dialog.css`, `layout.css`, `article-blocks.css`
 
 **layout-system:** Se layout.css
@@ -83,17 +84,15 @@ inntil skjemaflyten er avklart, se advarselen over.
 1. I `ContentTypeComposer.cs`: lag en ny metode som oppretter element type med felter
 2. Registrer den i `InitializeAsync` og legg den til i riktig Block List data type
 3. I `umbraco.ts`: legg til interface, mapping i mapItem() eller mapArtikkelBlocks()
-4. I `BlocksRenderer.astro` eller artikkel-siden: legg til rendering for den nye contentType-verdien
+4. I `ArticleBlocksRenderer.astro`: legg til rendering for den nye contentType-verdien
 
-**Eksisterende element types for artikler**
-- artikkelTekst (RichText)
-- artikkelInfoBoks (tittel + RichText)
-- artikkelBildeSeksjon (bilde + bildetekst)
-- artikkelMorkPanel (skal fjernes)
+**Eksisterende element types for artikler** (tillatt i `BlockListArtikkelInnhold` i uSync)
+- artikkelTekst, artikkelBildeSeksjon, artikkelTrekkspill, artikkelFremheving
+- artikkelProsessteg, artikkelByline, artikkelInnholdFra, artikkelKontaktkort
 
 **Connection string (lokal SQLite):** Må bruke `|DataDirectory|` i path, ikke relativ sti. Ellers finner ikke Umbraco databasen. Prod kjører Azure SQL via dis-core (connection string injiseres fra Key Vault, ikke SQLite).
 
-**RichText toolbar:** Konfigureres programmatisk i ContentTypeComposer (EnsureRichTextHeadings). Har H2, H3, H4.
+**RichText toolbar:** Konfigureres programmatisk i ContentTypeComposer (EnsureRichTextDataTypes), i drift i `uSync/v17/DataTypes/RichtextEditor.config`. Har H2, H3, H4.
 
 **Database:** Prod kjører Azure SQL via dis-core, som erstattet SQLite + Litestream (de ga lock-contention på multi-editor-bruk). Lokal dev bruker fortsatt SQLite. Historisk migrasjonsplan: `docs/sql-server-migration-plan.md`.
 
@@ -121,12 +120,12 @@ Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 
 ## Viktige beslutninger
 
-- Media mount path er `/app/wwwroot/media` (ikke `/app/umbraco/Data/Media`)
+- Media ligger i Azure Blob (`AzureBlobMediaComposer.cs`). `umbraco-media` er bevisst ikke montert på `/app/wwwroot/media`, se `syncroot/base/umbraco/deployment.yaml`
 - Ingen dark mode (bevisst valg)
 - Ingen Tailwind
 - pere/nb-nn-translation krever `use_fast=True` for tokenizer (tokenizer.json, ikke spiece.model)
 - Admin-tilgang via skjemaet på `/admin-tilgang` (eller `?key=<ADMIN_SECRET>`) setter ki_admin cookie, som utløper på serveren etter 30 dager
-- Kommer-snart-modus aktiveres med `LAUNCH_MODE=coming-soon` env var
+- Kommer-snart-modus gjelder `GATED_HOSTS` med mindre `LAUNCH_MODE=live` (per miljø i `wrangler.jsonc`)
 
 ## Stilpreferanser (kommentarer, issues, commit-meldinger)
 
@@ -153,7 +152,7 @@ Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 - CMS (prod): https://kinorgeportal.prod.dis-core.altinn.cloud/umbraco (Altinn dis-core)
 - CMS (tt02): https://kinorgeportal.tt02.dis-core.altinn.cloud/umbraco
 - Status: /status (krever ki_admin cookie)
-- Domene: ki.norge.no (Cloudflare Partial-zone på norge.no, DNS ikke satt opp ennå)
+- Domene: ki.norge.no (Cloudflare Partial-zone på norge.no, DNS satt opp)
 
 ## Teamet
 
