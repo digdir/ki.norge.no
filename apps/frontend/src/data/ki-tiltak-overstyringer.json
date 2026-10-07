@@ -10,17 +10,9 @@
   },
   "a2e6e5f2-77b6-451b-be2a-02142f85896e": {
     "tiltak": "KI-støttet regelverks- og konsekvensanalyse (DFØ REKA)",
-    "hvorfor": "Eksporten har bare noen av valgene fra skjemaet. Marie og Dorte vil vise alt DFØ valgte (#847). Ingen kiTypeAnnet, Annet er ikke valgt.",
+    "hvorfor": "Registeret tar bare imot én leveranse, så eksporten har bare MVP. Sida viser alle leveransene DFØ valgte i skjemaet (#847).",
     "sett": {
-      "leveranse": ["MVP", "Pilot", "Løsning i produksjon"],
-      "kiType": ["Generativ KI", "Agentisk KI", "Språkteknologi", "Anbefalingssystemer"]
-    }
-  },
-  "34f626f4-9ffb-4ffc-8772-ee5d99808631": {
-    "tiltak": "Trace4EU-prosjektet",
-    "hvorfor": "Beskrivelsen slutter med spørsmålstegn i eksporten. Dorte har bekreftet at det skal være punktum (#847).",
-    "erstatt": {
-      "beskrivelse": { "fra": "sporing av sjømat?", "til": "sporing av sjømat." }
+      "leveranse": ["MVP", "Pilot", "Løsning i produksjon"]
     }
   },
   "e03243ab-d743-4809-9c65-58525cb09f38": {
