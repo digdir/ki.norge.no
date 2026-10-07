@@ -43,7 +43,7 @@ note "Sjekker tilgang til ${ENVN}…"
 k get pods --request-timeout=25s >/dev/null 2>&1 \
   || fail "Når ikke clusteret. Er Altinn-VPN/exit-node (ts-exit-$ENVN) på?"
 
-IMAGE=$(k get pods -o jsonpath='{.items[0].spec.containers[?(@.name=="umbraco")].image}' --request-timeout=25s 2>/dev/null | sed 's/.*://')
+IMAGE=$(k get pods -o jsonpath='{.items[0].spec.containers[?(@.name=="umbraco")].image}' --request-timeout=25s 2>/dev/null | sed 's|.*/||')
 note "Podden kjører image $IMAGE"
 
 k exec "$POD" -c "$CONTAINER" --request-timeout=30s -- sh -c 'test -d /app/uSync/v17' 2>/dev/null \

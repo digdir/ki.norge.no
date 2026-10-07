@@ -60,6 +60,8 @@ Feiler jobben, les output før du gjør noe annet. Ikke alle feil er dine: cosig
 
 Velger du Sqlite her, peker du et miljø med ekte data mot feil database.
 
+Workflowen slår opp digesten taggen peker på, og låser podden til den. Finnes ikke taggen, stopper den. Tilbakerulling er det samme med forrige tag.
+
 Workflowen publiserer et artefakt. Flux plukker det opp på et femminuttersintervall, så det tar noen minutter før podden faktisk rulles. **En grønn workflow beviser ikke at utrullingen er skjedd.**
 
 ### 3. Verifiser
