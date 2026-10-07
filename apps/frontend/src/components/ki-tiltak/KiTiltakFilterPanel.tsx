@@ -5,8 +5,8 @@ import {
   FILTERGRUPPER,
   FILTERVALG,
   kiTiltak,
+  tellFiltervalg,
   utenKategorier,
-  verdierI,
   type FilterGruppe,
   type KiTiltakFilter,
 } from '../../lib/ki-tiltak';
@@ -36,22 +36,8 @@ function optionLabel(name: string, count: number) {
 
 export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }: Props) {
   // Antall regnes mot hele datasettet, ikke mot gjeldende treff, så tallene
-  // ikke krymper mens brukeren huker av. Et tiltak med flere KI-typer teller
-  // én gang under hver av dem.
-  const count = useMemo(() => {
-    const perGruppe = Object.fromEntries(FILTERGRUPPER.map((g) => [g, new Map<string, number>()])) as Record<
-      FilterGruppe,
-      Map<string, number>
-    >;
-    for (const tiltak of kiTiltak) {
-      for (const gruppe of FILTERGRUPPER) {
-        for (const verdi of verdierI(tiltak, gruppe)) {
-          perGruppe[gruppe].set(verdi, (perGruppe[gruppe].get(verdi) ?? 0) + 1);
-        }
-      }
-    }
-    return perGruppe;
-  }, []);
+  // ikke krymper mens brukeren huker av.
+  const count = useMemo(() => tellFiltervalg(kiTiltak), []);
 
   const toggle = (group: FilterGruppe, value: string) => {
     setFilter((previous) => {
