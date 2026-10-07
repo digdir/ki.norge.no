@@ -243,12 +243,14 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 }
 
 /* Pilleform, samme grep som search-dialog.css bruker på Search. Varm,
-   nesten-hvit bakgrunn og en vinrød vask i stedet for nøytral grå kant. */
+   nesten-hvit bakgrunn og vinrød kant i stedet for nøytral grå. Vasken
+   (--tiltak-kant-vask) ga bare 1,27:1 mot siden, under 3:1-kravet for
+   skjemafelt (WCAG 1.4.11). */
 .tiltak-sokefelt [data-field="search"],
 .tiltak-sokefelt input {
   border-radius: var(--ds-border-radius-full);
   --dsc-input-background: var(--ds-color-brand2-background-default);
-  --dsc-input-border-color: var(--tiltak-kant-vask);
+  --dsc-input-border-color: var(--ds-color-accent-border-default);
 }
 
 /* Ligger rett etter filterknappen i .tiltak-filterrad. Tidligere ble den
@@ -364,14 +366,15 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--tiltak-tekst-dempet);
 }
 
-/* Avkrysningsboksene var grå og firkantede. Prototypen har en lys rosa kant og
-   mykere hjørner. Størrelsen der er 18px, som ikke finnes i 4px-skalaen;
-   --ds-size-5 (20px) er nærmeste trinn og holder samtidig på et brukbart
-   trykkmål. */
+/* Avkrysningsboksene var grå og firkantede. Prototypen har rosa kant og
+   mykere hjørner. Prototypens lyse rosa (-subtle) ga bare 1,91:1 mot hvitt,
+   så kanten er -default for å nå 3:1. Størrelsen der er 18px, som ikke
+   finnes i 4px-skalaen; --ds-size-5 (20px) er nærmeste trinn og holder
+   samtidig på et brukbart trykkmål. */
 .tiltak-panel .ds-input[type='checkbox'] {
   --dsc-input-size--toggle: var(--ds-size-5);
   --dsc-input-border-width--toggle: var(--ds-border-width-default);
-  --dsc-input-border-color: var(--ds-color-accent-border-subtle);
+  --dsc-input-border-color: var(--ds-color-accent-border-default);
   --dsc-input-accent-color: var(--ds-color-accent-text-default);
   /* input.css setter border-radius direkte på [type=checkbox], ikke gjennom
      --dsc-input-border-radius, så variabelen alene når ikke fram. */
@@ -654,8 +657,9 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    forfeder uansett spesifisitet der. Må derfor style samme element som
    input.css gjør, med høyere spesifisitet (.tiltak-registrer .ds-input er
    to klasser mot input.css sin ene) for å vinne.
-   Kant: målt rgb(227,174,185) = #e3aeb9, som er --ds-color-accent-border-
-   subtle på pikselet, ikke -default (#c3546b). aria-invalid=true styres av
+   Kant: prototypen måler #e3aeb9 (--ds-color-accent-border-subtle), men den
+   gir bare 1,91:1 mot hvitt. -default (#c3546b) gir 4,37:1 og holder
+   3:1-kravet for skjemafelt (WCAG 1.4.11). aria-invalid=true styres av
    --dsc-input-accent-color--invalid i en egen, mer spesifikk regel
    (input.css), så feilstiling er upåvirket av denne endringen.
    Radius: målt 12px. --ds-border-radius-lg er 8px, men --ds-border-radius-xl
@@ -672,7 +676,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    --dsc-focus-boxShadow/--dsc-focus-outline (fokusringen) er egne
    variabler, upåvirket av dette. */
 .tiltak-registrer .ds-input {
-  --dsc-input-border-color: var(--ds-color-accent-border-subtle);
+  --dsc-input-border-color: var(--ds-color-accent-border-default);
   --dsc-input-border-radius: var(--ds-border-radius-xl);
   --dsc-input-color: var(--ds-color-accent-text-default);
   --dsc-input-outline-color--hover: transparent;
