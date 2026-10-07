@@ -191,13 +191,13 @@ export const FILTERETIKETTER: Record<FilterGruppe, string> = {
   kiType: 'Type KI',
 };
 
-/** Filtervalget for tiltak som mangler leveranse eller type KI. Det er ikke et valg i skjemaet. */
+/** Filtervalget for tiltak som mangler fase, leveranse eller type KI. Det er ikke et valg i skjemaet. */
 export const IKKE_DEFINERT = 'Ikke definert';
 
 /** Valgene i hver kategori, i skjemaets rekkefølge, med «Ikke definert» sist. */
 export const FILTERVALG: Record<FilterGruppe, readonly string[]> = {
   fagomrade: FAGOMRADER,
-  fase: FASER,
+  fase: [...FASER, IKKE_DEFINERT],
   leveranse: [...LEVERANSER, IKKE_DEFINERT],
   kiType: [...KI_TYPER, IKKE_DEFINERT],
 };
@@ -211,12 +211,12 @@ const ellerIkkeDefinert = (verdier?: string[]) => (verdier && verdier.length > 0
 
 /**
  * Verdiene et tiltak har i en kategori. kiType og leveranse er lister, de andre
- * ett valg. Mangler tiltaket kiType eller leveranse, er verdien «Ikke definert».
+ * ett valg. Mangler tiltaket fase, kiType eller leveranse, er verdien «Ikke definert».
  */
 export function verdierI(tiltak: KiTiltak, gruppe: FilterGruppe): string[] {
   if (gruppe === 'kiType') return ellerIkkeDefinert(tiltak.kiType);
   if (gruppe === 'leveranse') return ellerIkkeDefinert(tiltak.leveranse);
-  if (gruppe === 'fase') return tiltak.fase ? [tiltak.fase] : [];
+  if (gruppe === 'fase') return tiltak.fase ? [tiltak.fase] : [IKKE_DEFINERT];
   return [tiltak.fagomrade];
 }
 

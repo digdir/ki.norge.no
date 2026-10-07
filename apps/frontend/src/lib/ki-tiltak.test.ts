@@ -7,7 +7,9 @@ import {
   IKKE_DEFINERT,
   kiTiltak,
   type KiTiltak,
+  type KiTiltakFase,
   type KiTiltakFilter,
+  verdierI,
   visValg,
   KI_TYPER,
   LEVERANSER,
@@ -300,7 +302,7 @@ describe('filterTiltak med fase, leveranse og type KI', () => {
   });
 });
 
-describe('«Ikke definert» i Leveranse og Type KI', () => {
+describe('«Ikke definert» i Fase, Leveranse og Type KI', () => {
   const grunn: KiTiltak = { id: '', navn: '', virksomheter: [], orgnr: [], fagomrade: 'Arbeid', beskrivelse: '' };
   const a: KiTiltak = { ...grunn, id: 'a', fase: 'I drift', kiType: ['Generativ KI'], leveranse: ['Pilot'] };
   const b: KiTiltak = { ...grunn, id: 'b', fase: 'Gjennomføring', leveranse: ['MVP'] };
@@ -309,10 +311,10 @@ describe('«Ikke definert» i Leveranse og Type KI', () => {
   const alle = [a, b, c, d];
   const ider = (filter: Partial<KiTiltakFilter>) => filterTiltak(alle, { ...EMPTY, ...filter }).map((t) => t.id);
 
-  test('står sist i Leveranse og Type KI, og ikke i de andre kategoriene', () => {
+  test('står sist i Fase, Leveranse og Type KI, og ikke i fagområdene', () => {
+    expect(FILTERVALG.fase.at(-1)).toBe(IKKE_DEFINERT);
     expect(FILTERVALG.leveranse.at(-1)).toBe(IKKE_DEFINERT);
     expect(FILTERVALG.kiType.at(-1)).toBe(IKKE_DEFINERT);
-    expect(FILTERVALG.fase).not.toContain(IKKE_DEFINERT);
     expect(FILTERVALG.fagomrade).not.toContain(IKKE_DEFINERT);
   });
 
@@ -323,17 +325,30 @@ describe('«Ikke definert» i Leveranse og Type KI', () => {
   test('alene treffer tiltak uten verdi, også med tom liste', () => {
     expect(ider({ leveranse: [IKKE_DEFINERT] })).toEqual(['c', 'd']);
     expect(ider({ kiType: [IKKE_DEFINERT] })).toEqual(['b', 'c', 'd']);
+    expect(ider({ fase: [IKKE_DEFINERT] })).toEqual(['d']);
+  });
+
+  test('fase som mangler, er null, tom eller plassholder gir «Ikke definert»', () => {
+    const fra = (fase: string | null | undefined) => tilKiTiltak({ id: 'x', navn: 'x', fagomrade: 'Arbeid', fase });
+    for (const fase of [undefined, null, '', '  ', 'NA']) {
+      expect(verdierI(fra(fase), 'fase')).toEqual([IKKE_DEFINERT]);
+    }
+    expect(verdierI({ ...grunn, fase: '' as KiTiltakFase }, 'fase')).toEqual([IKKE_DEFINERT]);
+    expect(verdierI(fra('I drift'), 'fase')).toEqual(['I drift']);
   });
 
   test('sammen med et annet valg i samme kategori holder det at ett treffer', () => {
     expect(ider({ leveranse: [IKKE_DEFINERT, 'MVP'] })).toEqual(['b', 'c', 'd']);
     expect(ider({ kiType: ['Generativ KI', IKKE_DEFINERT] })).toEqual(['a', 'b', 'c', 'd']);
+    expect(ider({ fase: [IKKE_DEFINERT, 'Gjennomføring'] })).toEqual(['b', 'd']);
   });
 
   test('sammen med en annen kategori må begge treffe', () => {
     expect(ider({ leveranse: [IKKE_DEFINERT], fase: ['I drift'] })).toEqual(['c']);
     expect(ider({ kiType: [IKKE_DEFINERT], leveranse: ['MVP'] })).toEqual(['b']);
     expect(ider({ leveranse: [IKKE_DEFINERT], kiType: ['Generativ KI'] })).toEqual([]);
+    expect(ider({ fase: [IKKE_DEFINERT], leveranse: [IKKE_DEFINERT] })).toEqual(['d']);
+    expect(ider({ fase: [IKKE_DEFINERT], fagomrade: ['Helse og omsorg'] })).toEqual([]);
   });
 
   test('tellingen gir tiltakene uten verdi, og et tiltak med flere verdier teller under hver', () => {
@@ -342,20 +357,28 @@ describe('«Ikke definert» i Leveranse og Type KI', () => {
     expect(antall.kiType.get(IKKE_DEFINERT)).toBe(3);
     expect(antall.kiType.get('Generativ KI')).toBe(2);
     expect(antall.kiType.get('Prediktiv KI')).toBe(1);
-    expect(antall.fase.has(IKKE_DEFINERT)).toBe(false);
+    expect(antall.fase.get(IKKE_DEFINERT)).toBe(1);
+    expect(antall.fase.get('I drift')).toBe(3);
+    expect(antall.fagomrade.has(IKKE_DEFINERT)).toBe(false);
   });
 
   test('tellingen mot datasettet stemmer med filteret', () => {
     const antall = tellFiltervalg(kiTiltak);
-    for (const gruppe of ['leveranse', 'kiType'] as const) {
-      const uten = kiTiltak.filter((t) => (t[gruppe] ?? []).length === 0).length;
+    for (const gruppe of ['fase', 'leveranse', 'kiType'] as const) {
+      const uten = kiTiltak.filter((t) => utenVerdi(t[gruppe])).length;
       expect(antall[gruppe].get(IKKE_DEFINERT) ?? 0).toBe(uten);
       expect(filterTiltak(kiTiltak, { ...EMPTY, [gruppe]: [IKKE_DEFINERT] })).toHaveLength(uten);
     }
   });
 
   test('nullstilling fjerner valget', () => {
-    const filter: KiTiltakFilter = { ...EMPTY, query: 'x', leveranse: [IKKE_DEFINERT], kiType: [IKKE_DEFINERT, 'Annet'] };
+    const filter: KiTiltakFilter = {
+      ...EMPTY,
+      query: 'x',
+      fase: [IKKE_DEFINERT],
+      leveranse: [IKKE_DEFINERT],
+      kiType: [IKKE_DEFINERT, 'Annet'],
+    };
     expect(utenKategorier(filter)).toEqual({ ...EMPTY, query: 'x' });
   });
 
