@@ -15,7 +15,7 @@ if (!sandkasse) {
 
 const seoTitle = sandkasse.seoTittel || sandkasse.tittel;
 const seoDesc = sandkasse.seoBeskrivelse || sandkasse.ingress || getPlainText(sandkasse.innhold, 200);
-const seoImage = sandkasse.seoBilde?.url || sandkasse.artikkelBilde?.url;
+const seoImage = sandkasse.seoBilde?.url ? sandkasse.seoBilde : sandkasse.artikkelBilde;
 
 const breadcrumbJsonLd = breadcrumbSchema([
   { name: 'Forside', url: '/' },

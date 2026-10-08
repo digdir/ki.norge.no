@@ -75,7 +75,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: tittel || 'Kalender', url: '/kalender' },
 ]);
 ---
-<Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde?.url}>
+<Layout title={seoTitle} description={seoDesc} ogImage={kalender?.seoBilde}>
   <Fragment slot="head">
     {hendelser.length > 0 && (
       <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />

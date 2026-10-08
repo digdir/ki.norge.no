@@ -24,7 +24,7 @@ try {
 const tittel = omOss?.tittel;
 const seoTitle = omOss?.seoTittel || 'Om oss';
 const seoDesc = omOss?.seoBeskrivelse || omOss?.ingress || 'Om KI Norge – en nasjonal satsing for ansvarlig bruk av kunstig intelligens.';
-const seoImage = omOss?.seoBilde?.url || omOss?.artikkelBilde?.url;
+const seoImage = omOss?.seoBilde?.url ? omOss?.seoBilde : omOss?.artikkelBilde;
 // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
 const heroImage = omOss?.artikkelBilde;
 
