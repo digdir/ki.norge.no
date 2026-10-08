@@ -74,7 +74,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ]);
 ---
 
-<Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde?.url}>
+<Layout title={seoTitle} description={seoDesc} ogImage={oversikt?.seoBilde}>
   <Fragment slot="head">
     {articles.length > 0 && (
       <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />

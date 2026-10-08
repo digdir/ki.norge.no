@@ -1655,6 +1655,7 @@ function mapMedia(value: unknown): UmbracoMedia | undefined {
       alternativeText: media.altText || media.name || '',
       width: media.width,
       height: media.height,
+      focalPoint: media.focalPoint,
     };
   }
   return undefined;

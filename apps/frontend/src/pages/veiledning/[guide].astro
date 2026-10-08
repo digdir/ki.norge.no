@@ -36,7 +36,7 @@ if (enkel) {
   const seoDesc = enkel.seoBeskrivelse || enkel.ingress || getPlainText(enkel.innhold, 200);
   // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
   const heroImage = enkel.artikkelBilde;
-  const seoImage = enkel.seoBilde?.url || enkel.artikkelBilde?.url;
+  const seoImage = enkel.seoBilde?.url ? enkel.seoBilde : enkel.artikkelBilde;
   enkelCtx = {
     seoTitle,
     seoDesc,
@@ -128,7 +128,7 @@ if (guideData) {
     </ArticleLayout>
   </Layout>
 ) : guideData && guideCtx ? (
-  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde?.url} bodyColor="brand1">
+  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde} bodyColor="brand1">
     <div class="guide-header" data-layout-block="content">
       <h1 class="ds-heading" data-size="xl" style={ordlengde(guideData.tittel)}>{guideData.tittel}</h1>
       {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}

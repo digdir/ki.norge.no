@@ -29,7 +29,7 @@ const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
 const heroImage = article.artikkelBilde;
-const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
+const seoImage = article.seoBilde?.url ? article.seoBilde : article.artikkelBilde;
 const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage, MEDIA_WIDTH.hero) : undefined;
 
 const articleJsonLd = articleSchema({
