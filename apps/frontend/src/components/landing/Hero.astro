@@ -4,12 +4,14 @@
 import AkselIcon from '../shared/AkselIcon.astro';
 import { splitLastWord } from '../../lib/text';
 import Logo from '../layout/Logo';
+import Bilde from '../shared/Bilde.astro';
+import type { UmbracoMedia } from '../../lib/umbraco';
 interface Props {
   overskrift?: string;
   komIGangTekst?: string;
   lenketekst?: string;
   lenkeUrl?: string;
-  illustrasjon?: string;
+  illustrasjon?: UmbracoMedia;
 }
 const {
   overskrift = 'Ansvarlig bruk av kunstig intelligens. For norske virksomheter, på norske premisser.',
@@ -32,9 +34,9 @@ const lenkeParts = splitLastWord(lenketekst);
         {komIGangTekst}: <a class="hero-cta-link ds-focus" href={lenkeUrl}>{lenkeParts.head}<span class="u-nowrap">{lenkeParts.last}<span class="hero-cta-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={24} /></span></span></a>
       </p>
     </div>
-    {illustrasjon && (
+    {illustrasjon?.url && (
       <div class="hero-illustration">
-        <img src={illustrasjon} alt="" width="400" height="300" fetchpriority="high" />
+        <Bilde media={illustrasjon} sizes="(min-width: 1024px) 400px, 320px" prioritet />
       </div>
     )}
   </div>
@@ -132,13 +134,12 @@ const lenkeParts = splitLastWord(lenketekst);
     text-decoration: none;
   }
 
-  .hero-illustration img {
+  .hero-illustration :global(img) {
     width: 320px;
-    height: auto;
   }
 
   @media (min-width: 1024px) {
-    .hero-illustration img {
+    .hero-illustration :global(img) {
       width: 400px;
     }
   }

@@ -1,13 +1,12 @@
 ---
 import Layout from '../../../../components/layout/Layout.astro';
+import Bilde from '../../../../components/shared/Bilde.astro';
 import ArticleBlocksRenderer from '../../../../components/shared/ArticleBlocksRenderer.astro';
 import {
   getVeiledningGuide,
   getVeiledningSteg,
   getStegartikkel,
   getPlainText,
-  getMediaUrl,
-  MEDIA_WIDTH,
 } from '../../../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../../../lib/seo';
 import { ordlengde } from '../../../../lib/text';
@@ -29,8 +28,7 @@ const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
 const heroImage = article.artikkelBilde;
-const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
-const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage, MEDIA_WIDTH.hero) : undefined;
+const seoImage = article.seoBilde?.url ? article.seoBilde : article.artikkelBilde;
 
 const articleJsonLd = articleSchema({
   headline: seoTitle,
@@ -66,9 +64,9 @@ const breadcrumbJsonLd = breadcrumbSchema([
     {article.ingress && <p class="article-ingress ds-heading" data-size="md">{article.ingress}</p>}
   </div>
   <div class="article-page u-rich-text" data-layout-block="content">
-    {heroImageUrl && (
+    {heroImage?.url && (
       <div class="article-hero-image">
-        <img src={heroImageUrl} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+        <Bilde media={heroImage} format="topp" sizes="(max-width: 1024px) 100vw, 680px" alt={article.bildeAlt || ''} prioritet />
       </div>
     )}
 
@@ -122,12 +120,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
 
   .article-hero-image {
     margin-block-end: var(--ds-size-8);
-  }
-
-  .article-hero-img {
-    width: 100%;
-    height: auto;
     border-radius: 12px;
-    display: block;
+    overflow: hidden;
   }
 </style>

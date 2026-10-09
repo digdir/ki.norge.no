@@ -1,0 +1,63 @@
+---
+// Viser et CMS-bilde. Med format har bildet formatets form på alle bredder, og
+// bildeserveren har allerede laget utsnittet, så CSS kutter ikke mer. Uten
+// format vises bildet i sin egen form, som bilder i innholdet og illustrasjoner.
+//
+// Mangler bildet, vises standardbildet i samme form når standardbilde er satt.
+// Ellers rendres ingenting, så kalleren slipper å sjekke mediet selv.
+import Standardbilde from './Standardbilde.astro';
+import { lagBilde } from '../../lib/bilde';
+import { BILDEFORMATER, type Bildeformat } from '../../lib/bildeformater';
+import type { UmbracoMedia } from '../../lib/umbraco';
+
+interface Props {
+  media?: UmbracoMedia;
+  format?: Bildeformat;
+  // Hvor bredt bildet vises, slik at nettleseren velger riktig bredde fra srcset.
+  sizes: string;
+  alt?: string;
+  // Toppbilder lastes med en gang og med høy prioritet.
+  prioritet?: boolean;
+  standardbilde?: boolean;
+}
+
+const { media, format, sizes, alt = '', prioritet = false, standardbilde = false } = Astro.props;
+const bilde = lagBilde(media, format);
+const form = format ? BILDEFORMATER[format].form : undefined;
+const stil = [form && `aspect-ratio: ${form[0]} / ${form[1]}`, bilde?.posisjon && `object-position: ${bilde.posisjon}`]
+  .filter(Boolean)
+  .join('; ');
+---
+
+{bilde ? (
+  <img
+    class="bilde"
+    data-format={format}
+    src={bilde.src}
+    srcset={bilde.srcset}
+    sizes={bilde.srcset ? sizes : undefined}
+    width={bilde.width}
+    height={bilde.height}
+    alt={alt}
+    loading={prioritet ? 'eager' : 'lazy'}
+    fetchpriority={prioritet ? 'high' : undefined}
+    decoding="async"
+    style={stil || undefined}
+  />
+) : (
+  standardbilde && form && <Standardbilde form={form} />
+)}
+
+<style>
+  .bilde {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* SVG og GIF kommer uten utsnitt, og da kutter CSS rundt fokuspunktet. */
+  .bilde[data-format] {
+    width: 100%;
+    object-fit: cover;
+  }
+</style>

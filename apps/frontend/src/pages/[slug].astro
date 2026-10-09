@@ -13,7 +13,7 @@ if (!page) return new Response(null, { status: 404 });
 
 const seoTitle = page.seoTittel || page.tittel;
 const seoDesc = page.seoBeskrivelse || page.ingress || getPlainText(page.innhold, 200);
-const seoImage = page.seoBilde?.url || page.artikkelBilde?.url;
+const seoImage = page.seoBilde?.url ? page.seoBilde : page.artikkelBilde;
 
 const breadcrumbJsonLd = breadcrumbSchema([
   { name: 'Forside', url: '/' },

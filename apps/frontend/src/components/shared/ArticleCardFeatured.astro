@@ -1,41 +1,26 @@
 ---
 import AkselIcon from './AkselIcon.astro';
-import type { CardImage } from '../../lib/umbraco';
+import Bilde from './Bilde.astro';
+import type { UmbracoMedia } from '../../lib/umbraco';
 
 interface Props {
   href: string;
   title: string;
   lead?: string;
-  // Streng for statiske bilder. CardImage fra getCardImage() for CMS-media,
-  // som i tillegg gir srcset, sizes og sideforhold.
-  image?: string | CardImage;
+  image?: UmbracoMedia;
   imageAlt?: string;
   tags?: string[];
 }
 
 const { href, title, lead, image, imageAlt = '', tags = [] } = Astro.props;
 const id = `featured-card-${crypto.randomUUID().slice(0, 8)}`;
-const cardImage: CardImage | undefined = typeof image === 'string' ? { src: image } : image;
 
 // Pilen limes til siste ord så den ikke brekker alene (#464)
 ---
 
 <article class="featured-card" data-clickdelegatefor={id}>
   <div class="featured-card-image">
-    {cardImage ? (
-      <img
-        src={cardImage.src}
-        srcset={cardImage.srcset}
-        sizes={cardImage.sizes}
-        width={cardImage.width}
-        height={cardImage.height}
-        alt={imageAlt}
-        loading="lazy"
-        decoding="async"
-      />
-    ) : (
-      <div class="featured-card-placeholder"></div>
-    )}
+    <Bilde media={image} format="kort" sizes="(max-width: 767px) 100vw, 520px" alt={imageAlt} standardbilde />
   </div>
   <div class="featured-card-body">
     <h3 class="featured-card-title"><a id={id} href={href}>{title}<span class="featured-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span></a></h3>
@@ -76,20 +61,7 @@ const cardImage: CardImage | undefined = typeof image === 'string' ? { src: imag
   }
 
   .featured-card-image {
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-
-    & img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .featured-card-placeholder {
-    width: 100%;
-    height: 100%;
-    background-color: var(--image-fallback-bg);
+    align-self: start;
   }
 
   .featured-card-body {

@@ -1,22 +1,19 @@
 ---
 import AkselIcon from './AkselIcon.astro';
-import type { CardImage } from '../../lib/umbraco';
+import Bilde from './Bilde.astro';
+import type { UmbracoMedia } from '../../lib/umbraco';
 
 interface Props {
   title: string;
   href: string;
-  // Streng for statiske bilder. CardImage fra getCardImage() for CMS-media,
-  // som i tillegg gir srcset, sizes og sideforhold.
-  image?: string | CardImage;
+  // Illustrasjonen vises i sin egen form og kuttes ikke.
+  image?: UmbracoMedia;
   imageAlt?: string;
   imagePosition?: 'left' | 'right';
   label?: string;
 }
 
 const { title, href, image, imageAlt = '', imagePosition = 'right', label } = Astro.props;
-
-const illustrasjon: CardImage | undefined =
-  typeof image === 'string' ? { src: image } : image;
 
 // Pilen limes til siste ord så den ikke brekker alene (#464)
 ---
@@ -32,16 +29,9 @@ const illustrasjon: CardImage | undefined =
       <slot name="body" />
     </div>
   </div>
-  {illustrasjon && (
+  {image?.url && (
     <div class="illustration">
-      <img
-        src={illustrasjon.src}
-        srcset={illustrasjon.srcset}
-        sizes={illustrasjon.sizes}
-        width={illustrasjon.width}
-        height={illustrasjon.height}
-        alt={imageAlt}
-      />
+      <Bilde media={image} sizes="(max-width: 767px) 60vw, 500px" alt={imageAlt} />
     </div>
   )}
 </div>

@@ -1,10 +1,11 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import Bilde from '../../components/shared/Bilde.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 
-import { getArtikkel, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_WIDTH, bakgrunnSurface } from '../../lib/umbraco';
+import { getArtikkel, getArtikler, getPlainText, velgKortbilde, bakgrunnSurface } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
 
@@ -15,7 +16,7 @@ if (!article) return Astro.redirect('/artikler');
 
 const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
-const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
+const seoImage = article.seoBilde?.url ? article.seoBilde : article.artikkelBilde;
 // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
 const heroImage = article.artikkelBilde;
 const heroBg = bakgrunnSurface(article.bakgrunn);
@@ -62,7 +63,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   <ArticleLayout publishedAt={article.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
     {heroImage?.url && (
       <div class="article-hero-image">
-        <img src={getMediaUrl(heroImage, MEDIA_WIDTH.hero)} alt={article.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+        <Bilde media={heroImage} format="topp" sizes="(max-width: 1024px) 100vw, 680px" alt={article.bildeAlt || ''} prioritet />
       </div>
     )}
 
@@ -83,7 +84,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={a.tittel}
             date={a.publishedAt}
             lead={getPlainText(a.innhold, 80)}
-            image={getCardImage(a.artikkelBilde)}
+            image={velgKortbilde(a)}
             variant="image"
           />
         ))}
@@ -107,8 +108,6 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   .article-hero-text { min-width: 0; }
 
   .article-hero-image {
-    max-height: 600px;
-    overflow: hidden;
     padding: 0;
     grid-column: 4;
     margin-block-start: 0;
@@ -120,13 +119,6 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       grid-column: 1 / 5;
       margin-block-start: var(--ds-size-6);
     }
-  }
-
-  .article-hero-img {
-    max-width: 100%;
-    width: 100%;
-    object-fit: cover;
-    display: block;
   }
 
   /* More articles */

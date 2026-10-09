@@ -13,7 +13,7 @@
  * or a wrapper with max-width).
  */
 import type { UmbracoBlock } from '../../lib/umbraco';
-import { getMediaUrl } from '../../lib/umbraco';
+import Bilde from './Bilde.astro';
 import '../../styles/article-blocks.css';
 
 interface Props {
@@ -182,7 +182,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
       <div class={classes}>
         {c.bilde?.url && (
           <div class="article-fremheving-image">
-            <img src={getMediaUrl(c.bilde)} alt={c.bildeAlt || ''} loading="lazy" decoding="async" />
+            <Bilde media={c.bilde} sizes="(max-width: 767px) 100vw, 280px" alt={c.bildeAlt || ''} />
           </div>
         )}
         <div class="article-fremheving-content">
@@ -242,7 +242,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     return (
       <figure class="article-image-section">
         {block.content.bilde?.url ? (
-          <img src={getMediaUrl(block.content.bilde)} alt={block.content.bildeAlt || ''} class="stub-img" loading="lazy" decoding="async" />
+          <Bilde media={block.content.bilde} sizes="(max-width: 1024px) 100vw, 680px" alt={block.content.bildeAlt || ''} />
         ) : (
           <div class="article-image-placeholder"></div>
         )}

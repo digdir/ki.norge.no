@@ -1,5 +1,6 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import Bilde from '../../components/shared/Bilde.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import VeiledningBlocksRenderer from '../../components/shared/VeiledningBlocksRenderer.astro';
@@ -9,8 +10,7 @@ import {
   getVeiledningSteg,
   getEnkelVeiledning,
   getPlainText,
-  getMediaUrl,
-  MEDIA_WIDTH,
+  type UmbracoMedia,
 } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
@@ -26,7 +26,7 @@ let enkelCtx: {
   seoTitle: string;
   seoDesc: string;
   seoImage?: string;
-  heroImage?: ReturnType<typeof getMediaUrl> | undefined;
+  heroImage?: UmbracoMedia;
   articleJsonLd: unknown;
   breadcrumbJsonLd: unknown;
 } | null = null;
@@ -36,12 +36,12 @@ if (enkel) {
   const seoDesc = enkel.seoBeskrivelse || enkel.ingress || getPlainText(enkel.innhold, 200);
   // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
   const heroImage = enkel.artikkelBilde;
-  const seoImage = enkel.seoBilde?.url || enkel.artikkelBilde?.url;
+  const seoImage = enkel.seoBilde?.url ? enkel.seoBilde : enkel.artikkelBilde;
   enkelCtx = {
     seoTitle,
     seoDesc,
     seoImage,
-    heroImage: heroImage?.url ? getMediaUrl(heroImage, MEDIA_WIDTH.hero) : undefined,
+    heroImage: heroImage?.url ? heroImage : undefined,
     articleJsonLd: articleSchema({
       headline: seoTitle,
       description: seoDesc,
@@ -116,7 +116,7 @@ if (guideData) {
     <ArticleLayout publishedAt={enkel.publishedAt}>
       {enkelCtx.heroImage && (
         <div class="article-hero-image">
-          <img src={enkelCtx.heroImage} alt={enkel.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+          <Bilde media={enkelCtx.heroImage} format="topp" sizes="(max-width: 1024px) 100vw, 680px" alt={enkel.bildeAlt || ''} prioritet />
         </div>
       )}
 
@@ -128,7 +128,7 @@ if (guideData) {
     </ArticleLayout>
   </Layout>
 ) : guideData && guideCtx ? (
-  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde?.url} bodyColor="brand1">
+  <Layout title={guideCtx.seoTitle} description={guideCtx.seoDesc} ogImage={guideData.seoBilde} bodyColor="brand1">
     <div class="guide-header" data-layout-block="content">
       <h1 class="ds-heading" data-size="xl" style={ordlengde(guideData.tittel)}>{guideData.tittel}</h1>
       {guideData.ingress && <p class="guide-ingress">{guideData.ingress}</p>}
@@ -189,8 +189,6 @@ if (guideData) {
   }
 
   .article-hero-image {
-    max-height: 600px;
-    overflow: hidden;
     padding: 0;
     grid-column: 4;
     margin-block-start: 0;
@@ -202,13 +200,6 @@ if (guideData) {
       grid-column: 1 / 5;
       margin-block-start: var(--ds-size-6);
     }
-  }
-
-  .article-hero-img {
-    max-width: 100%;
-    width: 100%;
-    object-fit: cover;
-    display: block;
   }
 
   .veildedning-content {

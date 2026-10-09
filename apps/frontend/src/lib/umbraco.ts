@@ -540,6 +540,8 @@ export interface UmbracoMedia {
   width?: number;
   height?: number;
   focalPoint?: { left: number; top: number };
+  // Filendelsen fra Delivery API, uten punktum. Avgjør om bildeserveren kan beskjære.
+  extension?: string;
 }
 
 interface CompatResponse<T> {
@@ -1645,6 +1647,7 @@ function mapMedia(value: unknown): UmbracoMedia | undefined {
       width: media.width,
       height: media.height,
       focalPoint: media.focalPoint,
+      extension: media.extension,
     };
   }
   if (typeof value === 'object' && value !== null) {
@@ -1655,6 +1658,8 @@ function mapMedia(value: unknown): UmbracoMedia | undefined {
       alternativeText: media.altText || media.name || '',
       width: media.width,
       height: media.height,
+      focalPoint: media.focalPoint,
+      extension: media.extension,
     };
   }
   return undefined;
@@ -1871,79 +1876,15 @@ function parseJsonArray(value: string | undefined): string[] {
   }
 }
 
-// Standard bredder for leveranse-resizing (ImageSharp width-param). Originalen
-// i CMS er urort; vi henter en nedskalert webp per kontekst. Tallene dekker
-// retina (2x) pa typisk visnings-storrelse. Juster her, ett sted.
-export const MEDIA_WIDTH = {
-  hero: 1600, // stor toppfigur, bred desktop + retina
-  content: 1200, // bilde i artikkelspalten
-  card: 800, // kort/listebilde
-} as const;
-
-// Legger pa ImageSharp-resizing nar en width er gitt. Umbraco rendrer da en
-// nedskalert webp on-demand og cacher den. SVG/GIF hoppes over (vektor/animasjon
-// skal ikke rasteres). Uten width returneres URLen urort (f.eks. og:image).
-function withImageParams(url: string, width?: number): string {
-  if (!width) return url;
-  if (/\.(svg|gif)(\?|$)/i.test(url)) return url;
-  const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}width=${width}&format=webp&quality=80`;
-}
-
 // Gjor en relativ Umbraco media-URL (/media/...) absolutt mot CMS-hosten.
-// Passerer allerede-absolutte (http) og ikke-media-URLer uendret. Med en width
-// legges leveranse-resizing pa (kun pa faktiske media-URLer).
-export function toAbsoluteMediaUrl(url?: string, width?: number): string | undefined {
+// Passerer allerede-absolutte (http) og ikke-media-URLer uendret. Bildestørrelse
+// og utsnitt legges på i lib/bilde.ts.
+export function toAbsoluteMediaUrl(url?: string): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith('http')) return withImageParams(url, width);
-  if (url.startsWith('/media')) return withImageParams(`${UMBRACO_PUBLIC_URL}${url}`, width);
+  if (url.startsWith('/media')) return `${UMBRACO_PUBLIC_URL}${url}`;
   return url;
 }
 
-// Full media-URL for et media-objekt. Default-optimaliserer til content-bredde
-// slik at et nytt bilde aldri serveres i full storrelse ved et uhell; send
-// MEDIA_WIDTH.hero / .card (eller egen width) for andre kontekster.
-export function getMediaUrl(media?: UmbracoMedia, width: number = MEDIA_WIDTH.content): string | undefined {
-  return toAbsoluteMediaUrl(media?.url, width);
-}
-
-// Kandidatbredder for kortbilder. Nettleseren velger selv ut fra sizes og
-// skjermtetthet, framfor at vi gjetter en enkelt bredde som passer alle.
-export const CARD_SRCSET_WIDTHS = [400, 600, 800, 1200] as const;
-
-export interface CardImage {
-  src: string;
-  srcset?: string;
-  sizes?: string;
-  width?: number;
-  height?: number;
-}
-
-/**
- * Bildeattributter for et CMS-media i kort-kontekst.
- *
- * Returnerer undefined nar mediet mangler URL. Det er ikke en teoretisk sak:
- * Delivery API sender picker-objekter som FINNES men har tomme properties, sa
- * monsteret `media && <img src={getMediaUrl(media)}>` slipper gjennom vakta og
- * rendrer src="". Sjekk resultatet av denne i stedet for a sjekke mediet.
- *
- * SVG og GIF far ingen srcset. ImageSharp rasterer ikke vektor og hopper over
- * dem i withImageParams, sa alle kandidatene ville pekt pa samme fil.
- *
- * width/height er originalens dimensjoner fra CMS. Nettleseren bruker dem bare
- * som sideforhold nar CSS styrer selve storrelsen, sa de trenger ikke stemme
- * med den leverte bredden.
- */
-/**
- * Bildet et lenkekort skal vise, i prioritert rekkefolge:
- *   1. overstyring pa selve kortet, som bare gjelder den ene plasseringen
- *   2. nodens lenkekortbilde
- *   3. nodens hovedbilde
- * Ingen treff gir undefined, og da fyller Standardbilde boksen.
- *
- * SEO-bildet er bevisst ikke med. Det er for delingsforhandsvisning, ikke
- * innhold, og at det lekket inn hit er nettopp feilen i #738.
- */
 /**
  * Datoen som skal vises for et innhold, og som sortering skal bruke.
  *
@@ -1988,35 +1929,24 @@ function tid(iso?: string): number {
   return Number.isNaN(ms) ? Number.NEGATIVE_INFINITY : ms;
 }
 
+/**
+ * Bildet et lenkekort skal vise, i prioritert rekkefolge:
+ *   1. overstyring pa selve kortet, som bare gjelder den ene plasseringen
+ *   2. nodens lenkekortbilde
+ *   3. nodens hovedbilde
+ * Ingen treff gir undefined, og da fyller Standardbilde boksen.
+ *
+ * Et media teller bare nar det har en URL. Delivery API sender picker-objekter
+ * som finnes men har tomme properties, og de skal ikke vinne over neste ledd.
+ *
+ * SEO-bildet er bevisst ikke med. Det er for delingsforhandsvisning, ikke
+ * innhold, og at det lekket inn hit er nettopp feilen i #738.
+ */
 export function velgKortbilde(
   node?: { lenkekortBilde?: UmbracoMedia; artikkelBilde?: UmbracoMedia } | null,
   overstyring?: UmbracoMedia,
-): CardImage | undefined {
-  return (
-    getCardImage(overstyring) ??
-    getCardImage(node?.lenkekortBilde) ??
-    getCardImage(node?.artikkelBilde)
-  );
-}
-
-export function getCardImage(media?: UmbracoMedia): CardImage | undefined {
-  const src = getMediaUrl(media, MEDIA_WIDTH.card);
-  if (!src) return undefined;
-
-  const isVector = /\.(svg|gif)(\?|$)/i.test(media?.url ?? '');
-  const srcset = isVector
-    ? undefined
-    : CARD_SRCSET_WIDTHS.map((w) => `${toAbsoluteMediaUrl(media?.url, w)} ${w}w`).join(', ');
-
-  return {
-    src,
-    srcset,
-    // Full bredde pa mobil. Over 768px ligger kortene i et rutenett inne i en
-    // spalte pa maks 1050px, sa to kolonner blir rundt 510px og tre rundt 330px.
-    sizes: srcset ? '(max-width: 767px) 100vw, 520px' : undefined,
-    width: media?.width,
-    height: media?.height,
-  };
+): UmbracoMedia | undefined {
+  return [overstyring, node?.lenkekortBilde, node?.artikkelBilde].find((m) => m?.url);
 }
 
 /**

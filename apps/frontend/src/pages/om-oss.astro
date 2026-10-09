@@ -1,9 +1,10 @@
 ---
 import Layout from '../components/layout/Layout.astro';
+import Bilde from '../components/shared/Bilde.astro';
 import ArticleLayout from '../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../components/shared/NewsCard.astro';
-import { getOmOss, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_WIDTH, bakgrunnSurface } from '../lib/umbraco';
+import { getOmOss, getArtikler, getPlainText, velgKortbilde, bakgrunnSurface } from '../lib/umbraco';
 import { breadcrumbSchema } from '../lib/seo';
 import { ordlengde } from '../lib/text';
 
@@ -24,7 +25,7 @@ try {
 const tittel = omOss?.tittel;
 const seoTitle = omOss?.seoTittel || 'Om oss';
 const seoDesc = omOss?.seoBeskrivelse || omOss?.ingress || 'Om KI Norge – en nasjonal satsing for ansvarlig bruk av kunstig intelligens.';
-const seoImage = omOss?.seoBilde?.url || omOss?.artikkelBilde?.url;
+const seoImage = omOss?.seoBilde?.url ? omOss?.seoBilde : omOss?.artikkelBilde;
 // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
 const heroImage = omOss?.artikkelBilde;
 
@@ -55,7 +56,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   <ArticleLayout publishedAt={omOss?.publishedAt} byline={(bylineBlock?.content ?? null) as any}>
     {heroImage?.url && (
       <div class="article-hero-image">
-        <img src={getMediaUrl(heroImage, MEDIA_WIDTH.hero)} alt={omOss?.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+        <Bilde media={heroImage} format="topp" sizes="(max-width: 1024px) 100vw, 680px" alt={omOss?.bildeAlt || ''} prioritet />
       </div>
     )}
     {omOss?.ingress && (
@@ -74,7 +75,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={article.tittel}
             date={article.publishedAt}
             lead={getPlainText(article.innhold, 80)}
-            image={getCardImage(article.artikkelBilde)}
+            image={velgKortbilde(article)}
             variant="image"
           />
         ))}
@@ -94,8 +95,6 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   .article-hero-text { min-width: 0; }
 
   .article-hero-image {
-    max-height: 600px;
-    overflow: hidden;
     padding: 0;
     grid-column: 4;
     margin-block-start: 0;
@@ -107,13 +106,6 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       grid-column: 1 / 5;
       margin-block-start: var(--ds-size-6);
     }
-  }
-
-  .article-hero-img {
-    max-width: 100%;
-    width: 100%;
-    object-fit: cover;
-    display: block;
   }
 
   /* Aktuelt */

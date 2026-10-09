@@ -9,7 +9,7 @@ import TextWithImage from '../../components/shared/TextWithImage.astro';
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import LinkList from '../../components/shared/LinkList.astro';
-import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getArtikler, getMediaUrl, MEDIA_WIDTH } from '../../lib/umbraco';
+import { getVeiledningOversikt, getVeiledningGuider, getEksempler, getArtikler } from '../../lib/umbraco';
 import { splitLastWord, ordlengde } from '../../lib/text';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 
@@ -35,7 +35,6 @@ try {
 
 const heroTitle = cmsData?.heroTittel;
 const heroText = cmsData?.heroTekst;
-const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde, MEDIA_WIDTH.hero) : undefined;
 
 // Redaktørvalgt lenke (content-picker, #513) løses mot hentede pools så vi bruker
 // frontend-slug (CMS-route kan avvike). Faller tilbake til det manuelle url-feltet.
@@ -54,7 +53,7 @@ const featuredHref = resolveLenke(cmsData?.seksjon1Kort?.[0]) || '/veiledning/ko
 // Ingen hardkodet fallback: redaktøren skal kunne fjerne tittelen helt (#494).
 // TextWithImage skjuler label-feltet når det er tomt.
 const featuredLabel = cmsData?.seksjon1Tittel;
-const featuredImage = heroImageUrl;
+const featuredImage = cmsData?.heroBilde;
 
 // Rich link list — "Steg for steg"
 // Redaktørstyrt: når redaktøren har fylt seksjon2-kortene brukes deres egen
@@ -120,7 +119,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ]);
 ---
 
-<Layout title={seoTitle} description={seoDesc} ogImage={cmsData?.seoBilde?.url}>
+<Layout title={seoTitle} description={seoDesc} ogImage={cmsData?.seoBilde}>
   <Fragment slot="head">
     {collectionItems.length > 0 && (
       <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c')} />

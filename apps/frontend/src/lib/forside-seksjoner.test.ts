@@ -212,12 +212,12 @@ describe('bildehierarki i aktuelt', () => {
 
   it('bruker hovedbildet når det er det eneste som er satt', () => {
     const k = kortFor(medBilder({ artikkelBilde: media('hoved') }));
-    expect(k.image?.src).toContain('hoved');
+    expect(k.image?.url).toContain('hoved');
   });
 
   it('lar lenkekortbildet slå hovedbildet', () => {
     const k = kortFor(medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }));
-    expect(k.image?.src).toContain('lenkekort');
+    expect(k.image?.url).toContain('lenkekort');
   });
 
   it('lar overstyringen på kortet slå begge', () => {
@@ -225,7 +225,7 @@ describe('bildehierarki i aktuelt', () => {
       medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }),
       media('overstyrt'),
     );
-    expect(k.image?.src).toContain('overstyrt');
+    expect(k.image?.url).toContain('overstyrt');
   });
 
   it('gir undefined uten bilde, slik at standardbildet tar over', () => {

@@ -10,8 +10,9 @@ import ArrowLink from '../shared/ArrowLink.astro';
 import ExampleLinkCards from '../shared/ExampleLinkCards.astro';
 import TextWithImage from '../shared/TextWithImage.astro';
 import AkselIcon from '../shared/AkselIcon.astro';
+import Bilde from '../shared/Bilde.astro';
 import KiTiltakEntryCard from '../shared/KiTiltakEntryCard.astro';
-import { getMediaUrl, getCardImage, MEDIA_WIDTH, type ForsideSeksjon, type Kalenderhendelse, type VeiledningGuide } from '../../lib/umbraco';
+import type { ForsideSeksjon, Kalenderhendelse, VeiledningGuide } from '../../lib/umbraco';
 import { velgAktuelt, velgLaerAvAndre, velgLenke, velgVeiledning } from '../../lib/forside-seksjoner';
 import { hendelseTilEventCard } from '../../lib/kalender';
 
@@ -36,7 +37,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
         komIGangTekst={block.komIGangTekst}
         lenketekst={block.lenketekst}
         lenkeUrl={block.lenkeUrl}
-        illustrasjon={block.illustrasjon ? getMediaUrl(block.illustrasjon) : undefined}
+        illustrasjon={block.illustrasjon}
       />
     );
   }
@@ -174,26 +175,11 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
     const sandkasseLinkId = `sandkasse-link-${block.id}`;
     // Pilen limes til siste ord så den ikke brekker alene (#464)
     const sandkasseTittel = (block.overskrift ?? '').trim();
-    // Vakta må stå på den ferdige URLen, ikke på mediet. Delivery API sender
-    // picker-objekter som finnes men er tomme, så `block.illustrasjon &&` slapp
-    // gjennom og rendret <img src="">.
-    const sandkasseBilde = getCardImage(block.illustrasjon);
     return (
       <section class="sandkasse-section" data-layout-block="content">
         <div class="sandkasse-card" data-clickdelegatefor={sandkasseLinkId}>
           <div class="sandkasse-card-image">
-            {sandkasseBilde && (
-              <img
-                src={sandkasseBilde.src}
-                srcset={sandkasseBilde.srcset}
-                sizes={sandkasseBilde.sizes}
-                width={sandkasseBilde.width}
-                height={sandkasseBilde.height}
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-            )}
+            <Bilde media={block.illustrasjon} sizes="300px" />
           </div>
           <div class="sandkasse-card-text">
             <h2 class="sandkasse-title">
@@ -342,11 +328,9 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
     }
   }
 
-  .sandkasse-card-image img {
+  .sandkasse-card-image :global(img) {
     width: 100%;
     max-width: 300px;
-    height: auto;
-    object-fit: contain;
   }
 
   .sandkasse-card-text {

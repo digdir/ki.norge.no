@@ -1,7 +1,7 @@
 // Utvelgelseslogikken for forsidens moduler, skilt fra malen så den kan testes
 // uten å rendre HTML. Regelen er den samme overalt: et tomt felt betyr ingenting.
 // Ingenting fylles automatisk, og en modul uten innhold rendres ikke.
-import { getCardImage, velgKortbilde, type CardImage, type ForsideKort, type ForsideSeksjon, type UmbracoMedia, type VeiledningGuide } from './umbraco';
+import { velgKortbilde, type ForsideKort, type ForsideSeksjon, type UmbracoMedia, type VeiledningGuide } from './umbraco';
 
 export const MAKS_AKTUELT_KORT = 3;
 
@@ -9,7 +9,7 @@ export interface AktueltKort {
   tittel: string;
   href: string;
   lead?: string;
-  image?: CardImage;
+  image?: UmbracoMedia;
   publishedAt?: string;
 }
 
@@ -39,7 +39,7 @@ export interface VeiledningInnhold {
   tittel: string;
   ingress?: string;
   href: string;
-  image?: CardImage;
+  image?: UmbracoMedia;
   label?: string;
 }
 
@@ -140,7 +140,7 @@ export function velgVeiledning(block: ForsideSeksjon, veiledninger: VeiledningGu
     tittel,
     ingress: block.ingress || valgt?.ingress,
     href,
-    image: getCardImage(block.illustrasjon) ?? velgKortbilde(valgt),
+    image: velgKortbilde(valgt, block.illustrasjon),
     label: block.label,
   };
 }
