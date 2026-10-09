@@ -44,12 +44,6 @@ const sorterte = [...articles].sort((a, b) =>
   sammenlignPublisertDato({ publishedAt: a.publishedAt }, { publishedAt: b.publishedAt }),
 );
 
-// velgKortbilde gjor URLen absolutt mot CMS-hosten og gir srcset + sideforhold.
-// Rekkefolgen er lenkekortbilde, saa hovedbilde. Blokk-overstyringen falt bort
-// sammen med seksjonene.
-function getCardBilde(article: Artikkel) {
-  return velgKortbilde(article);
-}
 
 // Toppen er fortsatt redaktørens valg. Uten valgt artikkel er det den nyeste,
 // og «nyeste» følger samme datokjede som resten av lista.
@@ -94,7 +88,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
         href={`/artikler/${featured.slug}`}
         title={featured.tittel}
         lead={featured.ingress || getPlainText(featured.innhold, 150)}
-        image={getCardBilde(featured)}
+        image={velgKortbilde(featured)}
         imageAlt={featured.bildeAlt}
       />
     )}
@@ -107,7 +101,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
             href={`/artikler/${article.slug}`}
             title={article.tittel}
             date={article.publishedAt}
-            image={getCardBilde(article)}
+            image={velgKortbilde(article)}
             imageAlt={article.bildeAlt}
           />
         ))}

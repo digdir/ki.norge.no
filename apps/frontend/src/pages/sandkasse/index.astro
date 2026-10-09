@@ -1,8 +1,9 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
+import Bilde from '../../components/shared/Bilde.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
-import { getSandkasse, getMediaUrl, MEDIA_WIDTH, getPlainText, bakgrunnSurface } from '../../lib/umbraco';
+import { getSandkasse, getPlainText, bakgrunnSurface } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
 
@@ -40,7 +41,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       </div>
       {heroImage?.url && (
         <div class="article-hero-image">
-          <img src={getMediaUrl(heroImage, MEDIA_WIDTH.hero)} alt={sandkasse.bildeAlt || ''} class="article-hero-img" loading="eager" decoding="async" />
+          <Bilde media={heroImage} format="sandkasse" sizes="(max-width: 1024px) 100vw, 680px" alt={sandkasse.bildeAlt || ''} prioritet />
         </div>
       )}
     </div>
@@ -71,14 +72,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
   .article-hero-image {
     width: 100%;
     margin-block-start: 0;
-  }
-
-  .article-hero-img {
-    width: 100%;
-    aspect-ratio: 2 / 1;
-    max-height: 600px;
-    object-fit: cover;
     border-radius: 8px;
-    display: block;
+    overflow: hidden;
   }
 </style>

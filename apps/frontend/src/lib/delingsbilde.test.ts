@@ -13,7 +13,7 @@ beforeAll(async () => {
   lib = await import('./delingsbilde');
 });
 
-const foto = { id: '1', url: '/media/abc/foto.jpg', width: 3954, height: 2682 };
+const foto = { id: '1', url: '/media/abc/foto.jpg', extension: 'jpg', width: 3954, height: 2682 };
 
 describe('delingsbilde', () => {
   test('lager et utsnitt på 1200x630 i JPEG, og taggene sier det samme', () => {
@@ -39,8 +39,8 @@ describe('delingsbilde', () => {
   test.each([
     ['uten bilde', undefined],
     ['med tom URL', { ...foto, url: '' }],
-    ['med SVG', { ...foto, url: '/media/abc/logo.svg' }],
-    ['med GIF', { ...foto, url: '/media/abc/anim.gif' }],
+    ['med SVG', { ...foto, url: '/media/abc/logo.svg', extension: 'svg' }],
+    ['med GIF', { ...foto, url: '/media/abc/anim.gif', extension: 'gif' }],
   ])('gir standardbildet %s', (_, media) => {
     expect(lib.delingsbilde(media, SITE)).toEqual({
       ...lib.STANDARD_DELINGSBILDE,

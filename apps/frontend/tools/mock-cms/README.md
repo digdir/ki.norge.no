@@ -39,3 +39,19 @@ curl -s "http://localhost:5000/umbraco/delivery/api/v2/content?take=200" \
 ```
 
 Demo-innholdet seedes av `ContentSeeder.SeedDemoContentForDev` (dev-gated).
+
+## Testbilder og layouttesten
+
+Noen noder har testbilder, så bildeplasseringene kan måles. Bildene peker på
+media i prod-CMS-et, slik Delivery API gjør, og kortet om KI-merking har et
+fokuspunkt mot «AI»-merket. `media/` har nedskalerte kopier av de samme filene.
+Layouttesten (`tests/bildeformater.spec.ts`) svarer med dem i stedet for å gå
+mot prod, og stopper alle andre forespørsler ut av maskinen:
+
+```bash
+pnpm run frontend:dev:mock --port 4328
+cd apps/frontend
+CI=1 PLAYWRIGHT_BASE_URL=http://localhost:4328 pnpm exec playwright test tests/bildeformater.spec.ts --project=chromium
+```
+
+Re-fanges fixturen, må testbildene legges inn igjen.
