@@ -32,10 +32,10 @@
     <PackageReference Include="SQLitePCLRaw.core" Version="2.1.13" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.13" />
     <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.13" />
-    <PackageReference Include="Umbraco.Cms" Version="17.7.0" />
-    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.7.0" />
+    <PackageReference Include="Umbraco.Cms" Version="17.7.1" />
+    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.7.1" />
     <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="17.1.0" />
-    <PackageReference Include="uSync" Version="17.4.2" />
+    <PackageReference Include="uSync" Version="17.4.3" />
   </ItemGroup>
 
   <ItemGroup>
