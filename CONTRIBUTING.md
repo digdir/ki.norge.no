@@ -18,7 +18,7 @@ pnpm run cms:dev              # http://localhost:5000/umbraco
 pnpm run frontend:dev:prod
 ```
 
-First time the CMS runs, it auto-creates an admin and seeds demo content.
+First time the CMS runs, it auto-creates an admin. No content is seeded.
 
 That admin is a throwaway account against your own local SQLite file. It unlocks
 nothing shared, so the password is not a secret. Do not reuse the value, or the
@@ -34,11 +34,11 @@ scripts/            Ops scripts (smoke-test.sh)
 tests/              Playwright tests (frontend + CMS smoke)
 ```
 
-See `CLAUDE.md` for fuller context on architecture, content types, and key decisions.
+The documentation starts in [docs/README.md](docs/README.md). Agents start in `CLAUDE.md`.
 
 ## Workflow
 
-1. Branch off `feature/umbraco-migration` (current active branch)
+1. Branch off `main`
 2. Make changes — keep commits small and focused
 3. Run `dotnet build` (CMS) and `npx astro build` (frontend) locally
 4. Run `bash scripts/smoke-test.sh --local` (or `--prod` for prod check)
@@ -64,9 +64,9 @@ the PR.
 ## Deployment
 
 CMS deploys via Altinn dis-core (GitHub Actions). Frontend deploys to Cloudflare
-Workers with `pnpm run frontend:deploy:prod` (and `:tt02`). The legacy Azure
-Container Apps deploy has been removed.
+Workers with `pnpm run frontend:deploy:prod` (and `:tt02`). See
+[docs/deploy.md](docs/deploy.md).
 
 ## Reporting security issues
 
-See `SECURITY.md`. Don't open public issues for vulnerabilities — email drift@digdir.no.
+Don't open public issues for vulnerabilities. Email drift@digdir.no.

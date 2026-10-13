@@ -1,5 +1,7 @@
 # ki-tiltak.json
 
+Filene ligger i `apps/frontend/src/data/`.
+
 Datasettet bak `/ki-tiltak`. Filen vedlikeholdes manuelt av redaksjonen. Det finnes ikke lenger noe byggeskript som genererer den, så det du skriver her er det siden viser.
 
 Legg merke til at filen leses ved bygg, ikke ved hvert sidevisning. Endringer krever en ny deploy før de er synlige.
@@ -19,7 +21,7 @@ Kopier et eksisterende objekt, lim det inn på riktig plass i lista, og fyll ut 
 }
 ```
 
-De seks feltene over er påkrevd. Nye tiltak kan i tillegg ha `fase`, `kiType`, `leveranse` og `kontaktinfo`, se [docs/ki-tiltak-felt.md](../../../../docs/ki-tiltak-felt.md). Der står også hvordan du limer inn et nytt tiltak rett fra e-posten.
+De seks feltene over er påkrevd. Nye tiltak kan i tillegg ha `fase`, `kiType`, `leveranse` og `kontaktinfo`, se [ki-tiltak-felt.md](ki-tiltak-felt.md). Der står også hvordan du limer inn et nytt tiltak rett fra e-posten.
 
 ## Feltene
 
@@ -65,7 +67,7 @@ Virksomhet
 Økonomi, finans og forsikring
 ```
 
-Trenger du et fagområde som ikke står her, må det legges til i `FAGOMRADER` i `src/lib/ki-tiltak.ts` først. Si det til en utvikler.
+Trenger du et fagområde som ikke står her, må det legges til i `FAGOMRADER` i `apps/frontend/src/lib/ki-tiltak.ts` først. Si det til en utvikler.
 
 ## Punktlister i beskrivelse og formål
 
@@ -121,7 +123,7 @@ node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<eksport>.json
 
 ## Virksomhetsnavn
 
-`ki-tiltak-virksomhetsnavn.json` gir hvert orgnr et visningsnavn med vanlige store og små bokstaver. Ny virksomhet i dataene betyr en ny linje der, ellers stopper testene. `VIRKSOMHETSNAVN` i `src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene i dataene), for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav i stedet for VERSALER, til den er lagt inn.
+`ki-tiltak-virksomhetsnavn.json` gir hvert orgnr et visningsnavn med vanlige store og små bokstaver. Ny virksomhet i dataene betyr en ny linje der, ellers stopper testene. `VIRKSOMHETSNAVN` i `apps/frontend/src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene i dataene), for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav i stedet for VERSALER, til den er lagt inn.
 
 ## Videre
 

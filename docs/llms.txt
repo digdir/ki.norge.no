@@ -1,0 +1,74 @@
+# Dokumentasjonen i ki.norge.no-repoet, ikke nettstedets /llms.txt
+
+> Indeks over all dokumentasjon i repoet digdir/ki.norge.no, for agenter. Nettstedets egen /llms.txt beskriver innholdet på ki.norge.no og lages av apps/frontend/src/lib/llms-txt.ts. Det er en annen fil.
+
+- Les CLAUDE.md først. Den har reglene og sperrene.
+- Stiene er relative til docs/.
+- apps/cms-umbraco/uSync/ er prods skjema. Les README-en der før du rører noe i mappa.
+- Dokumenter under Optional er historiske og beskriver ikke dagens oppsett.
+
+## Start
+
+- [CLAUDE.md](../CLAUDE.md): reglene for agenter, med skjemaflyten, uSync-sperren, deploy, stil og hva som skal i docs.
+- [Inngang for mennesker](README.md): kort side med dokumentene en som drifter trenger.
+- [Utvikling](utvikling.md): kodekart, nøkkelfiler i frontend og CMS, adresser og lenker.
+- [Rot-README](../README.md): peker videre til docs og CONTRIBUTING.
+- [CONTRIBUTING](../CONTRIBUTING.md): lokal kjøring, arbeidsflyt, stil og nettleserstøtte.
+
+## Drift
+
+- [Systemdokumentasjon](systemdokumentasjon.md): Cloudflare, dis-core, uSync, database, media, søk, helsesjekk og miljøene.
+- [Deploy](deploy.md): oppskriften for frontend, CMS og de to workerne, og rekkefølgen når flere deler endres.
+- [Innholdsspeiling til tt02](innholdsspeiling-tt02.md): manuell kopiering av innhold fra prod til tt02 med uSync.
+- [Avhengigheter](avhengigheter.md): hvor avhengighetene bor, hvordan de oppdateres og fellene fra tidligere runder.
+- [Composers i CMS-et](cms-composers.md): hva hver composer gjør, om den kjører i prod og tt02, hvilken konfig som slår den på, og fellene.
+- [Cache-purge](cloudflare-cache-purge.md): hvordan CMS-et tømmer Cloudflare-cachen ved publisering, og purgen ved deploy.
+- [syncroot](syncroot.md): Kubernetes-manifestene for CMS-et i dis-core.
+- [syncroot/README.md](../syncroot/README.md): peker til syncroot.md og deploy.md.
+- [Passordregler for CMS-brukere](cms-passord-regler.md): kravene til lokale passord i backofficet.
+
+## CMS og skjema
+
+- [uSync/README.md](../apps/cms-umbraco/uSync/README.md): STOPP. Mappa er prods skjema, og regenerering eller eksport fra et annet miljø gjør blokkinnhold «Unsupported».
+- [uSync-testinnhold/README.md](../apps/cms-umbraco/uSync-testinnhold/README.md): testfixturer for tt02 som uSync Content-filer, og hvordan de lastes inn.
+- [Forutsetninger før uSync overtok skjemaet](usync-skjema-prereq.md): det som måtte på plass før uSync kunne eie skjemaet.
+- [uSync tt02-pilot](usync-tt02-pilot.md): piloten der uSync eide skjemaet på tt02 før prod.
+
+## Søk
+
+- [Hybridsøk](hybrid-search.md): arkitekturen for søket, fra CMS-ets indeksering til søkedialogen i frontenden.
+- [Søkeindeksen](elasticsearch-indeks.md): indeksmalen som kode, embedding i klyngen, reindeksering og kaldstart.
+- [infrastructure/elasticsearch/README.md](../infrastructure/elasticsearch/README.md): peker til elasticsearch-indeks.md, og advarer om at prod og tt02 deler indeksen.
+- [Evalueringsgrunnlag](../infrastructure/elasticsearch/eval/BASELINE.md): baseline for søkekvalitet og vurderingen av rerankere.
+
+## KI-tiltak
+
+- [Felt i ki-tiltak.json](ki-tiltak-felt.md): feltene, gyldige verdier, regler og hva testene fanger.
+- [Datasettet bak /ki-tiltak](ki-tiltak-data.md): hvordan fila føres, virksomhetsnavn og ny eksport fra registeret.
+- [src/data/README.md](../apps/frontend/src/data/README.md): peker til de to over, og advarer om de strenge feltene.
+
+## Test og lokal utvikling
+
+- [Smoketester](smoketester.md): `scripts/smoke-test.sh` og Playwright-testene.
+- [tests/README.md](../tests/README.md): peker til smoketester.md.
+- [Mock-CMS](mock-cms.md): frontend uten ekte CMS, og hvordan fixturen oppdateres.
+- [tools/mock-cms/README.md](../apps/frontend/tools/mock-cms/README.md): peker til mock-cms.md.
+- [Moduler som skal testes](modules-to-test.md): sjekkliste og oppsett for visuell regresjon av artikkelmodulene.
+- [Ruteoversikt for smoketesting](../apps/frontend/tests/fixtures/ruter.md): fixturen `routes.spec.ts` leser rutene fra.
+- [Favicon](../apps/frontend/public/favicon/README.md): hvordan PNG-variantene lages fra SVG-en.
+- [PR-mal](../.github/PULL_REQUEST_TEMPLATE.md): malen for PR-beskrivelser.
+
+## Beslutninger
+
+- [Rapporter og beslutningslogg](rapporter/README.md): hva mappa har, og reglene for teksten der.
+- [Beslutningslogg](rapporter/beslutningslogg.md): ett punkt per beslutning eller milepæl, nyeste øverst.
+
+## Optional
+
+- [Azure Container Apps](arkiv/azure-container-apps.md): driften før dis-core og Cloudflare Workers.
+- [Designspesifikasjon](DESIGN_SPEC.md): den opprinnelige designspesifikasjonen for portalen.
+- [Teknisk gjennomgang](technical-review.md): gjennomgang av teknologivalgene fra februar 2026.
+- [Utforskning av CMS](cms-exploration-plan.md): planen for å vurdere alternativer til Strapi.
+- [Migrering til SQL Server](sql-server-migration-plan.md): planen for overgangen fra SQLite og Litestream til Azure SQL.
+- [Innholdsskriving fra kode](seeder-content-write-audit.md): kartleggingen som førte til at seederen ble fjernet.
+- [Guidelines.md](../apps/frontend/guidelines/Guidelines.md): rest fra Strapi-tiden. Beskriver ikke dagens kode.

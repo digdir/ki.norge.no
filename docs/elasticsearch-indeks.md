@@ -1,5 +1,7 @@
 # ki-content index — infrastructure as code
 
+Filene og kommandoene under gjelder `infrastructure/elasticsearch/`, og kjøres derfra.
+
 The Elasticsearch index that powers ki.norge.no hybrid search (`ki-content`) is
 declared here as an Elasticsearch **component + index template**. These JSON files
 are the single source of truth for the index mapping — BM25 (`norwegian` analyzer)
@@ -12,7 +14,7 @@ own ML nodes) — no Elastic Inference Service / third-party round-trip, so quer
 content stays inside the deployment and embedding latency is ~5× lower than EIS.
 There is **no reranker** — the dense + lexical hybrid keeps the entire query path
 in-cluster/EU (no user query text ever leaves the deployment). Reranker options were
-evaluated and deferred — see `eval/BASELINE.md`.
+evaluated and deferred — see [eval/BASELINE.md](../infrastructure/elasticsearch/eval/BASELINE.md).
 
 ## Files
 - `ki-content.component-template.json` — the mappings (`body_semantic.inference_id` = `e5-large-incluster`).
