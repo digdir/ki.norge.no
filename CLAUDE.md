@@ -56,7 +56,7 @@ skjemaendring** — flyten er under omlegging (stage 2 fjerner composeren). Ny B
 
 **Connection string (lokal SQLite):** Må bruke `|DataDirectory|` i path, ikke relativ sti. Ellers finner ikke Umbraco databasen. Prod kjører Azure SQL via dis-core (connection string injiseres fra Key Vault, ikke SQLite).
 
-**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) ble satt i kode via `ContentTypeComposer` (nå avslått i drift, se over), men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se `docs/seeder-content-write-audit.md`.
+**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) ble satt i kode via `ContentTypeComposer` (nå avslått i drift, se over), men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se beslutningsloggen, `docs/rapporter/beslutningslogg.md`.
 
 **uSync eier skjemaet i prod. IKKE regenerer `apps/cms-umbraco/uSync/`**: filene der er prod sitt skjema og importeres ved hver oppstart. uSync re-nøkler ved import, og content-typene har tilfeldige GUID-er per database. En eksport tatt fra lokal maskin eller tt02, committet inn, gir prod-typene nye nøkler og gjør ALT blokkinnhold «Unsupported». Skal du eksportere eller committe noe der: **stopp og spør Lars først**, og si fra om konsekvensen. Eksporten skal alltid tas fra prod. `SchemaRekeyGuard` avbryter en import som ville re-nøklet, men den er en sikring, ikke en tillatelse. Se `apps/cms-umbraco/uSync/README.md`.
 
@@ -65,20 +65,19 @@ skjemaendring** — flyten er under omlegging (stage 2 fjerner composeren). Ny B
 - **CMS:** dis-core via GitHub Actions («Docker build and publish» + «Publish Syncroot artifacts», miljø tt02/prod).
 - **Frontend:** Cloudflare Workers via `pnpm run frontend:deploy:prod` (og `:tt02`).
 
-Alt deployes fra `main`. Frontend-skriptene nekter å kjøre fra en annen gren, med skittent arbeidstre, eller når `main` ikke er i takt med origin. Oppskriften står i `docs/deploy.md`.
+Alt deployes fra `main`. Frontend-skriptene stopper når arbeidstreet ikke er rent, bytter ellers til `main`, og stopper hvis `main` ikke er i takt med origin. Oppskriften står i `docs/deploy.md`.
 
 ## Viktige beslutninger
 
 - Media ligger i Azure Blob (`AzureBlobMediaComposer.cs`). `umbraco-media` er bevisst ikke montert på `/app/wwwroot/media`, se `syncroot/base/umbraco/deployment.yaml`
 - Ingen dark mode (bevisst valg)
 - Ingen Tailwind
-- pere/nb-nn-translation krever `use_fast=True` for tokenizer (tokenizer.json, ikke spiece.model)
 - Admin-tilgang via skjemaet på `/admin-tilgang` (eller `?key=<ADMIN_SECRET>`) setter ki_admin cookie, som utløper på serveren etter 30 dager
 - Kommer-snart-modus gjelder `GATED_HOSTS` med mindre `LAUNCH_MODE=live` (per miljø i `wrangler.jsonc`)
 
 ## Dokumentasjon
 
-**Hvor.** All dokumentasjon ligger i `docs/`. Inngangen for mennesker er `docs/README.md`, og indeksen for agenter er `docs/llms.txt`. Historikk ligger i `docs/arkiv/`, og beslutningsloggen og rapportene i `docs/rapporter/`.
+**Hvor.** All dokumentasjon ligger i `docs/`. Inngangen for mennesker er `docs/README.md`, og indeksen for agenter er `docs/llms.txt`. Beslutningsloggen og rapportene ligger i `docs/rapporter/`.
 
 **Hva som skal i docs.** Det som ikke går fram av koden:
 
@@ -97,7 +96,7 @@ Beslutninger føres kort i `docs/rapporter/beslutningslogg.md`. Større valg få
 - I samme PR som endringen dokumentet beskriver.
 - En PR som endrer drift, deploy, konfig, skjemaflyt eller tilganger, oppdaterer docs i samme PR.
 - `docs/llms.txt` og `docs/README.md` oppdateres når et dokument legges til, flyttes eller slettes.
-- Hver tredje måned, og ved hver overlevering, går noen gjennom docs og retter eller arkiverer det som er utdatert.
+- Hver tredje måned, og ved hver overlevering, går noen gjennom docs og retter eller sletter det som er utdatert. Historikken ligger i git.
 
 **Dokumentasjon i ettertid.** En agent kan dokumentere et valg som allerede er gjort, når det mangler dokumentasjon av noe som vanligvis burde vært dokumentert. Da skal det stå at teksten er skrevet i ettertid, med dato og kilde (PR, commit eller issue). Er kilden uklar, står det at det er en tolkning.
 
@@ -108,7 +107,6 @@ Beslutninger føres kort i `docs/rapporter/beslutningslogg.md`. Større valg få
 - Ikke bruk em dash
 - Minimalt med kolon
 - Konsist, sjekkliste-format
-- Se `~/.claude/skills/STYLE.md` for fullstendig stilguide, og gh-project skill for issue-eksempler
 
 ## Teamet
 

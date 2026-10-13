@@ -51,7 +51,7 @@ Umbraco 17 på .NET 10. Azure SQL i drift, SQLite lokalt.
 
 **RichText-verktøylinja** settes i `ContentTypeComposer` (`EnsureRichTextDataTypes`), og i drift i `uSync/v17/DataTypes/RichtextEditor.config`. Den har H2, H3 og H4.
 
-**Databasen.** Azure SQL i dis-core erstattet SQLite med Litestream, som ga låsekonflikter når flere redaktører jobbet samtidig. Lokalt brukes fortsatt SQLite. Migreringsplanen står i [sql-server-migration-plan.md](sql-server-migration-plan.md).
+**Databasen.** Azure SQL i dis-core erstattet SQLite med Litestream, som ga låsekonflikter når flere redaktører jobbet samtidig. Lokalt brukes fortsatt SQLite.
 
 ## Adresser
 
@@ -67,7 +67,7 @@ Workere og miljøer står i «Miljøer i korthet» i [systemdokumentasjon.md](sy
 
 - Figma, hovedfil: https://www.figma.com/design/XExt0cORNSEpZFI4rQY8AN/KI-Norge-portal-skisse
 - Figma, handlingsmoduler: https://www.figma.com/design/yOf46bRFjXayIgpQLKJi5h/Handlingsmoduler
-- Confluence, tekniske oppgaver: https://digdir.atlassian.net/wiki/spaces/BTP/pages/edit-v2/4195352733
+- Confluence, tekniske oppgaver: https://digdir.atlassian.net/wiki/spaces/BTP/pages/4195352733
 - GitHub-prosjektet (kanban): https://github.com/orgs/digdir/projects/58
 - nb-nn-eval, verktøy for oversettelse: https://github.com/larsekhansen/nb-nn-eval
 - Designsystemet: https://www.designsystemet.no/komponenter

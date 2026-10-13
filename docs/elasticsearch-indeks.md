@@ -20,10 +20,10 @@ evaluated and deferred — see [eval/BASELINE.md](../infrastructure/elasticsearc
 - `ki-content.component-template.json` — the mappings (`body_semantic.inference_id` = `e5-large-incluster`).
 - `ki-content.index-template.json` — composes the component template, matches `ki-content*`.
 - `apply-templates.mjs` — registers/updates both templates (idempotent, zero-dep).
-- `setup-incluster-embedding.mjs` — starts the e5-large deployment (warm, min 1) + creates the `e5-large-incluster` endpoint.
+- `setup-incluster-embedding.mjs` — starts the e5-large deployment with adaptive allocations + creates the `e5-large-incluster` endpoint. It asks for min 1, but Serverless keeps min 0 (see Notes).
 - `crawl-umbraco.mjs` — extracts all indexable content from the Umbraco Delivery API (`{id,title,url,body,language,type}`).
 - `rebuild-from-umbraco.mjs` — local (re)build of the index from that extract (dev/backfill; the CMS push is the production path).
-- `eval/golden-ki.tsv` + `eval/run-golden.mjs` — 63-query golden-set regression eval (exits non-zero if quality drops below baseline).
+- `eval/golden-ki.tsv` + `eval/run-golden.mjs` — 46-query golden-set regression eval (exits non-zero if quality drops below baseline).
 - `eval/BASELINE.md` — recorded baseline numbers + the reranker/embedding analysis behind the current config.
 
 ## In-cluster embedding setup (one-time, prerequisite)
@@ -50,7 +50,7 @@ set -a; . .env; set +a   # ES_ENDPOINT / ES_API_KEY
   --hub-model-id intfloat/multilingual-e5-large --es-model-id multilingual-e5-large \
   --task-type text_embedding --quantize --clear-previous
 
-# Deploy it (warm, min 1) + create the inference endpoint:
+# Deploy it + create the inference endpoint (Serverless keeps min 0, see Notes):
 node --env-file=.env setup-incluster-embedding.mjs
 ```
 (On Linux/x86 the wrapper is unnecessary — `eland_import_hub_model … --quantize`
@@ -67,16 +67,26 @@ An index matching `ki-content*` then auto-creates with the correct mapping on fi
 write, so a CMS reindex after applying templates is enough.
 
 ## Reindex
-`pnpm run search:reindex` (= `rebuild-from-umbraco.mjs`) reads the public Delivery
-API and writes to ES with the ES key — no backoffice/bearer auth. URLs are built
-from `shared/content-routes.json` (same map as the frontend + CMS push), so hits
-link to the real routes (`/artikler/…`, `/veiledning/…`). The CMS push (publish
-events → `ContentTextExtractor`) keeps the index fresh in steady-state.
+The CMS keeps the index fresh: publish events go through `ContentTextExtractor`, and
+`POST /umbraco/management/api/v1/search/reindex` (admin) upserts all published content.
+That is the production path.
+
+For a local rebuild, backfill or eval, `pnpm run search:reindex` (from the repo root,
+= `rebuild-from-umbraco.mjs` with `infrastructure/elasticsearch/.env`) reads the public
+Delivery API and writes to ES with the ES key, with no backoffice auth. URLs are built
+from `shared/content-routes.json`, the same map as the frontend and the CMS push, so
+hits link to the real routes (`/artikler/…`, `/veiledning/…`). Documents are keyed by
+content GUID, as in the CMS push, so the two are interchangeable.
 ```sh
-cp .env.example .env             # ES_ENDPOINT / ES_API_KEY / UMBRACO_URL
-pnpm run search:reindex          # upsert by content GUID (from repo root)
-pnpm run search:reindex -- --rebuild   # full clean rebuild (drops the index first)
+cp .env.example .env                    # ES_ENDPOINT / ES_API_KEY / UMBRACO_URL / UMBRACO_PUBLIC_URL
+node --env-file=.env apply-templates.mjs   # ensure the mapping (once)
+pnpm run search:reindex                 # upsert by content GUID (from repo root)
+pnpm run search:reindex -- --rebuild    # full clean rebuild (drops the index first)
 ```
+Only *indexable* content is written: listing and taxonomy containers are skipped and
+bodies under 20 characters dropped. That is about 60 documents, with no glossary.
+**Both modes write to `KI_INDEX` (default `ki-content`), and `--rebuild` deletes it
+first. Prod and tt02 share the index, so a rebuild affects both.**
 
 ## Recreate the index from scratch
 ```sh
@@ -84,23 +94,6 @@ curl -XDELETE "$ES_ENDPOINT/ki-content" -H "Authorization: ApiKey $ES_API_KEY"
 node --env-file=.env apply-templates.mjs
 pnpm run search:reindex          # repopulate (see above)
 ```
-
-## Local rebuild from Umbraco (restored crawler)
-A standalone alternative to the CMS push, for local dev/backfill/evals — pulls the
-Delivery API and writes documents directly (mapping still owned by the template):
-```sh
-cp .env.example .env   # + UMBRACO_URL / UMBRACO_PUBLIC_URL
-node --env-file=.env apply-templates.mjs                  # ensure mapping (once)
-node --env-file=.env rebuild-from-umbraco.mjs --rebuild   # DROP + rebuild the index
-# or idempotent upsert by content GUID (no drop):
-node --env-file=.env rebuild-from-umbraco.mjs
-```
-Indexes only *indexable* content (listing/taxonomy containers skipped, <20-char
-bodies dropped) — ~259 docs, mostly glossary (`ordbokOppslag`). Documents are keyed
-by content GUID, matching the CMS push, so the two are interchangeable. The CMS push
-(publish events + `POST /search/reindex`) stays the production path; this crawler is
-for local rebuilds. **Both modes write to `KI_INDEX` (default `ki-content`); `--rebuild`
-deletes it first.**
 
 ## Inspect drift
 ```sh

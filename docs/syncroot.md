@@ -1,63 +1,31 @@
-# Info Portalen (Umbraco) Infrastructure
+# syncroot
 
-This directory contains the Kubernetes manifests for the Umbraco CMS implementation of the Info Portalen project.
+Kubernetes-manifestene for CMS-et i Altinn dis-core, i namespace `product-kinorgeportal`. De settes sammen med Kustomize: `base/` har ressursene, og `prod/` og `tt02/` legger på det som er ulikt per miljø. «Publish Syncroot artifacts» publiserer resultatet, og Flux i klyngen henter det. Se [deploy.md](deploy.md).
 
-## TODO
-There are still things that needs to be done before this can be deployed.
-In `syncroot/at22/kustomization.yaml` the team need to define the image name (container registry + repository) and a valid image tag. The current setup is just a dumme value that will not work.
+## base/umbraco
 
-There are still some questions regarding storage and backup. This setup should get you going once you have a public available docker image of umbraco that can be deployed.
+| Fil | Innhold |
+| --- | --- |
+| `deployment.yaml` | Podden `umbraco`: én replika, strategien `Recreate`, port 8080, prober, env og volumer |
+| `service.yaml` | Tjenesten `umbraco` |
+| `httproute.yaml` | Ruting fra `traefik-gateway`. Hostnavnene legges på per miljø |
+| `storage.yaml` | `umbraco-data` (Azure Disk, 10Gi, ReadWriteOnce) og `umbraco-media` (Azure Files, 50Gi) |
+| `serviceaccount.yaml` | Tjenestekontoen `umbraco` |
+| `vault.yaml` | Key Vault for miljøet. Adressen kommer inn som `KeyVault__AkvUri` |
+| `network-policies.yaml` | Linkerd-reglene: trafikk fra Traefik, og probene fra kubelet |
 
-I have disbaled the push trigger for the pipeline so it shouldn't publish an deployment before the docker image todos are done.
+**Volumene.** `umbraco-data` er montert på `/app/umbraco/Data`, og på `/app/uSync/v17/Content`, så innholdseksporten fra uSync overlever en omstart. `umbraco-media` er bevisst ikke montert. Media ligger i Azure Blob, se «Mediefiler» i [systemdokumentasjon.md](systemdokumentasjon.md). Kommentarene i `deployment.yaml` forklarer hvorfor.
 
-## Folder Structure
+**Brukeren.** Containeren kjører som `app` (UID 1654), og `fsGroup: 1654` gjør volumene skrivbare for den.
 
-- **base/**: Contains the base Kubernetes resources for the Umbraco stack.
-  - **umbraco/**:
-    - `deployment.yaml`: Defines the Umbraco pod with single replica and `Recreate` strategy.
-    - `service.yaml`: ClusterIP service for internal routing.
-    - `httproute.yaml`: Gateway API routing for external access.
-    - `storage.yaml`: Persistent Volume Claims for data and media.
-    - `serviceaccount.yaml`: Dedicated service account for the Umbraco pod.
-    - `kustomization.yaml`: Orchestrates the resources and applies common labels.
-- **at22/**: Kustomize overlay for the AT22 environment.
-  - `kustomization.yaml`: Applies environment-specific patches (e.g., hostnames, image tags).
-- **tt02/**: Kustomize overlay for the TT02 environment.
-- **prod/**: Kustomize overlay for the Production environment.
+## prod og tt02
 
-## Resources Created
+Hvert overlay setter image-navnet, og legger på:
 
-### Deployment
-- **Name**: `umbraco`
-- **Namespace**: `product-infoportal` (inherited from base kustomization)
-- **Replicas**: 1
-- **Strategy**: `Recreate` (required for RWO storage)
-- **Port**: 8080 (named `http`)
+- hostnavnene i `HTTPRoute`
+- `UmbracoApplicationUrl` og `BackOfficeHost`
+- lagringskontoen for media (`Umbraco__Storage__AzureBlob__Media__*`)
+- `HeadlessPreview__FrontendUrl` og `Cloudflare__SiteBaseUrl`
+- `USYNC_OWNS_SCHEMA=true` og `uSync__Settings__ImportAtStartup`. Prod importerer `Settings`, tt02 `Settings,Content`. tt02 bruker i tillegg uSync-settet `Speiling`, se [innholdsspeiling-tt02.md](innholdsspeiling-tt02.md).
 
-### Storage (PVCs)
-1. **umbraco-data**: 
-   - **Size**: 10Gi
-   - **StorageClass**: `managed-csi-premium` (Azure Disk)
-   - **Mount Path**: `/app/umbraco/Data`
-   - **Access Mode**: `ReadWriteOnce`
-2. **umbraco-media**:
-   - **Size**: 50Gi
-   - **StorageClass**: `azurefile-csi-premium` (Azure Files)
-   - **Mount Path**: `/app/umbraco/wwwroot/media`
-   - **Access Mode**: `ReadWriteMany`
-3. **Logs**:
-   - **Type**: `emptyDir`
-   - **Mount Path**: `/app/umbraco/Logs`
-
-### Networking
-- **Service**: ClusterIP on port 80 (targets container port 8080).
-- **HTTPRoute**: Routes traffic via `traefik-gateway` in the `traefik` namespace.
-  - **AT22 Hostname**: `infoportal.at22.dis-core.altinn.cloud`
-
-### Identity
-- **ServiceAccount**: `umbraco` (no additional permissions assigned).
-
-## Labels
-Resources are consistently labeled using Kustomize `commonLabels`:
-- `app.kubernetes.io/name: umbraco`
-- `app.kubernetes.io/part-of: infoportal`
+Image-taggen står som `will-be-replaced`. «Publish Syncroot artifacts» setter taggen og digesten den peker på.

@@ -28,14 +28,12 @@ Alle Delivery API-kall i `umbraco.ts` gar mot ett endepunkt
 
 ## Oppdatere fixturen
 
-Fixturen (`delivery-content.json`) er et oyeblikksbilde fra en seedet lokal
-CMS-instans. Re-fang nar skjema eller demo-innhold endrer seg:
+Fixturen (`delivery-content.json`) er et øyeblikksbilde av Delivery API-et. Den ble
+fanget fra en lokal CMS-instans med demoinnhold. `ContentSeeder`, som laget det
+innholdet, er fjernet, så et nytt lokalt CMS er tomt. Skal fixturen fanges på nytt,
+må det skje fra et CMS som har innhold:
 
 ```bash
-# 1. Kjor CMS-et lokalt med demo-seederen (npm run cms:dev), vent til det er oppe
-# 2. Fang innholdet:
 curl -s "http://localhost:5000/umbraco/delivery/api/v2/content?take=200" \
   > apps/frontend/tools/mock-cms/delivery-content.json
 ```
-
-Demo-innholdet seedes av `ContentSeeder.SeedDemoContentForDev` (dev-gated).

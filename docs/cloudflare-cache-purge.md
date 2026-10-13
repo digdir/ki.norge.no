@@ -17,17 +17,19 @@ avpubliserer eller sletter innhold, slik at endringer vises med en gang i stedet
   Globale endringer (`globaleInnstillinger` = header/footer) og masse-publisering over
   `AffectedUrlThreshold` eskalerer til `purge_everything`.
 
-No-op til `ZoneId` **og** `ApiToken` er satt — trygt å deploye før secreten finnes.
+Purgen gjør ingenting før `ZoneId`, `ApiToken` og `SiteBaseUrl` er satt.
 
-## Oppsett (gjenstår: API-token)
+**Purge ved publisering er i drift i prod.** Om den er slått på i tt02, viser oppstartsloggen der, se «Legge inn» under.
+
+## Oppsett
 
 Config-seksjon `Cloudflare` (se `appsettings.json`). Per miljø:
 
 | Verdi | Hvor | Status |
 |-------|------|--------|
 | `Cloudflare__SiteBaseUrl` | env-var i `syncroot/{prod,tt02}/kustomization.yaml` | satt (prod `https://ki.norge.no`, tt02 `https://ki.test.norge.no`) |
-| `Cloudflare--ZoneId` | Azure Key Vault (per miljø) | **gjenstår** (ikke hemmelig, men legges i vault for enkelhet) |
-| `Cloudflare--ApiToken` | Azure Key Vault (per miljø) | **gjenstår** (krever superadmin på Cloudflare) |
+| `Cloudflare--ZoneId` | Azure Key Vault (per miljø) | satt i prod (ikke hemmelig, men ligger i vaulten for enkelhets skyld) |
+| `Cloudflare--ApiToken` | Azure Key Vault (per miljø) | satt i prod (å lage tokenet krever superadmin på Cloudflare) |
 
 ### Lage API-token (Cloudflare)
 

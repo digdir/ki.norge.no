@@ -13,4 +13,4 @@ ki.norge.no er portalen for kunstig intelligens i offentlig sektor, drevet av Di
 
 ## Resten
 
-Alle dokumentene står i [llms.txt](llms.txt), med én linje hver. Historikken ligger i [arkiv/](arkiv/), og beslutningsloggen og rapportene i [rapporter/](rapporter/).
+Alle dokumentene står i [llms.txt](llms.txt), med én linje hver. Beslutningsloggen og rapportene ligger i [rapporter/](rapporter/).

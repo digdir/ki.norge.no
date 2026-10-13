@@ -1,23 +1,22 @@
 #!/usr/bin/env bash
-# Speil innhold (og eventuelt media) fra prod til tt02 for KI Norge.
+# Speil innhold fra prod til tt02 for KI Norge.
 #
-# Flytter uSync-eksportfiler og/eller media-binærfiler pod-til-pod gjennom din
-# maskin. Selve uSync Export (prod) og Import (tt02) gjøres manuelt i backoffice.
+# Flytter uSync-innholdseksporten pod-til-pod gjennom din maskin: v17/Content, og
+# v17/Media med media-metadataene når den finnes. Skjemafilene følger ikke med.
+# Skjemaet ligger i imaget og importeres ved oppstart, og en eldre skjemaeksport
+# fra prod kunne rullet tilbake nyere skjema på tt02 og slettet felt.
 #
-# Media overføres inkrementelt: scriptet sammenligner filstier på prod og tt02
-# og kopierer bare det som mangler på tt02. Det er trygt fordi Umbraco lagrer
-# media under unike nøkkel-mapper (nytt/erstattet bilde = ny sti, ingen endring
-# på stedet). Bruk --full for å kopiere alt på nytt.
+# Bildefilene følger heller ikke med. De ligger i Azure Blob, og det finnes ikke
+# noe skript som kopierer dem fra prod til tt02.
+#
+# Selve Export (prod) og Import (tt02) gjøres i backoffice. Se docs/innholdsspeiling-tt02.md.
 #
 # Bruk:
-#   scripts/sync-prod-til-tt02.sh innhold        kun uSync-innhold, ingen bildefiler
-#   scripts/sync-prod-til-tt02.sh media          kun nye bildefiler (inkrementelt)
-#   scripts/sync-prod-til-tt02.sh alt            innhold + nye bildefiler
-#   scripts/sync-prod-til-tt02.sh media --sjekk  vis hva som mangler, overfør ingenting
-#   scripts/sync-prod-til-tt02.sh media --full   kopier ALL media (overskriv)
-#   scripts/sync-prod-til-tt02.sh alt -y         hopp over bekreftelsen
+#   scripts/sync-prod-til-tt02.sh            kopier innholdet, spør først
+#   scripts/sync-prod-til-tt02.sh --sjekk    vis hva som ville blitt kopiert
+#   scripts/sync-prod-til-tt02.sh -y         hopp over bekreftelsen
 #
-# Rekkefølge for innhold/alt: Export i prod-backoffice -> dette scriptet -> Import i tt02.
+# Rekkefølge: Export i prod-backoffice -> dette scriptet -> Import i tt02.
 # Krever kubectl med Altinn-VPN, GNU find i podden (Debian-image) og rettigheter til poddene.
 
 set -euo pipefail
@@ -27,35 +26,29 @@ TT02_CTX="${TT02_CTX:-dis-core-tt02-aks}"
 NS="${NS:-product-kinorgeportal}"
 POD="${POD:-deploy/umbraco}"
 CONTAINER="${CONTAINER:-umbraco}"
+USYNC_DIR="/app/uSync/v17"
 
 usage() {
   cat >&2 <<EOF
-Bruk: $0 <innhold|media|alt> [--sjekk] [--full] [-y]
+Bruk: $0 [--sjekk] [-y]
 
-  innhold   kun uSync-innhold (dokumenter + media-metadata), ingen bildefiler
-  media     kun bildefiler, inkrementelt (bare det som mangler på tt02)
-  alt       innhold + nye bildefiler
-
-  --sjekk   vis hva som ville blitt overført, overfør ingenting
-  --full    kopier ALL media på nytt (overskriv), ikke bare det som mangler
+  --sjekk   vis hva som ville blitt kopiert, kopier ingenting
   -y        hopp over bekreftelsen
 
-Rekkefølge for innhold/alt: Export i prod-backoffice -> dette scriptet -> Import i tt02-backoffice.
+Kopierer v17/Content, og v17/Media når den finnes, fra prod til tt02.
+Rekkefølge: Export i prod-backoffice -> dette scriptet -> Import i tt02-backoffice.
 EOF
   exit 1
 }
 
-MODE=""; ASSUME_YES=0; FULL=0; SJEKK=0
+ASSUME_YES=0; SJEKK=0
 for arg in "$@"; do
   case "$arg" in
-    innhold|media|alt)  MODE="$arg" ;;
     --sjekk|--dry-run)  SJEKK=1 ;;
-    --full)             FULL=1 ;;
     -y|--yes)           ASSUME_YES=1 ;;
     *)                  usage ;;
   esac
 done
-[ -n "$MODE" ] || usage
 
 command -v kubectl >/dev/null || { echo "Fant ikke kubectl i PATH." >&2; exit 1; }
 
@@ -71,93 +64,47 @@ for pair in "PROD:$PROD_CTX" "TT02:$TT02_CTX"; do
   fi
 done
 
-do_usync=0; do_media=0
-case "$MODE" in
-  innhold) do_usync=1 ;;
-  media)   do_media=1 ;;
-  alt)     do_usync=1; do_media=1 ;;
-esac
-
-# innhold/alt krever en fersk Export på prod. Mappa /app/uSync er efemer (ikke
-# et persistent volum), så den forsvinner hvis prod-podden restartes eller
-# redeployes. Sjekk at den finnes før vi prøver å overføre, ellers blir det en
-# kryptisk "tar: Cannot stat"-feil.
-if [ "$do_usync" -eq 1 ] && ! kprod exec "$POD" -c "$CONTAINER" -- test -d /app/uSync 2>/dev/null; then
-  echo "Fant ingen uSync-eksport på prod (/app/uSync mangler)." >&2
+# Innholdsmappa er varig siden #674, i begge miljøene, så den kan inneholde en
+# gammel eksport. Media-metadataene ligger på containerens skrivelag og forsvinner
+# ved restart. Tidspunktet for nyeste fil viser om Export er kjørt nylig.
+if ! kprod exec "$POD" -c "$CONTAINER" -- test -d "$USYNC_DIR/Content" 2>/dev/null; then
+  echo "Fant ingen innholdseksport på prod ($USYNC_DIR/Content mangler)." >&2
   echo "Kjør Export i prod-backoffice (Settings -> uSync -> Export) først, så dette scriptet." >&2
-  echo "NB: eksportmappa er efemer og vaskes vekk hvis prod-podden restartes/redeployes mellom Export og dette steget." >&2
   exit 1
 fi
 
-MISSING_FILE=""
-miss_count=0
-hsize="0 B"
-trap '[ -n "$MISSING_FILE" ] && rm -f "$MISSING_FILE"' EXIT
-
-echo "Modus:  $MODE"
-echo "Kilde:  $PROD_CTX  $NS/$POD:$CONTAINER"
-echo "Mål:    $TT02_CTX  $NS/$POD:$CONTAINER"
-echo
-
-# Inkrementell media: finn filer som mangler på tt02.
-if [ "$do_media" -eq 1 ] && [ "$FULL" -eq 0 ]; then
-  echo "Sammenligner media mellom prod og tt02..."
-  prodf=$(mktemp); tt02f=$(mktemp); MISSING_FILE=$(mktemp)
-  kprod exec "$POD" -c "$CONTAINER" -- sh -c 'cd /app/wwwroot && find media -type f -printf "%s\t%p\n"' > "$prodf"
-  ktt02 exec "$POD" -c "$CONTAINER" -- sh -c 'cd /app/wwwroot && find media -type f' > "$tt02f"
-  bytes=$(awk -F'\t' -v mf="$MISSING_FILE" 'NR==FNR{seen[$0]=1; next} !($2 in seen){print $2 > mf; b+=$1} END{printf "%d", b+0}' "$tt02f" "$prodf")
-  prod_count=$(grep -c . "$prodf" || true)
-  tt02_count=$(grep -c . "$tt02f" || true)
-  miss_count=$(grep -c . "$MISSING_FILE" || true)
-  hsize=$(awk -v b="$bytes" 'BEGIN{u="B"; s=b; n=split("KB MB GB TB",U," "); for(i=1;i<=n && s>=1024;i++){s/=1024; u=U[i]} printf "%.1f %s", s, u}')
-  rm -f "$prodf" "$tt02f"
-  echo "  prod: $prod_count filer   tt02: $tt02_count filer"
-  echo "  mangler på tt02: $miss_count filer ($hsize)"
-  echo
+MAPPER="Content"
+if kprod exec "$POD" -c "$CONTAINER" -- test -d "$USYNC_DIR/Media" 2>/dev/null; then
+  MAPPER="Content Media"
 fi
 
+echo "Kilde:  $PROD_CTX  $NS/$POD:$CONTAINER"
+echo "Mål:    $TT02_CTX  $NS/$POD:$CONTAINER"
+for mappe in $MAPPER; do
+  antall=$(kprod exec "$POD" -c "$CONTAINER" -- sh -c "find $USYNC_DIR/$mappe -type f | wc -l" | tr -d ' ')
+  nyeste=$(kprod exec "$POD" -c "$CONTAINER" -- sh -c "find $USYNC_DIR/$mappe -type f -printf '%TY-%Tm-%Td %TH:%TM\n' | sort | tail -1")
+  echo "  $mappe: $antall filer, nyeste ${nyeste:-ingen}"
+done
+[ "$MAPPER" = "Content" ] && echo "  Media: ingen media-metadata på prod. Kjør Export på nytt hvis innholdet viser til bilder."
+echo
+
 if [ "$SJEKK" -eq 1 ]; then
-  echo "Sjekk-modus, ingenting overføres. Plan:"
-  [ "$do_usync" -eq 1 ] && echo "  - uSync-innhold: full kopi"
-  if [ "$do_media" -eq 1 ]; then
-    if [ "$FULL" -eq 1 ]; then echo "  - media: FULL kopi (overskriver alt på tt02)"
-    else echo "  - media: $miss_count nye filer ($hsize)"; fi
-  fi
+  echo "Sjekk-modus, ingenting kopieres."
   exit 0
 fi
 
-case "$MODE" in
-  innhold|alt) echo "NB: forutsetter at du har kjørt Export i prod-backoffice. Husk Import i tt02 etterpå." ;;
-esac
-
+echo "NB: forutsetter at du har kjørt Export i prod-backoffice. Husk Import i tt02 etterpå."
 if [ "$ASSUME_YES" -ne 1 ]; then
   read -r -p "Fortsette? Dette overskriver tilsvarende filer på tt02. [j/N] " svar
   case "$svar" in j|J|y|Y) ;; *) echo "Avbrutt."; exit 0 ;; esac
 fi
 
-if [ "$do_usync" -eq 1 ]; then
-  echo "Overfører uSync-innhold..."
-  kprod exec "$POD" -c "$CONTAINER" -- tar czf - -C /app uSync \
-    | ktt02 exec -i "$POD" -c "$CONTAINER" -- tar xzf - -C /app
-fi
-
-if [ "$do_media" -eq 1 ]; then
-  if [ "$FULL" -eq 1 ]; then
-    echo "Overfører ALL media (full kopi)..."
-    kprod exec "$POD" -c "$CONTAINER" -- tar czf - -C /app/wwwroot media \
-      | ktt02 exec -i "$POD" -c "$CONTAINER" -- tar xzf - -C /app/wwwroot
-  elif [ "$miss_count" -gt 0 ]; then
-    echo "Overfører $miss_count nye media-filer ($hsize)..."
-    tr '\n' '\0' < "$MISSING_FILE" \
-      | kprod exec -i "$POD" -c "$CONTAINER" -- tar czf - -C /app/wwwroot --null -T - \
-      | ktt02 exec -i "$POD" -c "$CONTAINER" -- tar xzf - -C /app/wwwroot
-  else
-    echo "Media: ingen nye filer, hopper over."
-  fi
-fi
+echo "Kopierer $MAPPER..."
+# --no-overwrite-dir: Content er et montert volum på tt02, og tar skal ikke prøve
+# å endre eier eller tider på selve mappa.
+# shellcheck disable=SC2086
+kprod exec "$POD" -c "$CONTAINER" -- tar czf - -C "$USYNC_DIR" $MAPPER \
+  | ktt02 exec -i "$POD" -c "$CONTAINER" -- tar xzf - --no-overwrite-dir -C "$USYNC_DIR"
 
 echo "Ferdig."
-case "$MODE" in
-  innhold|alt) echo "Neste steg: kjør Import i tt02-backoffice (Settings -> uSync -> Import, aldri clean)." ;;
-  media)       echo "Bildefilene ligger nå på tt02." ;;
-esac
+echo "Neste steg: kjør Import i tt02-backoffice (Settings -> uSync -> Import, aldri clean)."

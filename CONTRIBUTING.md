@@ -18,7 +18,7 @@ pnpm run cms:dev              # http://localhost:5000/umbraco
 pnpm run frontend:dev:prod
 ```
 
-First time the CMS runs, it auto-creates an admin. No content is seeded.
+First time the CMS runs, it auto-creates an admin.
 
 That admin is a throwaway account against your own local SQLite file. It unlocks
 nothing shared, so the password is not a secret. Do not reuse the value, or the
@@ -41,7 +41,7 @@ The documentation starts in [docs/README.md](docs/README.md). Agents start in `C
 1. Branch off `main`
 2. Make changes — keep commits small and focused
 3. Run `dotnet build` (CMS) and `npx astro build` (frontend) locally
-4. Run `bash scripts/smoke-test.sh --local` (or `--prod` for prod check)
+4. Run `bash scripts/smoke-test.sh` against prod after a deploy. See [docs/smoketester.md](docs/smoketester.md)
 5. Open a PR — fill in the template
 
 ## Style
@@ -50,7 +50,6 @@ The documentation starts in [docs/README.md](docs/README.md). Agents start in `C
 - No emojis in code or commits
 - No em dashes (use commas/periods)
 - Minimal colon usage
-- See `~/.claude/skills/STYLE.md` for the full guide
 
 ## Browser support
 
@@ -69,4 +68,7 @@ Workers with `pnpm run frontend:deploy:prod` (and `:tt02`). See
 
 ## Reporting security issues
 
-Don't open public issues for vulnerabilities. Email drift@digdir.no.
+Don't open public issues for vulnerabilities. This repo has no `SECURITY.md` of its
+own, so Digdir's organization-wide security policy applies:
+https://github.com/digdir/.github/blob/main/SECURITY.md. The site also publishes
+https://ki.norge.no/.well-known/security.txt.

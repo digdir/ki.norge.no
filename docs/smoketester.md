@@ -1,48 +1,36 @@
-# Smoke tests
+# Smoketester
 
-Two layers of testing for ki.norge.no.
+To lag med tester som sjekker at nettstedet og CMS-et svarer. Begge kjører i CI.
 
-## 1. Quick HTTP smoke (`scripts/smoke-test.sh`)
+## 1. `scripts/smoke-test.sh`
 
-Bash + curl. Fast (~10 seconds). Hits every public URL and key Delivery API endpoints, fails on non-2xx or empty body.
-
-```bash
-bash scripts/smoke-test.sh             # against prod (default)
-bash scripts/smoke-test.sh --local     # against localhost
-```
-
-Catches: 4xx/5xx errors, missing pages, broken Delivery API filters, sort-field bugs (`publishedAt:desc`-style mistakes), bad JSON in property values.
-
-## 2. Playwright (`tests/`)
-
-Browser-driven tests for things curl can't see: render correctness, login flow, CMS tree state, CRUD UI flows.
+Bash og curl, ferdig på rundt ti sekunder. Henter alle offentlige sider og de viktigste kallene mot Delivery API, og feiler på alt som ikke er 2xx eller har tom kropp. Fanger 4xx- og 5xx-feil, sider som mangler, ødelagte filtre og sortering i Delivery API, og blokker som har falt til «Unsupported».
 
 ```bash
-npm install --save-dev @playwright/test
-npx playwright install chromium      # first time only
-
-npx playwright test --config=tests/playwright.config.ts                       # prod
-TARGET=local npx playwright test --config=tests/playwright.config.ts          # localhost
-npx playwright test --config=tests/playwright.config.ts --project=frontend   # frontend only
-npx playwright test --config=tests/playwright.config.ts --project=cms        # CMS only
+bash scripts/smoke-test.sh           # prod (standard)
+bash scripts/smoke-test.sh --tt02    # tt02, krever Altinn-VPN. Kjør den etter en speiling
+bash scripts/smoke-test.sh --local   # localhost:4321 og localhost:5000
 ```
 
-Auth credentials come from env vars `CMS_USER` / `CMS_PASS` (defaults to unattended-install admin).
+`--local` krever innhold i det lokale CMS-et. Mot et tomt lokalt CMS feiler den.
 
-### What's tested today
-- **frontend/smoke.spec.ts** — every public URL returns 200, header renders, sample artikkel + case detail pages render.
-- **cms/auth-and-tree.spec.ts** — admin can log in, content tree confirms pr-316 structural changes (no Caser/KI-ordbok/Ikoner residue), /api/diagnostics reports valid state.
+**I CI:** jobben «Smoke test prod» kjører `bash scripts/smoke-test.sh --prod` ved hver push til `main`, ikke på PR-er.
 
-### What's missing (TODO)
-- Create + edit + publish + delete artikkel via UI
-- Same for case
-- Move content between containers via UI (reproduce the "Sandkasse can't move into Sider" bug)
-- Visual regression for key pages
-- A11y checks (axe-core integration)
+## 2. Playwright
 
-## CI
+Nettlesertester for det curl ikke ser. Oppsettet står i `tests/playwright.config.ts`, med prosjektene `frontend` (`tests/frontend/`) og `cms` (`tests/cms/`). `TARGET=local` tester mot localhost, ellers mot prod. Innloggingen i CMS-et bruker `CMS_USER` og `CMS_PASS`, og faller tilbake på den lokale admin-kontoen.
 
-Not wired up yet. Suggested order for adding to CI:
-1. Run `scripts/smoke-test.sh --prod` after every deploy. Hard fail if anything 5xx.
-2. Run Playwright frontend smoke against the staging URL once we have one.
-3. Run Playwright CMS tests against staging only (touches state).
+**I CI:** jobben «Playwright smoke (frontend + CMS auth)» kjører på hver PR og push. Den starter et lokalt CMS med `dotnet run` og frontenden med `pnpm run dev`, og kjører to spesifikasjoner fra `apps/frontend`:
+
+```bash
+cd apps/frontend
+TARGET=local npx playwright test --config=../../tests/playwright.config.ts --project=frontend tests/frontend/smoke.spec.ts
+TARGET=local npx playwright test --config=../../tests/playwright.config.ts --project=cms tests/cms/auth-and-tree.spec.ts
+```
+
+- `smoke.spec.ts` sjekker at de offentlige sidene laster, og at detaljsidene for første artikkel og første eksempel rendres.
+- `auth-and-tree.spec.ts` logger inn i backofficet, sjekker strukturen i innholdstreet og spør diagnostics-endepunktet.
+
+Det lokale CMS-et i CI starter uten uSync-import og uten innhold. Testene kjører derfor mot skjemaet `ContentTypeComposer` lager, ikke mot prods. Se [cms-composers.md](cms-composers.md).
+
+Samme kommandoer kjører lokalt, med CMS og frontend oppe på 5000 og 4321.
