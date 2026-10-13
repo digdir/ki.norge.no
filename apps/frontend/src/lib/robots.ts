@@ -33,9 +33,7 @@ export const CONTENT_SIGNAL = 'search=yes, ai-input=yes, ai-train=yes';
  */
 export const DISALLOWED_PATHS = [
   '/media/',
-  '/admin-tilgang',
   '/preview-tilgang',
-  '/status',
   '/api/',
   '/503',
   '/404',

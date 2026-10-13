@@ -46,7 +46,7 @@ describe('robots.txt i produksjon', () => {
     for (const crawler of AI_CRAWLERS) {
       const group = groupFor(body, crawler);
       expect(group, `mangler gruppe for ${crawler}`).not.toBeNull();
-      // Uten dette ville en navngitt crawler fått crawle /api/ og /status fritt.
+      // Uten dette ville en navngitt crawler fått crawle /api/ og /media/ fritt.
       for (const path of DISALLOWED_PATHS) {
         expect(group, `${crawler} mangler Disallow: ${path}`).toContain(`Disallow: ${path}`);
       }

@@ -121,9 +121,8 @@ utm-varianter.
 **Rekkefølgen er derfor:** normaliser cache-nøkkelen i `apps/cache-kinorgeportal` først
 (strip `utm_*`, `fbclid`, `gclid` og liknende fra nøkkelen, ikke fra origin-fetchen),
 og først da blir purge per URL uttømmende. Ingen side varierer innhold på sporingsparametre.
-De eneste query-parametrene koden leser er `preview` (setter `no-store`), `key` på
-`/admin-tilgang` (`no-store`) og `redirect` i `/api/exit-preview` (API-rute,
-`no-store`). Ingen av dem berøres av en allowlist som kun stripper `utm_*`, `fbclid`
+De eneste query-parametrene koden leser er `preview` (setter `no-store`) og
+`redirect` i `/api/exit-preview` (API-rute, `no-store`). Ingen av dem berøres av en allowlist som kun stripper `utm_*`, `fbclid`
 og `gclid`, så normaliseringen er semantisk trygg. Den ville dessuten gitt bedre hit rate på taggede lenker, som i dag
 får kald cache per unike variant.
 

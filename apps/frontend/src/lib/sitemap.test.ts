@@ -35,7 +35,7 @@ async function sitemapFor(nodes: RawContentNode[]): Promise<{ xml: string; base:
 }
 
 describe('isExcludedPath (port 2: sti-prefiks som speiler robots.txt)', () => {
-  test.each(['/status', '/media/bilde.png', '/api/soek', '/admin-tilgang', '/preview-tilgang', '/503', '/404'])(
+  test.each(['/media/bilde.png', '/api/soek', '/preview-tilgang', '/503', '/404'])(
     '%s er ekskludert',
     (path) => {
       expect(isExcludedPath(path)).toBe(true);
@@ -69,8 +69,8 @@ describe('collectSitemapUrls via generateSitemapXml', () => {
       { id: '4', contentType: 'forside', properties: {} },
       // Port 1: ingen rute i content-routes.json → droppes.
       { id: '5', contentType: 'globaleInnstillinger', properties: {} },
-      // Port 2: en `side` med reservert slug resolver til /status → droppes.
-      { id: '6', contentType: 'side', properties: { slug: 'status' } },
+      // Port 2: en `side` med reservert slug resolver til /404 → droppes.
+      { id: '6', contentType: 'side', properties: { slug: '404' } },
     ];
 
     const { xml, base } = await sitemapFor(nodes);
@@ -83,7 +83,7 @@ describe('collectSitemapUrls via generateSitemapXml', () => {
     // Umappet type gir ingen URL.
     expect(found.some((u) => u.includes('globaleInnstillinger') || u.endsWith('/undefined'))).toBe(false);
     // Ekskludert sti er borte.
-    expect(found.some((u) => u.endsWith('/status'))).toBe(false);
+    expect(found.some((u) => u.endsWith('/404'))).toBe(false);
   });
 
   test('kalenderhendelse havner på /kalender/{slug} (ny rute, ende-til-ende)', async () => {
