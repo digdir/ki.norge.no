@@ -67,6 +67,7 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 
 **Nøkkelfiler**
 - `Composers/ContentTypeComposer.cs` — oppretter alle document types og element types ved oppstart. Registrerer Block List data types. **Kjører ikke i prod eller tt02**, se advarselen under.
+- Alle composers, hva de gjør, om de er i bruk i drift og hvilken konfig som slår dem på: `docs/cms-composers.md`
 - `Program.cs` — startup med instance guard (forhindrer dobbel-start som ødelegger SQLite)
 - `appsettings.Development.json` — lokal config med connection string, Delivery API key, preview secret
 - `appsettings.json` — prod config, tom connection string (overrides fra env vars i Azure)

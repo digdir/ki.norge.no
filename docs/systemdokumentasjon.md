@@ -119,6 +119,8 @@ Umbraco i prod svarer på tre hostnavn, satt i `syncroot/prod/kustomization.yaml
 
 Pålogging til backoffice går via Entra ID. Nye brukere legges til med `pnpm run cms:add-user`.
 
+CMS-ets composers, hva de gjør og hvilken konfig som slår dem på i prod og tt02, står i [cms-composers.md](cms-composers.md).
+
 **kubectl og dis-core-hostnavn krever Altinn-VPN.** Uten VPN når du Delivery API via workers.dev-proxyen, men ikke clusteret.
 
 ### Skjema og uSync
