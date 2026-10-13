@@ -21,8 +21,10 @@ import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, wi
  * Preview requests (cookie or query param) bypass the cache entirely so
  * editors always see fresh draft content.
  *
- * Cache invalidation: Umbraco publishes trigger a Cloudflare cache purge
- * via webhook, so the next visitor gets a fresh render.
+ * Selve cachen ligger i cache-workeren foran (apps/cache-kinorgeportal), som
+ * cacher etter Cache-Control herfra. CMS-et purger selv ved publisering
+ * (apps/cms-umbraco/CachePurge/), og en frontend-deploy purger med
+ * scripts/purge-cache.mjs.
  *
  * Browser revalidation: HTML bruker s-maxage (delt/edge-cache) men max-age=0,
  * must-revalidate for nettleseren. Uten dette serverte nettleseren cachet HTML

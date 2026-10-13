@@ -10,9 +10,7 @@
 // bare hvis samme maskin deployet sist, og skjulte dessuten symptomet framfor å
 // fjerne årsaken.
 //
-// Kaller Cloudflare-API-et direkte, slik CMS-et gjør ved publisering. Det
-// alternative sporet, frontendens /api/purge-cache, er ikke brukbart: workerne
-// har ingen Cloudflare-secrets satt, så det endepunktet kan ikke purge noe.
+// Kaller Cloudflare-API-et direkte, slik CMS-et gjør ved publisering.
 
 import fs from 'node:fs';
 
@@ -57,8 +55,7 @@ if (!zoneId || !token) {
     '[purge-cache] mangler Cloudflare-nøkler, og da kan ikke cachen tømmes.\n' +
       'Sett disse i apps/frontend/.env:\n' +
       '  CLOUDFLARE_ZONE_ID      sone-IDen for norge.no (Cloudflare-dashbordet, Overview)\n' +
-      '  CLOUDFLARE_PURGE_TOKEN  API-token som starter med cfat_, med Zone.Cache Purge\n' +
-      'PURGE_SECRET er noe annet og trengs ikke her.',
+      '  CLOUDFLARE_PURGE_TOKEN  API-token som starter med cfat_, med Zone.Cache Purge',
   );
   process.exit(1);
 }

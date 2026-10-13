@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'vitest';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { CANONICAL_SITE_URL } from './prod-hosts';
 import {
   websiteSchema,
@@ -29,11 +31,11 @@ const schemas: Array<[string, unknown]> = [
   ['websiteSchema', websiteSchema('beskrivelse')],
   [
     'articleSchema',
-    articleSchema({ headline: 'H', description: 'D', slug: 's', datePublished: '2026-01-01' }),
+    articleSchema({ headline: 'H', description: 'D', path: '/artikler/s', datePublished: '2026-01-01' }),
   ],
   [
     'eksempelSchema',
-    eksempelSchema({ headline: 'H', description: 'D', slug: 's', datePublished: '2026-01-01' }),
+    eksempelSchema({ headline: 'H', description: 'D', path: '/eksempler/s', datePublished: '2026-01-01' }),
   ],
   ['breadcrumbSchema', breadcrumbSchema([{ name: 'Hjem', url: '/' }, { name: 'A', url: '/a' }])],
   [
@@ -91,5 +93,52 @@ describe('collectionPageSchema', () => {
     const schema = collectionPageSchema({ name: 'N', url: '/x', items: [] }) as Record<string, any>;
     expect('description' in schema).toBe(false);
     expect(schema.mainEntity.numberOfItems).toBe(0);
+  });
+});
+
+// articleSchema bygde alltid /artikler/{slug}, så de enkle veiledningene og
+// stegartiklene pekte på sider som ikke finnes. Sidene sender nå sin egen sti.
+describe('Article-URL-en er sidens egen sti', () => {
+  test.each([
+    ['/artikler/min-artikkel'],
+    ['/veiledning/kom-i-gang'],
+    ['/veiledning/gjor-dataene-ki-klare/aggregere-data/anonymisere'],
+  ])('articleSchema med %s', (path) => {
+    const schema = articleSchema({ headline: 'H', description: 'D', path, datePublished: '2026-01-01' });
+    expect(schema.url).toBe(`${CANONICAL_SITE_URL}${path}`);
+  });
+
+  test('eksempelSchema bruker stien den får', () => {
+    const schema = eksempelSchema({ headline: 'H', description: 'D', path: '/eksempler/e', datePublished: '2026-01-01' });
+    expect(schema.url).toBe(`${CANONICAL_SITE_URL}/eksempler/e`);
+  });
+
+  const PAGES_DIR = new URL('../pages', import.meta.url).pathname;
+  const astroFiles = (dir: string): string[] =>
+    readdirSync(dir).flatMap((entry) => {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) return astroFiles(full);
+      return entry.endsWith('.astro') ? [full] : [];
+    });
+  const kall = astroFiles(PAGES_DIR).flatMap((full) =>
+    [...readFileSync(full, 'utf8').matchAll(/(?:articleSchema|eksempelSchema)\(\{([\s\S]*?)\}\)/g)].map(
+      (m) => [full.slice(PAGES_DIR.length + 1), m[1]] as const,
+    ),
+  );
+
+  test('finner kallene i artikkel-, eksempel- og veiledningssidene', () => {
+    const sider = kall.map(([side]) => side);
+    expect(sider).toEqual(
+      expect.arrayContaining([
+        'artikler/[slug].astro',
+        'eksempler/[slug].astro',
+        'veiledning/[guide].astro',
+        'veiledning/[guide]/[step]/[stegartikkel].astro',
+      ]),
+    );
+  });
+
+  test.each(kall)('%s sender stien den selv har, samme som canonical', (_side, argumenter) => {
+    expect(argumenter).toContain('path: Astro.url.pathname');
   });
 });
