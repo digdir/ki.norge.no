@@ -36,7 +36,7 @@ if [ -z "$TAG" ]; then
 fi
 [[ "$TAG" =~ ^[0-9]+$ ]] || fail "image-tag maa vaere et heltall (fikk '$TAG')."
 
-echo "Deployer CMS-image $TAG til $ENV (database=AzureSQL) fra main $(git rev-parse --short HEAD)."
+echo "Deployer CMS-image $TAG til $ENV fra main $(git rev-parse --short HEAD)."
 if [ "$ENV" = "prod" ]; then
   read -r -p "Dette er PROD (live). Skriv 'prod' for aa fortsette: " c
   [ "$c" = "prod" ] || fail "Avbrutt."
@@ -63,7 +63,7 @@ gh workflow run docker-publish.yaml --field tag="$TAG" || fail "docker-publish s
 watch_run docker-publish.yaml "image-bygg" || fail "Image-bygg feilet."
 
 note "2/3 Publiserer syncroot ($ENV)…"
-gh workflow run publish-syncroot-main.yaml --field environment="$ENV" --field image-tag="$TAG" --field database=AzureSQL \
+gh workflow run publish-syncroot-main.yaml --field environment="$ENV" --field image-tag="$TAG" \
   || fail "syncroot start feilet."
 watch_run publish-syncroot-main.yaml "syncroot" || fail "Syncroot-publisering feilet."
 

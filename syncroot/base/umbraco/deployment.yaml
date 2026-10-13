@@ -54,6 +54,8 @@ spec:
                 configMapKeyRef:
                   name: umbraco-dis-vault
                   key: AkvUri
+            # Brukes ikke i noe miljø. «Publish Syncroot artifacts» skriver begge
+            # om til Azure SQL før artefaktet publiseres.
             - name: ConnectionStrings__umbracoDbDSN
               value: "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
             - name: ConnectionStrings__umbracoDbDSN_ProviderName

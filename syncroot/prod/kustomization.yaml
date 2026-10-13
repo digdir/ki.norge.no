@@ -31,11 +31,12 @@ patches:
         value:
           name: Umbraco__CMS__Security__BackOfficeHost
           value: https://cms.ki.norge.no
-      # Media ligger paa Azure Blob. ConnectionString alene aktiverer
-      # AzureBlobMediaComposer; fjernes den faller lagringen tilbake til PVC-en.
+      # Media ligger på Azure Blob. ConnectionString alene slår på
+      # AzureBlobMediaComposer. Fjernes den, havner media på containerens eget
+      # filsystem og forsvinner ved omstart, fordi umbraco-media ikke er montert.
       # Containeren ble fylt fra PVC-en 2026-08-28, 33 objekter verifisert mot
-      # md5 tatt i podden. PVC-en staar igjen som frossen kopi fram til foerste
-      # nye opplasting. Se apps/cms-umbraco/Composers/AzureBlobMediaComposer.cs.
+      # md5 tatt i podden. PVC-en står igjen som frossen kopi.
+      # Se apps/cms-umbraco/Composers/AzureBlobMediaComposer.cs.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
@@ -59,9 +60,10 @@ patches:
         value:
           name: Cloudflare__SiteBaseUrl
           value: https://ki.norge.no
-      # uSync overtar skjemaet fra ContentTypeComposer. Composeren staar igjen i
-      # koden, men hopper over skjema-asserting naar denne er satt, saa rollback
-      # er aa fjerne disse to blokkene og deploye paa nytt.
+      # Skal aldri fjernes. uSync eier skjemaet, og uten flagget kjører
+      # ContentTypeComposer skjema-assertingen mot databasen, med kall som sletter
+      # typer og felt. Det gjelder også etter at composeren er fjernet fra koden,
+      # for en tilbakerulling til et eldre image har den fortsatt.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
