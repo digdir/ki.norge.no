@@ -9,17 +9,22 @@ interface Props {
 
 const { headingLevel = 2 } = Astro.props;
 const Heading = `h${headingLevel}`;
+const randId = `tiltak-entry-${Math.random().toString(36).substr(2, 9)}`;
 ---
 
-<a class="tiltak-entry" href="/ki-tiltak">
+<div class="tiltak-entry" data-clickdelegatefor={randId}>
   <div class="tiltak-entry-tekst">
-    <Heading class="ds-heading tiltak-entry-tittel" data-size="sm">Offentlige KI-tiltak</Heading>
+    <Heading class="ds-heading tiltak-entry-tittel" data-size="md">
+      <a href="/ki-tiltak" id={randId}>
+        Offentlige KI-tiltak
+      </a>
+    </Heading>
     <p class="ds-paragraph tiltak-entry-ingress" data-size="sm">
       Oversikt over hvordan kunstig intelligens tas i bruk i offentlig sektor.
     </p>
     <span class="tiltak-entry-lenke">
       Se tiltakene
-      <span class="tiltak-entry-pil"><AkselIcon name="ArrowRight" size={16} /></span>
+      <span class="tiltak-entry-pil"><AkselIcon name="ArrowRight" /></span>
     </span>
   </div>
 
@@ -27,7 +32,7 @@ const Heading = `h${headingLevel}`;
     <span class="tiltak-entry-tall">{kiTiltak.length}</span>
     <span class="tiltak-entry-merkelapp">KI-tiltak meldt inn av virksomheter</span>
   </div>
-</a>
+</div>
 
 <style>
   .tiltak-entry {
@@ -36,20 +41,25 @@ const Heading = `h${headingLevel}`;
     align-items: center;
     gap: var(--ds-size-8);
     padding: var(--ds-size-8) var(--ds-size-10);
-    text-decoration: none;
     color: inherit;
     background-color: var(--ds-color-brand2-background-default);
-    border: var(--ds-border-width-default) solid var(--ds-color-accent-border-subtle);
-    border-radius: var(--ds-border-radius-xl);
-  }
+    border: 3px solid var(--ds-color-accent-border-subtle);
+    cursor: pointer;
 
-  .tiltak-entry:hover .tiltak-entry-lenke {
-    text-decoration: underline;
+    &:hover .tiltak-entry-tittel {
+      text-decoration: underline;
+    }
   }
 
   .tiltak-entry-tittel {
+    font-weight: bold;
     margin: 0 0 var(--ds-size-2);
     color: var(--ds-color-accent-text-default);
+    
+    & a {
+      text-decoration: none;
+      color: inherit;
+    }
   }
 
   .tiltak-entry-ingress {
