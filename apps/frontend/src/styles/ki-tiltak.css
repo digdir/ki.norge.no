@@ -123,15 +123,12 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 
 .tiltak-hero-ingress {
   margin: 0;
-  /* Prototypen låser ingressen til 640px inni et 1360px innhold (~47 %).
-     ch-basert bredde ga en helt annen andel enn prototypens leselinje, så vi
-     bruker samme andel av vårt innhold i stedet for et fast tegnmål.
-     Utvidet fra 47 % etter gjennomgang med redaksjonen: teksten brakk over
-     fire linjer, og målet er tre. */
-  max-width: 68%;
-  /* Samme krem som tittelen. Prototypen demper ikke ingressen på det mørke
-     båndet, den bruker full #F8F3EE på begge. */
+  max-width: 100%;
   color: var(--ds-color-brand1-background-default);
+
+  @media (min-width: 768px) {
+    max-width: 70%;
+  }
 }
 
 /* Kortgrid */
@@ -234,12 +231,24 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 /* Søkefeltet ligger nå på egen rad, med filterknapp, antall og aktive filtre
    på raden under. Prototypens søkefelt spenner to av tre kolonner i en
    3-kolonners listbar, altså 66 % av innholdsbredden (målt 584 av 884 px). */
+/* Søkefelt og filterknapp på samme rad. Knappen er bunnjustert mot feltet,
+   siden etiketten står over feltet, og brytes under når feltet ville blitt
+   smalere enn 20rem. */
+.tiltak-sokerad {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  max-width: 66%;
+  margin-bottom: var(--ds-size-4);
+}
+
 .tiltak-sokefelt {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
-  max-width: 66%;
-  margin-bottom: var(--ds-size-4);
+  flex: 1 1 20rem;
+  min-width: 0;
 }
 
 .tiltak-filterrad {
@@ -313,7 +322,6 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    sekundærknappen, samme varme bakgrunn og vask som søkefeltet. */
 .ds-button.tiltak-filterknapp[data-variant="secondary"] {
   --dsc-button-background: var(--ds-color-brand2-background-default);
-  --dsc-button-border-color: var(--tiltak-kant-vask);
   --dsc-button-color: var(--tiltak-tekst-myk);
 }
 
@@ -605,7 +613,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   }
 
   /* 66 % blir for smalt når hele innholdet er smalt. */
-  .tiltak-sokefelt {
+  .tiltak-sokerad {
     max-width: none;
   }
 
