@@ -28,11 +28,27 @@
 .tiltak-hero {
   background-color: var(--ds-color-brand1-text-default);
   color: var(--ds-color-brand1-background-default);
-  /* Kantblokker har 16px sidemargin (--layout-edge-margin i layout.css), og
-     den lot den kremhvite sidebakgrunnen stå som en stripe langs det mørke
-     båndet. Prototypens topband går helt ut til kanten. Under 1024px er
-     margin-en allerede 0, så dette gjelder i praksis desktop. */
-  margin-inline: 0;
+}
+
+body:has(.tiltak-hero) {
+  background-color: var(--ds-color-brand1-text-default);
+}
+
+body:has(.tiltak-hero) .footer {
+  color: var(--ds-color-brand1-background-default);
+}
+
+body:has(.tiltak-hero) .footer .footer-col .ds-link {
+  --dsc-link-color: var(--ds-color-brand1-background-default);
+  --dsc-link-color--hover: var(--ds-color-brand1-background-default);
+}
+
+body:has(.tiltak-hero) .footer .footer-logo path[fill] {
+  fill: var(--ds-color-brand1-background-default);
+}
+
+body:has(.tiltak-hero) .footer .footer-logo path[stroke] {
+  stroke: var(--ds-color-brand1-background-default);
 }
 
 /* Headeren over det mørke båndet.
@@ -77,6 +93,9 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 }
 
 .tiltak-innhold {
+  /* Samme flate som kantblokkene på forsiden, slik at sidebakgrunnen står
+     som en stripe langs begge sider ned hele siden. */
+  background-color: var(--ds-color-brand2-surface-default);
   /* Vertikal rytme mellom rosa bånd, kortgrid og resten av siden, hentet fra
      prototypen (56/22/80px). --ds-size-20 finnes ikke, og --ds-size-18 (72px)
      og --ds-size-22 (88px) ligger like langt fra 80px, så vi velger 18. */
@@ -138,18 +157,15 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: inherit;
   cursor: pointer;
   background-color: var(--ds-color-neutral-background-default);
-  border: var(--ds-border-width-default) solid var(--tiltak-kant-vask);
-  border-radius: var(--ds-border-radius-xl);
+  border: 2px solid var(--tiltak-kant-vask);
   transition:
     border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.2s ease;
 }
 
 .tiltak-kort:hover {
   border-color: var(--ds-color-accent-border-default);
-  transform: translateY(-2px);
-  box-shadow: var(--ds-shadow-md);
+  border-width: 2px;
 }
 
 .tiltak-kort-tittel {
@@ -250,7 +266,10 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 .tiltak-sokefelt input {
   border-radius: var(--ds-border-radius-full);
   --dsc-input-background: var(--ds-color-brand2-background-default);
-  --dsc-input-border-color: var(--ds-color-accent-border-default);
+  
+  &:focus {
+    border-color: var(--ds-color-accent-border-default);
+  }
 }
 
 /* Ligger rett etter filterknappen i .tiltak-filterrad. Tidligere ble den
@@ -542,14 +561,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   gap: var(--ds-size-5);
   margin-bottom: var(--ds-size-6);
   padding: var(--ds-size-6) var(--ds-size-7);
-  /* Prototypen måler en varm beige flate, color-mix av sidebakgrunnen og
-     #E2D3C0, altså rundt #F3EBE3. Nærmeste token i temaet er
-     --ds-color-brand2-surface-tinted (#ede7e4), som også er den semantisk
-     riktige: brand2 er den varme brune støttefargen. Tidligere var flaten
-     helhvit med en rosa kant. */
   background-color: var(--ds-color-brand2-surface-tinted);
-  border: var(--ds-border-width-default) solid var(--tiltak-kant-vask);
-  border-radius: var(--ds-border-radius-xl);
+  border: 2px solid var(--tiltak-kant-vask);
 }
 
 /* Uten min-width sprenger lang tekst grid-kolonnen i stedet for å brytes */

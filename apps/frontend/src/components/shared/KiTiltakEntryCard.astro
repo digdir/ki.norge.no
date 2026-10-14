@@ -49,6 +49,16 @@ const randId = `tiltak-entry-${Math.random().toString(36).substr(2, 9)}`;
     &:hover .tiltak-entry-tittel {
       text-decoration: underline;
     }
+
+    &:focus-within {
+      box-shadow: var(--dsc-focus-boxShadow);
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+
+      & .tiltak-entry-tittel {
+        text-decoration: underline;
+      }
+    }
   }
 
   .tiltak-entry-tittel {
@@ -59,6 +69,9 @@ const randId = `tiltak-entry-${Math.random().toString(36).substr(2, 9)}`;
     & a {
       text-decoration: none;
       color: inherit;
+      &:focus {
+        outline: none;
+      }
     }
   }
 
