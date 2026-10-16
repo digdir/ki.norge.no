@@ -23,10 +23,12 @@ export function websiteSchema(description: string) {
   };
 }
 
+// Artikler, enkle veiledninger og stegartikler bruker samme schema, men bor på
+// ulike stier. Siden sender derfor sin egen sti, den samme som canonical-lenken.
 export function articleSchema(opts: {
   headline: string;
   description: string;
-  slug: string;
+  path: string;
   datePublished: string;
   dateModified?: string;
 }) {
@@ -37,7 +39,7 @@ export function articleSchema(opts: {
     description: opts.description,
     datePublished: opts.datePublished,
     dateModified: opts.dateModified || opts.datePublished,
-    url: `${SITE_URL}/artikler/${opts.slug}`,
+    url: `${SITE_URL}${opts.path}`,
     publisher,
   };
 }
@@ -58,13 +60,13 @@ export function faqPageSchema(items: { question: string; answer: string }[]) {
 }
 
 /**
- * For Eksempel (case study) detail pages — emits /eksempler/ URLs. Schema.org
- * doesn't have a "CaseStudy" type but Article + about works well.
+ * For Eksempel (case study) detail pages. Schema.org doesn't have a "CaseStudy"
+ * type but Article + about works well.
  */
 export function eksempelSchema(opts: {
   headline: string;
   description: string;
-  slug: string;
+  path: string;
   datePublished: string;
   dateModified?: string;
   organization?: string;
@@ -76,7 +78,7 @@ export function eksempelSchema(opts: {
     description: opts.description,
     datePublished: opts.datePublished,
     dateModified: opts.dateModified || opts.datePublished,
-    url: `${SITE_URL}/eksempler/${opts.slug}`,
+    url: `${SITE_URL}${opts.path}`,
     publisher,
   };
   if (opts.organization) {

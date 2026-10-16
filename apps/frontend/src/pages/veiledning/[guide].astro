@@ -45,7 +45,7 @@ if (enkel) {
     articleJsonLd: articleSchema({
       headline: seoTitle,
       description: seoDesc,
-      slug: slug!,
+      path: Astro.url.pathname,
       datePublished: enkel.publishedAt,
       dateModified: enkel.updatedAt || enkel.publishedAt,
     }),

@@ -9,7 +9,7 @@
  * configured it degrades gracefully to the existing Umbraco search so the search
  * UI never hard-fails.
  */
-import { searchContent } from './umbraco';
+import { resolveContentUrl, searchContent } from './umbraco';
 
 const ES_ENDPOINT = (process.env.ES_ENDPOINT || import.meta.env.ES_ENDPOINT || '').replace(/\/$/, '');
 const ES_API_KEY = process.env.ES_API_KEY || import.meta.env.ES_API_KEY || '';
@@ -62,17 +62,6 @@ function retrieverBody(query: string, size: number) {
     },
   };
 }
-
-// content-type → public route prefix, used ONLY by the Umbraco fallback
-// (ES hits already carry an absolute ki.norge.no URL).
-const TYPE_ROUTES: Record<string, string> = {
-  artikkel: '/artikler/',
-  eksempel: '/eksempler/',
-  veiledning: '/veiledning/',
-  veiledningGuide: '/veiledning/',
-  veiledningSteg: '/veiledning/',
-  side: '/',
-};
 
 // Relevans-gate: semantisk søk finner alltid de nærmeste dokumentene, så tull
 // ("middag") gir alltid treff. BM25 er en ren nøkkelord-match og er 0 når ingen
@@ -148,12 +137,16 @@ export async function hybridSearch(query: string, size = TOP_N): Promise<SearchH
 }
 
 // Graceful degradation when ES isn't configured: existing Umbraco search.
+// ES-treffene har ferdig URL fra CMS-et. Her slås stien opp i
+// shared/content-routes.json, med guiden for et steg. Treff uten egen side,
+// som faq, tas ut i stedet for å lenke til en side som ikke finnes.
 async function fallbackSearch(query: string): Promise<SearchHit[]> {
   const r = await searchContent(query);
-  return r.data.map((d) => ({
-    title: d.tittel,
-    url: `${TYPE_ROUTES[d.contentType] ?? '/'}${d.slug}`,
-    type: d.contentType,
-    excerpt: d.excerpt,
-  }));
+  const hits = await Promise.all(
+    r.data.map(async (d): Promise<SearchHit | null> => {
+      const url = await resolveContentUrl({ contentType: d.contentType, id: d.id, properties: { slug: d.slug } });
+      return url ? { title: d.tittel, url, type: d.contentType, excerpt: d.excerpt } : null;
+    }),
+  );
+  return hits.filter((h): h is SearchHit => h !== null);
 }
