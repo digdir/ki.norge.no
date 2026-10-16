@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Extensions.Options;
 
 namespace KiNorge.Cms.CustomAuthentication;
@@ -39,6 +40,13 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         options.ResponseType = "code";
 
+        // Returen fra Entra må være en vanlig top-level GET. Standarden form_post
+        // sender brukeren tilbake med en kryss-side POST, og da er correlation- og
+        // nonce-kapslene nødt til å stå på SameSite=None. Brave og andre
+        // personvernorienterte nettlesere blokkerer slike kapsler, og innloggingen
+        // feiler stille tilbake til login-skjermen. Se issue #715.
+        options.ResponseMode = OpenIdConnectResponseMode.Query;
+
         options.Scope.Clear();
         options.Scope.Add("openid");
         options.Scope.Add("profile");
@@ -53,7 +61,10 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         options.SaveTokens = false;
 
+        // Lax holder for en top-level GET, og da er ingen av kapslene kryss-side.
+        options.NonceCookie.SameSite = SameSiteMode.Lax;
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
         // Traefik skriver om host internt, saa bygg redirect-URI fra den
