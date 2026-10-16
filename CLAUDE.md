@@ -41,7 +41,7 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 **Stack:** Astro (server mode) + React (islands) + @digdir/designsystemet-react + @digdir/designsystemet-css
 
 **Sider** (`apps/frontend/src/pages/`)
-- Forsiden, artikler, eksempler, kalender, veiledning (guide + steg), ki-tiltak, sandkasse, om-oss, status (admin-only)
+- Forsiden, artikler, eksempler, kalender, veiledning (guide + steg), ki-tiltak, sandkasse, om-oss
 - Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `kalender/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`, `veiledning/[guide]/[step]/[stegartikkel]`, og toppnivå `[slug]` (CMS `side`-noder)
 - Søk er en modal (`SearchDialog`, kaller `/api/search`), ikke en egen side. Det finnes IKKE en `/kontakt`-, `/faq`-, `/sok`- eller `/ki-ordbok`-side i koden. Footer har en "Kontakt oss"-seksjon, men ingen kontaktside.
 
@@ -49,7 +49,7 @@ Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL
 - `src/lib/umbraco.ts` — all datahenting fra CMS. Interfaces, fetch-funksjoner, mapItem() som mapper content types til TypeScript-typer
 - `src/lib/aksel-icons.ts` — statisk SVG-map for Aksel-ikoner (React-only pakke, kan ikke brukes direkte i Astro)
 - `src/lib/seo.ts` — JSON-LD structured data
-- `src/middleware.ts` — caching, admin-tilgang (ki_admin cookie), kommer-snart-modus, security headers (HSTS osv.)
+- `src/middleware.ts` — caching, forhåndsvisning, markdown-varianter, security headers (HSTS osv.)
 - `src/lib/csp.ts` — CSP-en. Astro setter den på sidene via `astro.config.mjs`, middleware på svar som mangler den
 - `src/components/shared/ArticleBlocksRenderer.astro` — **eneste** sted artikkelmoduler rendres. Brukt av artikler, eksempler, kalender, veiledning, sandkasse, om-oss og toppnivå `[slug]`. CSS i `src/styles/article-blocks.css`. Endre denne én filen → alle sidene oppdateres.
 - `src/components/shared/AkselIcon.astro` — rendrer Aksel-ikon etter navn
@@ -124,8 +124,7 @@ Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 - Ingen dark mode (bevisst valg)
 - Ingen Tailwind
 - pere/nb-nn-translation krever `use_fast=True` for tokenizer (tokenizer.json, ikke spiece.model)
-- Admin-tilgang via skjemaet på `/admin-tilgang` (eller `?key=<ADMIN_SECRET>`) setter ki_admin cookie, som utløper på serveren etter 30 dager
-- Kommer-snart-modus gjelder `GATED_HOSTS` med mindre `LAUNCH_MODE=live` (per miljø i `wrangler.jsonc`)
+- Ingen admin-innlogging og ingen kommer-snart-vegg i frontenden. Helsa sjekkes på den offentlige `/health`
 
 ## Stilpreferanser (kommentarer, issues, commit-meldinger)
 
@@ -151,7 +150,7 @@ Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 - Frontend (prod): https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev (Cloudflare Workers)
 - CMS (prod): https://kinorgeportal.prod.dis-core.altinn.cloud/umbraco (Altinn dis-core)
 - CMS (tt02): https://kinorgeportal.tt02.dis-core.altinn.cloud/umbraco
-- Status: /status (krever ki_admin cookie)
+- Helse: /health (offentlig, samme format som info.altinn.no/health)
 - Domene: ki.norge.no (Cloudflare Partial-zone på norge.no, DNS satt opp)
 
 ## Teamet

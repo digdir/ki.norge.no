@@ -96,10 +96,10 @@ describe('generateLlmsTxt', () => {
   test('umappet type og ekskludert sti utelates', async () => {
     const { text } = await llmsFor([
       { id: '1', contentType: 'globaleInnstillinger', properties: {} },
-      { id: '2', contentType: 'side', properties: { slug: 'status', tittel: 'Status' } },
+      { id: '2', contentType: 'side', properties: { slug: '404', tittel: 'Ikke funnet' } },
       { id: '3', contentType: 'artikkel', properties: { slug: 'ok', tittel: 'OK' } },
     ]);
-    expect(text).not.toContain('[Status]');
+    expect(text).not.toContain('[Ikke funnet]');
     expect(text).not.toContain('globaleInnstillinger');
     expect(text).toContain('[OK]');
   });

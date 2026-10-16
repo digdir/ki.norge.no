@@ -91,13 +91,9 @@ Kode: `apps/cms-kinorgeportal`. Workere: `cms-kinorgeportal-prod` og `cms-kinorg
 
 `workers_dev` **må** stå `true` for denne workeren. Workers.dev-hostnavnene bærer prod-media, og da de ble slått av falt bildene ut i ti minutter.
 
-### Lansering og skjerming
-
-`LAUNCH_MODE` styrer om et miljø er åpent. Den står `live` i begge nå. Skjermingen er fail-safe: et hostnavn i `GATED_HOSTS` (ki.norge.no og ki.test.norge.no) er skjermet med mindre `LAUNCH_MODE` eksplisitt er `live`. Workers.dev-adressene og localhost skjermes aldri.
+### Crawling
 
 `robots.txt` gir `Disallow: /` på alt som ikke er i `PROD_HOSTS`.
-
-Admin-tilgang til skjermede miljøer og `/status` skjer via skjemaet på `/admin-tilgang`, eller med `?key=<ADMIN_SECRET>`. Det setter en `ki_admin`-cookie som serveren godtar i 30 dager. Forsøkene er begrenset per IP-adresse.
 
 ## Altinn dis-core
 
@@ -181,16 +177,17 @@ wrangler secret put ES_API_KEY --env prod
 | `status` | HTTP | Betyr |
 | --- | --- | --- |
 | `Healthy` | 200 | Alt oppe |
-| `Degraded` | 200 | Søket eller CMS-proxyen er nede, sidene rendres fortsatt |
+| `Degraded` | 200 | Søket, CMS-proxyen eller backofficet er nede, sidene rendres fortsatt |
 | `Unhealthy` | 503 | CMS-et svarer ikke, eller svarer uten innhold |
 
-Tre sjekker ligger bak:
+Fire sjekker ligger bak, de samme i prod og tt02, så én regel i vakta dekker begge miljøene:
 
-- **`umbraco`** kaller Delivery API slik sidene gjør. Den regnes som nede også når API-et svarer 200 med tom liste, for slik ser det ut når en oppgradering hopper over migreringene.
-- **`cms-proxy`** kaller Delivery API gjennom den offentlige CMS-adressen nettleseren henter bilder fra, i prod en proxy-worker. Den fanger at proxyen er nede, som i #600, der nettstedet var uten bilder mens alt annet svarte. Den henter ingen bildefil, så en feil i selve bildelagringen ser den ikke. Den finnes bare der den offentlige og den interne adressen er ulike, altså ikke på tt02.
-- **`elasticsearch`** gjør et tomt søk med samme nøkkel som søket bruker.
+- **`umbraco`** kaller Delivery API slik sidene gjør. Den regnes som nede også når API-et svarer 200 med tom liste, for slik ser det ut når en oppgradering hopper over migreringene. Den er den eneste som gir `Unhealthy`.
+- **`cms-proxy`** kaller Delivery API gjennom den offentlige CMS-adressen nettleseren henter bilder fra, i prod en proxy-worker. Den fanger at proxyen er nede, som i #600, der nettstedet var uten bilder mens alt annet svarte. Den henter ingen bildefil, så en feil i selve bildelagringen ser den ikke. På tt02 er den offentlige adressen lik den interne, og sjekken går da samme vei som nettleseren der.
+- **`backoffice`** kaller `/umbraco/management/api/v1/server/status`, som er åpen uten innlogging. Den er grønn bare når Umbraco svarer `Run`, altså ikke venter på installasjon eller oppgradering. Nettstedet virker uten backoffice, så feil her gir `Degraded`.
+- **`elasticsearch`** gjør et tomt søk med samme nøkkel som søket bruker. Mangler nøkkelen, gir den `Degraded` uten å kalle noe, for da faller søket tilbake på Umbracos enkle søk.
 
-Svaret viser bare status og tid, aldri adresser eller feilmeldinger. Detaljene står på `/status`, som krever admin-cookie.
+Svaret viser bare status og tid, aldri adresser eller feilmeldinger.
 
 Resultatet gjenbrukes i 15 sekunder. Når det går ut, oppdaterer én forespørsel mens de andre får forrige resultat, så det blir én runde kall mot CMS og søk per 15 sekunder per isolat, uansett hvor mange som spør. Unntaket er et nytt isolat som ennå ikke har noe resultat å vise.
 

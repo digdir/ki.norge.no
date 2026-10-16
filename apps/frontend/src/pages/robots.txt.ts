@@ -15,7 +15,7 @@ function group(userAgents: readonly string[]): string {
     'Allow: /*.webp$',
     'Allow: /*.svg$',
     '',
-    '# Mediebibliotek, admin og interne ruter',
+    '# Mediebibliotek og interne ruter',
     ...DISALLOWED_PATHS.map((path) => `Disallow: ${path}`),
   ].join('\n');
 }
