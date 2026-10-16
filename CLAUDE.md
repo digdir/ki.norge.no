@@ -2,6 +2,8 @@
 
 Portal for kunstig intelligens i norsk offentlig sektor. Drives av Digitaliseringsdirektoratet.
 
+All dokumentasjon ligger i `docs/`. `docs/llms.txt` indekserer alt, og `docs/utvikling.md` har kodekartet, nøkkelfilene og lenkene. Denne fila har reglene.
+
 ## Kjøre lokalt
 
 ```bash
@@ -34,42 +36,15 @@ apps/cache-kinorgeportal/  Cache-worker foran ki.norge.no
 apps/cms-kinorgeportal/    Proxy-worker foran cms.ki.norge.no
 ```
 
-Frontend henter innhold via Umbraco Delivery API v2. Prod-databasen er Azure SQL (dis-core); lokalt brukes SQLite.
+Frontend henter innhold via Umbraco Delivery API v2. Miljøer, workere og drift står i `docs/systemdokumentasjon.md`.
 
 ## Frontend
 
-**Stack:** Astro (server mode) + React (islands) + @digdir/designsystemet-react + @digdir/designsystemet-css
-
-**Sider** (`apps/frontend/src/pages/`)
-- Forsiden, artikler, eksempler, kalender, veiledning (guide + steg), ki-tiltak, sandkasse, om-oss, status (admin-only)
-- Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `kalender/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`, `veiledning/[guide]/[step]/[stegartikkel]`, og toppnivå `[slug]` (CMS `side`-noder)
 - Søk er en modal (`SearchDialog`, kaller `/api/search`), ikke en egen side. Det finnes IKKE en `/kontakt`-, `/faq`-, `/sok`- eller `/ki-ordbok`-side i koden. Footer har en "Kontakt oss"-seksjon, men ingen kontaktside.
-
-**Nøkkelfiler**
-- `src/lib/umbraco.ts` — all datahenting fra CMS. Interfaces, fetch-funksjoner, mapItem() som mapper content types til TypeScript-typer
-- `src/lib/aksel-icons.ts` — statisk SVG-map for Aksel-ikoner (React-only pakke, kan ikke brukes direkte i Astro)
-- `src/lib/seo.ts` — JSON-LD structured data
-- `src/middleware.ts` — caching, admin-tilgang (ki_admin cookie), kommer-snart-modus, security headers (HSTS osv.)
-- `src/lib/csp.ts` — CSP-en. Astro setter den på sidene via `astro.config.mjs`, middleware på svar som mangler den
-- `src/components/shared/ArticleBlocksRenderer.astro` — **eneste** sted artikkelmoduler rendres. Brukt av artikler, eksempler, kalender, veiledning, sandkasse, om-oss og toppnivå `[slug]`. CSS i `src/styles/article-blocks.css`. Endre denne én filen → alle sidene oppdateres.
-- `src/components/shared/AkselIcon.astro` — rendrer Aksel-ikon etter navn
-- `src/components/shared/SearchDialog.tsx` — KI-søk dialog (React, client:load)
-- `src/components/shared/CookieNotice.astro` — minimal cookie-notice (essential cookies only)
-- `src/styles/global.css`, `search-dialog.css`, `layout.css`, `article-blocks.css`
-
-**layout-system:** Se layout.css
-
-**Breakpoints:** 768px og 1024px (grid). Eldre kode bruker også 640px.
-
-**Designsystem:** Bruk designsystemet-tokens (--ds-size-4, --ds-color-text-default osv.) der de finnes. Ingen Tailwind.
+- `src/components/shared/ArticleBlocksRenderer.astro` er **eneste** sted artikkelmoduler rendres. Endre denne én filen → alle sidene oppdateres.
+- **Designsystem:** Bruk designsystemet-tokens (--ds-size-4, --ds-color-text-default osv.) der de finnes. Ingen Tailwind.
 
 ## CMS (Umbraco)
-
-**Nøkkelfiler**
-- `Composers/ContentTypeComposer.cs` — oppretter alle document types og element types ved oppstart. Registrerer Block List data types. **Kjører ikke i prod eller tt02**, se advarselen under.
-- `Program.cs` — startup med instance guard (forhindrer dobbel-start som ødelegger SQLite)
-- `appsettings.Development.json` — lokal config med connection string, Delivery API key, preview secret
-- `appsettings.json` — prod config, tom connection string (overrides fra env vars i Azure)
 
 **Skjemaendringer nås IKKE lenger via composeren i drift.** Både `syncroot/prod/` og
 `syncroot/tt02/` setter `USYNC_OWNS_SCHEMA=true`, og `ContentTypeComposer` hopper da over
@@ -77,26 +52,11 @@ hele skjema-assertingen (`ContentTypeComposer.cs:116`). Den kjører fortsatt lok
 env-varen mangler. Et nytt felt lagt til i composeren blir altså grønt lokalt og i CI, og
 dukker aldri opp i prod. Skjemaet i drift kommer fra `.config`-filene under
 `apps/cms-umbraco/uSync/`, som skal eksporteres fra prod. **Spør Lars før du planlegger en
-skjemaendring** — flyten er under omlegging (stage 2 fjerner composeren).
-
-**Legge til en ny Block List-modul (element type)** — trinn 1-2 gjelder bare lokal dev
-inntil skjemaflyten er avklart, se advarselen over.
-1. I `ContentTypeComposer.cs`: lag en ny metode som oppretter element type med felter
-2. Registrer den i `InitializeAsync` og legg den til i riktig Block List data type
-3. I `umbraco.ts`: legg til interface, mapping i mapItem() eller mapArtikkelBlocks()
-4. I `ArticleBlocksRenderer.astro`: legg til rendering for den nye contentType-verdien
-
-**Eksisterende element types for artikler** (tillatt i `BlockListArtikkelInnhold` i uSync)
-- artikkelTekst, artikkelBildeSeksjon, artikkelTrekkspill, artikkelFremheving
-- artikkelProsessteg, artikkelByline, artikkelInnholdFra, artikkelKontaktkort
+skjemaendring** — flyten er under omlegging (stage 2 fjerner composeren). Ny Block List-modul: se `docs/utvikling.md`.
 
 **Connection string (lokal SQLite):** Må bruke `|DataDirectory|` i path, ikke relativ sti. Ellers finner ikke Umbraco databasen. Prod kjører Azure SQL via dis-core (connection string injiseres fra Key Vault, ikke SQLite).
 
-**RichText toolbar:** Konfigureres programmatisk i ContentTypeComposer (EnsureRichTextDataTypes), i drift i `uSync/v17/DataTypes/RichtextEditor.config`. Har H2, H3, H4.
-
-**Database:** Prod kjører Azure SQL via dis-core, som erstattet SQLite + Litestream (de ga lock-contention på multi-editor-bruk). Lokal dev bruker fortsatt SQLite. Historisk migrasjonsplan: `docs/sql-server-migration-plan.md`.
-
-**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) ble satt i kode via `ContentTypeComposer` (nå avslått i drift, se over), men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se `docs/seeder-content-write-audit.md`.
+**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) ble satt i kode via `ContentTypeComposer` (nå avslått i drift, se over), men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se beslutningsloggen, `docs/rapporter/beslutningslogg.md`.
 
 **uSync eier skjemaet i prod. IKKE regenerer `apps/cms-umbraco/uSync/`**: filene der er prod sitt skjema og importeres ved hver oppstart. uSync re-nøkler ved import, og content-typene har tilfeldige GUID-er per database. En eksport tatt fra lokal maskin eller tt02, committet inn, gir prod-typene nye nøkler og gjør ALT blokkinnhold «Unsupported». Skal du eksportere eller committe noe der: **stopp og spør Lars først**, og si fra om konsekvensen. Eksporten skal alltid tas fra prod. `SchemaRekeyGuard` avbryter en import som ville re-nøklet, men den er en sikring, ikke en tillatelse. Se `apps/cms-umbraco/uSync/README.md`.
 
@@ -105,27 +65,40 @@ inntil skjemaflyten er avklart, se advarselen over.
 - **CMS:** dis-core via GitHub Actions («Docker build and publish» + «Publish Syncroot artifacts», miljø tt02/prod).
 - **Frontend:** Cloudflare Workers via `pnpm run frontend:deploy:prod` (og `:tt02`).
 
-Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
-
-**Infrastruktur (gjeldende)**
-- Frontend: Cloudflare Workers (`ki-norge-frontend-prod` / `-tt02`)
-- CMS: Altinn dis-core (Kubernetes), database Azure SQL
-- CMS-prod nås på `kinorgeportal.prod.dis-core.altinn.cloud` (+ offentlig proxy-worker `cms-kinorgeportal-prod...workers.dev`)
-
-**Legacy Azure Container Apps (utgått, beholdt for referanse)**
-- Resource group ki-norge, env ki-norge-no-env, apps ki-norge-frontend / ki-norge-cms
-- Registry kinorgeacr.azurecr.io, storage kinorgestorage (Litestream-blob + media-share)
-- Subscription Altinn-Portaler-Test (fdc58270...), tenant Digitaliseringsdirektoratet ai-dev (cd0026d8...)
-- SQLite-persistens via Litestream (v0.3.14) til Azure Blob — erstattet av Azure SQL i dis-core
+Alt deployes fra `main`. Frontend-skriptene stopper når arbeidstreet ikke er rent, bytter ellers til `main`, og stopper hvis `main` ikke er i takt med origin. Oppskriften står i `docs/deploy.md`.
 
 ## Viktige beslutninger
 
 - Media ligger i Azure Blob (`AzureBlobMediaComposer.cs`). `umbraco-media` er bevisst ikke montert på `/app/wwwroot/media`, se `syncroot/base/umbraco/deployment.yaml`
 - Ingen dark mode (bevisst valg)
 - Ingen Tailwind
-- pere/nb-nn-translation krever `use_fast=True` for tokenizer (tokenizer.json, ikke spiece.model)
 - Admin-tilgang via skjemaet på `/admin-tilgang` (eller `?key=<ADMIN_SECRET>`) setter ki_admin cookie, som utløper på serveren etter 30 dager
 - Kommer-snart-modus gjelder `GATED_HOSTS` med mindre `LAUNCH_MODE=live` (per miljø i `wrangler.jsonc`)
+
+## Dokumentasjon
+
+**Hvor.** All dokumentasjon ligger i `docs/`. Inngangen for mennesker er `docs/README.md`, og indeksen for agenter er `docs/llms.txt`. Beslutningsloggen og rapportene ligger i `docs/rapporter/`.
+
+**Hva som skal i docs.** Det som ikke går fram av koden:
+
+- hvordan ting henger sammen i drift
+- miljøer, deploy og rutiner
+- hvilke tilganger som trengs, med navn og aldri verdier
+- konfig som slår ting av og på
+- feller som har kostet tid
+
+Beslutninger føres kort i `docs/rapporter/beslutningslogg.md`. Større valg får et eget dokument.
+
+**Hva som ikke skal i docs.** Det koden selv sier tydelig. Planer for framtiden, som hører hjemme i issues. Personnavn utenom roller. Hemmelige verdier, og ID-er som ingen trenger.
+
+**Når det oppdateres.**
+
+- I samme PR som endringen dokumentet beskriver.
+- En PR som endrer drift, deploy, konfig, skjemaflyt eller tilganger, oppdaterer docs i samme PR.
+- `docs/llms.txt` og `docs/README.md` oppdateres når et dokument legges til, flyttes eller slettes.
+- Hver tredje måned, og ved hver overlevering, går noen gjennom docs og retter eller sletter det som er utdatert. Historikken ligger i git.
+
+**Dokumentasjon i ettertid.** En agent kan dokumentere et valg som allerede er gjort, når det mangler dokumentasjon av noe som vanligvis burde vært dokumentert. Da skal det stå at teksten er skrevet i ettertid, med dato og kilde (PR, commit eller issue). Er kilden uklar, står det at det er en tolkning.
 
 ## Stilpreferanser (kommentarer, issues, commit-meldinger)
 
@@ -134,25 +107,6 @@ Den gamle Container Apps-deployen (`deploy-azure.sh`) er fjernet.
 - Ikke bruk em dash
 - Minimalt med kolon
 - Konsist, sjekkliste-format
-- Se `~/.claude/skills/STYLE.md` for fullstendig stilguide, og gh-project skill for issue-eksempler
-
-## Lenker
-
-- Figma (hovedfil): https://www.figma.com/design/XExt0cORNSEpZFI4rQY8AN/KI-Norge-portal-skisse
-- Figma (handlingsmoduler): https://www.figma.com/design/yOf46bRFjXayIgpQLKJi5h/Handlingsmoduler
-- Confluence (tekniske oppgaver): https://digdir.atlassian.net/wiki/spaces/BTP/pages/edit-v2/4195352733
-- GitHub project (kanban): https://github.com/orgs/digdir/projects/58
-- nb-nn-eval (oversettelsesverktøy): https://github.com/larsekhansen/nb-nn-eval
-- Designsystemet: https://www.designsystemet.no/komponenter
-- Aksel-ikoner: https://aksel.nav.no/ikoner
-
-## Produksjon
-
-- Frontend (prod): https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev (Cloudflare Workers)
-- CMS (prod): https://kinorgeportal.prod.dis-core.altinn.cloud/umbraco (Altinn dis-core)
-- CMS (tt02): https://kinorgeportal.tt02.dis-core.altinn.cloud/umbraco
-- Status: /status (krever ki_admin cookie)
-- Domene: ki.norge.no (Cloudflare Partial-zone på norge.no, DNS satt opp)
 
 ## Teamet
 

@@ -10,9 +10,12 @@
 #
 # Krever: kubectl med Altinn-VPN (exit-node ts-exit-prod), rettigheter til podden.
 #
-# VIKTIG: uSync-eksporten må være kjørt i backoffice FØR scriptet kjøres. Podden har
-# bare filer hvis noen har trykket Export (Settings -> uSync -> Export, både Content
-# og Settings). Scriptet sjekker dette og stopper hvis mappa mangler.
+# VIKTIG: kjør uSync-eksporten i backoffice FØR scriptet (Settings -> uSync -> Export,
+# både Content og Settings). Innholdsmappa er varig siden #674, og skjemaet ligger i
+# imaget, så mappene finnes også uten en ny eksport. Scriptet viser tidspunktet for
+# nyeste innholdsfil, så du ser om eksporten er fersk.
+#
+# Bildefilene er ikke med. De ligger i Azure Blob, ikke i podden.
 
 set -uo pipefail
 
@@ -46,30 +49,26 @@ k get pods --request-timeout=25s >/dev/null 2>&1 \
 IMAGE=$(k get pods -o jsonpath='{.items[0].spec.containers[?(@.name=="umbraco")].image}' --request-timeout=25s 2>/dev/null | sed 's|.*/||')
 note "Podden kjører image $IMAGE"
 
-k exec "$POD" -c "$CONTAINER" --request-timeout=30s -- sh -c 'test -d /app/uSync/v17' 2>/dev/null \
-  || fail "Fant ingen /app/uSync i podden. Kjør Export i backoffice først (Settings -> uSync -> Export, både Content og Settings), deretter dette scriptet."
+k exec "$POD" -c "$CONTAINER" --request-timeout=30s -- sh -c 'test -d /app/uSync/v17/Content' 2>/dev/null \
+  || fail "Fant ingen innholdseksport i podden. Kjør Export i backoffice først (Settings -> uSync -> Export, både Content og Settings), deretter dette scriptet."
+NYESTE=$(k exec "$POD" -c "$CONTAINER" --request-timeout=30s -- sh -c "find /app/uSync/v17/Content -type f -printf '%TY-%Tm-%Td %TH:%TM\n' | sort | tail -1" 2>/dev/null)
+note "Nyeste fil i innholdseksporten: ${NYESTE:-ingen}"
 
 mkdir -p "$DEST" || fail "Fikk ikke opprettet $DEST"
 
-note "1/4 uSync-eksport (innhold, media-metadata, skjema)…"
+note "1/3 uSync-eksport (innhold, media-metadata, skjema)…"
 k exec "$POD" -c "$CONTAINER" --request-timeout=180s -- tar czf - -C /app uSync > "$DEST/usync-export.tar.gz" 2>/dev/null
 USYNC_N=$(tar tzf "$DEST/usync-export.tar.gz" 2>/dev/null | wc -l | tr -d ' ')
 [ "${USYNC_N:-0}" -gt 1 ] || fail "uSync-arkivet ble tomt. Avbryter."
 echo "   $(wc -c < "$DEST/usync-export.tar.gz") bytes, $USYNC_N oppføringer"
 
-note "2/4 mediefiler…"
-k exec "$POD" -c "$CONTAINER" --request-timeout=300s -- tar czf - -C /app/wwwroot media > "$DEST/media.tar.gz" 2>/dev/null
-MEDIA_N=$(tar tzf "$DEST/media.tar.gz" 2>/dev/null | wc -l | tr -d ' ')
-[ "${MEDIA_N:-0}" -gt 0 ] || echo "   ADVARSEL: media-arkivet er tomt"
-echo "   $(wc -c < "$DEST/media.tar.gz") bytes, $MEDIA_N oppføringer"
-
-note "3/4 Delivery API-dump (til verifisering)…"
+note "2/3 Delivery API-dump (til verifisering)…"
 curl -s -H "User-Agent: Mozilla/5.0" "$API/umbraco/delivery/api/v2/content?take=500" -o "$DEST/delivery-api-dump.json"
 TOTAL=$(python3 -c "import json,sys; print(json.load(open('$DEST/delivery-api-dump.json')).get('total','?'))" 2>/dev/null || echo "?")
 [ "$TOTAL" != "?" ] || fail "Fikk ikke gyldig JSON fra Delivery API."
 echo "   $TOTAL noder"
 
-note "4/4 fingerprint…"
+note "3/3 fingerprint…"
 cat > "$DEST/fingerprint.py" <<'PY'
 # Fingerprint av et Delivery API-dump: per side en stabil hash av alt innhold,
 # pluss alle lenke-attributter. Kjør på dump før og etter endringen og diff.
@@ -107,9 +106,10 @@ Tatt $DATE fra image $IMAGE. Alt hentet read-only med \`kubectl exec\`, ingen sk
 | Fil | Hva | Kan gjenopprette? |
 |---|---|---|
 | \`usync-export.tar.gz\` | uSync-eksport: Content, Media-metadata, ContentTypes, DataTypes ($USYNC_N oppføringer) | JA, reinjiseringsfilene |
-| \`media.tar.gz\` | Mediefiler fra \`/app/wwwroot/media\` ($MEDIA_N oppføringer) | JA, ren filkopi tilbake |
 | \`delivery-api-dump.json\` | Publisert innhold slik API-et serverte det ($TOTAL noder) | NEI, kun verifisering |
 | \`fingerprint.txt\` | Hash per side + lenke-attributter | NEI, kun verifisering |
+
+Bildefilene er ikke med. De ligger i Azure Blob, ikke i podden.
 
 ## Dette er IKKE en databasegjenoppretting
 
@@ -123,7 +123,6 @@ restore. Databasen eies av Altinn (dis-core), restore bestilles via Team Plattfo
 2. Prod sitt uSync-sett \`Default\` tillater kun Export. Import krever midlertidig
    \`uSync__Settings__DefaultSet=Speiling\` som env-var.
 3. Import i backoffice (Settings -> uSync -> Import, ALDRI «clean»). Import er upsert.
-4. Media ved behov: \`cat media.tar.gz | kubectl ... exec -i $POD -c $CONTAINER -- tar xzf - -C /app/wwwroot\`
 
 ## Verifisering etterpå
 
@@ -140,6 +139,5 @@ echo ""
 echo "================================================"
 echo "Backup ferdig: $DEST"
 echo "  uSync    $USYNC_N oppføringer"
-echo "  media    $MEDIA_N oppføringer"
 echo "  API      $TOTAL noder"
 echo "  Husk: dette er ikke en databasegjenoppretting. Se README.md."

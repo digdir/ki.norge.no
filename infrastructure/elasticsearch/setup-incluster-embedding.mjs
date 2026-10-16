@@ -3,12 +3,12 @@
 // Elastic Inference Service / third-party round-trip.
 //
 // PREREQUISITE: the `multilingual-e5-large` trained model must already be imported
-// via Eland (int8, ~1.33 GB) — see README "In-cluster embedding setup".
+// via Eland (int8, ~1.33 GB) — see docs/elasticsearch-indeks.md, "In-cluster embedding setup".
 //
 // This script is idempotent:
 //   1. starts the trained-model deployment with adaptive allocations, min 1.
 //      On Elastic Serverless this does not give min 1: the endpoint stays at
-//      min 0 and scales to zero when idle (measured 2026-10-05, see README),
+//      min 0 and scales to zero when idle (measured 2026-10-05, see docs/elasticsearch-indeks.md),
 //   2. creates the `e5-large-incluster` inference endpoint referencing it,
 //   3. probes it.
 //

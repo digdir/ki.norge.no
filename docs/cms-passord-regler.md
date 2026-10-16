@@ -1,6 +1,6 @@
-# Passord-regler for CMS-brukere
+# Passordregler for CMS-brukere
 
-For Sara, Eira og andre redaktører som lager nye brukere i Umbraco eller endrer passord.
+Vanlig pålogging til backofficet går via Entra ID, med «Microsoft»-knappen. Da har brukeren ikke noe passord i Umbraco. Reglene under gjelder bare lokale kontoer med passord, og lokal pålogging er fortsatt på ved siden av Entra ID.
 
 ## Hva passordet må inneholde
 
@@ -14,22 +14,21 @@ Tall er ikke påkrevd, men anbefalt.
 
 ## Eksempler
 
-| Passord            | Godkjent | Hvorfor                          |
-| ------------------ | -------- | -------------------------------- |
-| `kort1`            | Nei      | For kort                         |
-| `passord123`       | Nei      | Mangler stor bokstav, spesialtegn |
-| `Passord123`       | Nei      | Mangler spesialtegn              |
-| `Sterkt!Passord`   | Ja       | Oppfyller alle krav              |
-| `KiNorge2026!`     | Ja       | Oppfyller alle krav              |
+| Passordet har | Godkjent | Hvorfor |
+| --- | --- | --- |
+| 8 tegn | Nei | For kort |
+| 12 tegn, bare små bokstaver og tall | Nei | Mangler stor bokstav og spesialtegn |
+| 12 tegn med store og små bokstaver og tall | Nei | Mangler spesialtegn |
+| 14 tegn med store og små bokstaver og ett spesialtegn | Ja | Oppfyller alle krav |
 
 ## Hvorfor er dette nødvendig
 
-CMS-en gir admin-tilgang til alt innhold. Et svakt passord gjør det enkelt å gjette eller knekke, og kan brukes til å publisere falskt innhold eller sabotere siden.
+CMS-et gir tilgang til alt innhold. Et svakt passord er lett å gjette eller knekke, og kan brukes til å publisere falskt innhold eller sabotere nettstedet.
 
-## Hvis passord-endring feiler
+## Hvis endringen av passordet feiler
 
-Du skal nå få en konkret melding som forteller hvilken regel som mangler (f.eks. "Passordet må være minst 10 tegn"). Følg meldingen, prøv på nytt.
+Du skal få en melding som sier hvilken regel som mangler, for eksempel «Passordet må være minst 10 tegn». Følg meldingen, og prøv på nytt.
 
-Hvis du fortsatt bare får "Unknown failure" uten detaljer, varsle utvikler — da har noe brutt.
+Får du bare «Unknown failure» uten detaljer, si fra til en utvikler. Da har noe brutt.
 
-(Reglene er definert i `apps/cms-umbraco/appsettings.json` under `Umbraco.CMS.Security.UserPasswordConfiguration`. Norske feilmeldinger leveres av `NorwegianIdentityErrorDescriber.cs`.)
+Reglene er definert i `apps/cms-umbraco/appsettings.json` under `Umbraco.CMS.Security.UserPasswordConfiguration`. De norske feilmeldingene kommer fra `NorwegianIdentityErrorDescriber.cs`.
