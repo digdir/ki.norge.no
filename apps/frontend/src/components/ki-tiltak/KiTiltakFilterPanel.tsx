@@ -29,7 +29,10 @@ function optionLabel(name: string, count: number) {
   return (
     <span className="tiltak-filter-rad">
       <span>{name}</span>
-      <span className="tiltak-filter-antall">{count}</span>
+      <span className="tiltak-filter-antall">
+        <span className="ds-sr-only">, </span>
+        {count}
+      </span>
     </span>
   );
 }

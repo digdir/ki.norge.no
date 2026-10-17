@@ -28,11 +28,27 @@
 .tiltak-hero {
   background-color: var(--ds-color-brand1-text-default);
   color: var(--ds-color-brand1-background-default);
-  /* Kantblokker har 16px sidemargin (--layout-edge-margin i layout.css), og
-     den lot den kremhvite sidebakgrunnen stå som en stripe langs det mørke
-     båndet. Prototypens topband går helt ut til kanten. Under 1024px er
-     margin-en allerede 0, så dette gjelder i praksis desktop. */
-  margin-inline: 0;
+}
+
+body:has(.tiltak-hero) {
+  background-color: var(--ds-color-brand1-text-default);
+}
+
+body:has(.tiltak-hero) .footer {
+  color: var(--ds-color-brand1-background-default);
+}
+
+body:has(.tiltak-hero) .footer .footer-col .ds-link {
+  --dsc-link-color: var(--ds-color-brand1-background-default);
+  --dsc-link-color--hover: var(--ds-color-brand1-background-default);
+}
+
+body:has(.tiltak-hero) .footer .footer-logo path[fill] {
+  fill: var(--ds-color-brand1-background-default);
+}
+
+body:has(.tiltak-hero) .footer .footer-logo path[stroke] {
+  stroke: var(--ds-color-brand1-background-default);
 }
 
 /* Headeren over det mørke båndet.
@@ -77,6 +93,9 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 }
 
 .tiltak-innhold {
+  /* Samme flate som kantblokkene på forsiden, slik at sidebakgrunnen står
+     som en stripe langs begge sider ned hele siden. */
+  background-color: var(--ds-color-brand2-surface-default);
   /* Vertikal rytme mellom rosa bånd, kortgrid og resten av siden, hentet fra
      prototypen (56/22/80px). --ds-size-20 finnes ikke, og --ds-size-18 (72px)
      og --ds-size-22 (88px) ligger like langt fra 80px, så vi velger 18. */
@@ -104,15 +123,12 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 
 .tiltak-hero-ingress {
   margin: 0;
-  /* Prototypen låser ingressen til 640px inni et 1360px innhold (~47 %).
-     ch-basert bredde ga en helt annen andel enn prototypens leselinje, så vi
-     bruker samme andel av vårt innhold i stedet for et fast tegnmål.
-     Utvidet fra 47 % etter gjennomgang med redaksjonen: teksten brakk over
-     fire linjer, og målet er tre. */
-  max-width: 68%;
-  /* Samme krem som tittelen. Prototypen demper ikke ingressen på det mørke
-     båndet, den bruker full #F8F3EE på begge. */
+  max-width: 100%;
   color: var(--ds-color-brand1-background-default);
+
+  @media (min-width: 768px) {
+    max-width: 70%;
+  }
 }
 
 /* Kortgrid */
@@ -138,18 +154,15 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: inherit;
   cursor: pointer;
   background-color: var(--ds-color-neutral-background-default);
-  border: var(--ds-border-width-default) solid var(--tiltak-kant-vask);
-  border-radius: var(--ds-border-radius-xl);
+  border: 2px solid var(--tiltak-kant-vask);
   transition:
     border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.2s ease;
 }
 
 .tiltak-kort:hover {
   border-color: var(--ds-color-accent-border-default);
-  transform: translateY(-2px);
-  box-shadow: var(--ds-shadow-md);
+  border-width: 2px;
 }
 
 .tiltak-kort-tittel {
@@ -218,12 +231,24 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 /* Søkefeltet ligger nå på egen rad, med filterknapp, antall og aktive filtre
    på raden under. Prototypens søkefelt spenner to av tre kolonner i en
    3-kolonners listbar, altså 66 % av innholdsbredden (målt 584 av 884 px). */
+/* Søkefelt og filterknapp på samme rad. Knappen er bunnjustert mot feltet,
+   siden etiketten står over feltet, og brytes under når feltet ville blitt
+   smalere enn 20rem. */
+.tiltak-sokerad {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  max-width: 66%;
+  margin-bottom: var(--ds-size-4);
+}
+
 .tiltak-sokefelt {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
-  max-width: 66%;
-  margin-bottom: var(--ds-size-4);
+  flex: 1 1 20rem;
+  min-width: 0;
 }
 
 .tiltak-filterrad {
@@ -250,7 +275,10 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 .tiltak-sokefelt input {
   border-radius: var(--ds-border-radius-full);
   --dsc-input-background: var(--ds-color-brand2-background-default);
-  --dsc-input-border-color: var(--ds-color-accent-border-default);
+  
+  &:focus {
+    border-color: var(--ds-color-accent-border-default);
+  }
 }
 
 /* Ligger rett etter filterknappen i .tiltak-filterrad. Tidligere ble den
@@ -294,7 +322,6 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
    sekundærknappen, samme varme bakgrunn og vask som søkefeltet. */
 .ds-button.tiltak-filterknapp[data-variant="secondary"] {
   --dsc-button-background: var(--ds-color-brand2-background-default);
-  --dsc-button-border-color: var(--tiltak-kant-vask);
   --dsc-button-color: var(--tiltak-tekst-myk);
 }
 
@@ -502,6 +529,14 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   align-items: flex-start;
   gap: var(--ds-size-2);
   margin-top: var(--ds-size-3);
+
+  & ul {
+    list-style: none;
+    display: flex;
+    gap: var(--ds-size-2);
+    padding: 0;
+    margin: 0;
+  }
 }
 
 /* Tag er firkantet som forvalg (--ds-border-radius-sm, 2px). Prototypens
@@ -542,14 +577,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   gap: var(--ds-size-5);
   margin-bottom: var(--ds-size-6);
   padding: var(--ds-size-6) var(--ds-size-7);
-  /* Prototypen måler en varm beige flate, color-mix av sidebakgrunnen og
-     #E2D3C0, altså rundt #F3EBE3. Nærmeste token i temaet er
-     --ds-color-brand2-surface-tinted (#ede7e4), som også er den semantisk
-     riktige: brand2 er den varme brune støttefargen. Tidligere var flaten
-     helhvit med en rosa kant. */
   background-color: var(--ds-color-brand2-surface-tinted);
-  border: var(--ds-border-width-default) solid var(--tiltak-kant-vask);
-  border-radius: var(--ds-border-radius-xl);
+  border: 2px solid var(--tiltak-kant-vask);
 }
 
 /* Uten min-width sprenger lang tekst grid-kolonnen i stedet for å brytes */
@@ -584,7 +613,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   }
 
   /* 66 % blir for smalt når hele innholdet er smalt. */
-  .tiltak-sokefelt {
+  .tiltak-sokerad {
     max-width: none;
   }
 
@@ -600,15 +629,6 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
     width: 100%;
     justify-content: center;
   }
-}
-
-/* Registreringsdialog */
-/* Prototypen bruker ett og samme bakteppe bak alle tre dialogene: en lett
-   sløring i tillegg til en nesten fargeløs demping. Sløringen må stå på
-   ::backdrop. Settes den på dialogen selv, slører den innholdet i den. */
-.tiltak-registrer::backdrop,
-.tiltak-panel::backdrop {
-  backdrop-filter: blur(2px);
 }
 
 .tiltak-registrer {
@@ -780,9 +800,6 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   justify-content: flex-end;
 }
 
-/* Prototypen tegner «Legg til virksomhet» som en understreket tekstlenke, ikke
-   som en knapp med flate. Den er likevel en knapp, siden den legger til en rad
-   og ikke navigerer, så tertiary Button beholdes og kles som lenken. */
 .tiltak-legg-til {
   align-self: flex-start;
   --dsc-button-background: transparent;
@@ -791,10 +808,6 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   text-underline-offset: var(--ds-size-1);
 }
 
-/* Lukkeknappen rendres av Dialog selv som første barn (se dialog.js), med
-   samme varme nesten-hvite bakgrunn som søkefeltet og filterknappen bruker,
-   i stedet for en bar glyf. Formen kommer fra samme pillradius som resten av
-   siden. */
 .tiltak-registrer > button[command="close"] {
   --dsc-button-background: var(--ds-color-brand2-background-default);
   --dsc-button-border-radius: var(--ds-border-radius-full);
@@ -807,23 +820,14 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--ds-color-accent-text-default);
 }
 
-/* Paragraph har margin 0 fra designsystemet, så de to ingressavsnittene i
-   toppblokken ville rendret som én sammenhengende tekstblokk. Prototypen har
-   12px mellom dem (.modal-lede + .modal-lede), som er --ds-size-3 eksakt. */
 .tiltak-registrer .ds-paragraph + .ds-paragraph {
   margin-top: var(--ds-size-3);
 }
 
-/* designsystemet tegner en strek mellom to Dialog.Block via
-   .ds-dialog__block + .ds-dialog__block. Prototypen har ingen slik strek, og
-   innholdet skal henge sammen som ett skjema. */
 .tiltak-registrer .ds-dialog__block + .ds-dialog__block {
   --dsc-dialog-divider-border-width: 0;
 }
 
-/* Prototypen har 44px fra modalens topp til overskriften, vi hadde 41.
-   Lukkeknappen ligger i samme hjørne, så det lille tillegget gir tittelen
-   litt mer luft å puste i. */
 .tiltak-registrer > .ds-dialog__block:first-of-type {
   padding-top: calc(var(--dsc-dialog-spacing) + var(--ds-size-1));
 }
@@ -832,11 +836,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-8);
-  /* Prototypen har 38px fra ingressen til første etikett. Vår toppblokk har
-     allerede 40px bunnpolstring, så denne blokken skal ikke legge på mer.
-     Tidligere lå det ekstra toppolstring her, og med blokkstreken fjernet ble
-     avstanden 128px mot prototypens 38px. */
-  padding-top: 0;
+  padding-block: 0;
 }
 
 .tiltak-seksjon {
