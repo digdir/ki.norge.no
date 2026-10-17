@@ -56,9 +56,9 @@ Feiler jobben, les output før du gjør noe annet. Ikke alle feil er dine: cosig
 ### 2. Rull ut
 
 1. Kjør [Publish Syncroot artifacts](https://github.com/digdir/ki.norge.no/actions/workflows/publish-syncroot-main.yaml).
-2. Velg miljø, angi versjonsnummeret fra steg 1, og velg **AzureSQL** som database.
+2. Velg miljø og angi versjonsnummeret fra steg 1.
 
-Velger du Sqlite her, peker du et miljø med ekte data mot feil database.
+Workflowen peker alltid podden mot Azure SQL. Det finnes ikke noe databasevalg.
 
 Workflowen slår opp digesten taggen peker på, og låser podden til den. Finnes ikke taggen, stopper den. Tilbakerulling er det samme med forrige tag.
 
