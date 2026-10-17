@@ -11,8 +11,9 @@ using Umbraco.Cms.Web.Common.Authorization;
 namespace KiNorge.Cms.Search.Controllers;
 
 /// <summary>
-/// Backoffice admin endpoint to trigger a full reindex of the ki-content index —
-/// the initial backfill that replaces the retired crawler. POST to start, GET status.
+/// Backoffice admin endpoint to trigger a full reindex of the ki-content index from
+/// inside the CMS. infrastructure/elasticsearch/crawl-umbraco.mjs does the same from the
+/// Delivery API. POST to start, GET status.
 /// </summary>
 [ApiVersion("1.0")]
 [VersionedApiBackOfficeRoute("search/reindex")]

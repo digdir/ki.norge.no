@@ -68,6 +68,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
+    <!-- Web SDK tar med **/*.config. Testfixturene lastes inn i tt02 fra repoet
+         (scripts/last-testfixturer-tt02.sh) og skal ikke ligge i imaget. -->
+    <Content Remove="uSync-testinnhold/**" />
   </ItemGroup>
 
   <!--

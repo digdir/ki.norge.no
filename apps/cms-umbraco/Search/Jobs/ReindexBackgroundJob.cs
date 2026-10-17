@@ -9,8 +9,9 @@ namespace KiNorge.Cms.Search.Jobs;
 /// <summary>
 /// Full backfill of the ki-content index: walks every published node and upserts it
 /// (by content GUID). Does NOT drop or create the index — the mapping is owned by the
-/// index template in infrastructure/elasticsearch/. Replaces the retired Delivery-API
-/// crawler. Registered as a hosted service only so it can be a run-state singleton for
+/// index template in infrastructure/elasticsearch/. The CMS-side counterpart to
+/// infrastructure/elasticsearch/crawl-umbraco.mjs, which builds the same documents from
+/// the Delivery API. Registered as a hosted service only so it can be a run-state singleton for
 /// ReindexController; it does no work on startup. Triggered on demand.
 /// </summary>
 public class ReindexBackgroundJob : IHostedService

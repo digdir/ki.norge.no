@@ -58,8 +58,7 @@ function frontendUrl(it, byPath) {
 
 // Listing/taxonomy containers + site settings — no real searchable content of their own.
 const SKIP_TYPES = new Set([
-  'artikler', 'faqSamling', 'ordbokSamling', 'sider', 'caser',
-  'veiledninger', 'merkelapper', 'merkelapp', 'forside',
+  'artikler', 'sider', 'veiledninger', 'forside',
   'globaleInnstillinger', 'eksempler', 'kalender',
 ]);
 // Keys that never carry searchable prose (media, seo, slugs, ids, ordering).
@@ -130,7 +129,7 @@ async function fetchAll() {
 function toDoc(it, byPath) {
   const props = it.properties ?? {};
   if (SKIP_TYPES.has(it.contentType) || Object.keys(props).length === 0) return null;
-  const title = deepClean(String(props.tittel ?? props.sporsmal ?? props.term ?? it.name ?? ''));
+  const title = deepClean(String(props.tittel ?? it.name ?? ''));
   const parts = [];
   harvest(props, null, parts);
   const body = deepClean(parts.join(' '));

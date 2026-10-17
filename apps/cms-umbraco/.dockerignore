@@ -3,8 +3,6 @@ obj/
 publish/
 umbraco/Data/
 umbraco/Logs/
-umbraco/mediacache/
-App_Data/
 wwwroot/media/
 *.sqlite.db
 *.sqlite.db-shm
