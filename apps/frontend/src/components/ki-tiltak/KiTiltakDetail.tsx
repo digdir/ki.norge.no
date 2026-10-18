@@ -155,13 +155,9 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
           {tiltak.fagomrade.length > 0 && (
             <section className="tiltak-detalj-tema">
               <h3 className="tiltak-detalj-merkelapp">Tema</h3>
-              <ul>
-                <Tag variant="outline" data-size="sm" asChild>
-                  <li>
-                    {tiltak.fagomrade}
-                  </li>
-                </Tag>
-              </ul>
+              <Tag variant="outline" data-size="sm">
+                  {tiltak.fagomrade}
+              </Tag>
             </section>
           )}
 
