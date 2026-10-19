@@ -3,8 +3,8 @@ import { hasValidCheckDigit, hasOrgnrFormat } from './organisationNumber';
 import { DESCRIPTION_MAX, type TiltakForm } from './tiltakForm';
 
 /**
- * Nøkkel for feltet en feil hører til. Samarbeidsradene er dynamiske, så de
- * identifiseres med rad-id-en sin.
+ * Key for the field an error belongs to. The partner rows are dynamic, so they
+ * are identified by their row id.
  */
 export type FieldKey =
   | 'ansvarligNavn'
@@ -26,8 +26,8 @@ export interface ValidationError {
 }
 
 /**
- * Feilmeldingene samlet på ett sted. Teksten er avklart med design, så
- * endringer her er en tekstendring i grensesnittet og ikke en detalj.
+ * The error messages gathered in one place. The text is agreed with design, so
+ * changes here are a text change in the UI and not a detail.
  */
 export const ERROR_MESSAGE = {
   ansvarligNavn: 'Fyll inn ansvarlig virksomhet',
@@ -47,12 +47,12 @@ export const ERROR_MESSAGE = {
 } as const;
 
 /**
- * Maksimallengder.
+ * Maximum lengths.
  *
- * Nettleseren begrenser allerede beskrivelsen, og de andre feltene er korte i
- * praksis. Grensene her finnes derfor for POST-er som går rett på ruta og
- * hopper over skjemaet: uten dem kan innsendt tekst av vilkårlig lengde havne
- * i e-posten til redaksjonen. Ingen ekte bruker treffer dem.
+ * The browser already limits the description, and the other fields are short in
+ * practice. The limits here therefore exist for POSTs that go straight to the route and
+ * skip the form: without them, submitted text of arbitrary length could end up
+ * in the editors' email. No real user hits them.
  */
 const MAX_LENGTH = {
   kort: 200,
@@ -60,27 +60,27 @@ const MAX_LENGTH = {
 } as const;
 
 /**
- * Sant når verdien står i listen.
+ * True when the value is in the list.
  *
- * Skjemaet tilbyr bare gyldige valg, så dette rammer bare direkte POST-er.
- * Ugyldig verdi behandles som «ikke valgt», slik at brukeren får den samme,
- * avklarte feilmeldingen i stedet for en ny tekst ingen har godkjent.
+ * The form only offers valid choices, so this only affects direct POSTs.
+ * An invalid value is treated as "not selected", so the user gets the same,
+ * agreed error message instead of a new text nobody has approved.
  */
 function inList(value: string, list: readonly string[]): boolean {
   return list.includes(value);
 }
 
-/** Feil bare når feltet er lengre enn grensen. Tomt håndteres av egne regler. */
+/** Error only when the field is longer than the limit. Empty is handled by separate rules. */
 function tooLong(value: string, max: number): string | undefined {
   return value.trim().length > max ? ERROR_MESSAGE.forLangt : undefined;
 }
 
 /**
- * Krever krøllalfa med tekst på hver side, og ingen mellomrom. Ikke mer.
+ * Requires an at sign with text on each side, and no spaces. Nothing more.
  *
- * Feilmeldingen sier «må inneholde @», så valideringen skal ikke avvise noe
- * den ikke advarer om. Strengere mønstre avviser dessuten gyldige adresser og
- * skaper flere problemer enn de løser.
+ * The error message says "må inneholde @", so the validation must not reject anything
+ * it does not warn about. Stricter patterns also reject valid addresses and
+ * create more problems than they solve.
  */
 const EMAIL = /^[^\s@]+@[^\s@]+$/;
 
@@ -92,11 +92,11 @@ function orgnrError(value: string): string | undefined {
 }
 
 /**
- * Returnerer feilene i samme rekkefølge som feltene står i skjemaet. Den
- * rekkefølgen styrer feiloppsummeringen, så den hører hjemme her og ikke i
- * komponenten.
+ * Returns the errors in the same order as the fields appear in the form. That
+ * order drives the error summary, so it belongs here and not in
+ * the component.
  *
- * Kjøres ved innsending, ikke ved blur, så skjemaet ikke kjefter underveis.
+ * Runs on submit, not on blur, so the form does not nag along the way.
  */
 export function validateTiltakForm(form: TiltakForm): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -114,7 +114,7 @@ export function validateTiltakForm(form: TiltakForm): ValidationError[] {
   for (const row of form.samarbeid) {
     const rowName = row.navn.trim();
     const rowOrgnr = row.orgnr.trim();
-    // En rad brukeren la til og aldri fylte ut skal ikke stoppe innsendingen.
+    // A row the user added and never filled in must not stop the submission.
     if (rowName.length === 0 && rowOrgnr.length === 0) continue;
 
     if (rowName.length === 0) {
@@ -154,14 +154,14 @@ export function validateTiltakForm(form: TiltakForm): ValidationError[] {
 
   add('kiTypeAnnet', tooLong(form.kiTypeAnnet, MAX_LENGTH.kort));
 
-  // kiType er valgfritt, og har derfor ingen regel i det hele tatt. Det gjelder
-  // også fritekstfeltet: krysser noen av «Annet» uten å skrive noe, slipper
-  // innsendingen gjennom. Avklart med Dorte 08.09.
+  // kiType is optional, and therefore has no rule at all. That also applies
+  // to the free text field: if someone ticks "Annet" without writing anything, the
+  // submission goes through. Agreed with Dorte 08.09.
 
   return errors;
 }
 
-/** Slår opp feilmeldingen for ett felt. Tom liste betyr gyldig skjema. */
+/** Looks up the error message for one field. An empty list means a valid form. */
 export function errorFor(errors: readonly ValidationError[], field: FieldKey): string | undefined {
   return errors.find((item) => item.field === field)?.message;
 }

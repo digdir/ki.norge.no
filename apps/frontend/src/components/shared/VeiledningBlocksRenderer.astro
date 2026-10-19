@@ -8,7 +8,7 @@ interface Props {
 
 const { blocks } = Astro.props;
 
-// Nabo-trekkspill grupperes til én aksordion-gruppe (samme mønster som ArticleBlocksRenderer).
+// Neighbouring trekkspill blocks are grouped into one accordion group (same pattern as ArticleBlocksRenderer).
 type RenderItem =
   | { kind: 'block'; block: UmbracoBlock }
   | { kind: 'trekkspillGruppe'; blocks: UmbracoBlock[] };
@@ -66,7 +66,7 @@ const moduleIcons: Record<string, string> = {
     || block.contentType === 'veiledningObs') {
     const c = block.content;
     const tekst = block.contentType === 'veiledningObs' ? c.tekst : c.innhold;
-    // Obs-modulen har valgfri tittel: tom tittel vises som "Obs" (Dorte).
+    // The Obs module has an optional title: an empty title is shown as "Obs" (Dorte).
     const tittel = block.contentType === 'veiledningObs' ? (c.tittel || 'Obs') : c.tittel;
     const ikon = moduleIcons[block.contentType];
     const trekkspill = block.contentType === 'veiledningInfo' ? c.trekkspill as TrekkspillItem[] | undefined : undefined;
@@ -121,8 +121,8 @@ const moduleIcons: Record<string, string> = {
     margin-bottom: var(--ds-size-1);
   }
 
-  /* Rik tekst i trekkspill-kroppen. Uten dette har avsnitt (Enter i RTE) ingen
-     margin (ds-paragraph er margin-løs) og linjeskift forsvinner. (#393) */
+  /* Rich text in the trekkspill body. Without this, paragraphs (Enter in the RTE) have no
+     margin (ds-paragraph has no margin) and line breaks disappear. (#393) */
   .trekkspill-innhold {
     font-size: var(--ds-body-md-font-size);
     line-height: var(--ds-body-md-line-height);

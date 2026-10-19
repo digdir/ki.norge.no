@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ url }) => {
       },
     });
   } catch (error) {
-    console.error('[agent-skills] index feilet', error);
+    console.error('[agent-skills] index failed', error);
     return new Response('Agent skills-indeksen er ikke tilgjengelig.', {
       status: 502,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },

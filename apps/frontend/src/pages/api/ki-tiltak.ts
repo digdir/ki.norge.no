@@ -8,17 +8,17 @@ import { verifyTurnstile } from '../../lib/turnstile';
 export const prerender = false;
 
 /**
- * Tar imot «Del KI-tiltak» og videresender innsendingen til redaksjonens
- * postboks. Ruta er uten mellomlagring, både fordi svaret er per innsending og
- * fordi cache-infoportal ellers ville delt det mellom brukere.
+ * Receives "Del KI-tiltak" and forwards the submission to the editorial
+ * mailbox. The route is uncached, both because the response is per submission
+ * and because cache-infoportal would otherwise share it between users.
  *
- * Ruta er åpen, og driver en Graph-legitimasjon som kan sende e-post. To
- * kontroller står foran den: Turnstile skiller mennesker fra boter, og
- * hastighetsgrensa demper mengden fra én kilde. Se src/lib/turnstile.ts for
- * hvorfor rekkefølgen er slik.
+ * The route is open and drives a Graph credential that can send email. Two
+ * checks sit in front of it: Turnstile tells humans from bots, and the
+ * rate limit dampens the volume from a single source. See src/lib/turnstile.ts
+ * for why the order is like this.
  */
 
-/** Rikelig for et skjema der beskrivelsen er begrenset til 400 tegn. */
+/** Plenty for a form where the description is limited to 400 characters. */
 const BODY_MAX_BYTES = 8 * 1024;
 
 function jsonResponse(body: unknown, status: number): Response {
@@ -33,7 +33,7 @@ function readToken(body: unknown): string {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Først, siden den er lokal og ikke trenger kroppen.
+    // First, since it is local and does not need the body.
     if (!(await withinRateLimit('TILTAK_LIMIT', request))) {
       return jsonResponse({ error: 'rate_limited' }, 429);
     }
@@ -53,17 +53,17 @@ export const POST: APIRoute = async ({ request }) => {
     const form = parseTiltakForm(body);
     if (form === null) return jsonResponse({ error: 'invalid_body' }, 400);
 
-    // Samme validering som i nettleseren. Klienten er ikke til å stole på, så
-    // den kjøres her også. Oppslag mot Enhetsregisteret utelates med vilje:
-    // det er en hjelp til datakvalitet, ikke en sikkerhetskontroll.
+    // Same validation as in the browser. The client cannot be trusted, so
+    // it runs here too. The Enhetsregisteret lookup is left out on purpose:
+    // it is an aid to data quality, not a security check.
     const errors = validateTiltakForm(form);
     if (errors.length > 0) {
       return jsonResponse({ error: 'validation', fields: errors.map((f) => f.field) }, 400);
     }
 
-    // Etter valideringen, slik at en åpenbart ugyldig kropp ikke koster en
-    // rundtur til Cloudflare. Tokenet er engangs, så klienten henter et nytt
-    // ved neste forsøk.
+    // After validation, so that an obviously invalid body does not cost a
+    // round trip to Cloudflare. The token is single-use, so the client fetches
+    // a new one on the next attempt.
     const turnstile = await verifyTurnstile(
       readToken(body),
       clientKey(request),
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (!emailIsConfigured) {
-      console.error('[ki-tiltak] innsending mottatt, men e-post er ikke konfigurert');
+      console.error('[ki-tiltak] submission received, but email is not configured');
       return jsonResponse({ error: 'not_configured' }, 503);
     }
 
@@ -85,15 +85,15 @@ export const POST: APIRoute = async ({ request }) => {
     const result = await sendTiltakEmail(subject, text, form.kontaktinfo.trim());
 
     if (!result.ok) {
-      // Årsaken logges, men sendes ikke videre. Den sier noe om oppsettet vårt
-      // og hører ikke hjemme hos innsenderen.
-      console.error('[ki-tiltak] kunne ikke sende innsending', { reason: result.reason });
+      // The reason is logged but not passed on. It says something about our setup
+      // and does not belong with the submitter.
+      console.error('[ki-tiltak] could not send submission', { reason: result.reason });
       return jsonResponse({ error: 'send_failed' }, 502);
     }
 
     return jsonResponse({ ok: true }, 202);
   } catch (err) {
-    console.error('[ki-tiltak] uventet feil', err);
+    console.error('[ki-tiltak] unexpected error', err);
     return jsonResponse({ error: 'unexpected' }, 500);
   }
 };

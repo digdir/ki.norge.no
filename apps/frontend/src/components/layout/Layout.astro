@@ -36,13 +36,13 @@ const currentPath = Astro.url.pathname;
 // origin since it returns localhost when behind Azure's reverse proxy.
 const siteUrl = Astro.site?.href.replace(/\/$/, '') || 'https://ki.norge.no';
 const canonicalUrl = `${siteUrl}${currentPath}`;
-// Mangler CMS-tittelen, faller vi tilbake til bare nettstedsnavnet (aldri "undefined | KI Norge").
+// If the CMS title is missing, we fall back to just the site name (never "undefined | KI Norge").
 const fullTitle = title ? `${title} | KI Norge` : 'KI Norge';
 // Version query busts stale link-preview thumbnail caches without changing the asset path.
 const DEFAULT_OG_IMAGE = '/og-image.png?v=3c5667a2';
-// CMS-media (/media/...) gjores absolutt mot CMS-hosten; ellers prefikses
-// site-hosten. Uten dette ble og:image til ki.norge.no/media/... (feil host),
-// som ga utdatert/odelagt delingsbilde.
+// CMS media (/media/...) is made absolute against the CMS host; otherwise the
+// site host is prefixed. Without this og:image became ki.norge.no/media/... (wrong host),
+// which gave an outdated/broken share image.
 const resolvedOg = toAbsoluteMediaUrl(ogImage);
 const ogImageUrl = resolvedOg
   ? (resolvedOg.startsWith('http') ? resolvedOg : `${siteUrl}${resolvedOg}`)
@@ -87,9 +87,9 @@ const ogImageUrl = resolvedOg
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="twitter:image:alt" content="KI Norge" />
 
-    <!-- Fontene er selvhostet, se src/styles/fonts.css. Bare de to latin-filene
-         som trengs over skjermkanten preloades: brødtekst og overskrifter.
-         crossorigin er påkrevd selv for samme opphav, fonter hentes i CORS-modus. -->
+    <!-- The fonts are self-hosted, see src/styles/fonts.css. Only the two latin files
+         needed above the fold are preloaded: body text and headings.
+         crossorigin is required even for the same origin, fonts are fetched in CORS mode. -->
     <link
       rel="preload"
       href="/fonts/instrument-sans-400-700-latin.woff2"
@@ -108,10 +108,10 @@ const ogImageUrl = resolvedOg
     <!-- Light mode only (dark mode not supported) -->
     <meta name="color-scheme" content="light" />
 
-    <!-- Sidespesifikk metadata, i praksis JSON-LD. Må ligge her og ikke i main:
-         main har negativ toppmargin, og kompensasjonen treffer main > :first-child.
-         Et <script> som første barn rendres ikke, så padding-en forsvant og
-         overskriften la seg oppå headeren. -->
+    <!-- Page-specific metadata, in practice JSON-LD. Must be here and not in main:
+         main has a negative top margin, and the compensation targets main > :first-child.
+         A <script> as the first child is not rendered, so the padding disappeared and
+         the heading ended up on top of the header. -->
     <slot name="head" />
   </head>
   <body data-color-scheme="light" data-color={bodyColor} class:list={[hideLogo && 'hide-header-logo']}>
@@ -132,7 +132,7 @@ const ogImageUrl = resolvedOg
       });
     </script>
     <script>
-      // WebMCP. No-op i nettlesere uten modelContext, som er de aller fleste.
+      // WebMCP. No-op in browsers without modelContext, which is the vast majority.
       import { registerWebMcpTools } from '../../lib/webmcp';
       void registerWebMcpTools();
     </script>

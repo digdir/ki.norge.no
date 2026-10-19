@@ -14,10 +14,10 @@ let harTidligereArrangementer = false;
 let veiledninger: VeiledningGuide[] = [];
 let enkleVeiledninger: any[] = [];
 try {
-  // Preview gjelder kun forsidens egen kladd (struktur/overskrifter/pins). Kortene henter
-  // alltid PUBLISERT innhold, slik at preview matcher det publikum ser (ingen upubliserte lekker inn).
+  // Preview only applies to the front page's own draft (structure/headings/pins). The cards always
+  // fetch PUBLISHED content, so preview matches what the public sees (no unpublished items leak in).
   forside = await getForside({ preview: isPreview });
-  // Hent en stor pool slik at redaktørvalgte kort kan slås opp på id (ikke bare de 4 nyeste).
+  // Fetch a large pool so editor-picked cards can be looked up by id (not just the 4 newest).
   const artiklerRes = await getArtikler(60, { preview: isPreview });
   latestArticles = artiklerRes.data;
   const hendelserRes = await getKalenderhendelser({ preview: isPreview });
@@ -25,8 +25,8 @@ try {
   upcomingEvents = hendelserRes.data
     .filter(h => new Date(h.sluttDato || h.startDato) >= now)
     .sort((a, b) => new Date(a.startDato).getTime() - new Date(b.startDato).getTime());
-  // Arrangementmodulen trenger å vite om det finnes noe i arkivet, så den kan peke
-  // dit når det ikke er noe kommende.
+  // The events module needs to know whether there is anything in the archive, so it can
+  // point there when nothing is upcoming.
   harTidligereArrangementer = hendelserRes.data.some(h => new Date(h.sluttDato || h.startDato) < now);
   const eksemplerRes = await getEksempler({ preview: isPreview });
   eksempler = eksemplerRes.data;
@@ -36,15 +36,15 @@ try {
   enkleVeiledninger = enkleVeiledningerRes.data;
 } catch (e) {
   console.error('Failed to fetch frontpage CMS data:', e);
-  // CMS-henting feilet: ikke cache den degraderte renderen (tom forside uten
-  // hero) på edgen. Se middleware – den respekterer denne no-store.
+  // CMS fetch failed: do not cache the degraded render (empty front page without
+  // hero) at the edge. See middleware, it respects this no-store.
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
-// Aktuelt lar redaktoeren peke paa alt i innholdstreet, ogsaa steg og
-// stegartikler som ligger nestet under en guide og ikke er med i listene over.
-// URLen deres krever forfedre, saa vi loeser dem her. Bare id-er som IKKE
-// finnes i listene slaas opp, saa vanlig bruk koster ingen ekstra kall.
+// Aktuelt lets the editor point to anything in the content tree, including steps and
+// step articles nested under a guide that are not in the lists above.
+// Their URL requires ancestors, so we resolve them here. Only ids that are NOT
+// in the lists are looked up, so normal use costs no extra calls.
 const kjenteIder = new Set<string>([
   ...latestArticles.map((a: any) => a.id),
   ...eksempler.map((e: any) => e.id),

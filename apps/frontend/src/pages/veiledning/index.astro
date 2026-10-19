@@ -29,7 +29,7 @@ try {
   ]);
 } catch (e) {
   console.error('Failed to fetch veiledning page data:', e);
-  // CMS-henting feilet: ikke cache den degraderte renderen (se middleware).
+  // CMS fetch failed: do not cache the degraded render (see middleware).
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
@@ -37,8 +37,8 @@ const heroTitle = cmsData?.heroTittel;
 const heroText = cmsData?.heroTekst;
 const heroImageUrl = cmsData?.heroBilde ? getMediaUrl(cmsData.heroBilde, MEDIA_WIDTH.hero) : undefined;
 
-// Redaktørvalgt lenke (content-picker, #513) løses mot hentede pools så vi bruker
-// frontend-slug (CMS-route kan avvike). Faller tilbake til det manuelle url-feltet.
+// Editor-picked link (content picker, #513) is resolved against the fetched pools so we use
+// the frontend slug (the CMS route can differ). Falls back to the manual url field.
 const lenkeById = new Map<string, string>([
   ...guides.data.map((g): [string, string] => [g.id, `/veiledning/${g.slug}`]),
   ...articles.data.map((a): [string, string] => [a.id, `/artikler/${a.slug}`]),
@@ -51,15 +51,15 @@ const resolveLenke = (kort?: { lenkeId?: string; url?: string }): string | undef
 const featuredTitle = cmsData?.seksjon1Kort?.[0]?.tittel;
 const featuredDesc = cmsData?.seksjon1Kort?.[0]?.beskrivelse;
 const featuredHref = resolveLenke(cmsData?.seksjon1Kort?.[0]) || '/veiledning/kom-i-gang';
-// Ingen hardkodet fallback: redaktøren skal kunne fjerne tittelen helt (#494).
-// TextWithImage skjuler label-feltet når det er tomt.
+// No hardcoded fallback: the editor must be able to remove the title entirely (#494).
+// TextWithImage hides the label field when it is empty.
 const featuredLabel = cmsData?.seksjon1Tittel;
 const featuredImage = heroImageUrl;
 
 // Rich link list — "Steg for steg"
-// Redaktørstyrt: når redaktøren har fylt seksjon2-kortene brukes deres egen
-// beskrivelse (tilpasset tekst). Ellers auto-utledes lista fra guidene, der
-// beskrivelsen blir guidens ingress (fallback).
+// Editor-controlled: when the editor has filled the seksjon2 cards, their own
+// description (custom text) is used. Otherwise the list is derived from the guides,
+// where the description becomes the guide's ingress (fallback).
 const richLinks = (cmsData?.seksjon2Kort?.length ?? 0) > 0
   ? cmsData!.seksjon2Kort!.map(k => ({
       title: k.tittel,
@@ -100,10 +100,10 @@ const caseCards = cases.data.length > 0
 const seoTitle = cmsData?.seoTittel || 'Veiledning og guider';
 const seoDesc = cmsData?.seoBeskrivelse || heroText;
 
-// Bygges av lenkene siden faktisk viser, ikke av guide-lista alene: veiledningen
-// består av både guider (seksjon2) og enkeltveiledninger (seksjon3), og bare
-// guidene ville underrapportert hva som finnes. Uoppløste redaktørlenker ("#")
-// og eksterne lenker hører ikke hjemme i samlingen.
+// Built from the links the page actually shows, not from the guide list alone: veiledning
+// consists of both guides (seksjon2) and single guidance pages (seksjon3), and the guides
+// alone would underreport what exists. Unresolved editor links ("#")
+// and external links do not belong in the collection.
 const collectionItems = [...richLinks, ...simpleLinks]
   .filter((l) => l.href.startsWith('/'))
   .map((l) => ({ name: l.title, url: l.href }));
@@ -151,7 +151,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
         <ul class="veil-rich-list">
           {richLinks.map((link) => {
             const id = `rich-link-${crypto.randomUUID().slice(0, 8)}`;
-            // Pilen limes til siste ord så den ikke brekker alene (#464)
+            // The arrow is glued to the last word so it does not wrap alone (#464)
             const titleParts = splitLastWord(link.title);
             return (
               <li class="veil-rich-item" data-clickdelegatefor={id}>

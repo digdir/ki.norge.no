@@ -2,16 +2,16 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 /**
- * UU-tester (WCAG 2.1 AA, jf. uutilsynet.no for offentlig sektor).
- * Axe-sjekk per hovedrute + strukturelle sjekker (landemerker, skip-lenke,
- * tastatur, skjema-labels). Kjøres mot dev-server, ev. PLAYWRIGHT_BASE_URL.
+ * Accessibility tests (WCAG 2.1 AA, cf. uutilsynet.no for the public sector).
+ * Axe check per main route + structural checks (landmarks, skip link,
+ * keyboard, form labels). Runs against the dev server, or PLAYWRIGHT_BASE_URL.
  */
 
 const ROUTES = ['/', '/artikler', '/eksempler', '/veiledning', '/kalender', '/om-oss', '/ki-tiltak'];
 
 test.describe('Axe (WCAG 2.1 AA)', () => {
   for (const route of ROUTES) {
-    test(`${route} har ingen kritiske eller alvorlige axe-funn`, async ({ page }) => {
+    test(`${route} has no critical or serious axe findings`, async ({ page }) => {
       await page.goto(route);
       await page.waitForLoadState('networkidle');
 
@@ -34,33 +34,33 @@ test.describe('Axe (WCAG 2.1 AA)', () => {
   }
 });
 
-test.describe('Landemerker og struktur', () => {
-  test('alle sider har gyldige landemerker og nøyaktig én h1', async ({ page }) => {
+test.describe('Landmarks and structure', () => {
+  test('all pages have valid landmarks and exactly one h1', async ({ page }) => {
     for (const url of ROUTES) {
       await page.goto(url);
       await page.waitForLoadState('load');
 
-      // Nøyaktig ett main-landemerke (app-main, ikke dev-verktøy)
+      // Exactly one main landmark (app main, not dev tools)
       await expect(page.locator('main#main-content'), url).toHaveCount(1);
 
-      // Header og footer (klasse-basert for å utelate dev-toolbar)
+      // Header and footer (class-based to exclude the dev toolbar)
       await expect(page.locator('header.header'), url).toHaveCount(1);
       await expect(page.locator('footer.footer'), url).toHaveCount(1);
 
-      // Navigasjon med norsk label
+      // Navigation with a Norwegian label
       await expect(page.locator('nav[aria-label="Hovednavigasjon"]'), url).toHaveCount(1);
 
-      // Nøyaktig én h1 per side
+      // Exactly one h1 per page
       await expect(page.locator('main h1'), url).toHaveCount(1);
 
-      // Språk satt på html-elementet. "no" (makrospråket), ikke "nb": sidene
-      // blander bokmål og nynorsk, og språket kan ikke merkes per side fra
-      // CMS-et, så en bokmålstagg ville vært feil på nynorsksidene (#487).
+      // Language set on the html element. "no" (the macrolanguage), not "nb": the pages
+      // mix Bokmål and Nynorsk, and the language cannot be marked per page from
+      // the CMS, so a Bokmål tag would be wrong on the Nynorsk pages (#487).
       await expect(page.locator('html'), url).toHaveAttribute('lang', 'no');
     }
   });
 
-  test('alle bilder har alt-attributt', async ({ page }) => {
+  test('all images have an alt attribute', async ({ page }) => {
     for (const url of ['/', '/artikler', '/eksempler']) {
       await page.goto(url);
       await page.waitForLoadState('networkidle');
@@ -70,26 +70,26 @@ test.describe('Landemerker og struktur', () => {
 
       for (let i = 0; i < count; i++) {
         const img = images.nth(i);
-        // Tomt alt er OK for dekorative bilder, men attributtet må finnes
+        // Empty alt is OK for decorative images, but the attribute must exist
         expect(await img.getAttribute('alt'), `${url}: img ${await img.getAttribute('src')}`).not.toBeNull();
       }
     }
   });
 
-  test('sidetitler er unike og meningsfulle', async ({ page }) => {
+  test('page titles are unique and meaningful', async ({ page }) => {
     const titles = new Set<string>();
     for (const url of ROUTES) {
       await page.goto(url);
       const title = await page.title();
       expect(title, url).toMatch(/ \| KI Norge$/);
-      expect(titles.has(title), `Duplikat tittel: ${title}`).toBe(false);
+      expect(titles.has(title), `Duplicate title: ${title}`).toBe(false);
       titles.add(title);
     }
   });
 });
 
-test.describe('Tastaturnavigasjon', () => {
-  test('kan navigere gjennom interaktive elementer med tastatur', async ({ page }) => {
+test.describe('Keyboard navigation', () => {
+  test('can navigate through interactive elements with the keyboard', async ({ page }) => {
     await page.goto('/');
 
     const focusableElements: string[] = [];
@@ -103,16 +103,16 @@ test.describe('Tastaturnavigasjon', () => {
     expect(focusableElements).toContain('a');
   });
 
-  test('fokusindikator er synlig på interaktive elementer', async ({ page }) => {
+  test('focus indicator is visible on interactive elements', async ({ page }) => {
     await page.goto('/');
 
-    // Tab forbi skip-lenken til neste interaktive element
+    // Tab past the skip link to the next interactive element
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
 
     const focusedElement = page.locator(':focus');
     const indicator = await focusedElement.evaluate((el) => {
-      // Indikatoren kan ligge på elementet selv eller en forelder (:focus-within-mønsteret)
+      // The indicator can be on the element itself or a parent (the :focus-within pattern)
       const candidates: Element[] = [el];
       if (el.parentElement) candidates.push(el.parentElement);
       const card = el.closest('[data-clickdelegatefor]');
@@ -126,30 +126,30 @@ test.describe('Tastaturnavigasjon', () => {
     expect(indicator).toBe(true);
   });
 
-  test('søkedialogen kan åpnes med Ctrl+K og lukkes med Escape', async ({ page }) => {
+  test('the search dialog can be opened with Ctrl+K and closed with Escape', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     const dialog = page.locator('dialog.search-dialog');
-    // Gjenta til React-øya har hydrert og reagerer på snarveien
+    // Repeat until the React island has hydrated and responds to the shortcut
     await expect(async () => {
       await page.keyboard.press('Control+k');
       await expect(dialog).toHaveAttribute('open', '', { timeout: 500 });
     }).toPass({ timeout: 10_000 });
-    // Fokus skal stå i søkefeltet
+    // Focus should be in the search field
     await expect(dialog.locator('input')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(dialog).not.toHaveAttribute('open', '');
   });
 });
 
-test.describe('Skip-lenke', () => {
-  test('skip-lenken finnes, blir synlig på fokus og fungerer', async ({ page }) => {
+test.describe('Skip link', () => {
+  test('the skip link exists, becomes visible on focus and works', async ({ page }) => {
     await page.goto('/');
 
     const skipLink = page.locator('a.ds-skip-link');
     await expect(skipLink).toHaveCount(1);
 
-    // Blir synlig ved tastaturfokus (designsystemet bruker :focus-visible)
+    // Becomes visible on keyboard focus (designsystemet uses :focus-visible)
     await page.keyboard.press('Tab');
     await expect(skipLink).toBeFocused();
     const box = await skipLink.boundingBox();
@@ -160,8 +160,8 @@ test.describe('Skip-lenke', () => {
   });
 });
 
-test.describe('Skjema', () => {
-  test('søkedialogens felt har tilgjengelig navn og status annonseres', async ({ page }) => {
+test.describe('Forms', () => {
+  test('the search dialog field has an accessible name and status is announced', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     const dialog = page.locator('dialog.search-dialog');
@@ -170,7 +170,7 @@ test.describe('Skjema', () => {
       await expect(dialog).toHaveAttribute('open', '', { timeout: 500 });
     }).toPass({ timeout: 10_000 });
     await expect(dialog.locator('input')).toHaveAttribute('aria-label', /Søk/);
-    // Statusregion for skjermlesere finnes fra start (WCAG 4.1.3)
+    // Status region for screen readers exists from the start (WCAG 4.1.3)
     await expect(dialog.locator('[role="status"]')).toHaveCount(1);
   });
 });

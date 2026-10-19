@@ -10,8 +10,8 @@ interface Props {
   tagColor?: 'brand1' | 'brand2' | 'brand3' | 'neutral';
   date?: string;
   lead?: string;
-  // Streng for statiske bilder som placeholderen. CardImage fra getCardImage()
-  // for CMS-media, som i tillegg gir srcset, sizes og sideforhold.
+  // String for static images such as the placeholder. CardImage from getCardImage()
+  // for CMS media, which also gives srcset, sizes and aspect ratio.
   image?: string | CardImage;
   imageAlt?: string;
   variant?: 'small' | 'image' | 'featured';
@@ -30,10 +30,10 @@ const {
 
 const id = `news-card-${crypto.randomUUID().slice(0, 8)}`;
 
-// Uten bilde fyller Standardbilde boksen i stedet.
+// Without an image, Standardbilde fills the box instead.
 const cardImage: CardImage | undefined = typeof image === 'string' ? { src: image } : image;
 
-// Pilen i featured-varianten limes til siste ord så den ikke brekker alene (#464)
+// The arrow in the featured variant is glued to the last word so it does not wrap alone (#464)
 
 const formattedDate = date
   ? new Date(date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -174,8 +174,8 @@ const formattedDate = date
   }
 
   .news-card--featured .news-card-image {
-    /* Bildet går helt til midten av kortet, og høyden følger teksten
-       innenfor 220-300px (#584). */
+    /* The image goes all the way to the middle of the card, and the height follows the text
+       within 220-300px (#584). */
     position: relative;
     flex: 0 0 50%;
     min-height: 220px;
@@ -195,7 +195,7 @@ const formattedDate = date
     gap: var(--ds-size-4);
     flex: 1;
     justify-content: center;
-    /* Holder kortet innenfor bildets tak på 300px, så bunnkantene flukter (#584). */
+    /* Keeps the card within the image's 300px cap, so the bottom edges line up (#584). */
     padding-block: var(--ds-size-4);
 
     @media (max-width: 767px) {

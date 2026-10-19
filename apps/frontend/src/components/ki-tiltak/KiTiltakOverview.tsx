@@ -20,7 +20,7 @@ import PromoBanner from './PromoBanner';
 import RegisterTiltakDialog from './RegisterTiltakDialog';
 
 interface Props {
-  /** Offentlig Turnstile-nøkkel, videreført til innsendingsskjemaet. */
+  /** Public Turnstile key, passed on to the submission form. */
   turnstileSiteKey?: string;
 }
 
@@ -31,7 +31,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
   const [selected, setSelected] = useState<KiTiltak | null>(null);
   const [visibleCount, setVisibleCount] = useState(FIRST_PAGE);
 
-  // Åpne skuffen fra ?tiltak=<id> ved lasting, og følg nettleserens tilbakeknapp.
+  // Open the drawer from ?tiltak=<id> on load, and follow the browser's back button.
   useEffect(() => {
     const syncFromUrl = () => {
       const url = new URL(window.location.href);
@@ -44,22 +44,22 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
       }
 
       if (id !== null) {
-        // Ukjent id (utdatert eller feil lenke). Rydd bort parameteren så den
-        // ikke blir liggende i url-en med en lukket skuff.
+        // Unknown id (outdated or wrong link). Remove the parameter so it
+        // does not stay in the url with a closed drawer.
         url.searchParams.delete('tiltak');
         window.history.replaceState({}, '', url);
       }
 
-      // Lukking skal alltid starte i DOM-en, ikke ved å sette open-propen til
-      // false. Det siste hopper over close()-algoritmen, akkurat som en
-      // onClick={onClose}-knapp ville gjort, og etterlater en usynlig
-      // backdrop som blokkerer resten av siden. dialog.close() fyrer det
-      // native close-eventet, som driver closeTiltak videre via onClose.
+      // Closing must always start in the DOM, not by setting the open prop to
+      // false. The latter skips the close() algorithm, just as an
+      // onClick={onClose} button would, and leaves an invisible
+      // backdrop that blocks the rest of the page. dialog.close() fires the
+      // native close event, which drives closeTiltak on via onClose.
       const dialog = document.getElementById(DETAIL_DIALOG_ID);
       if (dialog instanceof HTMLDialogElement && dialog.open) {
         dialog.close();
       } else {
-        setSelected(null); // ingen åpen dialog å lukke, for eksempel ved montering
+        setSelected(null); // no open dialog to close, for example on mount
       }
     };
     syncFromUrl();
@@ -69,8 +69,8 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
 
   const matches = useMemo(() => filterTiltak(kiTiltak, filter), [filter]);
 
-  // Et nytt søk eller filter skal starte på nytt øverst i listen, ikke arve
-  // hvor langt brukeren hadde lastet i det forrige resultatet.
+  // A new search or filter starts over at the top of the list, and does not inherit
+  // how far the user had loaded in the previous result.
   useEffect(() => {
     setVisibleCount(FIRST_PAGE);
   }, [filter]);
@@ -91,16 +91,16 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
   const openTiltak = (tiltak: KiTiltak) => {
     const url = new URL(window.location.href);
     url.searchParams.set('tiltak', tiltak.id);
-    // Merket med tiltak-id-en, slik at closeTiltak vet at denne oppføringen
-    // ble lagt til av oss selv, og kan poppe den i stedet for å legge til enda en.
+    // Tagged with the tiltak id, so closeTiltak knows that this entry
+    // was added by us, and can pop it instead of adding yet another.
     window.history.pushState({ tiltak: tiltak.id }, '', url);
     setSelected(tiltak);
   };
 
-  // Skuffen åpnes alltid med pushState, så lukking må balansere det. Har
-  // historikkoppføringen vårt eget tiltak-merke, popper vi den (popstate
-  // driver resten via syncFromUrl). Uten merket kom vi fra en delt lenke og
-  // har ingen egen oppføring å poppe, så vi rydder url-en på stedet i stedet.
+  // The drawer always opens with pushState, so closing must balance that. If
+  // the history entry has our own tiltak tag, we pop it (popstate
+  // drives the rest via syncFromUrl). Without the tag we came from a shared link and
+  // have no entry of our own to pop, so we clean the url in place instead.
   const closeTiltak = () => {
     if (window.history.state?.tiltak) {
       window.history.back();
@@ -120,8 +120,8 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
       <PromoBanner onRegistrer={() => setRegisterOpen(true)} />
 
       {/*
-        Søkefelt og filterknapp deler rad, og knappen brytes under feltet når
-        det ikke er plass. Antall og aktive filtre ligger på raden under.
+        Search field and filter button share a row, and the button wraps below the field when
+        there is no room. Count and active filters sit on the row below.
       */}
       <div className="tiltak-sokerad">
         <div className="tiltak-sokefelt">
@@ -162,9 +162,9 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
             onClick={() => removeChip(group, value)}
           >
             {/*
-              Gruppenavnet dempet og verdien uthevet, som i prototypen. Chipens
-              tilgjengelige navn kommer fra aria-label over, så oppdelingen her
-              er rent visuell.
+              The group name muted and the value emphasised, as in the prototype. The chip's
+              accessible name comes from aria-label above, so the split here
+              is purely visual.
             */}
             <span className="tiltak-chip-gruppe">{`${FILTERETIKETTER[group]}: `}</span>
             <strong>{value}</strong>

@@ -5,12 +5,12 @@
 *   | gutter  | sidebar | gap   | content       | rest  | gutter  |
 *   | dynamic | 200px   | ds-30 | min(0, 680px) | 0.5fr | dynamic |
 *
-* Sidebarsporet er fast. Det var 1fr, der innholdet satte minimumsbredden, og en
-* lang adresse i kalendersidebaren presset tekstkolonnen til 330px (#722). Et
-* fit-content-tak fjernet det, men gjorde sporet innholdsstyrt, og artikkelheroen
-* er et eget grid uten sidebar. Der ble sporet 0 bredt, så tittelen havnet
-* 86-111px til venstre for sin egen brødtekst, ulikt fra side til side (#731).
-* Fast spor gir samme kolonne 4 i begge grid, på alle sider.
+* The sidebar track is fixed. It was 1fr, where the content set the minimum width, and a
+* long address in the calendar sidebar pushed the text column down to 330px (#722). A
+* fit-content cap removed that, but made the track content-driven, and the article hero
+* is a separate grid without a sidebar. There the track became 0 wide, so the title ended up
+* 86-111px to the left of its own body text, differing from page to page (#731).
+* A fixed track gives the same column 4 in both grids, on all pages.
 *
 * Col 1 (gutter) uses a dynamic calc() so the sidebar always aligns with
 * the left content edge of the page header at every viewport width.
@@ -42,14 +42,14 @@
   background-color: var(--ds-color-background-default);
   padding-block: var(--ds-size-12);
   padding-inline: 0;
-  /* En lang streng uten brytepunkter, en URL eller en rad understreker fra
-     redaktør, satte min-content-bredden til hele artikkelkolonnen. Mobilgridet
-     bruker 1fr, som har min-content som minimum, så kolonnen vokste til 672px
-     i et 390px vindu og HELE siden fikk vannrett rulling.
+  /* A long string without break points, a URL or a row of underscores from an
+     editor set the min-content width of the whole article column. The mobile grid
+     uses 1fr, which has min-content as its minimum, so the column grew to 672px
+     in a 390px window and the WHOLE page got horizontal scrolling.
 
-     Må være anywhere og ikke break-word: bare anywhere teller med i
-     min-content-beregningen. Målt på begge. minmax(0, 1fr) på gridet hjelper
-     ikke alene, for avsnittet flyter da fortsatt ut av sin egen boks. */
+     Must be anywhere and not break-word: only anywhere counts in the
+     min-content calculation. Measured on both. minmax(0, 1fr) on the grid does not
+     help alone, since the paragraph then still overflows its own box. */
   overflow-wrap: anywhere;
 }
 

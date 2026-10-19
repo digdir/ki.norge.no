@@ -1,7 +1,7 @@
 /**
- * KI-søk dialog — modal search box over ki.norge.no.
+ * KI-søk dialog: modal search box over ki.norge.no.
  *
- * Vanlig søk → ranked hybrid results (BM25 + dense + jina rerank) from the
+ * Regular search → ranked hybrid results (BM25 + dense + jina rerank) from the
  * ki-content index via POST /api/search. Opens via the header search button or
  * Ctrl/Cmd+K; the `open-search-dialog` event may carry an initial `{ query }`.
  */
@@ -49,13 +49,13 @@ export default function SearchDialog() {
         body: JSON.stringify({ query: trimmed }),
         signal: controller.signal,
       });
-      // 429 er hastighetsgrensa. «Prøv igjen» er feil råd der, siden et raskt
-      // nytt forsøk treffer den samme grensa.
+      // 429 is the rate limit. "Prøv igjen" is the wrong advice there, since a quick
+      // new attempt hits the same limit.
       if (res.status === 429) {
         setError('Mange søk på kort tid herfra. Vent et minutt og prøv igjen.');
         return;
       }
-      if (!res.ok) throw new Error(`Søk feilet (${res.status})`);
+      if (!res.ok) throw new Error(`Search failed (${res.status})`);
       const data = (await res.json()) as { results?: KiResult[] };
       setResults(data.results ?? []);
     } catch {
@@ -106,7 +106,7 @@ export default function SearchDialog() {
     abortRef.current?.abort();
   }, [open]);
 
-  // Statusmelding for skjermlesere (WCAG 4.1.3) — speiler synlig tilstand.
+  // Status message for screen readers (WCAG 4.1.3), mirrors the visible state.
   const statusMessage = !submitted
     ? ''
     : busy && results.length === 0
@@ -146,8 +146,8 @@ export default function SearchDialog() {
             <Search.Input
               ref={(el: HTMLInputElement | null) => {
                 inputRef.current = el;
-                // Settes som DOM-attributt: native <dialog> fokuserer [autofocus]
-                // ved showModal(). Reacts autoFocus-prop dekker ikke dette.
+                // Set as a DOM attribute: native <dialog> focuses [autofocus]
+                // on showModal(). React's autoFocus prop does not cover this.
                 el?.setAttribute('autofocus', '');
               }}
               aria-label="Søk på ki.norge.no"
@@ -163,7 +163,7 @@ export default function SearchDialog() {
       </Dialog.Block>
 
       <Dialog.Block className="search-dialog-scroll">
-        {/* Alltid i DOM så endringer i tekstinnholdet annonseres av skjermlesere */}
+        {/* Always in the DOM so changes in the text content are announced by screen readers */}
         <div role="status" aria-live="polite" className="ds-sr-only">
           {statusMessage}
         </div>

@@ -17,7 +17,7 @@ if (!article) return Astro.redirect('/artikler');
 const seoTitle = article.seoTittel || article.tittel;
 const seoDesc = article.seoBeskrivelse || article.ingress || getPlainText(article.innhold, 200);
 const seoImage = article.seoBilde?.url || article.artikkelBilde?.url;
-// SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
+// The SEO image is for share previews and must never become content (#738).
 const heroImage = article.artikkelBilde;
 const heroBg = bakgrunnSurface(article.bakgrunn);
 
@@ -94,7 +94,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 </Layout>
 
 <style>
-  /* Hero: tittel over fullbredde banner-bilde (2:1, object-fit cover) */
+  /* Hero: title above full-width banner image (2:1, object-fit cover) */
   .article-hero:has(.article-hero-image) {
     padding-bottom: 0;
   }
@@ -114,9 +114,9 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     grid-column: 4;
     margin-block-start: 0;
 
-    /* Samme bruddpunkt som artikkelgridet. Står bildet i kolonne 4 når gridet
-       har én kolonne, lager nettleseren tre ekstra kolonner, og teksten presses
-       ned i 77 px mellom 768 og 1024. */
+    /* Same breakpoint as the article grid. If the image sits in column 4 when the grid
+       has one column, the browser creates three extra columns, and the text is squeezed
+       into 77 px between 768 and 1024. */
     @media (max-width: 1024px) {
       grid-column: 1 / 5;
       margin-block-start: var(--ds-size-6);

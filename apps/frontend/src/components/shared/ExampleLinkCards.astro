@@ -19,11 +19,11 @@ const { cards } = Astro.props;
 
 const count = cards.length;
 
-// Standard fargemønster per gruppestørrelse (Figma, #461): varierer alle tre
-// fargene og unngår lik farge på naboer, også vertikalt i 2-kolonners grid.
-// Merk: i temaet er "medium" (base-hover) mørkere enn "dark" (base-default);
-// designet har lyseste rød øverst til venstre og mørkeste nederst til høyre.
-// CMS-felt for per-kort farge finnes ikke ennå; card.variant overstyrer når det kommer.
+// Default colour pattern per group size (Figma, #461): varies all three
+// colours and avoids the same colour on neighbours, also vertically in a 2-column grid.
+// Note: in the theme "medium" (base-hover) is darker than "dark" (base-default);
+// the design has the lightest red top left and the darkest bottom right.
+// A CMS field for per-card colour does not exist yet; card.variant overrides when it comes.
 type Variant = 'dark' | 'medium' | 'light';
 const DEFAULT_PATTERNS: Record<number, Variant[]> = {
   2: ['dark', 'light'],
@@ -33,8 +33,8 @@ const DEFAULT_PATTERNS: Record<number, Variant[]> = {
 const CYCLE: Variant[] = ['dark', 'light', 'medium'];
 const defaultVariant = (i: number): Variant => DEFAULT_PATTERNS[count]?.[i] ?? CYCLE[i % 3];
 
-// På mobil står kortene i én kolonne, og da blir de to lyse i 2x2-mønsteret
-// naboer og flyter sammen (#796). Rødt og rosa annenhver gang skiller best.
+// On mobile the cards are in one column, and then the two light ones in the 2x2 pattern
+// become neighbours and blend together (#796). Alternating red and pink separates best.
 const MOBILE_PATTERNS: Record<number, Variant[]> = {
   4: ['dark', 'light', 'medium', 'light'],
 };

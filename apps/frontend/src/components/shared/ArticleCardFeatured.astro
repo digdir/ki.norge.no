@@ -6,8 +6,8 @@ interface Props {
   href: string;
   title: string;
   lead?: string;
-  // Streng for statiske bilder. CardImage fra getCardImage() for CMS-media,
-  // som i tillegg gir srcset, sizes og sideforhold.
+  // String for static images. CardImage from getCardImage() for CMS media,
+  // which also gives srcset, sizes and aspect ratio.
   image?: string | CardImage;
   imageAlt?: string;
   tags?: string[];
@@ -17,7 +17,7 @@ const { href, title, lead, image, imageAlt = '', tags = [] } = Astro.props;
 const id = `featured-card-${crypto.randomUUID().slice(0, 8)}`;
 const cardImage: CardImage | undefined = typeof image === 'string' ? { src: image } : image;
 
-// Pilen limes til siste ord så den ikke brekker alene (#464)
+// The arrow is glued to the last word so it does not wrap alone (#464)
 ---
 
 <article class="featured-card" data-clickdelegatefor={id}>

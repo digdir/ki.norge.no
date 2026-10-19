@@ -1,69 +1,69 @@
-# KI Norge, ruteoversikt for smoketesting
+# KI Norge, route overview for smoke testing
 
-Kilde for `tests/routes.spec.ts`. Hver `### /sti`-overskrift blir en rute som
-smoketesten slår opp og forventer 200 på, med mindre den står i 404-seksjonen.
-Dynamiske mønstre med `[slug]` hoppes over.
+Source for `tests/routes.spec.ts`. Each `### /path` heading becomes a route that
+the smoke test looks up and expects 200 on, unless it is in the 404 section.
+Dynamic patterns with `[slug]` are skipped.
 
-Lå tidligere i `public/` og ble servert offentlig på ki.norge.no/llm.txt. Det var
-utilsiktet. Er du ute etter filen som beskriver nettstedet for språkmodeller, se
+Used to live in `public/` and was served publicly at ki.norge.no/llm.txt. That was
+unintended. If you are looking for the file that describes the site for language models, see
 `src/pages/llms.txt.ts`.
 
-## Miljø
-- Base URL (lokalt): http://localhost:4321
-- CMS: Umbraco, innhold hentes via Delivery API v2 ved request
+## Environment
+- Base URL (local): http://localhost:4321
+- CMS: Umbraco, content is fetched via Delivery API v2 on request
 
-## CMS-avhengighet
-Sidene henter innhold fra Umbraco. Er CMS-et nede eller innholdet upublisert,
-rendres fallback-innhold. Det gjelder sandkasse, artikler, veiledning og eksempler.
-Smoketesten sjekker derfor status, ikke overskrifter: titlene er redaksjonelle og
-endres uten at det er en feil.
+## CMS dependency
+The pages fetch content from Umbraco. If the CMS is down or the content unpublished,
+fallback content is rendered. That applies to sandkasse, artikler, veiledning and eksempler.
+The smoke test therefore checks status, not headings: the titles are editorial and
+change without that being an error.
 
-## Globalt (gjelder alle sider)
-- Toppnavigasjon med lenker til /veiledning, /sandkasse, /eksempler, /artikler, /om-oss
-- "Hopp til hovedinnhold" finnes (a11y-smoke)
-- Footer inneholder lenker til samarbeidspartnere
+## Global (applies to all pages)
+- Top navigation with links to /veiledning, /sandkasse, /eksempler, /artikler, /om-oss
+- "Hopp til hovedinnhold" is present (a11y smoke)
+- The footer contains links to partners
 
-## Ruter
+## Routes
 
 ### /
-Forsiden. Hero, aktuelt, sandkasse, eksempler, veiledning.
+The front page. Hero, aktuelt, sandkasse, eksempler, veiledning.
 
 ### /veiledning
-Oversikt over veiledningsløpene.
+Overview of the guidance tracks.
 
 ### /sandkasse
-Informasjonsside om KI-sandkassen.
+Information page about the KI sandbox.
 
 ### /eksempler
-Oversikt over dokumenterte eksempler.
+Overview of documented examples.
 
 ### /eksempler/[slug]
-Dynamisk, krever publisert eksempel i CMS.
+Dynamic, requires a published example in the CMS.
 
 ### /artikler
-Oversikt over artikler.
+Overview of articles.
 
 ### /artikler/[slug]
-Dynamisk, krever publisert artikkel i CMS.
+Dynamic, requires a published article in the CMS.
 
 ### /kalender
-Oversikt over kalenderhendelser.
+Overview of calendar events.
 
 ### /om-oss
-Om KI Norge, med partnerkort.
+About KI Norge, with partner cards.
 
-## Maskinlesbare endepunkter
+## Machine-readable endpoints
 
 ### /robots.txt
-Crawl-regler, Content-Signal og peker til sitemap og llms.txt.
+Crawl rules, Content-Signal and pointers to the sitemap and llms.txt.
 
 ### /sitemap.xml
-Genereres fra hele det publiserte innholdstreet.
+Generated from the whole published content tree.
 
 ### /llms.txt
-Nettstedsoversikt for språkmodeller, genereres fra CMS-et.
+Site overview for language models, generated from the CMS.
 
-## 404-test
+## 404 test
 - GET /__does_not_exist__ -> 404
-- GET /personvern -> 404 (ikke implementert)
-- GET /tilgjengelighet -> 404 (ikke implementert)
+- GET /personvern -> 404 (not implemented)
+- GET /tilgjengelighet -> 404 (not implemented)

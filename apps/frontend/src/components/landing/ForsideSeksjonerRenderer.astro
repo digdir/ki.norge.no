@@ -1,7 +1,7 @@
 ---
-// Rendrer forsidens modul-blokker (forside.seksjoner) i redaktørens rekkefølge.
-// Komponenten gjør INGEN fetch — pooler (artikler/veiledninger/arrangement/eksempler) sendes inn.
-// Hva som skal vises avgjøres i lib/forside-seksjoner.ts, her bare rendres det.
+// Renders the front page module blocks (forside.seksjoner) in the editor's order.
+// The component does NO fetch. Pools (artikler/veiledninger/arrangement/eksempler) are passed in.
+// What to show is decided in lib/forside-seksjoner.ts, here it is only rendered.
 import Hero from './Hero.astro';
 import NewsCard from '../shared/NewsCard.astro';
 import CardGrid from '../shared/CardGrid.astro';
@@ -80,11 +80,11 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
   }
 
   if (block.contentType === 'forsideArrangementer') {
-    // Redaktørvalgt arrangement overstyrer auto. Tomt → neste kommende.
+    // An editor-chosen event overrides auto. Empty → the next upcoming one.
     const valgt = (block.arrangementId && upcomingEvents.find((e) => e.id === block.arrangementId)) || upcomingEvents[0] || null;
     const lenke = velgLenke(block);
-    // Uten kommende arrangement peker seksjonen til arkivet i stedet for å forsvinne.
-    // Er arkivet også tomt har seksjonen ingenting å vise, og da skjuler vi den.
+    // Without an upcoming event the section points to the archive instead of disappearing.
+    // If the archive is also empty the section has nothing to show, and then we hide it.
     if (!valgt && !harTidligereArrangementer) return null;
     return (
       <section class="arrangementer" data-layout-block="edge">
@@ -133,8 +133,8 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
         {block.overskrift && <h2 class="ds-heading section-heading" data-size="lg">{block.overskrift}</h2>}
         <ExampleLinkCards cards={kort.map((c, i) => ({ ...c, tag: block.kortTag, variant: (i === 0 ? 'medium' : 'light') as 'dark' | 'medium' | 'light' }))} />
         {lenke && <ArrowLink href={lenke.href} text={lenke.tekst} />}
-        {/* Kodedrevet som på /eksempler (#755). Følger blokken, så redaktøren
-            styrer boksen ved å flytte eller fjerne «Lær av andre». */}
+        {/* Code-driven as on /eksempler (#755). Follows the block, so the editor
+            controls the box by moving or removing "Lær av andre". */}
         <KiTiltakEntryCard headingLevel={3} />
       </section>
     );
@@ -172,11 +172,11 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
 
   if (block.contentType === 'forsideSandkasse') {
     const sandkasseLinkId = `sandkasse-link-${block.id}`;
-    // Pilen limes til siste ord så den ikke brekker alene (#464)
+    // The arrow is glued to the last word so it does not wrap alone (#464)
     const sandkasseTittel = (block.overskrift ?? '').trim();
-    // Vakta må stå på den ferdige URLen, ikke på mediet. Delivery API sender
-    // picker-objekter som finnes men er tomme, så `block.illustrasjon &&` slapp
-    // gjennom og rendret <img src="">.
+    // The guard must be on the final URL, not on the media. Delivery API sends
+    // picker objects that exist but are empty, so `block.illustrasjon &&` let them
+    // through and rendered <img src="">.
     const sandkasseBilde = getCardImage(block.illustrasjon);
     return (
       <section class="sandkasse-section" data-layout-block="content">
@@ -233,7 +233,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
     margin-bottom: var(--ds-size-8);
   }
 
-  /* ── Kommende arrangementer (egen seksjon, uten rosa strek) ── */
+  /* ── Kommende arrangementer (own section, without pink line) ── */
   .arrangementer {
     background-color: var(--ds-color-brand2-surface-default);
     margin-block-start: 0 !important;
@@ -260,7 +260,7 @@ const { seksjoner, latestArticles, eksempler = [], upcomingEvents = [], harTidli
     }
   }
 
-  /* ── Forstå regelverket (enkel lenkeliste) ───────────── */
+  /* ── Forstå regelverket (simple link list) ───────────── */
   .forsta-liste {
     list-style: none;
     margin: 0;

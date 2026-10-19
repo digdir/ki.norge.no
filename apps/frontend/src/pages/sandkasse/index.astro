@@ -22,7 +22,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: sandkasse.tittel, url: '/sandkasse' },
 ]);
 
-// SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
+// The SEO image is for share previews and must never become content (#738).
 const heroImage = sandkasse.artikkelBilde;
 const heroBg = bakgrunnSurface(sandkasse.bakgrunn);
 
@@ -59,7 +59,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 </Layout>
 
 <style>
-  /* Hero: tittel over fullbredde banner-bilde (2:1, object-fit cover) */
+  /* Hero: title above full-width banner image (2:1, object-fit cover) */
   .article-hero-inner {
     display: flex;
     flex-direction: column;

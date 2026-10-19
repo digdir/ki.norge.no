@@ -3,7 +3,7 @@ import AkselIcon from './AkselIcon.astro';
 import { kiTiltak } from '../../lib/ki-tiltak';
 
 interface Props {
-  // h3 når kortet ligger inne i en seksjon med egen h2, som på forsiden.
+  // h3 when the card sits inside a section with its own h2, as on the front page.
   headingLevel?: 2 | 3;
 }
 
@@ -118,8 +118,8 @@ const randId = `tiltak-entry-${Math.random().toString(36).substr(2, 9)}`;
   .tiltak-entry-merkelapp {
     font-size: var(--ds-body-sm-font-size);
     color: var(--ds-color-accent-text-default);
-    /* Teksten er lang nok til å brytes. Prototypen bryter den over to linjer
-       sentrert under tallet, i stedet for å la kortet vokse i bredden. */
+    /* The text is long enough to wrap. The prototype wraps it over two lines
+       centred under the number, instead of letting the card grow in width. */
     max-width: 18ch;
     text-align: center;
   }

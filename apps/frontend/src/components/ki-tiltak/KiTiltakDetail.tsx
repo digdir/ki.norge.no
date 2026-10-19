@@ -11,12 +11,12 @@ interface Props {
 export const DETAIL_DIALOG_ID = 'tiltak-detalj-dialog';
 
 /**
- * Redaksjonell fritekst fra datasettet. Linjer som starter med et kulepunkt
- * blir en ekte <ul>, resten blir avsnitt. Se textBlocks.ts.
+ * Editorial free text from the dataset. Lines that start with a bullet
+ * become a real <ul>, the rest become paragraphs. See textBlocks.ts.
  */
 /**
- * Lenker rendres som React-elementer, aldri som innerHTML. Teksten kommer fra
- * et åpent innsendingsskjema, så det er den egenskapen som gjør den trygg.
+ * Links are rendered as React elements, never as innerHTML. The text comes from
+ * an open submission form, so that property is what makes it safe.
  */
 function Linjetekst({ text }: { text: string }) {
   return (
@@ -34,7 +34,7 @@ function Linjetekst({ text }: { text: string }) {
   );
 }
 
-/** Seksjon med verdiene som vanlig tekst. Rendrer ingenting når lista er tom. */
+/** Section with the values as plain text. Renders nothing when the list is empty. */
 function Tekstfelt({ tittel, verdier }: { tittel: string; verdier: string[] }) {
   if (verdier.length === 0) return null;
   return (
@@ -55,8 +55,8 @@ function RichText({ text }: { text: string }) {
               <Linjetekst text={block.text} />
             </Paragraph>
           );
-        // Nummerering kommer fra <ol>, ikke fra teksten. Skriver redaksjonen
-        // 1, 1, 1 blir den likevel riktig i visningen.
+        // Numbering comes from <ol>, not from the text. If the editors write
+        // 1, 1, 1 it still comes out right in the view.
         const List = block.ordered ? 'ol' : 'ul';
         return (
           <List key={`list-${i}`} className="tiltak-detalj-liste">
@@ -73,10 +73,10 @@ function RichText({ text }: { text: string }) {
 }
 
 export default function KiTiltakDetail({ tiltak, onClose }: Props) {
-  // Oppstartsdato og sluttdato er tatt ut av visningen. Metadatafeltene under
-  // gjelder bare tiltak som er sendt inn eller oppdatert via skjemaet, og et
-  // tomt felt rendres ikke i det hele tatt. De eldre oppføringene viser derfor
-  // bare beskrivelse og tema, og det er meningen.
+  // Start date and end date are removed from the view. The metadata fields below
+  // only apply to ki-tiltak submitted or updated via the form, and an
+  // empty field is not rendered at all. The older entries therefore show
+  // only description and topic, and that is intended.
   return (
     <Dialog
       id={DETAIL_DIALOG_ID}
@@ -91,10 +91,10 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
       {tiltak && (
         <Dialog.Block className="tiltak-detalj-kropp">
           {/*
-            command/commandfor i stedet for onClick={onClose}, samme begrunnelse som i
-            KiTiltakFilterPanel.tsx. Å lukke via open-prop setter dialog.open direkte og
-            hopper over close()-algoritmen, som låser resten av siden bak en usynlig
-            backdrop og hindrer onClose-eventet i å fyre.
+            command/commandfor instead of onClick={onClose}, same reasoning as in
+            KiTiltakFilterPanel.tsx. Closing via the open prop sets dialog.open directly and
+            skips the close() algorithm, which locks the rest of the page behind an invisible
+            backdrop and keeps the onClose event from firing.
           */}
           <Button
             variant="tertiary"
@@ -117,7 +117,7 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
           </Heading>
 
           {tiltak.virksomheter.length > 1 ? (
-            // Én per linje, hovedvirksomheten først (#806).
+            // One per line, the main organisation first (#806).
             <ul className="tiltak-detalj-virksomhet tiltak-detalj-virksomheter">
               {tiltak.virksomheter.map((navn) => (
                 <li key={navn}>{navn}</li>
@@ -162,8 +162,8 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
           )}
 
           {/*
-            Adressen er ikke satt opp hos drift ennå. Valgt bevisst framfor en
-            midlertidig adresse, slik at teksten ikke må endres to ganger.
+            The address is not set up by operations yet. Chosen deliberately over a
+            temporary address, so the text does not have to be changed twice.
           */}
           <Paragraph className="tiltak-detalj-kontakt">
             Vil du oppdatere beskrivelsen av eller fasen til tiltaket? Ta kontakt på{' '}

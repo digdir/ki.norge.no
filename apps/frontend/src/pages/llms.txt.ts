@@ -3,8 +3,8 @@ import { generateLlmsTxt } from '../lib/llms-txt';
 import { isProdHost, CANONICAL_SITE_URL } from '../lib/prod-hosts';
 
 export const GET: APIRoute = async ({ url }) => {
-  // Samme regel som sitemapet: lest fra workers.dev-hosten skal lenkene
-  // fortsatt peke til det kanoniske domenet.
+  // Same rule as the sitemap: when read from the workers.dev host, the links
+  // should still point to the canonical domain.
   const base = isProdHost(url.hostname) ? CANONICAL_SITE_URL : url.origin;
 
   try {

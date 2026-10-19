@@ -20,8 +20,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: page.tittel, url: `/${slug}` },
 ]);
 ---
-<!-- Samme enkle artikkeldesign som veiledningens stegartikler:
-     bred tittel/ingress-blokk (1000px) og smalere sentrert brødtekst (680px) -->
+<!-- Same simple article design as the veiledning step articles:
+     wide title/ingress block (1000px) and narrower centered body text (680px) -->
 <Layout title={seoTitle} description={seoDesc} ogImage={seoImage} bodyColor="brand1">
   <div class="article-hero" data-layout-block="content">
     <h1 class="article-title ds-heading" data-size="xl" style={ordlengde(page.tittel)}>{page.tittel}</h1>

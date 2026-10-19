@@ -1,25 +1,25 @@
 /**
- * Organisasjonsnummer: format og kontrollsiffer.
+ * Organisation number: format and check digit.
  *
- * Holdt fri for React med vilje, på samme måte som tiltakSkjema.ts, slik at
- * validateTiltakForm.test.ts kan kjøre i Vitest sitt node-miljø uten at
- * designsystemet-web prøver å registrere custom elements.
+ * Kept free of React on purpose, the same way as tiltakSkjema.ts, so that
+ * validateTiltakForm.test.ts can run in Vitest's node environment without
+ * designsystemet-web trying to register custom elements.
  */
 
-/** Vektene MOD-11 bruker på de åtte første sifrene. Siste siffer er kontrollsifferet. */
+/** The weights MOD-11 uses on the first eight digits. The last digit is the check digit. */
 const WEIGHTS = [3, 2, 7, 6, 5, 4, 3, 2] as const;
 
 export const ORGNR_LENGTH = 9;
 
-/** Ni siffer, ingenting annet. Sier ingenting om nummeret er ekte. */
+/** Nine digits, nothing else. Says nothing about whether the number is real. */
 export function hasOrgnrFormat(value: string): boolean {
   return new RegExp(`^\\d{${ORGNR_LENGTH}}$`).test(value);
 }
 
 /**
- * MOD-11-kontroll. Fanger de fleste tastefeil som ellers gir ni gyldige
- * siffer, for eksempel 123456789, som ser riktig ut men ikke er et
- * organisasjonsnummer.
+ * MOD-11 check. Catches most typos that otherwise give nine valid
+ * digits, for example 123456789, which looks right but is not an
+ * organisation number.
  */
 export function hasValidCheckDigit(value: string): boolean {
   if (!hasOrgnrFormat(value)) return false;
@@ -29,8 +29,8 @@ export function hasValidCheckDigit(value: string): boolean {
   const remainder = sum % 11;
   const check = remainder === 0 ? 0 : 11 - remainder;
 
-  // Rest 1 gir kontrollsiffer 10, som ikke får plass i ett siffer. Slike
-  // nummer deles ikke ut, så de er ugyldige.
+  // Remainder 1 gives check digit 10, which does not fit in one digit. Such
+  // numbers are not issued, so they are invalid.
   if (check === 10) return false;
 
   return check === digits[ORGNR_LENGTH - 1];

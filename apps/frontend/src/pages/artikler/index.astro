@@ -10,8 +10,8 @@ const isPreview = Astro.locals.isPreview;
 let articles: Artikkel[] = [];
 let oversikt = null;
 try {
-  // Veiledningsguidene ble bare hentet for artikkelRelatert-blokken, som denne
-  // sida ikke lenger rendrer. Da slipper vi også det tredje API-kallet.
+  // The veiledning guides were only fetched for the artikkelRelatert block, which this
+  // page no longer renders. That also saves us the third API call.
   const [artiklerRes, oversiktRes] = await Promise.all([
     getArtikler(undefined, { preview: isPreview }),
     getArtiklerOversikt({ preview: isPreview }),
@@ -20,7 +20,7 @@ try {
   oversikt = oversiktRes;
 } catch (e) {
   console.error('Failed to fetch artikler:', e);
-  // CMS-henting feilet: ikke cache den degraderte renderen (se middleware).
+  // CMS fetch failed: do not cache the degraded render (see middleware).
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
@@ -29,37 +29,37 @@ const heroSubtittel = oversikt?.heroSubtittel || '';
 const seoTitle = oversikt?.seoTittel || heroTittel;
 const seoDesc = oversikt?.seoBeskrivelse || 'Nyheter, analyser og artikler om kunstig intelligens i norsk offentlig sektor.';
 
-// Nyest først på publishedAt, som er nøyaktig feltet kortene viser i merkelappen.
-// Sorterer lista på noe annet enn det som står på kortet, ser rekkefølgen feil ut
-// selv om begge datoene isolert sett stemmer.
+// Newest first by publishedAt, which is exactly the field the cards show in the tag.
+// If the list is sorted on something other than what is on the card, the order looks
+// wrong even if both dates are correct in isolation.
 //
-// mapItem har alt løst datokjeden (redaktørens publisertDato, så byline, så
-// createDate) ned i publishedAt, og beholder ikke leddene. Derfor sendes bare
-// publishedAt inn her. Sender vi hele artikkelen, leter komparatoren opp byline
-// på nytt og kan lande på en annen dato enn den kortet viser.
+// mapItem has already resolved the date chain (the editor's publisertDato, then byline,
+// then createDate) into publishedAt, and does not keep the links. That is why only
+// publishedAt is passed in here. If we pass the whole article, the comparator looks up
+// byline again and can land on a different date than the one the card shows.
 //
-// API-et kan ikke sortere for oss: getArtikler henter med sort=updateDate:desc,
-// og updateDate er verken det kortet viser eller det redaktøren kan overstyre.
+// The API cannot sort for us: getArtikler fetches with sort=updateDate:desc,
+// and updateDate is neither what the card shows nor what the editor can override.
 const sorterte = [...articles].sort((a, b) =>
   sammenlignPublisertDato({ publishedAt: a.publishedAt }, { publishedAt: b.publishedAt }),
 );
 
-// velgKortbilde gjor URLen absolutt mot CMS-hosten og gir srcset + sideforhold.
-// Rekkefolgen er lenkekortbilde, saa hovedbilde. Blokk-overstyringen falt bort
-// sammen med seksjonene.
+// velgKortbilde makes the URL absolute against the CMS host and gives srcset + aspect ratio.
+// The order is lenkekortbilde, then hovedbilde. The block override went away
+// together with the sections.
 function getCardBilde(article: Artikkel) {
   return velgKortbilde(article);
 }
 
-// Toppen er fortsatt redaktørens valg. Uten valgt artikkel er det den nyeste,
-// og «nyeste» følger samme datokjede som resten av lista.
+// The top is still the editor's choice. Without a chosen article it is the newest,
+// and "newest" follows the same date chain as the rest of the list.
 const featured = (oversikt?.featuredArtikkelId
   ? sorterte.find(a => a.id === oversikt!.featuredArtikkelId)
   : null) ?? sorterte[0];
 
-// Fremhevet artikkel vises ikke en gang til lenger nede. Samme kort to ganger på
-// én skjerm leses som en feil. Prisen er at en gammel fremhevet artikkel løftes
-// ut av kronologien, og det er iboende i å ha en manuell topplass.
+// The featured article is not shown a second time further down. The same card twice on
+// one screen reads as a bug. The price is that an old featured article is lifted
+// out of the chronology, and that is inherent in having a manual top slot.
 const rest = sorterte.filter(a => a.id !== featured?.id);
 
 const collectionJsonLd = collectionPageSchema({

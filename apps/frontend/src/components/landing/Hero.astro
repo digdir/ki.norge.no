@@ -1,6 +1,6 @@
 ---
-// Hero — tagline with illustration, "Kom i gang" CTA. Feltene er redaksjonelle
-// (forsideHero-modulen); defaults under brukes når feltet er tomt.
+// Hero: tagline with illustration, "Kom i gang" CTA. The fields are editorial
+// (the forsideHero module); the defaults below are used when a field is empty.
 import AkselIcon from '../shared/AkselIcon.astro';
 import { splitLastWord } from '../../lib/text';
 import Logo from '../layout/Logo';
@@ -19,7 +19,7 @@ const {
   illustrasjon,
 } = Astro.props;
 
-// Pilen limes til siste ord så den ikke brekker alene (#464)
+// The arrow is glued to the last word so it does not wrap alone (#464)
 const lenkeParts = splitLastWord(lenketekst);
 ---
 
@@ -84,7 +84,7 @@ const lenkeParts = splitLastWord(lenketekst);
     font-family: var(--ki-heading-font);
   }
 
-  /* Innhold kommer fra rik tekst (set:html): nullstill p-marger, uthev fet skrift. */
+  /* Content comes from rich text (set:html): reset p margins, emphasise bold text. */
   .hero-tagline :global(p) {
     margin: 0;
   }

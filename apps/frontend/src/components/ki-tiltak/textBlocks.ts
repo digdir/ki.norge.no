@@ -1,23 +1,23 @@
 /**
- * Deler redaksjonell fritekst fra ki-tiltak.json i avsnitt og punktlister.
+ * Splits editorial free text from ki-tiltak.json into paragraphs and bullet lists.
  *
- * Datasettet er en JSON-fil som redaksjonen vedlikeholder for hånd, og JSON
- * har ingen plass til markup. Linjeskift skrives derfor som \n, og linjer som
- * starter med en kulepunkt-markør blir en ekte liste ved rendring. Da slipper
- * vi både et eget skjema for punktlister og en markdown-avhengighet, og
- * skjermlesere får <ul> i stedet for et punkt-tegn midt i en setning.
+ * The dataset is a JSON file the editors maintain by hand, and JSON
+ * has no room for markup. Line breaks are therefore written as \n, and lines that
+ * start with a bullet marker become a real list when rendered. That way we avoid
+ * both a separate schema for bullet lists and a markdown dependency, and
+ * screen readers get <ul> instead of a bullet character in the middle of a sentence.
  *
- * Fri for React, så oppdelingen kan testes uten DOM.
+ * Free of React, so the splitting can be tested without a DOM.
  */
 
-/** Tegnene redaksjonen realistisk bruker som kulepunkt, inkludert lister limt fra Word. */
+/** The characters editors realistically use as bullets, including lists pasted from Word. */
 const BULLET = /^\s*[•·▪*-]\s+/;
 
 /**
- * Nummererte punkt, «1.» eller «1)».
+ * Numbered items, "1." or "1)".
  *
- * Maks to siffer med vilje: uten den grensen ville en linje som begynner med
- * et årstall, «2026. Vi startet …», blitt tolket som et listepunkt.
+ * At most two digits on purpose: without that limit a line that starts with
+ * a year, "2026. Vi startet …", would be read as a list item.
  */
 const NUMBERED = /^\s*\d{1,2}[.)]\s+/;
 
@@ -47,7 +47,7 @@ export function toTextBlocks(text: string): TextBlock[] {
     const marker = NUMBERED.test(line) ? NUMBERED : BULLET.test(line) ? BULLET : null;
     if (marker !== null) {
       const isOrdered = marker === NUMBERED;
-      // Bytter markørtypen midt i en liste, begynner en ny liste.
+      // If the marker type changes in the middle of a list, a new list starts.
       if (list.length > 0 && isOrdered !== ordered) flushList();
       ordered = isOrdered;
       list.push(line.replace(marker, '').trim());
@@ -63,13 +63,13 @@ export function toTextBlocks(text: string): TextBlock[] {
 }
 
 /**
- * Lenker i fritekst, skrevet som markdown: [Se rapporten](https://example.no).
+ * Links in free text, written as markdown: [Se rapporten](https://example.no).
  *
- * Bare lenker. Ikke fet skrift, ikke bilder, ikke rå HTML. Grunnen er at
- * beskrivelsen kommer fra et åpent innsendingsskjema, og en delvis markdown
- * som senere vokser er hvordan man ender med å rendre brukerinnsendt HTML.
- * Segmentene under blir React-elementer hos kalleren, aldri innerHTML, så
- * XSS er utelukket av konstruksjon og ikke av årvåkenhet.
+ * Only links. No bold, no images, no raw HTML. The reason is that
+ * the description comes from an open submission form, and a partial markdown
+ * that grows later is how you end up rendering user-submitted HTML.
+ * The segments below become React elements in the caller, never innerHTML, so
+ * XSS is ruled out by construction and not by vigilance.
  */
 const LENKE = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 
@@ -78,9 +78,9 @@ export type Inline =
   | { kind: 'link'; text: string; href: string };
 
 /**
- * Bare http og https. En href som ikke består, rendres som den teksten den er,
- * så «[klikk](javascript:alert(1))» blir synlig tekst og ikke en lenke.
- * new URL() er strengere og mer forutsigbar enn et regex på protokollen.
+ * Only http and https. An href that does not pass is rendered as the text it is,
+ * so "[klikk](javascript:alert(1))" becomes visible text and not a link.
+ * new URL() is stricter and more predictable than a regex on the protocol.
  */
 function erTryggLenke(href: string): boolean {
   try {
@@ -91,7 +91,7 @@ function erTryggLenke(href: string): boolean {
   }
 }
 
-/** Deler en linje i tekst og lenker. Uten lenker gir den ett tekstsegment. */
+/** Splits a line into text and links. Without links it gives one text segment. */
 export function toInline(text: string): Inline[] {
   const ut: Inline[] = [];
   let sist = 0;

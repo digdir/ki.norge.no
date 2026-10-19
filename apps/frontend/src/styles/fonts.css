@@ -1,14 +1,14 @@
-/* Selvhostede fonter. Erstatter Google Fonts, som lå på kritisk sti og kostet
-   rundt 800 ms render-blokkering på mobil. Selvhosting fjerner et tredjeparts
-   DNS-oppslag, TLS-håndtrykk og hent før første piksel, og gjør at besøkendes
-   IP-adresse ikke lenger sendes til Google.
+/* Self-hosted fonts. Replaces Google Fonts, which sat on the critical path and
+   cost around 800 ms of render blocking on mobile. Self-hosting removes a
+   third-party DNS lookup, TLS handshake and fetch before the first pixel, and
+   means visitors' IP addresses are no longer sent to Google.
 
-   Begge fontene er SIL Open Font License 1.1, se public/fonts/OFL.txt.
-   Kyrilliske subsett er utelatt. unicode-range er beholdt ordrett fra Google,
-   så nettleseren fortsatt bare henter det subsettet den faktisk trenger.
+   Both fonts are SIL Open Font License 1.1, see public/fonts/OFL.txt.
+   Cyrillic subsets are left out. unicode-range is kept verbatim from Google,
+   so the browser still only fetches the subset it actually needs.
 
-   Filnavn og vekter styres herfra. Preload av de to filene som trengs over
-   skjermkanten ligger i Layout.astro. */
+   File names and weights are controlled from here. Preload of the two files
+   needed above the fold lives in Layout.astro. */
 
 /* Instrument Sans 400 700 — latin */
 @font-face {
