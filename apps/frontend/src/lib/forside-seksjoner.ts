@@ -1,6 +1,6 @@
-// Utvelgelseslogikken for forsidens moduler, skilt fra malen så den kan testes
-// uten å rendre HTML. Regelen er den samme overalt: et tomt felt betyr ingenting.
-// Ingenting fylles automatisk, og en modul uten innhold rendres ikke.
+// The selection logic for the front page modules, separated from the template so it can be tested
+// without rendering HTML. The rule is the same everywhere: an empty field means nothing.
+// Nothing is filled automatically, and a module without content is not rendered.
 import { getCardImage, velgKortbilde, type CardImage, type ForsideKort, type ForsideSeksjon, type UmbracoMedia, type VeiledningGuide } from './umbraco';
 
 export const MAKS_AKTUELT_KORT = 3;
@@ -43,28 +43,28 @@ export interface VeiledningInnhold {
   label?: string;
 }
 
-// Pickeren i Aktuelt er ufiltrert, så redaktøren kan velge mer enn artikler.
-// Alt som kan slås opp her får et kort. Innhold utenfor kildene droppes.
+// The picker in Aktuelt is unfiltered, so the editor can pick more than articles.
+// Everything that can be looked up here gets a card. Content outside the sources is dropped.
 export interface AktueltKilder {
   artikler: any[];
   enkleVeiledninger?: any[];
   veiledninger?: VeiledningGuide[];
   eksempler?: any[];
-  // Ferdigloeste kort for innhold som ikke ligger i listene over, f.eks. steg og
-  // stegartikler nestet under en guide. URLen deres krever forfedre, saa den
-  // loeses av kalleren via hentKortKandidat. Noekkel er node-id.
+  // Pre-resolved cards for content that is not in the lists above, e.g. steps and
+  // stegartikler nested under a guide. Their URL requires ancestors, so it is
+  // resolved by the caller via hentKortKandidat. The key is the node id.
   ekstra?: Map<string, { tittel: string; href: string; ingress?: string; lenkekortBilde?: any; artikkelBilde?: any; publishedAt?: string }>;
 }
 
-// Lenka nederst i en modul krever både tekst og URL. Tekst uten URL gir ingen lenke,
-// i stedet for en <a> uten mål.
+// The link at the bottom of a module requires both text and URL. Text without a URL gives no link,
+// instead of an <a> without a target.
 export function velgLenke(block: Pick<ForsideSeksjon, 'lenketekst' | 'lenkeUrl'>): Lenke | null {
   return block.lenketekst && block.lenkeUrl ? { href: block.lenkeUrl, tekst: block.lenketekst } : null;
 }
 
-// Pool-innhold har ingress og bildefelt; kortene bruker lead/image.
-// Bildet foelger velgKortbilde: overstyring paa kortet, saa lenkekortbilde, saa
-// hovedbilde. Uten treff rendrer kortet standardbildet selv.
+// Pool content has ingress and image fields; the cards use lead/image.
+// The image follows velgKortbilde: override on the card, then lenkekortbilde, then
+// the main image. Without a match the card renders the default image itself.
 function tilAktueltKort(a: any, href: string, ingressOverride?: string, bildeOverride?: UmbracoMedia): AktueltKort {
   return {
     tittel: a.tittel,
@@ -75,7 +75,7 @@ function tilAktueltKort(a: any, href: string, ingressOverride?: string, bildeOve
   };
 }
 
-// Hver kilde vet hvor innholdet sitt bor, så kortet lenker dit det valgte faktisk ligger.
+// Each source knows where its content lives, so the card links to where the chosen item actually is.
 function finnAktuelt(id: string, kilder: AktueltKilder, ingressOverride?: string, bildeOverride?: UmbracoMedia): AktueltKort | null {
   const artikkel = kilder.artikler.find((a) => a.id === id);
   if (artikkel) return tilAktueltKort(artikkel, `/artikler/${artikkel.slug}`, ingressOverride, bildeOverride);
@@ -83,16 +83,16 @@ function finnAktuelt(id: string, kilder: AktueltKilder, ingressOverride?: string
   if (veiledning) return tilAktueltKort(veiledning, `/veiledning/${veiledning.slug}`, ingressOverride, bildeOverride);
   const eksempel = kilder.eksempler?.find((e) => e.id === id);
   if (eksempel) return tilAktueltKort(eksempel, `/eksempler/${eksempel.slug}`, ingressOverride, bildeOverride);
-  // Alt annet redaktoeren kan peke paa: typen er ikke i listene, men kalleren
-  // har loest URLen for oss. Uten dette forsvant kortet stille.
+  // Anything else the editor can point to: the type is not in the lists, but the caller
+  // has resolved the URL for us. Without this the card disappeared silently.
   const annet = kilder.ekstra?.get(id);
   if (annet) return tilAktueltKort(annet, annet.href, ingressOverride, bildeOverride);
-  console.warn(`[forside] Aktuelt peker på innhold som ikke finnes i kildene (id=${id}), kortet droppes`);
+  console.warn(`[forside] Aktuelt points to content that does not exist in the sources (id=${id}), dropping the card`);
   return null;
 }
 
-// Redaktørvalgte kort slås opp i kildene. Et kort uten treff droppes, enten fordi
-// innholdet er slettet eller fordi det er av en type Aktuelt ikke kan vise.
+// Editor-picked cards are looked up in the sources. A card without a match is dropped, either because
+// the content is deleted or because it is of a type Aktuelt cannot show.
 function slaaOppAktuelt(kort: ForsideKort[] | undefined, kilder: AktueltKilder): AktueltKort[] {
   return (kort ?? [])
     .map((k) => (k.id ? finnAktuelt(k.id, kilder, k.ingress, k.bilde) : null))
@@ -110,8 +110,8 @@ function slaaOppEksempler(kort: ForsideKort[] | undefined, eksempler: any[]): Ek
     .filter((c): c is EksempelKort => c !== null);
 }
 
-// Fremhevet artikkel styrer den store artikkelen alene, Kort styrer de små alene.
-// Den fremhevede gjentas ikke blant kortene.
+// Fremhevet artikkel alone controls the large article, Kort alone controls the small ones.
+// The featured one is not repeated among the cards.
 export function velgAktuelt(block: ForsideSeksjon, kilder: AktueltKilder): AktueltInnhold | null {
   const featured = block.fremhevetArtikkelId ? finnAktuelt(block.fremhevetArtikkelId, kilder) : null;
   const kort = slaaOppAktuelt(block.kort, kilder)
@@ -129,8 +129,8 @@ export function velgLaerAvAndre(block: ForsideSeksjon, eksempler: any[]): LaerAv
   return { kort, lenke };
 }
 
-// Tittel, ingress, bilde og lenke arves fra valgt veiledning, slik feltbeskrivelsene
-// lover. Uten tittel og lenke har modulen ingenting å peke på.
+// Title, ingress, image and link are inherited from the chosen veiledning, as the field descriptions
+// promise. Without a title and link the module has nothing to point to.
 export function velgVeiledning(block: ForsideSeksjon, veiledninger: VeiledningGuide[]): VeiledningInnhold | null {
   const valgt = block.veiledningId ? veiledninger.find((v) => v.id === block.veiledningId) : undefined;
   const tittel = block.tittel || valgt?.tittel;

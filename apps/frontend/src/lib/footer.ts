@@ -4,12 +4,12 @@ export interface FooterLenke {
 }
 
 /**
- * Slot 6 i footeren er ren opt-in. Lenke 1 til 5 har hardkodede standardverdier
- * i Footer.astro, denne har ingen: er feltene tomme, finnes ikke oppføringen.
+ * Slot 6 in the footer is pure opt-in. Links 1 to 5 have hardcoded default values
+ * in Footer.astro, this one has none: if the fields are empty, the entry does not exist.
  *
- * Begge feltene må være satt. Med bare tekst ville renderen falt til
- * knappe-varianten som lenke 5 bruker, og med bare URL hadde vi hatt en lenke
- * uten ledetekst. Trimmer, fordi et mellomrom fra en redaktør ikke er en lenke.
+ * Both fields must be set. With only text the render would fall back to the
+ * button variant that link 5 uses, and with only a URL we would have a link
+ * without a label. Trims, because a space from an editor is not a link.
  */
 export function footerLenke6(
   global: { footerLenke6Tekst?: string | null; footerLenke6Url?: string | null } | null | undefined,

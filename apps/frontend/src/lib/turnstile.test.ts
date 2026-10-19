@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 /**
- * turnstile.ts leser nøklene på modulnivå, så hver test stubber env og
- * importerer modulen på nytt. Da testes den faktiske oppførselen, ikke en
- * omskrevet kopi av den.
+ * turnstile.ts reads the keys at module level, so each test stubs env and
+ * imports the module again. That tests the actual behaviour, not a
+ * rewritten copy of it.
  */
 async function importWith(siteKey: string, secretKey: string) {
   vi.resetModules();
@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 describe('turnstileIsConfigured', () => {
-  test('krever begge nøklene', async () => {
+  test('requires both keys', async () => {
     expect((await importWith('', '')).turnstileIsConfigured).toBe(false);
     expect((await importWith(KEYS.site, '')).turnstileIsConfigured).toBe(false);
     expect((await importWith('', KEYS.secret)).turnstileIsConfigured).toBe(false);
@@ -33,7 +33,7 @@ describe('turnstileIsConfigured', () => {
   });
 });
 
-/** Cloudflares testnøkler svarer med example.com, så svaret her settes for hånd. */
+/** Cloudflare's test keys answer with example.com, so the response here is set by hand. */
 function siteverifyAnswer(body: Record<string, unknown>) {
   return vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(body));
 }
@@ -41,7 +41,7 @@ function siteverifyAnswer(body: Record<string, unknown>) {
 const SOLVED_IN_PROD = { success: true, hostname: 'ki.norge.no' };
 
 describe('verifyTurnstile', () => {
-  test('avviser når hemmeligheten mangler i drift, uten å spørre Cloudflare', async () => {
+  test('rejects when the secret is missing in production, without asking Cloudflare', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, '');
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     expect(await verifyTurnstile('token', '1.2.3.4', 'ki.norge.no')).toBe('not_configured');
@@ -49,7 +49,7 @@ describe('verifyTurnstile', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  test('slipper gjennom på localhost når Turnstile ikke er satt opp', async () => {
+  test('lets through on localhost when Turnstile is not set up', async () => {
     const { verifyTurnstile } = await importWith('', '');
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     expect(await verifyTurnstile('', 'ukjent', 'localhost')).toBe('ok');
@@ -57,7 +57,7 @@ describe('verifyTurnstile', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  test('avviser tomt token uten å spørre Cloudflare', async () => {
+  test('rejects an empty token without asking Cloudflare', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     expect(await verifyTurnstile('', '1.2.3.4', 'ki.norge.no')).toBe('rejected');
@@ -69,50 +69,50 @@ describe('verifyTurnstile', () => {
     'ki.test.norge.no',
     'ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev',
     'ki-norge-frontend-tt02.digitaliseringsdirektoratet.workers.dev',
-  ])('godtar token løst på %s', async (hostname) => {
+  ])('accepts a token solved on %s', async (hostname) => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     siteverifyAnswer({ success: true, hostname });
     expect(await verifyTurnstile('token', '1.2.3.4', 'ki.norge.no')).toBe('ok');
   });
 
-  test.each(['example.com', 'ki.norge.no.example.com', ''])('avviser token løst på «%s»', async (hostname) => {
+  test.each(['example.com', 'ki.norge.no.example.com', ''])('rejects a token solved on "%s"', async (hostname) => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     siteverifyAnswer({ success: true, hostname });
     expect(await verifyTurnstile('token', '1.2.3.4', 'ki.norge.no')).toBe('rejected');
   });
 
-  test('avviser token uten hostname i svaret', async () => {
+  test('rejects a token without hostname in the response', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     siteverifyAnswer({ success: true });
     expect(await verifyTurnstile('token', '1.2.3.4', 'ki.norge.no')).toBe('rejected');
   });
 
-  test('godtar localhost bare når forespørselen også kommer dit', async () => {
+  test('accepts localhost only when the request also comes there', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     siteverifyAnswer({ success: true, hostname: 'localhost' });
     expect(await verifyTurnstile('token', '1.2.3.4', 'localhost')).toBe('ok');
     expect(await verifyTurnstile('token', '1.2.3.4', 'ki.norge.no')).toBe('rejected');
   });
 
-  test('avviser token når siteverify svarer success false', async () => {
+  test('rejects the token when siteverify answers success false', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     siteverifyAnswer({ success: false, 'error-codes': ['invalid-input-response'] });
     expect(await verifyTurnstile('brukt-token', '1.2.3.4', 'ki.norge.no')).toBe('rejected');
   });
 
-  test('avviser når Cloudflare ikke svarer, i motsetning til hastighetsgrensa', async () => {
+  test('rejects when Cloudflare does not respond, unlike the rate limit', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
-    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('nettverk'));
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network'));
     expect(await verifyTurnstile('token', '1.2.3.4', 'ki.norge.no')).toBe('rejected');
   });
 
-  test('avviser når siteverify svarer med feilstatus', async () => {
+  test('rejects when siteverify answers with an error status', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('', { status: 500 }));
     expect(await verifyTurnstile('token', '1.2.3.4', 'ki.norge.no')).toBe('rejected');
   });
 
-  test('sender secret i kroppen, aldri i URL-en', async () => {
+  test('sends the secret in the body, never in the URL', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     const fetchSpy = siteverifyAnswer(SOLVED_IN_PROD);
 
@@ -124,7 +124,7 @@ describe('verifyTurnstile', () => {
     expect(String(init?.body)).toContain('remoteip=1.2.3.4');
   });
 
-  test('utelater remoteip når IP-en er ukjent', async () => {
+  test('leaves out remoteip when the IP is unknown', async () => {
     const { verifyTurnstile } = await importWith(KEYS.site, KEYS.secret);
     const fetchSpy = siteverifyAnswer(SOLVED_IN_PROD);
 

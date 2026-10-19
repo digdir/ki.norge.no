@@ -1,19 +1,19 @@
 /**
- * WebMCP: eksponerer nettstedets egne handlinger som verktøy for en agent som
- * står i nettleseren.
+ * WebMCP: exposes the site's own actions as tools for an agent that
+ * runs in the browser.
  *
- * API-et er ikke ferdig standardisert. Chrome sin tidlige implementasjon henger
- * på navigator.modelContext.provideContext(), mens W3C-utkastet bruker
- * document.modelContext.registerTool(). Vi støtter begge og gjør ingenting i en
- * nettleser som mangler dem, så dette er ren progressiv forbedring.
+ * The API is not fully standardised yet. Chrome's early implementation hangs
+ * on navigator.modelContext.provideContext(), while the W3C draft uses
+ * document.modelContext.registerTool(). We support both and do nothing in a
+ * browser that lacks them, so this is pure progressive enhancement.
  *
- * Verktøynavn og beskrivelser er på engelsk med vilje: de leses av vilkårlige
- * agenter, ikke av oss.
+ * Tool names and descriptions are in English on purpose: they are read by arbitrary
+ * agents, not by us.
  */
 
-// Fra markdown-paths, IKKE html-to-markdown. Sistnevnte importerer linkedom, og
-// denne modulen kjører i nettleseren, så importen sendte en hel DOM-implementasjon
-// til hver besøkende for å bruke én strengfunksjon.
+// From markdown-paths, NOT html-to-markdown. The latter imports linkedom, and
+// this module runs in the browser, so the import sent an entire DOM implementation
+// to every visitor to use one string function.
 import { markdownPathFor } from './markdown-paths';
 
 export interface WebMcpTool {
@@ -111,8 +111,8 @@ export function createTools(): WebMcpTool[] {
       inputSchema: { type: 'object', properties: {} },
       annotations: { readOnlyHint: true },
       async execute() {
-        // .md-varianten, ikke Accept-headeren: den siste kan bli servert fra
-        // edge-cachen som HTML uten at Workeren kjører.
+        // The .md variant, not the Accept header: the latter can be served from
+        // the edge cache as HTML without the Worker running.
         const url = new URL(location.href);
         url.pathname = markdownPathFor(url.pathname);
         try {
@@ -145,7 +145,7 @@ export function createTools(): WebMcpTool[] {
   ];
 }
 
-// De to formene API-et finnes i. Ingen av dem er i TypeScript sine lib-typer.
+// The two forms the API exists in. Neither of them is in TypeScript's lib types.
 type ProvideContextTarget = { provideContext: (ctx: { tools: WebMcpTool[] }) => unknown };
 type RegisterToolTarget = { registerTool: (tool: WebMcpTool) => unknown };
 
@@ -158,9 +158,9 @@ function hasRegisterTool(value: unknown): value is RegisterToolTarget {
 }
 
 /**
- * Registrerer verktøyene mot den varianten av API-et nettleseren har.
- * Returnerer false når ingen av dem finnes, som er tilfellet i så godt som alle
- * nettlesere i dag.
+ * Registers the tools against the variant of the API the browser has.
+ * Returns false when neither exists, which is the case in nearly all
+ * browsers today.
  */
 export async function registerWebMcpTools(
   scope: { navigator?: unknown; document?: unknown } = globalThis,

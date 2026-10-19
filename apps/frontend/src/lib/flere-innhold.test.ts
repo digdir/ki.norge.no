@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { flereNyeste } from './flere-innhold';
 
-// Rekkefølgen fra API-et er updateDate, nyest først. Den gamle artikkelen er
-// nettopp rettet og ligger derfor øverst, selv om den er publisert sist i fjor.
+// The order from the API is updateDate, newest first. The old article was
+// just corrected and is therefore on top, even though it was published late last year.
 const fraApi = [
   { slug: 'gammel-rettet', publishedAt: '2025-11-02T10:00:00Z' },
   { slug: 'denne', publishedAt: '2026-10-01T10:00:00Z' },
@@ -13,15 +13,15 @@ const fraApi = [
 ];
 
 describe('flereNyeste', () => {
-  test('velger de tre nyeste etter publiseringsdato, uten siden selv', () => {
+  test('picks the three newest by publish date, excluding the page itself', () => {
     expect(flereNyeste(fraApi, 'denne').map((a) => a.slug)).toEqual(['nyest', 'mellom', 'eldre']);
   });
 
-  test('en gammel artikkel som nettopp er rettet, dytter ikke ut en nyere', () => {
+  test('an old article that was just corrected does not push out a newer one', () => {
     expect(flereNyeste(fraApi, 'denne').map((a) => a.slug)).not.toContain('gammel-rettet');
   });
 
-  test('innhold uten dato havner sist', () => {
+  test('content without a date ends up last', () => {
     expect(flereNyeste(fraApi, 'denne', 10).map((a) => a.slug)).toEqual([
       'nyest',
       'mellom',
@@ -31,7 +31,7 @@ describe('flereNyeste', () => {
     ]);
   });
 
-  test('endrer ikke lista den får', () => {
+  test('does not change the list it receives', () => {
     const kopi = fraApi.map((a) => a.slug);
     flereNyeste(fraApi, 'denne');
     expect(fraApi.map((a) => a.slug)).toEqual(kopi);

@@ -1,7 +1,7 @@
-// «Flere artikler» under en artikkel eller et eksempel. Kortene viser
-// publishedAt, så de velges og sorteres på samme felt. API-et sorterer på
-// updateDate, og da kan en gammel artikkel som nettopp er rettet, dytte ut en
-// nyere.
+// "Flere artikler" under an article or an eksempel. The cards show
+// publishedAt, so they are picked and sorted on the same field. The API sorts on
+// updateDate, and then an old article that was just corrected can push out a
+// newer one.
 import { sammenlignPublisertDato } from './umbraco';
 
 export function flereNyeste<T extends { slug: string; publishedAt?: string }>(

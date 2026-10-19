@@ -19,13 +19,13 @@ function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
 }
 
 describe('parseTiltakForm', () => {
-  test('avviser kropper som ikke er objekter', () => {
+  test('rejects bodies that are not objects', () => {
     for (const body of [null, 'tekst', 42, [], undefined]) {
       expect(parseTiltakForm(body)).toBeNull();
     }
   });
 
-  test('leser ut feltene fra et gyldig objekt', () => {
+  test('reads the fields from a valid object', () => {
     const result = parseTiltakForm({
       ansvarligNavn: 'Entur AS',
       ansvarligOrgnr: '917422575',
@@ -45,7 +45,7 @@ describe('parseTiltakForm', () => {
     expect(result?.kiType).toEqual(['Generativ KI']);
   });
 
-  test('linjeskift i enlinjefelt fjernes, så innsendt tekst ikke kan forfalske e-postens overskrifter', () => {
+  test('line breaks in single-line fields are removed, so submitted text cannot forge the email headings', () => {
     const result = parseTiltakForm({
       navn: 'Tiltak\n\nKONTAKT\nE-post: angriper@example.invalid',
     });
@@ -53,12 +53,12 @@ describe('parseTiltakForm', () => {
     expect(result?.navn).toBe('Tiltak  KONTAKT E-post: angriper@example.invalid');
   });
 
-  test('beskrivelsen beholder linjeskift, den er et textarea', () => {
+  test('the description keeps line breaks, it is a textarea', () => {
     const result = parseTiltakForm({ beskrivelse: 'Linje 1\nLinje 2' });
     expect(result?.beskrivelse).toBe('Linje 1\nLinje 2');
   });
 
-  test('ukjente verdier siles bort', () => {
+  test('unknown values are filtered out', () => {
     const result = parseTiltakForm({
       leveranse: 'Noe oppdiktet',
       kiType: ['Agentisk KI', '<script>'],
@@ -67,43 +67,43 @@ describe('parseTiltakForm', () => {
     expect(result?.kiType).toEqual(['Agentisk KI']);
   });
 
-  test('en liste fra en gammel side i cachen godtas, og første gyldige verdi brukes', () => {
+  test('a list from an old cached page is accepted, and the first valid value is used', () => {
     expect(parseTiltakForm({ leveranse: ['Noe oppdiktet', 42, 'MVP', 'Pilot'] })?.leveranse).toBe('MVP');
     expect(parseTiltakForm({ leveranse: [] })?.leveranse).toBe('');
   });
 
-  test('avkryssede valg normaliseres til rekkefølgen i alternativlisten', () => {
+  test('checked choices are normalised to the order of the option list', () => {
     const result = parseTiltakForm({ kiType: ['Språkteknologi', 'Generativ KI'] });
     expect(result?.kiType).toEqual(['Generativ KI', 'Språkteknologi']);
   });
 
-  test('felt med feil type blir tom streng i stedet for å velte', () => {
+  test('fields with the wrong type become an empty string instead of crashing', () => {
     const result = parseTiltakForm({ navn: 42, beskrivelse: null, kontaktinfo: {} });
     expect(result?.navn).toBe('');
     expect(result?.beskrivelse).toBe('');
     expect(result?.kontaktinfo).toBe('');
   });
 
-  test('ukjente felt tas ikke med', () => {
+  test('unknown fields are not included', () => {
     const result = parseTiltakForm({ navn: 'Et tiltak', erAdmin: true, rolle: 'redaktor' });
     expect(result).not.toBeNull();
     expect(Object.keys(result ?? {})).toEqual(Object.keys(emptyForm()));
   });
 
-  test('samarbeid som ikke er en liste gir tom liste', () => {
+  test('samarbeid that is not a list gives an empty list', () => {
     expect(parseTiltakForm({ samarbeid: 'nei' })?.samarbeid).toEqual([]);
     expect(parseTiltakForm({ samarbeid: [1, 'to', null] })?.samarbeid).toEqual([]);
   });
 });
 
-describe('lagEpost', () => {
-  test('emnet inneholder tiltaket og virksomheten', () => {
+describe('buildEmail', () => {
+  test('the subject contains the tiltak and the organisation', () => {
     expect(buildEmail(form()).subject).toBe(
       'KI-tiltak: KI-assistent for klarspråk i vedtak (Digitaliseringsdirektoratet)',
     );
   });
 
-  test('teksten inneholder alle utfylte felt', () => {
+  test('the text contains all filled-in fields', () => {
     const { text } = buildEmail(form());
     expect(text).toContain('KI-assistent for klarspråk i vedtak');
     expect(text).toContain('Digitaliseringsdirektoratet');
@@ -113,7 +113,7 @@ describe('lagEpost', () => {
     expect(text).toContain('Gjennomføring');
   });
 
-  test('avkryssede valg listes på én linje, «Annet» med fritekst i parentes', () => {
+  test('checked choices are listed on one line, "Annet" with free text in parentheses', () => {
     const { text } = buildEmail(
       form({
         leveranse: 'Annet',
@@ -125,33 +125,33 @@ describe('lagEpost', () => {
     expect(text).toContain('Type KI: Generativ KI, Språkteknologi');
   });
 
-  test('tomme valgfrie felt merkes tydelig', () => {
+  test('empty optional fields are clearly marked', () => {
     const { text } = buildEmail(form());
     expect(text).toContain('Type KI: (ikke oppgitt)');
     expect(text).toContain('SAMARBEIDSVIRKSOMHETER\n  (ingen oppgitt)');
   });
 
-  test('samarbeidsvirksomheter listes med navn og organisasjonsnummer', () => {
+  test('partner organisations are listed with name and organisation number', () => {
     const row = { ...newPartnerRow(), navn: 'KS', orgnr: '971032146' };
     const { text } = buildEmail(form({ samarbeid: [row] }));
     expect(text).toContain('1. KS (971032146)');
   });
 
-  test('innholdet er ren tekst, uten markup fra innsendingen', () => {
+  test('the content is plain text, without markup from the submission', () => {
     const { text, subject } = buildEmail(
       form({ navn: '<script>alert(1)</script>', beskrivelse: '<b>hei</b>' }),
     );
-    // Teksten sendes som contentType Text, så taggene forblir tegn og blir
-    // aldri markup. Vi verken escaper eller fjerner dem.
+    // The text is sent as contentType Text, so the tags remain characters and never
+    // become markup. We neither escape nor remove them.
     expect(subject).toContain('<script>alert(1)</script>');
     expect(text).toContain('<b>hei</b>');
   });
 });
 
-describe('JSON-blokken i e-posten', () => {
+describe('the JSON block in the email', () => {
   const blokk = (text: string) => text.split('ki-tiltak.json:\n\n')[1].split('\n\nSvar på')[0];
 
-  test('limt inn etter [ gir gyldig JSON med én post mer', async () => {
+  test('pasted after [ gives valid JSON with one more entry', async () => {
     const fil = (await import('node:fs')).readFileSync(
       new URL('../data/ki-tiltak.json', import.meta.url),
       'utf-8',
@@ -169,7 +169,7 @@ describe('JSON-blokken i e-posten', () => {
     });
   });
 
-  test('leveranse og kiType står som lister, og fritekst bare når Annet er valgt', () => {
+  test('leveranse and kiType are lists, and free text only when Annet is selected', () => {
     const { text } = buildEmail(
       form({ leveranse: 'Annet', leveranseAnnet: 'Rapport', kiType: ['Generativ KI'], kiTypeAnnet: 'glemt' }),
       () => 'x',
@@ -181,21 +181,21 @@ describe('JSON-blokken i e-posten', () => {
     expect(post).not.toHaveProperty('kiTypeAnnet');
   });
 
-  test('hver e-post får en ny id', () => {
+  test('every email gets a new id', () => {
     expect(blokk(buildEmail(form()).text)).not.toBe(blokk(buildEmail(form()).text));
   });
 });
 
-describe('JSON-blokken med flere virksomheter (#806)', () => {
+describe('the JSON block with several organisations (#806)', () => {
   const post = (f: TiltakForm) => JSON.parse(tiltakJson(f, 'x').replace(/,$/, ''));
 
-  test('uten samarbeid står virksomhet og orgnr som tekst, som i dag', () => {
+  test('without samarbeid, virksomhet and orgnr are text, as today', () => {
     const p = post(form());
     expect(p.virksomhet).toBe('Digitaliseringsdirektoratet');
     expect(p.orgnr).toBe('991825827');
   });
 
-  test('med samarbeid blir begge lister, med hovedvirksomheten først', () => {
+  test('with samarbeid both become lists, with the main organisation first', () => {
     const p = post(
       form({
         samarbeid: [
@@ -208,7 +208,7 @@ describe('JSON-blokken med flere virksomheter (#806)', () => {
     expect(p.orgnr).toEqual(['991825827', '971032146', '917422575']);
   });
 
-  test('en rad uten orgnr får tom tekst på plassen, og helt tomme rader tas ikke med', () => {
+  test('a row without orgnr gets empty text in its place, and fully empty rows are left out', () => {
     const p = post(
       form({
         samarbeid: [
@@ -222,7 +222,7 @@ describe('JSON-blokken med flere virksomheter (#806)', () => {
     expect(p.orgnr).toEqual(['991825827', '', '917422575']);
   });
 
-  test('blokken gjennom tilKiTiltak gir virksomheter og orgnr i riktig rekkefølge', () => {
+  test('the block through tilKiTiltak gives virksomheter and orgnr in the right order', () => {
     const t = tilKiTiltak(
       post(
         form({

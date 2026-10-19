@@ -1,11 +1,11 @@
 /**
- * Agent Skills Discovery (RFC v0.2.0): publiserer veiledningene som
- * maskinlesbare skills på /.well-known/agent-skills/index.json.
+ * Agent Skills Discovery (RFC v0.2.0): publishes the veiledninger as
+ * machine-readable skills at /.well-known/agent-skills/index.json.
  *
- * Hver veiledning blir én skill med en SKILL.md som oppsummerer den og peker på
- * markdown-variantene av selve sidene. Indeksen oppgir en sha256 av SKILL.md, så
- * de to må genereres fra samme kilde. Derfor bygges alt i én cachet operasjon
- * som begge rutene leser, i stedet for at hver rute regner ut sitt eget.
+ * Each veiledning becomes one skill with a SKILL.md that summarises it and points to
+ * the markdown variants of the pages themselves. The index gives a sha256 of SKILL.md, so
+ * the two must be generated from the same source. That is why everything is built in one cached operation
+ * that both routes read, instead of each route computing its own.
  *
  * https://github.com/cloudflare/agent-skills-discovery-rfc
  */
@@ -20,8 +20,8 @@ import { markdownPathFor } from './html-to-markdown';
 export const SKILLS_SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.json';
 export const SKILLS_BASE_PATH = '/.well-known/agent-skills';
 
-// Innholdstypene som utgjør et selvstendig veiledningsløp. Stegene under en
-// guide blir innhold i guidens skill, ikke egne skills.
+// The content types that make up a self-contained veiledning flow. The steps under a
+// guide become content in the guide's skill, not skills of their own.
 const SKILL_TYPES = new Set(['veiledningGuide', 'enkelVeiledning']);
 
 const DESCRIPTION_MAX_LENGTH = 1024;
@@ -55,7 +55,7 @@ function truncate(text: string, max: number): string {
   return `${text.slice(0, max - 1).replace(/\s+\S*$/, '')}…`;
 }
 
-/** RFC-en krever 1-64 tegn, små bokstaver, sifre og bindestrek. */
+/** The RFC requires 1-64 characters, lowercase letters, digits and hyphens. */
 export function toSkillName(slug: string): string {
   return slug
     .toLowerCase()
@@ -86,7 +86,7 @@ function titleOf(node: RawContentNode): string {
 function summaryOf(node: RawContentNode): string | undefined {
   const p = node.properties ?? {};
   const raw = firstNonEmptyString(p.ingress, p.seoBeskrivelse);
-  // Samme grep som i llms.txt: redaksjonelle rester uten bokstaver er støy.
+  // Same trick as in llms.txt: editorial leftovers without letters are noise.
   return raw && /\p{L}/u.test(raw) ? raw : undefined;
 }
 
@@ -95,9 +95,9 @@ function absolute(baseUrl: string, path: string): string {
 }
 
 /**
- * SKILL.md er en oppsummering med lenker videre, ikke en kopi av hele løpet.
- * Full tekst ligger allerede som markdown på .md-URLene, og å duplisere den her
- * ville gitt to kilder som kan komme i utakt.
+ * SKILL.md is a summary with links onward, not a copy of the whole flow.
+ * The full text is already available as markdown at the .md URLs, and duplicating it here
+ * would give two sources that can drift apart.
  */
 function buildSkillMarkdown(
   name: string,
@@ -144,7 +144,7 @@ async function resolveEntry(node: RawContentNode): Promise<Entry | null> {
     if (!path || isExcludedPath(path)) return null;
     return { path, title: titleOf(node), summary: summaryOf(node) };
   } catch (error) {
-    console.error(`[agent-skills] kunne ikke resolve node ${node.id}`, error);
+    console.error(`[agent-skills] could not resolve node ${node.id}`, error);
     return null;
   }
 }
@@ -154,7 +154,7 @@ async function buildSkillsUncached(baseUrl: string): Promise<Skill[]> {
   try {
     nodes = await fetchAllPublishedContent();
   } catch (error) {
-    console.error('[agent-skills] crawl av innhold feilet', error);
+    console.error('[agent-skills] content crawl failed', error);
     return [];
   }
 
@@ -170,8 +170,8 @@ async function buildSkillsUncached(baseUrl: string): Promise<Skill[]> {
     else others.push(entry);
   }
 
-  // Stegene tilhører guiden hvis stien ligger under den. Enklere og mer robust
-  // enn ancestor-oppslag, siden ruta allerede koder hierarkiet.
+  // The steps belong to the guide if their path is under it. Simpler and more robust
+  // than an ancestor lookup, since the route already encodes the hierarchy.
   const skills = await Promise.all(
     guides.map(async (guide) => {
       const name = toSkillName(guide.path.split('/').pop() ?? '');
@@ -200,9 +200,9 @@ async function buildSkillsUncached(baseUrl: string): Promise<Skill[]> {
 const cache = new Map<string, { expiresAt: number; skillsPromise: Promise<Skill[]> }>();
 
 /**
- * Cachet slik at indeksen og SKILL.md-rutene leser nøyaktig samme generasjon.
- * Uten det kunne en digest i indeksen beskrevet en litt annen SKILL.md enn den
- * som faktisk blir servert.
+ * Cached so that the index and the SKILL.md routes read exactly the same generation.
+ * Without it a digest in the index could describe a slightly different SKILL.md than the one
+ * actually served.
  */
 export async function buildSkills(baseUrl: string): Promise<Skill[]> {
   const key = baseUrl.replace(/\/+$/, '');

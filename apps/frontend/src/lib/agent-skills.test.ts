@@ -39,7 +39,7 @@ describe('toSkillName', () => {
     expect(toSkillName(input)).toBe(expected);
   });
 
-  test('holder seg innenfor RFC-ens 64 tegn og tegnsett', () => {
+  test('stays within the RFC limit of 64 characters and character set', () => {
     const name = toSkillName('a'.repeat(200));
     expect(name.length).toBeLessThanOrEqual(64);
     expect(name).toMatch(/^[a-z0-9-]+$/);
@@ -47,7 +47,7 @@ describe('toSkillName', () => {
 });
 
 describe('buildSkills', () => {
-  test('veiledninger blir skills, andre innholdstyper blir det ikke', async () => {
+  test('veiledninger become skills, other content types do not', async () => {
     const { skills } = await skillsFor([
       GUIDE,
       { id: 'e1', contentType: 'enkelVeiledning', properties: { slug: 'etikk-og-ki', tittel: 'Etikk og KI' } },
@@ -58,17 +58,17 @@ describe('buildSkills', () => {
     expect(skills.map((s) => s.name).sort()).toEqual(['etikk-og-ki', 'gjor-dataene-ki-klare']);
   });
 
-  test('digesten er sha256 av nøyaktig den markdownen som serveres', async () => {
+  test('the digest is the sha256 of exactly the markdown that is served', async () => {
     const { skills } = await skillsFor([GUIDE]);
     const skill = skills[0];
     expect(skill.digest).toBe(`sha256:${await sha256Hex(skill.markdown)}`);
     expect(skill.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
   });
 
-  test('steg under guiden havner i innholdslista, ikke som egne skills', async () => {
-    // veiledningSteg arver guidens slug i URLen, og resolveContentUrl slår opp
-    // ancestors over Delivery API. Å mocke den eksporten hjelper ikke, siden
-    // kallet skjer internt i umbraco.ts. Derfor stubbes fetch.
+  test('steps under the guide end up in the content list, not as skills of their own', async () => {
+    // veiledningSteg inherits the guide's slug in the URL, and resolveContentUrl looks up
+    // ancestors over the Delivery API. Mocking that export does not help, since
+    // the call happens internally in umbraco.ts. That is why fetch is stubbed.
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -90,11 +90,11 @@ describe('buildSkills', () => {
 
     expect(skills).toHaveLength(1);
     expect(skills[0].markdown).toContain('Kartlegg datakilder');
-    // Peker på markdown-varianten, ikke HTML-siden.
+    // Points to the markdown variant, not the HTML page.
     expect(skills[0].markdown).toContain('/veiledning/gjor-dataene-ki-klare/kartlegg-datakilder.md');
   });
 
-  test('SKILL.md har frontmatter med navn og beskrivelse', async () => {
+  test('SKILL.md has frontmatter with name and description', async () => {
     const { skills } = await skillsFor([GUIDE]);
     const lines = skills[0].markdown.split('\n');
     expect(lines[0]).toBe('---');
@@ -102,7 +102,7 @@ describe('buildSkills', () => {
     expect(lines[2]).toContain('description: "Om KI-klare data."');
   });
 
-  test('beskrivelsen faller tilbake på tittelen og kuttes på 1024 tegn', async () => {
+  test('the description falls back to the title and is cut at 1024 characters', async () => {
     const long = 'ord '.repeat(600).trim();
     const { skills } = await skillsFor([
       { id: 'g2', contentType: 'veiledningGuide', properties: { slug: 'uten-ingress', tittel: 'Uten ingress' } },
@@ -115,14 +115,14 @@ describe('buildSkills', () => {
     expect(lang.description.length).toBeLessThanOrEqual(1024);
   });
 
-  test('tom crawl gir tom liste, ikke feil', async () => {
+  test('an empty crawl gives an empty list, not an error', async () => {
     const { skills } = await skillsFor([]);
     expect(skills).toEqual([]);
   });
 });
 
 describe('buildSkillsIndex', () => {
-  test('følger RFC v0.2.0 sitt format', async () => {
+  test('follows the RFC v0.2.0 format', async () => {
     const { skills } = await skillsFor([GUIDE]);
     const index = JSON.parse(buildSkillsIndex(skills));
 
@@ -133,11 +133,11 @@ describe('buildSkillsIndex', () => {
     expect(Object.keys(entry).sort()).toEqual(['description', 'digest', 'name', 'type', 'url']);
     expect(entry.type).toBe('skill-md');
     expect(entry.url).toBe('/.well-known/agent-skills/gjor-dataene-ki-klare/SKILL.md');
-    // Selve markdownen skal ikke ligge i indeksen.
+    // The markdown itself must not be in the index.
     expect(JSON.stringify(index)).not.toContain('frontmatter');
   });
 
-  test('tom liste gir fortsatt et gyldig dokument', () => {
+  test('an empty list still gives a valid document', () => {
     const index = JSON.parse(buildSkillsIndex([]));
     expect(index.$schema).toBe(SKILLS_SCHEMA);
     expect(index.skills).toEqual([]);

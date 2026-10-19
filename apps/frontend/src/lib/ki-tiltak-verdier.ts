@@ -1,9 +1,9 @@
 /**
- * Verdiene fra skjemaet og begrepslista. Egen modul uten JSON-import, så
- * scripts/klargjor-ki-tiltak.mjs kan lese dem rett med node.
+ * The values from the form and the term list. A separate module without JSON imports, so
+ * scripts/klargjor-ki-tiltak.mjs can read them directly with node.
  */
 
-/** Alfabetisk (nb). Alle 15 er i bruk i datasettet. */
+/** Alphabetical (nb). All 15 are in use in the dataset. */
 export const FAGOMRADER = [
   'Arbeid',
   'Demokrati og styresett',
@@ -22,13 +22,13 @@ export const FAGOMRADER = [
   'Økonomi, finans og forsikring',
 ] as const;
 
-/** «Hvilken fase er tiltaket i?» Ett valg. */
+/** "Hvilken fase er tiltaket i?" Single choice. */
 export const FASER = ['Innsikt og planlegging', 'Gjennomføring', 'I drift'] as const;
 
-/** «Hva skal tiltaket levere?» Flere valg. */
+/** "Hva skal tiltaket levere?" Multiple choice. */
 export const LEVERANSER = ['PoC', 'MVP', 'Pilot', 'Løsning i produksjon', 'Annet'] as const;
 
-/** «Hvilken type KI bruker dere i tiltaket?» Flere valg, valgfritt. */
+/** "Hvilken type KI bruker dere i tiltaket?" Multiple choice, optional. */
 export const KI_TYPER = [
   'Generativ KI',
   'Prediktiv KI',
@@ -39,5 +39,5 @@ export const KI_TYPER = [
   'Annet',
 ] as const;
 
-/** Verdien som utløser fritekstfeltet «Beskriv nærmere». */
+/** The value that triggers the free-text field "Beskriv nærmere". */
 export const ANNET = 'Annet';

@@ -3,15 +3,15 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * JSON-LD skal ligge i Layout sin head-slot, aldri i standard-slotten.
+ * JSON-LD must be in Layout's head slot, never in the default slot.
  *
- * Årsaken er layout og ikke SEO: main har negativ toppmargin, og kompensasjonen
- * treffer `main > :first-child`. Et <script> rendres ikke, så når det havnet
- * først i main forsvant padding-en og sidens overskrift la seg oppå headeren.
- * Det skjedde i #678 på fire oversiktssider og var live i tre dager.
+ * The reason is layout and not SEO: main has a negative top margin, and the compensation
+ * targets `main > :first-child`. A <script> is not rendered, so when it ended up
+ * first in main the padding disappeared and the page heading sat on top of the header.
+ * That happened in #678 on four overview pages and was live for three days.
  *
- * En statisk sjekk framfor en render-test, fordi feilen er strukturell og
- * synlig i kilden.
+ * A static check rather than a render test, because the bug is structural and
+ * visible in the source.
  */
 
 const PAGES_DIR = new URL('../pages', import.meta.url).pathname;
@@ -24,16 +24,16 @@ function astroFiles(dir: string): string[] {
   });
 }
 
-// Fjerner innholdet i hver <Fragment slot="head">...</Fragment>, slik at det som
-// står igjen er alt som havner i standard-slotten.
+// Removes the content of each <Fragment slot="head">...</Fragment>, so that what
+// remains is everything that ends up in the default slot.
 function utenforHeadSlot(source: string): string {
   return source.replace(/<Fragment\s+slot="head">[\s\S]*?<\/Fragment>/g, '');
 }
 
-describe('JSON-LD ligger i head-slotten', () => {
+describe('JSON-LD is in the head slot', () => {
   const files = astroFiles(PAGES_DIR);
 
-  test('finner sidefiler å sjekke', () => {
+  test('finds page files to check', () => {
     expect(files.length).toBeGreaterThan(5);
   });
 
@@ -45,8 +45,8 @@ describe('JSON-LD ligger i head-slotten', () => {
 
       expect(
         utenforHeadSlot(source),
-        'JSON-LD utenfor <Fragment slot="head">. Et script som første barn i main ' +
-          'fjerner kompensasjonen for negativ toppmargin, og overskriften kolliderer med headeren.',
+        'JSON-LD outside <Fragment slot="head">. A script as the first child in main ' +
+          'removes the compensation for the negative top margin, and the heading collides with the header.',
       ).not.toContain('application/ld+json');
     },
   );

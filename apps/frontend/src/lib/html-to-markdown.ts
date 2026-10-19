@@ -1,19 +1,19 @@
 /**
- * Konverterer en rendret side til markdown for agenter som ber om det med
+ * Converts a rendered page to markdown for agents that ask for it with
  * Accept: text/markdown.
  *
- * Bruker linkedom, som allerede er en avhengighet (se richtext-classes.ts) og
- * virker både i Node og på Workers. Cloudflare har en egen bryter for det samme
- * (content_converter på sone-nivå), men den konverterer origin-HTML, og her er
- * det Workeren som lager svaret.
+ * Uses linkedom, which is already a dependency (see richtext-classes.ts) and
+ * works both in Node and on Workers. Cloudflare has its own switch for the same thing
+ * (content_converter at zone level), but it converts origin HTML, and here it is
+ * the Worker that produces the response.
  *
- * Kun innholdet i <main> konverteres. Header, footer, søkedialog og
- * tilbake-til-toppen-knappen er navigasjon, ikke innhold, og ville bare blitt
- * støy øverst i hvert eneste dokument.
+ * Only the content of <main> is converted. Header, footer, search dialog and
+ * the back-to-top button are navigation, not content, and would only be
+ * noise at the top of every single document.
  */
 import { parseHTML } from 'linkedom';
 
-// Elementer som aldri skal bidra med tekst.
+// Elements that must never contribute text.
 const SKIP_TAGS = new Set([
   'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'SVG', 'IFRAME',
   'FORM', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'DIALOG',
@@ -22,7 +22,7 @@ const SKIP_TAGS = new Set([
 const HEADING_LEVELS: Record<string, number> = { H1: 1, H2: 2, H3: 3, H4: 4, H5: 5, H6: 6 };
 
 type Ctx = {
-  /** Absolutt base for å gjøre relative lenker og bilder komplette. */
+  /** Absolute base for making relative links and images complete. */
   baseUrl: string;
 };
 
@@ -32,7 +32,7 @@ function collapse(text: string): string {
 
 function absolutize(href: string, baseUrl: string): string {
   if (!href) return '';
-  // Anker og spesialskjemaer skal stå urørt.
+  // Anchors and special schemes are left untouched.
   if (/^(#|mailto:|tel:|data:)/i.test(href)) return href;
   try {
     return new URL(href, baseUrl).toString();
@@ -41,7 +41,7 @@ function absolutize(href: string, baseUrl: string): string {
   }
 }
 
-// Tegn som ville blitt lest som markdown-syntaks midt i brødtekst.
+// Characters that would be read as markdown syntax in the middle of body text.
 function escapeInline(text: string): string {
   return text.replace(/([\\`*_[\]])/g, '\\$1');
 }
@@ -54,9 +54,9 @@ function isSkipped(el: Element): boolean {
 }
 
 /**
- * Legger markørene rundt selve teksten og lar omkringliggende luft stå utenfor.
- * Redaktørene skriver ofte <strong>Tittel<br><br></strong>, og en enkel trim
- * ville spist linjeskiftene så neste avsnitt klistret seg til uthevingen.
+ * Puts the markers around the text itself and leaves surrounding whitespace outside.
+ * Editors often write <strong>Tittel<br><br></strong>, and a simple trim
+ * would eat the line breaks so the next paragraph stuck to the emphasis.
  */
 function wrapEmphasis(rendered: string, marker: string): string {
   const match = /^(\s*)([\s\S]*?)(\s*)$/.exec(rendered);
@@ -65,7 +65,7 @@ function wrapEmphasis(rendered: string, marker: string): string {
   return core ? `${lead}${marker}${core}${marker}${trail}` : lead + trail;
 }
 
-/** Inline-innhold: tekst, lenker, utheving, kode, bilder, linjeskift. */
+/** Inline content: text, links, emphasis, code, images, line breaks. */
 function renderInline(node: Node, ctx: Ctx): string {
   if (node.nodeType === 3) return escapeInline(collapse(node.textContent ?? ''));
   if (node.nodeType !== 1) return '';
@@ -92,15 +92,15 @@ function renderInline(node: Node, ctx: Ctx): string {
     case 'I':
       return wrapEmphasis(children(), '*');
     case 'CODE': {
-      // Kode inni <pre> håndteres av blokk-renderen.
+      // Code inside <pre> is handled by the block renderer.
       const text = collapse(el.textContent ?? '').trim();
       return text ? `\`${text}\`` : '';
     }
     case 'IMG': {
       const src = absolutize(el.getAttribute('src') ?? '', ctx.baseUrl);
       const alt = collapse(el.getAttribute('alt') ?? '').trim();
-      // Tom alt betyr dekorativt bilde. Da er det ingenting å lese, og en
-      // naken ![](...) er bare støy i teksten.
+      // Empty alt means a decorative image. Then there is nothing to read, and a
+      // bare ![](...) is just noise in the text.
       return src && alt ? `![${alt}](${src})` : '';
     }
     default:
@@ -121,13 +121,13 @@ function renderList(el: Element, ctx: Ctx, depth: number): string {
   for (const child of [...el.children]) {
     if (child.tagName !== 'LI') continue;
 
-    // Nøstede lister rendres for seg og trekkes ut av punktets egen tekst.
+    // Nested lists are rendered separately and pulled out of the item's own text.
     const nested = [...child.children].filter((c) => c.tagName === 'UL' || c.tagName === 'OL');
     for (const list of nested) list.remove();
 
     const marker = ordered ? `${index}. ` : '- ';
-    // Blokk-aware: et punkt kan inneholde en lenke etterfulgt av et avsnitt
-    // med beskrivelse. Flatet vi det til inline, klistret de to seg sammen.
+    // Block-aware: an item can contain a link followed by a paragraph
+    // with a description. If we flattened it to inline, the two stuck together.
     const text = renderChildren(child, ctx).trim();
     if (text) {
       const [first, ...rest] = text.split('\n');
@@ -138,8 +138,8 @@ function renderList(el: Element, ctx: Ctx, depth: number): string {
     index += 1;
   }
 
-  // Tomme linjer beholdes: de skiller flere avsnitt inni ett listepunkt. Bare
-  // blanke linjer i endene fjernes, ikke innrykket til en nøstet liste.
+  // Empty lines are kept: they separate several paragraphs inside one list item. Only
+  // blank lines at the ends are removed, not the indentation of a nested list.
   return lines
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -153,7 +153,7 @@ function renderTable(el: Element, ctx: Ctx): string {
   const cellsOf = (row: Element) =>
     [...row.children]
       .filter((c) => c.tagName === 'TD' || c.tagName === 'TH')
-      // Rørtegn ville delt kolonnen i to.
+      // Pipe characters would split the column in two.
       .map((c) => inlineOf(c, ctx).replace(/\n/g, ' ').replaceAll('|', '\\|'));
 
   const table = rows.map(cellsOf).filter((r) => r.length);
@@ -170,7 +170,7 @@ function renderTable(el: Element, ctx: Ctx): string {
   ].join('\n');
 }
 
-/** Blokknivå: overskrifter, avsnitt, lister, sitater, kode, tabeller. */
+/** Block level: headings, paragraphs, lists, quotes, code, tables. */
 function renderBlock(el: Element, ctx: Ctx): string {
   if (isSkipped(el)) return '';
 
@@ -214,7 +214,7 @@ function renderBlock(el: Element, ctx: Ctx): string {
     case 'STRONG':
     case 'EM':
     case 'SPAN':
-      // Et inline-element som står alene i en beholder blir sitt eget avsnitt.
+      // An inline element standing alone in a container becomes its own paragraph.
       return inlineOf(el, ctx);
     default:
       return renderChildren(el, ctx);
@@ -239,7 +239,7 @@ function renderChildren(el: Element, ctx: Ctx): string {
     if (child.nodeType !== 1) continue;
 
     const childEl = child as Element;
-    // Rene inline-elementer samles til ett avsnitt med teksten rundt dem.
+    // Plain inline elements are gathered into one paragraph with the text around them.
     if (['A', 'STRONG', 'B', 'EM', 'I', 'CODE', 'SPAN', 'BR', 'IMG'].includes(childEl.tagName)) {
       inlineRun += renderInline(childEl, ctx);
       continue;
@@ -263,10 +263,10 @@ export interface MarkdownPage {
   title: string;
 }
 
-// Stifunksjonene bor i markdown-paths.ts, som ikke importerer noe. Ligger de her,
-// drar en klient-import av dem hele linkedom med seg inn i nettleser-bundlen.
-// Re-eksporten står for at serverkode som allerede henter dem herfra virker som
-// før; klientkode MÅ importere fra markdown-paths direkte.
+// The path functions live in markdown-paths.ts, which imports nothing. If they lived here,
+// a client import of them would drag all of linkedom into the browser bundle.
+// The re-export is there so server code that already imports them from here works as
+// before; client code MUST import from markdown-paths directly.
 export { markdownPathFor, pathFromMarkdownPath } from './markdown-paths';
 
 type MediaRange = { type: string; q: number };
@@ -284,10 +284,10 @@ function parseAccept(header: string): MediaRange[] {
 }
 
 /**
- * Sant bare når klienten uttrykkelig ber om markdown og ikke foretrekker HTML.
+ * True only when the client explicitly asks for markdown and does not prefer HTML.
  *
- * Nettlesere sender `text/html,...,*​/*;q=0.8`. Wildcard teller derfor ikke som
- * et ønske om markdown, ellers ville hver eneste nettleser fått markdown.
+ * Browsers send `text/html,...,*​/*;q=0.8`. The wildcard therefore does not count as
+ * a wish for markdown, otherwise every single browser would get markdown.
  */
 export function prefersMarkdown(acceptHeader: string | null): boolean {
   if (!acceptHeader) return false;
@@ -301,11 +301,11 @@ export function prefersMarkdown(acceptHeader: string | null): boolean {
 }
 
 /**
- * Trekker ut <main> fra et rendret HTML-dokument og returnerer det som markdown
- * med en liten YAML-header (tittel, kanonisk URL, beskrivelse).
+ * Extracts <main> from a rendered HTML document and returns it as markdown
+ * with a small YAML header (title, canonical URL, description).
  *
- * Returnerer null når dokumentet ikke har noe hovedinnhold. Da skal kalleren
- * beholde HTML-svaret i stedet for å sende en tom side.
+ * Returns null when the document has no main content. The caller should then
+ * keep the HTML response instead of sending an empty page.
  */
 export function htmlToMarkdown(html: string, baseUrl: string): MarkdownPage | null {
   const { document } = parseHTML(html);
@@ -315,7 +315,7 @@ export function htmlToMarkdown(html: string, baseUrl: string): MarkdownPage | nu
 
   const ctx: Ctx = { baseUrl };
   const body = renderChildren(main, ctx)
-    // Tre eller flere linjeskift blir aldri meningsbærende i markdown.
+    // Three or more line breaks never carry meaning in markdown.
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 

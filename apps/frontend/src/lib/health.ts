@@ -1,15 +1,15 @@
 /**
- * Helsesjekken bak /health.
+ * The health check behind /health.
  *
- * Formatet er det samme som info.altinn.no/health, altså ASP.NET HealthChecks:
- * samme vakt overvåker begge portalene, og da holder én regel på «status» for
- * begge.
+ * The format is the same as info.altinn.no/health, that is ASP.NET HealthChecks:
+ * the same monitor watches both portals, and then one rule on "status" is enough for
+ * both.
  *
- * Svaret er offentlig og sier bare hvordan det står til. Ingen adresser, ingen
- * feilmeldinger, ingen versjoner.
+ * The response is public and only says how things stand. No addresses, no
+ * error messages, no versions.
  *
- * Settet med sjekker er det samme i alle miljøer. Da dekker én regel i vakta
- * både prod og tt02, og tt02 tester det samme som prod.
+ * The set of checks is the same in all environments. Then one rule in the monitor covers
+ * both prod and tt02, and tt02 tests the same as prod.
  */
 
 export type HealthStatus = 'Healthy' | 'Degraded' | 'Unhealthy';
@@ -28,7 +28,7 @@ export interface HealthReport {
 
 export interface HealthConfig {
   umbracoUrl: string;
-  /** Adressen nettleseren henter bilder fra. I prod en proxy, på tt02 lik umbracoUrl. Tom betyr umbracoUrl, som i umbraco.ts. */
+  /** The address the browser fetches images from. In prod a proxy, on tt02 equal to umbracoUrl. Empty means umbracoUrl, as in umbraco.ts. */
   umbracoPublicUrl: string;
   esEndpoint: string;
   esApiKey: string;
@@ -43,7 +43,7 @@ export interface HealthDeps {
 
 const RANK: Record<HealthStatus, number> = { Healthy: 0, Degraded: 1, Unhealthy: 2 };
 
-/** TimeSpan som ASP.NET skriver den: 95 ms blir «00:00:00.0950000». */
+/** TimeSpan as ASP.NET writes it: 95 ms becomes "00:00:00.0950000". */
 export function formatDuration(ms: number): string {
   const whole = Math.max(0, Math.round(ms));
   const h = Math.floor(whole / 3_600_000);
@@ -55,9 +55,9 @@ export function formatDuration(ms: number): string {
 }
 
 /**
- * fetch kalt som metode, deps.fetch(...), får deps som this. Node bryr seg ikke,
- * men Cloudflare Workers kaster «Illegal invocation», og da feiler alle sjekkene
- * på null ms i drift mens de er grønne lokalt.
+ * fetch called as a method, deps.fetch(...), gets deps as this. Node doesn't care,
+ * but Cloudflare Workers throws "Illegal invocation", and then all the checks fail
+ * at zero ms in production while they are green locally.
  */
 function callFetch(deps: HealthDeps, input: string, init: RequestInit): Promise<Response> {
   const f = deps.fetch;
@@ -82,9 +82,9 @@ async function timed(
 }
 
 /**
- * 200 OK er ikke nok. Hopper Umbraco over ventende migreringer, svarer Delivery
- * API-et 200 med en tom liste, og da er nettstedet tomt uten at noe feiler.
- * Derfor kreves minst ett publisert element.
+ * 200 OK is not enough. If Umbraco skips pending migrations, the Delivery
+ * API answers 200 with an empty list, and then the site is empty without anything failing.
+ * That is why at least one published item is required.
  */
 async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
   const { ok, ms } = await timed(deps, async (signal) => {
@@ -104,15 +104,15 @@ async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<Hea
 }
 
 /**
- * Sidene henter data fra umbracoUrl, men nettleseren henter bildene fra den
- * offentlige adressen, i prod en proxy-worker. Da proxyen var av i #600, var
- * nettstedet uten bilder i ti minutter mens alt annet svarte. Den feilen ser
- * bare en sjekk mot den offentlige adressen, og den gir Degraded, fordi sidene
- * fortsatt rendres. Den kaller Delivery API gjennom proxyen, ikke en bildefil,
- * så den fanger at proxyen er nede, men ikke en feil i selve bildelagringen.
+ * The pages fetch data from umbracoUrl, but the browser fetches the images from the
+ * public address, in prod a proxy worker. When the proxy was off in #600, the
+ * site was without images for ten minutes while everything else responded. Only a check
+ * against the public address sees that failure, and it gives Degraded, because the pages
+ * still render. It calls the Delivery API through the proxy, not an image file,
+ * so it catches the proxy being down, but not a failure in the image storage itself.
  *
- * Sjekken kjører også der den offentlige adressen er lik den interne, som på
- * tt02. Den tester da samme vei som nettleseren, og settet blir likt i alle miljøer.
+ * The check also runs where the public address equals the internal one, as on
+ * tt02. It then tests the same path as the browser, and the set is the same in all environments.
  */
 async function checkCmsProxy(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
   const publicUrl = config.umbracoPublicUrl || config.umbracoUrl;
@@ -131,9 +131,9 @@ async function checkCmsProxy(config: HealthConfig, deps: HealthDeps): Promise<He
 }
 
 /**
- * Redaktørene trenger backofficet, men nettstedet virker uten det, så feil her
- * gir Degraded. server/status er åpen uten innlogging og svarer «Run» bare når
- * Umbraco er ferdig startet og ikke venter på installasjon eller oppgradering.
+ * The editors need the backoffice, but the site works without it, so a failure here
+ * gives Degraded. server/status is open without login and answers "Run" only when
+ * Umbraco has finished starting and is not waiting for installation or upgrade.
  */
 async function checkBackoffice(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
   const { ok, ms } = await timed(deps, async (signal) => {
@@ -153,12 +153,12 @@ async function checkBackoffice(config: HealthConfig, deps: HealthDeps): Promise<
 }
 
 /**
- * Nede søk er ikke nede nettsted, så feil her gir Degraded. Kallet er et søk
- * med size 0 og ikke et indeks-oppslag, fordi nøkkelen bare har lesetilgang,
- * og det er nøyaktig det søket bruker.
+ * Search down is not site down, so a failure here gives Degraded. The call is a search
+ * with size 0 and not an index lookup, because the key only has read access,
+ * and that is exactly what search uses.
  *
- * Mangler nøkkelen, faller søket tilbake på Umbracos enkle søk. Det er også
- * Degraded, så en nøkkel som forsvinner i drift synes i vakta.
+ * If the key is missing, search falls back to Umbraco's simple search. That is also
+ * Degraded, so a key that disappears in production shows up in the monitor.
  */
 async function checkElasticsearch(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
   if (!config.esEndpoint || !config.esApiKey) {
@@ -206,24 +206,24 @@ export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): P
   return { status: worst, totalDuration: formatDuration(deps.now() - t0), entries };
 }
 
-/** Samme konvensjon som ASP.NET: Degraded svarer 200, bare Unhealthy gir 503. */
+/** Same convention as ASP.NET: Degraded answers 200, only Unhealthy gives 503. */
 export function httpStatusFor(status: HealthStatus): number {
   return status === 'Unhealthy' ? 503 : 200;
 }
 
 /**
- * Hver forespørsel mot /health kan komme utenfra, og hver kjøring gjør kall mot
- * CMS og søk. Uten en grense er /health en måte å belaste CMS-et på.
+ * Every request to /health can come from outside, and every run makes calls to
+ * the CMS and search. Without a limit, /health is a way to put load on the CMS.
  *
- * Et ferdig resultat gjenbrukes i ttlMs. Når det er gått ut, oppdaterer én
- * forespørsel, og alle som kommer imens får det forrige resultatet. Da blir det
- * én runde kall per ttl per isolat, uansett hvor mange som spør. Unntaket er et
- * kaldt isolat uten noe resultat å vise, der slipper alle gjennom til første svar.
+ * A finished result is reused for ttlMs. When it has expired, one
+ * request refreshes, and everyone arriving meanwhile gets the previous result. That gives
+ * one round of calls per ttl per isolate, no matter how many ask. The exception is a
+ * cold isolate with no result to show, where everyone gets through until the first response.
  *
- * Kjøringen som pågår deles ikke. På Workers kan en forespørsel som venter på
- * I/O startet av en annen forespørsel henge når den første avsluttes, så hver
- * forespørsel venter bare på sin egen. Oppdateringen markeres med et tidspunkt,
- * ikke et flagg, så en avbrutt oppdatering ikke fryser en gammel status for alltid.
+ * The run in progress is not shared. On Workers, a request waiting on
+ * I/O started by another request can hang when the first one finishes, so each
+ * request only waits on its own. The refresh is marked with a timestamp,
+ * not a flag, so an aborted refresh doesn't freeze an old status forever.
  */
 export function memoize(
   run: () => Promise<HealthReport>,
@@ -245,7 +245,7 @@ export function memoize(
       cached = { at: now(), report };
       return report;
     } finally {
-      // Har en nyere oppdatering tatt over etter tidsgrensen, er markeringen dens.
+      // If a newer refresh has taken over after the time limit, the marker is its own.
       if (refreshStartedAt === t) refreshStartedAt = null;
     }
   };

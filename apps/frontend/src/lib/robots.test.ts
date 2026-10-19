@@ -8,8 +8,8 @@ async function robotsFor(hostname: string): Promise<string> {
   return response.text();
 }
 
-// Grupper i robots.txt slås ikke sammen. En agent bruker den mest spesifikke
-// gruppen som matcher navnet, og ser da ingenting av det som står under "*".
+// Groups in robots.txt are not merged. An agent uses the most specific
+// group that matches its name, and then sees nothing of what is under "*".
 function groupFor(body: string, userAgent: string): string | null {
   const groups = body.split(/\n\s*\n(?=User-agent:)/);
   const match = groups.find((g) =>
@@ -18,8 +18,8 @@ function groupFor(body: string, userAgent: string): string | null {
   return match ?? null;
 }
 
-describe('robots.txt i produksjon', () => {
-  test('wildcard-gruppen har alle Disallow-linjene', async () => {
+describe('robots.txt in production', () => {
+  test('the wildcard group has all the Disallow lines', async () => {
     const body = await robotsFor('ki.norge.no');
     const group = groupFor(body, '*');
 
@@ -29,47 +29,47 @@ describe('robots.txt i produksjon', () => {
     }
   });
 
-  // Content-Signal er en HTTP-header, ikke et robots.txt-direktiv. Det lå her
-  // fram til august 2026, men står ikke i robots.txt-spesifikasjonen, så
-  // Lighthouse og Search Console forkastet hele fila som ugyldig. Havner det inn
-  // igjen, faller SEO-scoren tilbake til 92 uten at noe annet ser galt ut.
-  test('sender ikke Content-Signal som robots.txt-direktiv', async () => {
+  // Content-Signal is an HTTP header, not a robots.txt directive. It was here
+  // until August 2026, but is not in the robots.txt specification, so
+  // Lighthouse and Search Console rejected the whole file as invalid. If it ends up here
+  // again, the SEO score drops back to 92 without anything else looking wrong.
+  test('does not send Content-Signal as a robots.txt directive', async () => {
     const body = await robotsFor('ki.norge.no');
 
     expect(body).not.toContain('Content-Signal:');
     expect(body).not.toContain(CONTENT_SIGNAL);
   });
 
-  test('hver AI-crawler har en gruppe som gjentar de samme reglene', async () => {
+  test('every AI crawler has a group that repeats the same rules', async () => {
     const body = await robotsFor('ki.norge.no');
 
     for (const crawler of AI_CRAWLERS) {
       const group = groupFor(body, crawler);
-      expect(group, `mangler gruppe for ${crawler}`).not.toBeNull();
-      // Uten dette ville en navngitt crawler fått crawle /api/ og /media/ fritt.
+      expect(group, `missing group for ${crawler}`).not.toBeNull();
+      // Without this a named crawler would be free to crawl /api/ and /media/.
       for (const path of DISALLOWED_PATHS) {
-        expect(group, `${crawler} mangler Disallow: ${path}`).toContain(`Disallow: ${path}`);
+        expect(group, `${crawler} is missing Disallow: ${path}`).toContain(`Disallow: ${path}`);
       }
     }
   });
 
-  test('peker på sitemap og llms.txt', async () => {
+  test('points to the sitemap and llms.txt', async () => {
     const body = await robotsFor('ki.norge.no');
     expect(body).toContain('Sitemap: https://ki.norge.no/sitemap.xml');
     expect(body).toContain('https://ki.norge.no/llms.txt');
-    // Forgjengeren, som lå i public/ og beskrev CMS-et som Strapi.
+    // The predecessor, which lived in public/ and described the CMS as Strapi.
     expect(body).not.toContain('/llm.txt');
   });
 
-  test('svarer text/plain med UTF-8 så æøå i kommentarene overlever', async () => {
+  test('responds text/plain with UTF-8 so æøå in the comments survive', async () => {
     const response = await (GET as any)({ url: new URL('https://ki.norge.no/robots.txt') });
     expect(response.headers.get('Content-Type')).toBe('text/plain; charset=utf-8');
     expect(await response.text()).toContain('språkmodeller');
   });
 });
 
-describe('robots.txt utenfor produksjon', () => {
-  test('stenger alt', async () => {
+describe('robots.txt outside production', () => {
+  test('blocks everything', async () => {
     const body = await robotsFor('ki-norge-frontend-tt02.digitaliseringsdirektoratet.workers.dev');
     expect(body).toContain('User-agent: *');
     expect(body).toContain('Disallow: /');
@@ -77,21 +77,21 @@ describe('robots.txt utenfor produksjon', () => {
   });
 });
 
-describe('robots.txt og sitemap holdes i takt', () => {
-  test('alt robots stenger ute, holdes også utenfor sitemapet', () => {
+describe('robots.txt and sitemap are kept in sync', () => {
+  test('everything robots blocks is also kept out of the sitemap', () => {
     for (const path of DISALLOWED_PATHS) {
-      // /media/ -> /media, som er formen sitemap-porten sjekker.
+      // /media/ -> /media, which is the form the sitemap gate checks.
       const normalized = path.endsWith('/') ? path.slice(0, -1) : path;
-      expect(isExcludedPath(normalized), `${path} mangler i sitemapets utelukkelse`).toBe(true);
+      expect(isExcludedPath(normalized), `${path} is missing from the sitemap exclusions`).toBe(true);
     }
   });
 
-  test('sitemapets utelukkelser er dekket av robots', () => {
+  test('the sitemap exclusions are covered by robots', () => {
     for (const prefix of EXCLUDED_PATH_PREFIXES) {
       const covered = DISALLOWED_PATHS.some(
         (path) => path === prefix || path === `${prefix}/`,
       );
-      expect(covered, `${prefix} mangler i robots.txt`).toBe(true);
+      expect(covered, `${prefix} is missing from robots.txt`).toBe(true);
     }
   });
 });

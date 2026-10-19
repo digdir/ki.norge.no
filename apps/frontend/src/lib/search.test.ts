@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 
-// search.ts leser ES-oppsettet ved import, så env settes før dynamisk import.
+// search.ts reads the ES setup at import, so env is set before the dynamic import.
 const ES = 'https://es.test.example';
 
 let hybridSearch: typeof import('./search').hybridSearch;
@@ -20,15 +20,15 @@ beforeAll(async () => {
   vi.stubEnv('ES_ENDPOINT', ES);
   vi.stubEnv('ES_API_KEY', 'nøkkel');
   vi.stubEnv('KI_INDEX', 'ki-content');
-  // På Workers kaster fetch «Illegal invocation» hvis den kalles som metode på
-  // et annet objekt. Node bryr seg ikke, så den falske fetchen gjør det i stedet.
+  // On Workers fetch throws "Illegal invocation" if it is called as a method on
+  // another object. Node does not care, so the fake fetch does it instead.
   vi.stubGlobal(
     'fetch',
     vi.fn(function (this: unknown, input: string, init?: RequestInit) {
       if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
       kall.push({ url: String(input), body: String(init?.body ?? '') });
       const neste = svar.shift();
-      if (!neste) throw new Error(`uventet kall til ${input}`);
+      if (!neste) throw new Error(`unexpected call to ${input}`);
       return Promise.resolve(neste(String(input)));
     }),
   );
@@ -47,14 +47,14 @@ afterAll(() => {
 });
 
 describe('hybridSearch', () => {
-  test('vanlig treff kommer fra hybriddelen, med ett kall', async () => {
+  test('a regular hit comes from the hybrid part, with one call', async () => {
     svar = [msearch(probe(5), { status: 200, hits: { hits: [treff('KI-veileder')] } })];
     const resultat = await hybridSearch('veileder');
     expect(resultat.map((r) => r.title)).toEqual(['KI-veileder']);
     expect(kall.map((k) => k.url)).toEqual([`${ES}/ki-content/_msearch`]);
   });
 
-  test('feiler hybriddelen, logges det og BM25 brukes i stedet', async () => {
+  test('if the hybrid part fails, it is logged and BM25 is used instead', async () => {
     const logg = vi.spyOn(console, 'error').mockImplementation(() => {});
     svar = [msearch(probe(5), modellNede), json({ hits: { hits: [treff('Personvern og KI')] } })];
 
@@ -73,13 +73,13 @@ describe('hybridSearch', () => {
     expect(JSON.stringify(logg.mock.calls)).not.toContain('personvern');
   });
 
-  test('feiler den lexikalske proben, kastes en feil med status og type', async () => {
+  test('if the lexical probe fails, an error with status and type is thrown', async () => {
     svar = [msearch({ status: 503, error: { type: 'search_phase_execution_exception' } }, modellNede)];
     await expect(hybridSearch('personvern')).rejects.toThrow(/503.*search_phase_execution_exception/);
     expect(kall).toHaveLength(1);
   });
 
-  test('under relevans-gaten gir tom liste, uten fallback selv om hybriddelen feilet', async () => {
+  test('below the relevance gate gives an empty list, without fallback even if the hybrid part failed', async () => {
     svar = [msearch(probe(0.4), modellNede)];
     expect(await hybridSearch('middag')).toEqual([]);
     expect(kall).toHaveLength(1);

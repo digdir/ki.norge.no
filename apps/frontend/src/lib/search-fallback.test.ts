@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
-// Reservesøket mot Umbraco, som brukes når Elasticsearch ikke er satt opp.
-// Prefikstabellen det hadde, ga steg lenken /veiledning/{steg} uten guiden, og
-// faq en lenke til en side som ikke finnes. search.ts leser ES-oppsettet ved
-// import, så env tømmes før dynamisk import.
+// The fallback search against Umbraco, used when Elasticsearch is not set up.
+// The prefix table it had gave steps the link /veiledning/{steg} without the guide, and
+// faq a link to a page that does not exist. search.ts reads the ES setup at
+// import, so env is cleared before the dynamic import.
 
 let hybridSearch: typeof import('./search').hybridSearch;
 
@@ -36,7 +36,7 @@ beforeAll(async () => {
       const url = String(input);
       if (url.includes('fetch=ancestors')) return json(url.includes('s1') ? forfedreTilSteg : { items: [], total: 0 });
       if (url.includes('search=')) return json(sokeTreff);
-      throw new Error(`uventet kall til ${url}`);
+      throw new Error(`unexpected call to ${url}`);
     }),
   );
   ({ hybridSearch } = await import('./search'));
@@ -47,8 +47,8 @@ afterAll(() => {
   vi.unstubAllGlobals();
 });
 
-describe('reservesøket uten Elasticsearch', () => {
-  test('lenkene kommer fra shared/content-routes.json, med guiden for et steg', async () => {
+describe('the fallback search without Elasticsearch', () => {
+  test('the links come from shared/content-routes.json, with the guide for a step', async () => {
     const treff = await hybridSearch('data');
     expect(treff.map((t) => [t.type, t.url])).toEqual([
       ['artikkel', '/artikler/min-artikkel'],

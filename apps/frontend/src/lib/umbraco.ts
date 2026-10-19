@@ -135,7 +135,7 @@ export interface ArtikkelKontaktkortBlock {
   };
 }
 
-// Veiledning block types (egen modulkatalog, separat fra artikkel)
+// Veiledning block types (own module catalogue, separate from artikkel)
 export interface VeiledningTekstBlock {
   contentType: 'veiledningTekst';
   content: { innhold: string };
@@ -169,7 +169,7 @@ export interface VeiledningTrekkspillBlock {
 
 // Content types matching Umbraco document type schemas
 export interface Artikkel {
-  /** Redaktørens overstyring av publiseringsdatoen. Tom = ikke satt. */
+  /** The editor's override of the publishing date. Empty = not set. */
   publisertDato?: string;
   id: string;
   documentId: string;
@@ -198,21 +198,21 @@ export interface Kalenderhendelse {
   documentId: string;
   tittel: string;
   slug: string;
-  /** Merkelapp(er), kommaseparert (f.eks. "Frokostseminar, Offentlig"). CMS-alias er fortsatt "type". */
+  /** Tag(s), comma separated (e.g. "Frokostseminar, Offentlig"). The CMS alias is still "type". */
   type?: string;
   ingress?: string;
   detaljertBeskrivelse?: UmbracoBlock[];
   startDato: string;
   sluttDato?: string;
   tid?: string;
-  /** Kort stedsnavn. Vises på kortene. */
+  /** Short place name. Shown on the cards. */
   sted?: string;
-  /** Full gateadresse. Vises bare på arrangementssiden, aldri på kortene. */
+  /** Full street address. Shown only on the event page, never on the cards. */
   adresse?: string;
-  /** Valgfri arrangør. Tom = arrangør vises ikke. */
+  /** Optional organiser. Empty = organiser is not shown. */
   arrangor?: string;
   lenke?: string;
-  /** Valgfri pris, f.eks. "Gratis" eller "1 500 kr". Tom = pris vises ikke. */
+  /** Optional price, e.g. "Gratis" or "1 500 kr". Empty = price is not shown. */
   pris?: string;
   createdAt: string;
   updatedAt: string;
@@ -238,7 +238,7 @@ export interface Kalender {
 export interface Side extends Artikkel {}
 
 export interface Eksempel extends Artikkel {
-  /** Merkelapper redaktøren har krysset av. Tom liste = ingen merkelapp. */
+  /** Tags the editor has ticked. Empty list = no tag. */
   sektor?: string[];
   kiType?: string[];
   virksomhet?: string;
@@ -247,15 +247,15 @@ export interface Eksempel extends Artikkel {
 export interface ArtiklerSeksjon {
   contentType: 'artikkelFeatured' | 'artikkelGruppe' | 'artikkelRelatert';
   id: string;
-  // Featured: én artikkel-referanse + valgfri ingress- og bilde-overstyring
+  // Featured: one artikkel reference + optional ingress and image override
   artikkelId?: string;
   ingress?: string;
   bilde?: UmbracoMedia;
-  // Gruppe: tittel + kolonner + 1-6 artikkel-referanser
+  // Gruppe: tittel + columns + 1-6 artikkel references
   tittel?: string;
   antallKolonner?: number;
   artikkelIds?: string[];
-  // Relatert (kun merkelapp): tittel + 1-3 referanser + per-kort merkelapp
+  // Relatert (tag only): tittel + 1-3 references + per-card tag
   relatertIds?: string[];
   relatertTags?: Array<string | undefined>;
 }
@@ -278,25 +278,25 @@ export interface ArtiklerOversikt {
 export interface EksemplerSeksjon {
   contentType: 'eksempelFeatured' | 'eksempelGruppe' | 'eksempelRelatert' | 'eksempelKontakt' | 'eksempelKiTiltak';
   id: string;
-  // Featured: én eksempel-referanse
+  // Featured: one eksempel reference
   eksempelId?: string;
-  // Gruppe: tittel + kolonner + 1-6 eksempel-referanser
+  // Gruppe: tittel + columns + 1-6 eksempel references
   tittel?: string;
   antallKolonner?: number;
   eksempelIds?: string[];
-  // Relatert: tittel + 1-3 referanser (kan være artikkel eller veiledningGuide)
+  // Relatert: tittel + 1-3 references (can be artikkel or veiledningGuide)
   relatertIds?: string[];
-  // Kontakt: tittel + navn + epost + stilling
+  // Kontakt: tittel + name + email + job title
   navn?: string;
   epost?: string;
   stilling?: string;
-  // Redaksjonelle felt fra Figma-kommentarer. kortFarger har ennå ikke et CMS-felt
-  // og er undefined i dag (frontend faller tilbake på defaults).
-  ingress?: string;                              // Featured: manuell ingress
-  kortTag?: string;                              // Gruppe: tag på hvert kort (default "Eksempel")
-  kortFarger?: Array<'dark' | 'light' | undefined>; // Gruppe: per-kort farge, justert mot eksempelIds
-  relatertTags?: Array<string | undefined>;      // Relatert: per-kort tag, justert mot relatertIds
-  // KI-tiltak: ingen felt. Kortet leser antallet fra det statiske datasettet selv.
+  // Editorial fields from Figma comments. kortFarger does not have a CMS field yet
+  // and is undefined today (the frontend falls back to defaults).
+  ingress?: string;                              // Featured: manual ingress
+  kortTag?: string;                              // Gruppe: tag on each card (default "Eksempel")
+  kortFarger?: Array<'dark' | 'light' | undefined>; // Gruppe: per-card colour, aligned with eksempelIds
+  relatertTags?: Array<string | undefined>;      // Relatert: per-card tag, aligned with relatertIds
+  // KI-tiltak: no fields. The card reads the count from the static dataset itself.
 }
 
 export interface EksemplerOversikt {
@@ -314,7 +314,7 @@ export interface EksemplerOversikt {
 }
 
 export interface VeiledningGuide {
-  /** Redaktørens overstyring av publiseringsdatoen. Tom = ikke satt. */
+  /** The editor's override of the publishing date. Empty = not set. */
   publisertDato?: string;
   id: string;
   documentId: string;
@@ -367,17 +367,17 @@ export interface EventItem {
   eventUrl?: string;
 }
 
-// Ett redaktørvalgt kort i forsideAktuelt/forsideLaerAvAndre.
-// id = node-id på valgt artikkel/eksempel. ingress = valgfri overstyring.
+// One editor-selected card in forsideAktuelt/forsideLaerAvAndre.
+// id = node id of the selected artikkel/eksempel. ingress = optional override.
 export interface ForsideKort {
   id?: string;
   ingress?: string;
-  // Overstyrer bildet for dette kortet alene. Ligger pa blokken, ikke pa
-  // artikkelen, sa forsiden og /artikler kan vise hvert sitt bilde.
+  // Overrides the image for this card alone. Lives on the block, not on
+  // the artikkel, so the front page and /artikler can each show their own image.
   bilde?: UmbracoMedia;
 }
 
-// Én forside-modul (block i forside.seksjoner). Flat: alle mulige felt valgfrie.
+// One forside module (block in forside.seksjoner). Flat: all possible fields optional.
 export interface ForsideSeksjon {
   contentType: string;
   id: string;
@@ -433,7 +433,7 @@ export interface OmOssSeksjonBlokk {
   bildeAlt?: string;
 }
 
-// Om Oss bruker rik artikkelmal (#362): samme artikkelhode + modul-blokkliste som artikkel.
+// Om Oss uses the rich article template (#362): same article header + module block list as artikkel.
 export interface OmOss {
   id: string;
   documentId: string;
@@ -475,7 +475,7 @@ export interface Sandkasse {
 export interface VeiledningKort {
   tittel: string;
   beskrivelse?: string;
-  /** Content-picker: id på valgt veiledning/artikkel/eksempel. Løses til URL via pool. Overstyrer url. */
+  /** Content picker: id of the selected veiledning/artikkel/eksempel. Resolved to a URL via the pool. Overrides url. */
   lenkeId?: string;
   url?: string;
   ikon?: string;
@@ -566,9 +566,9 @@ interface RichTextNode {
   elements?: RichTextNode[];
 }
 
-// Embeddede media-URLer i RichText (bilder, fil-lenker) kommer relativt som
-// /media/... og ville blitt hentet fra frontend-domenet (404 pa Cloudflare).
-// Prefiks CMS-hosten. Allerede-absolutte URLer (http) treffes ikke av regexen.
+// Embedded media URLs in RichText (images, file links) arrive relative as
+// /media/... and would have been fetched from the frontend domain (404 on Cloudflare).
+// Prefix the CMS host. Already absolute URLs (http) are not matched by the regex.
 export function absolutizeMediaUrls(html: string): string {
   return html.replace(
     /\b(src|href)="(\/media\/[^"]*)"/g,
@@ -594,7 +594,7 @@ export function richTextToHtml(node: RichTextNode): string {
   // Comment node
   if (node.tag === '#comment') return '';
 
-  // Se lib/richtext-safety.ts. Innhold fra CMS-et skal ikke kunne kjøre skript.
+  // See lib/richtext-safety.ts. Content from the CMS must not be able to run scripts.
   const verdict = tagVerdict(node.tag);
   if (verdict === 'drop') return '';
   const children = (node.elements || []).map(richTextToHtml).join('');
@@ -711,7 +711,7 @@ async function fetchCollection<T>(
 
   if (options.preview && API_KEY) {
     headers['Api-Key'] = API_KEY;
-    // Umbraco Delivery API leverer kladd kun med Preview-header (ikke ?preview-query).
+    // The Umbraco Delivery API only delivers drafts with the Preview header (not the ?preview query).
     headers['Preview'] = 'true';
   }
 
@@ -723,9 +723,9 @@ async function fetchCollection<T>(
   if (options.sort) {
     params.set('sort', options.sort);
   }
-  // Delivery API returnerer bare 10 elementer når take utelates. Sidene bruker
-  // disse samlingene som oppslags-pool for redaktørvalgte pickere, så en lav
-  // implisitt grense gjør at valgt innhold droppes stille. Hent rikelig.
+  // The Delivery API returns only 10 items when take is omitted. The pages use
+  // these collections as a lookup pool for editor-selected pickers, so a low
+  // implicit limit makes selected content drop silently. Fetch plenty.
   params.set('take', String(options.take || 100));
   if (options.skip) {
     params.set('skip', String(options.skip));
@@ -817,13 +817,13 @@ async function fetchContentItemById(id: string, options: FetchOptions = {}): Pro
 }
 
 /**
- * Henter et hvilket som helst publisert innhold som et lenkekort, uansett type.
- * Aktuelt-modulen lar redaktoeren peke paa alt i innholdstreet, ogsaa steg og
- * stegartikler som ligger nestet under en guide. URLen loeses via den delte
- * rutetabellen, som henter forfedre naar moensteret trenger dem.
+ * Fetches any published content as a link card, regardless of type.
+ * The Aktuelt module lets the editor point to anything in the content tree, including steg and
+ * stegartikler nested under a guide. The URL is resolved via the shared
+ * route table, which fetches ancestors when the pattern needs them.
  *
- * Returnerer null naar typen mangler rutemapping eller en forfar ikke finnes,
- * slik at kortet kan droppes i stedet for aa lenke til "#".
+ * Returns null when the type has no route mapping or an ancestor does not exist,
+ * so the card can be dropped instead of linking to "#".
  */
 export async function hentKortKandidat(
   id: string,
@@ -936,8 +936,8 @@ export async function resolveContentUrl(
 }
 
 // Minimal projection of a published node, enough to resolve its sitemap URL.
-// `name` er nodenavnet i Umbraco, brukt som tittel-fallback i llms.txt når
-// typen mangler et `tittel`-felt (oversiktssidene har bare heroTittel).
+// `name` is the node name in Umbraco, used as the title fallback in llms.txt when
+// the type has no `tittel` field (the overview pages only have heroTittel).
 export interface RawContentNode {
   id: string;
   name?: string;
@@ -1122,12 +1122,12 @@ export async function enrichBlocksInternalLinks(
 function mapItem<T>(item: UmbracoItem, contentType: string): T {
   const props = item.properties;
 
-  // publishedAt er createDate, ikke updateDate. Med updateDate flyttet
-  // «Publisert»-datoen seg hver gang en redaktør rettet en skrivefeil, og i
-  // prod hadde 5 av 36 noder over 30 dagers avvik, den verste 88 dager.
-  // Delivery API-et eksponerer ikke førstegangspublisert, bare createDate og
-  // updateDate, så createDate er det nærmeste vi kommer. Kalenderhendelser
-  // gjorde dette allerede, se mappingen lenger ned i fila.
+  // publishedAt is createDate, not updateDate. With updateDate the
+  // "Publisert" date moved every time an editor fixed a typo, and in
+  // prod 5 of 36 nodes were off by more than 30 days, the worst by 88 days.
+  // The Delivery API does not expose first publication, only createDate and
+  // updateDate, so createDate is the closest we get. Kalenderhendelser
+  // already did this, see the mapping further down the file.
   const base = {
     id: item.id,
     documentId: item.id,
@@ -1181,9 +1181,9 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         bildeAlt: props.bildeAlt as string || '',
         bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
         publisertDato,
-        // Datoen loeses her, ikke paa hvert kallsted. Da kan ikke et kort, en
-        // artikkelside og en sortering vise tre ulike datoer for samme side.
-        // createdAt beholder den raa opprettelsesdatoen.
+        // The date is resolved here, not at each call site. Then a card, an
+        // article page and a sort cannot show three different dates for the same page.
+        // createdAt keeps the raw creation date.
         publishedAt:
           velgPublisertDato({ publisertDato, publishedAt: base.publishedAt, innhold }) ??
           base.publishedAt,
@@ -1237,7 +1237,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         slug: props.slug as string || '',
         ingress: props.ingress as string || '',
         publisertDato: props.publisertDato as string || '',
-        // Guider har ingen byline-blokk, men samme kjede gjelder.
+        // Guides have no byline block, but the same chain applies.
         publishedAt:
           velgPublisertDato({
             publisertDato: props.publisertDato as string || '',
@@ -1283,7 +1283,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
       } as T;
 
     case 'omOss':
-      // Rik artikkelmal (#362): artikkelhode + innhold-blokkliste, som artikkel/sandkasse.
+      // Rich article template (#362): article header + innhold block list, like artikkel/sandkasse.
       return {
         ...base,
         tittel: props.tittel as string || item.name,
@@ -1679,9 +1679,9 @@ function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
   return items.map((block: any): ForsideSeksjon => {
     const content = block.content || block;
     const props = content.properties || {};
-    // overskrift er ren tekst på de fleste moduler, men rik tekst på hero (uthevbar).
+    // overskrift is plain text on most modules, but rich text on the hero (can be highlighted).
     const overskrift = props.overskrift as any;
-    // sandkasse-tekst er nå vanlig tekst; håndter eldre rik-tekst-verdier til de re-lagres.
+    // sandkasse tekst is now plain text; handle older rich text values until they are re-saved.
     const tekst = props.tekst as any;
     return {
       contentType: content.contentType,
@@ -1706,8 +1706,8 @@ function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
   });
 }
 
-// Leser nested block list (forsideForstaLenke) under "Forstå regelverket"-modulen.
-// Hvert element har en content-picker (lenke) til veiledning/artikkel.
+// Reads the nested block list (forsideForstaLenke) under the "Forstå regelverket" module.
+// Each item has a content picker (lenke) to veiledning/artikkel.
 function mapForstaLenker(value: unknown): string[] | undefined {
   const items = (value as any)?.items;
   if (!Array.isArray(items) || items.length === 0) return undefined;
@@ -1716,8 +1716,8 @@ function mapForstaLenker(value: unknown): string[] | undefined {
     .filter((id: string | undefined): id is string => !!id);
 }
 
-// Leser nested block list (forsideArtikkelKort/forsideEksempelKort) under en forside-modul.
-// Hvert kort har en content-picker (artikkel eller eksempel) + valgfri ingress-overstyring.
+// Reads the nested block list (forsideArtikkelKort/forsideEksempelKort) under a forside module.
+// Each card has a content picker (artikkel or eksempel) + optional ingress override.
 function mapForsideKort(value: unknown): ForsideKort[] | undefined {
   const items = (value as any)?.items;
   if (!Array.isArray(items) || items.length === 0) return undefined;
@@ -1726,7 +1726,7 @@ function mapForsideKort(value: unknown): ForsideKort[] | undefined {
     .map((block: any): ForsideKort => {
       const content = block.content || block;
       const props = content.properties || {};
-      // Artikkelkort bruker "artikkel", eksempelkort bruker "eksempel".
+      // Article cards use "artikkel", example cards use "eksempel".
       const id = pickerId(props.artikkel) ?? pickerId(props.eksempel);
       return {
         id,
@@ -1751,7 +1751,7 @@ function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
       return { contentType: ct, id, eksempelId: pickerId(props.eksempel), ingress: (props.ingress as string) || undefined };
     }
     if (ct === 'eksempelGruppe') {
-      // Per-kort farge (fargeN) er et planlagt redaksjonelt felt — finnes ikke i CMS ennå.
+      // Per-card colour (fargeN) is a planned editorial field, not in the CMS yet.
       const refs = [1, 2, 3, 4, 5, 6]
         .map((n) => ({ id: pickerId(props[`eksempel${n}`]), farge: props[`farge${n}`] }))
         .filter((r): r is { id: string; farge: unknown } => !!r.id);
@@ -1768,7 +1768,7 @@ function mapEksemplerSeksjoner(value: unknown): EksemplerSeksjon[] | undefined {
       };
     }
     if (ct === 'eksempelRelatert') {
-      // Per-kort tag (relatertTagN) er et planlagt redaksjonelt felt — finnes ikke i CMS ennå.
+      // Per-card tag (relatertTagN) is a planned editorial field, not in the CMS yet.
       const refs = [1, 2, 3]
         .map((n) => ({ id: pickerId(props[`relatert${n}`]), tag: props[`relatertTag${n}`] }))
         .filter((r): r is { id: string; tag: unknown } => !!r.id);
@@ -1871,18 +1871,18 @@ function parseJsonArray(value: string | undefined): string[] {
   }
 }
 
-// Standard bredder for leveranse-resizing (ImageSharp width-param). Originalen
-// i CMS er urort; vi henter en nedskalert webp per kontekst. Tallene dekker
-// retina (2x) pa typisk visnings-storrelse. Juster her, ett sted.
+// Standard widths for delivery resizing (ImageSharp width param). The original
+// in the CMS is untouched; we fetch a downscaled webp per context. The numbers cover
+// retina (2x) at a typical display size. Adjust here, in one place.
 export const MEDIA_WIDTH = {
-  hero: 1600, // stor toppfigur, bred desktop + retina
-  content: 1200, // bilde i artikkelspalten
-  card: 800, // kort/listebilde
+  hero: 1600, // large top figure, wide desktop + retina
+  content: 1200, // image in the article column
+  card: 800, // card/list image
 } as const;
 
-// Legger pa ImageSharp-resizing nar en width er gitt. Umbraco rendrer da en
-// nedskalert webp on-demand og cacher den. SVG/GIF hoppes over (vektor/animasjon
-// skal ikke rasteres). Uten width returneres URLen urort (f.eks. og:image).
+// Adds ImageSharp resizing when a width is given. Umbraco then renders a
+// downscaled webp on demand and caches it. SVG/GIF are skipped (vector/animation
+// must not be rasterised). Without a width the URL is returned untouched (e.g. og:image).
 function withImageParams(url: string, width?: number): string {
   if (!width) return url;
   if (/\.(svg|gif)(\?|$)/i.test(url)) return url;
@@ -1890,9 +1890,9 @@ function withImageParams(url: string, width?: number): string {
   return `${url}${sep}width=${width}&format=webp&quality=80`;
 }
 
-// Gjor en relativ Umbraco media-URL (/media/...) absolutt mot CMS-hosten.
-// Passerer allerede-absolutte (http) og ikke-media-URLer uendret. Med en width
-// legges leveranse-resizing pa (kun pa faktiske media-URLer).
+// Makes a relative Umbraco media URL (/media/...) absolute against the CMS host.
+// Passes already absolute (http) and non-media URLs through unchanged. With a width
+// delivery resizing is added (only on actual media URLs).
 export function toAbsoluteMediaUrl(url?: string, width?: number): string | undefined {
   if (!url) return undefined;
   if (url.startsWith('http')) return withImageParams(url, width);
@@ -1900,15 +1900,15 @@ export function toAbsoluteMediaUrl(url?: string, width?: number): string | undef
   return url;
 }
 
-// Full media-URL for et media-objekt. Default-optimaliserer til content-bredde
-// slik at et nytt bilde aldri serveres i full storrelse ved et uhell; send
-// MEDIA_WIDTH.hero / .card (eller egen width) for andre kontekster.
+// Full media URL for a media object. Optimises to the content width by default
+// so a new image is never served at full size by accident; pass
+// MEDIA_WIDTH.hero / .card (or your own width) for other contexts.
 export function getMediaUrl(media?: UmbracoMedia, width: number = MEDIA_WIDTH.content): string | undefined {
   return toAbsoluteMediaUrl(media?.url, width);
 }
 
-// Kandidatbredder for kortbilder. Nettleseren velger selv ut fra sizes og
-// skjermtetthet, framfor at vi gjetter en enkelt bredde som passer alle.
+// Candidate widths for card images. The browser chooses itself based on sizes and
+// screen density, rather than us guessing a single width that fits all.
 export const CARD_SRCSET_WIDTHS = [400, 600, 800, 1200] as const;
 
 export interface CardImage {
@@ -1920,41 +1920,41 @@ export interface CardImage {
 }
 
 /**
- * Bildeattributter for et CMS-media i kort-kontekst.
+ * Image attributes for a CMS media item in a card context.
  *
- * Returnerer undefined nar mediet mangler URL. Det er ikke en teoretisk sak:
- * Delivery API sender picker-objekter som FINNES men har tomme properties, sa
- * monsteret `media && <img src={getMediaUrl(media)}>` slipper gjennom vakta og
- * rendrer src="". Sjekk resultatet av denne i stedet for a sjekke mediet.
+ * Returns undefined when the media has no URL. That is not a theoretical case:
+ * the Delivery API sends picker objects that EXIST but have empty properties, so
+ * the pattern `media && <img src={getMediaUrl(media)}>` slips past the guard and
+ * renders src="". Check the result of this instead of checking the media.
  *
- * SVG og GIF far ingen srcset. ImageSharp rasterer ikke vektor og hopper over
- * dem i withImageParams, sa alle kandidatene ville pekt pa samme fil.
+ * SVG and GIF get no srcset. ImageSharp does not rasterise vectors and skips
+ * them in withImageParams, so all the candidates would have pointed to the same file.
  *
- * width/height er originalens dimensjoner fra CMS. Nettleseren bruker dem bare
- * som sideforhold nar CSS styrer selve storrelsen, sa de trenger ikke stemme
- * med den leverte bredden.
+ * width/height are the original's dimensions from the CMS. The browser only uses them
+ * as an aspect ratio when CSS controls the actual size, so they do not need to match
+ * the delivered width.
  */
 /**
- * Bildet et lenkekort skal vise, i prioritert rekkefolge:
- *   1. overstyring pa selve kortet, som bare gjelder den ene plasseringen
- *   2. nodens lenkekortbilde
- *   3. nodens hovedbilde
- * Ingen treff gir undefined, og da fyller Standardbilde boksen.
+ * The image a link card should show, in order of priority:
+ *   1. override on the card itself, which only applies to that one placement
+ *   2. the node's lenkekortbilde
+ *   3. the node's main image
+ * No match gives undefined, and then Standardbilde fills the box.
  *
- * SEO-bildet er bevisst ikke med. Det er for delingsforhandsvisning, ikke
- * innhold, og at det lekket inn hit er nettopp feilen i #738.
+ * The SEO image is deliberately not included. It is for share previews, not
+ * content, and it leaking in here is exactly the bug in #738.
  */
 /**
- * Datoen som skal vises for et innhold, og som sortering skal bruke.
+ * The date to show for a piece of content, and the one sorting should use.
  *
- * Rekkefølgen er redaktørens overstyring, så byline-datoen der artikkelen har
- * en byline-blokk, så datoen innholdet ble opprettet (se publishedAt i
- * mapItem). Samlet her framfor spredt utover, slik velgKortbilde gjorde det for
- * bilder, så kort, artikkelsider og sortering ikke kan komme til å vise tre
- * ulike datoer for samme side.
+ * The order is the editor's override, then the byline date where the article has
+ * a byline block, then the date the content was created (see publishedAt in
+ * mapItem). Gathered here rather than spread out, as velgKortbilde did for
+ * images, so cards, article pages and sorting cannot end up showing three
+ * different dates for the same page.
  *
- * Tom streng teller som ikke satt. Både publisertDato og byline-datoen mappes
- * til '' når feltet står tomt i Umbraco, så en ren ?? -kjede ville valgt tomt.
+ * An empty string counts as not set. Both publisertDato and the byline date are mapped
+ * to '' when the field is empty in Umbraco, so a plain ?? chain would pick empty.
  */
 export function velgPublisertDato(
   node?: {
@@ -1967,7 +1967,7 @@ export function velgPublisertDato(
   return satt(node?.publisertDato) ?? satt(byline?.content?.dato) ?? satt(node?.publishedAt);
 }
 
-/** Nyeste først. Innhold uten dato havner sist, uansett sorteringsretning. */
+/** Newest first. Content without a date ends up last, regardless of sort direction. */
 export function sammenlignPublisertDato(
   a: Parameters<typeof velgPublisertDato>[0],
   b: Parameters<typeof velgPublisertDato>[0],
@@ -2011,8 +2011,8 @@ export function getCardImage(media?: UmbracoMedia): CardImage | undefined {
   return {
     src,
     srcset,
-    // Full bredde pa mobil. Over 768px ligger kortene i et rutenett inne i en
-    // spalte pa maks 1050px, sa to kolonner blir rundt 510px og tre rundt 330px.
+    // Full width on mobile. Above 768px the cards sit in a grid inside a
+    // column of at most 1050px, so two columns are about 510px and three about 330px.
     sizes: srcset ? '(max-width: 767px) 100vw, 520px' : undefined,
     width: media?.width,
     height: media?.height,
@@ -2020,8 +2020,8 @@ export function getCardImage(media?: UmbracoMedia): CardImage | undefined {
 }
 
 /**
- * Normaliser bakgrunn-verdien fra CMS til en nokkel.
- * Dropdown gir en streng ("accent"); ColorPicker med labels gir { label, value }.
+ * Normalise the bakgrunn value from the CMS to a key.
+ * Dropdown gives a string ("accent"); ColorPicker with labels gives { label, value }.
  */
 export function bakgrunnKey(raw: any): string | undefined {
   if (raw == null) return undefined;
@@ -2030,9 +2030,9 @@ export function bakgrunnKey(raw: any): string | undefined {
 }
 
 /**
- * Redaksjonell bakgrunnsfarge for artikkelhodet -> DS surface CSS-variabel.
- * Tre valg: accent (standard), brand1, brand2. Robust for label ("Accent"/"Brand 1"),
- * nokkel ("accent") og hex ("e9c0c8"). Ukjent/tom -> accent.
+ * Editorial background colour for the article header -> DS surface CSS variable.
+ * Three choices: accent (default), brand1, brand2. Robust for label ("Accent"/"Brand 1"),
+ * key ("accent") and hex ("e9c0c8"). Unknown/empty -> accent.
  */
 export function bakgrunnSurface(bakgrunn?: string): string {
   switch ((bakgrunn || '').toLowerCase().replace(/[\s#]/g, '')) {
@@ -2162,9 +2162,9 @@ export async function getForside(options: FetchOptions = {}): Promise<Forside | 
 export async function getGlobaleInnstillinger(options: FetchOptions = {}): Promise<GlobaleInnstillinger | null> {
   const result = await fetchCollection<GlobaleInnstillinger>('globaleInnstillinger', { ...options, take: 1 });
   const gi = result.data[0] || null;
-  // Cookie-banner og footer kan ha interne riktekst-lenker. De rendres som
-  // placeholder (href="#" + data-internal-link-id) og må resolves her, slik
-  // artikkelinnhold gjør — ellers peker lenken bare til "#".
+  // The cookie banner and footer can have internal rich text links. They are rendered as
+  // placeholders (href="#" + data-internal-link-id) and must be resolved here, as
+  // article content does, otherwise the link just points to "#".
   if (gi) await enrichRteInternalLinks(gi, options);
   return gi;
 }
@@ -2257,7 +2257,7 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
   const headers: HeadersInit = { 'Accept': 'application/json' };
   if (options.preview && API_KEY) {
     headers['Api-Key'] = API_KEY;
-    // Umbraco Delivery API leverer kladd kun med Preview-header (ikke ?preview-query).
+    // The Umbraco Delivery API only delivers drafts with the Preview header (not the ?preview query).
     headers['Preview'] = 'true';
   }
 
@@ -2298,8 +2298,8 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
           slug,
           contentType: item.contentType,
           excerpt,
-          // Samme kilde som i mapItem, så et søketreff viser samme dato
-          // som siden det peker til.
+          // Same source as in mapItem, so a search hit shows the same date
+          // as the page it points to.
           publishedAt: item.createDate,
         };
       });

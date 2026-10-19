@@ -1,9 +1,9 @@
 import { CANONICAL_SITE_URL } from './prod-hosts';
 
-// Leste tidligere import.meta.env.SITE_URL. Den settes til http://localhost:4321
-// i dev og bakes inn i prod-bygget, så all strukturert data i produksjon pekte på
-// localhost. Det kanoniske domenet er det samme uansett miljø, og bor derfor i
-// prod-hosts.ts sammen med den samme advarselen.
+// Used to read import.meta.env.SITE_URL. It is set to http://localhost:4321
+// in dev and baked into the prod build, so all structured data in production pointed to
+// localhost. The canonical domain is the same regardless of environment, and therefore lives in
+// prod-hosts.ts together with the same warning.
 const SITE_URL = CANONICAL_SITE_URL;
 const SITE_NAME = 'KI Norge';
 
@@ -23,8 +23,8 @@ export function websiteSchema(description: string) {
   };
 }
 
-// Artikler, enkle veiledninger og stegartikler bruker samme schema, men bor på
-// ulike stier. Siden sender derfor sin egen sti, den samme som canonical-lenken.
+// Artikler, enkle veiledninger and stegartikler use the same schema, but live at
+// different paths. The page therefore sends its own path, the same as the canonical link.
 export function articleSchema(opts: {
   headline: string;
   description: string;
@@ -88,11 +88,11 @@ export function eksempelSchema(opts: {
 }
 
 /**
- * CollectionPage med ItemList for oversiktssidene (/veiledning, /artikler,
- * /eksempler, /kalender). Detaljsidene hadde Article + BreadcrumbList, mens
- * oversiktene stod uten strukturert data i det hele tatt. For en agent er det
- * nettopp oversikten som svarer på "hva finnes her", så lista over medlemmer er
- * den nyttige delen.
+ * CollectionPage with ItemList for the overview pages (/veiledning, /artikler,
+ * /eksempler, /kalender). The detail pages had Article + BreadcrumbList, while
+ * the overviews had no structured data at all. For an agent it is
+ * precisely the overview that answers "what is here", so the list of members is
+ * the useful part.
  */
 export function collectionPageSchema(opts: {
   name: string;

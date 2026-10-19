@@ -1,4 +1,4 @@
-// Tagger ds-klasser på bare HTML fra Umbraco RichText. Legg til/fjern linjer.
+// Tags ds classes onto bare HTML from Umbraco RichText. Add/remove lines.
 import { parseHTML } from 'linkedom';
 
 const RULES: Record<string, string> = {
@@ -10,13 +10,13 @@ const RULES: Record<string, string> = {
   // 'hr':                   'ds-divider',
 };
 
-// Vi fjerner font-relaterte inline-stiler fra RTE-HTML uansett verdi. Sjekken
-// matcher CSS-egenskapen (font-family/font-size), ikke et bestemt font-navn, så
-// ingen font er hardkodet her: appens CSS er eneste kilde for hvilke fonter som
-// gjelder (--ds-font-family for brødtekst, --ki-heading-font for overskrift, se
-// global.css). Da kan ikke fremmede fonter fra innliming (Word o.l.) overstyre
-// dem. Overskrifter kommer inn som ekte h2–h4 og får overskriftsfonten via CSS.
-// Andre inline-stiler redaktøren bruker bevisst (text-align, text-indent) beholdes.
+// We remove font-related inline styles from RTE HTML regardless of value. The check
+// matches the CSS property (font-family/font-size), not a specific font name, so
+// no font is hardcoded here: the app's CSS is the only source for which fonts
+// apply (--ds-font-family for body text, --ki-heading-font for headings, see
+// global.css). Then foreign fonts from pasting (Word etc.) cannot override
+// them. Headings come in as real h2–h4 and get the heading font via CSS.
+// Other inline styles the editor uses deliberately (text-align, text-indent) are kept.
 const STRIP_STYLE_PROPS = /^(font-family|font-size)\s*:/i;
 
 function stripForeignFonts(el: Element): void {
@@ -30,17 +30,17 @@ function stripForeignFonts(el: Element): void {
   else el.removeAttribute('style');
 }
 
-// Non-breaking space (U+00A0) og literal nbsp-entiteter snik seg inn ved innliming
-// fra Word o.l. De gir fast mellomrom som ikke bryter ved linjeskift, og en entitet
-// limt inn som ren tekst (&nbsp;) vises som synlig "&nbsp;" på siden. Vi gjør all
-// nbsp om til vanlig mellomrom: et løp av mellomrom som inneholder minst én nbsp
-// kollapses til ETT vanlig mellomrom. Da blir "ord<nbsp>ord" til "ord ord", og en
-// nbsp inntil et vanlig mellomrom forsvinner. Vi trimmer ikke start/slutt her i
-// koden, for en tekstnode kan ha et bevisst mellomrom inntil et inline-element
-// (<em>, <strong> ...) som ikke skal limes sammen, og "start/slutt av linje" er
-// uansett en layout-greie nettleseren trimmer selv ved rendering. Rene vanlige
-// mellomrom (uten nbsp) røres ikke; HTML kollapser dem ved rendering. Kalles på rå
-// tekstnoder før escaping, så den fanger både tegnet og entitet-som-tekst.
+// Non-breaking space (U+00A0) and literal nbsp entities sneak in when pasting
+// from Word etc. They give a fixed space that does not break at line wraps, and an entity
+// pasted as plain text (&nbsp;) shows up as a visible "&nbsp;" on the page. We turn all
+// nbsp into regular spaces: a run of spaces that contains at least one nbsp
+// is collapsed to ONE regular space. Then "word<nbsp>word" becomes "word word", and an
+// nbsp next to a regular space disappears. We do not trim start/end here in
+// the code, because a text node can have a deliberate space next to an inline element
+// (<em>, <strong> ...) that must not be glued together, and "start/end of line" is
+// a layout thing the browser trims itself when rendering anyway. Plain regular
+// spaces (without nbsp) are not touched; HTML collapses them when rendering. Called on raw
+// text nodes before escaping, so it catches both the character and entity-as-text.
 const NBSP_ENTITY = /&nbsp;|&#0*160;|&#x0*A0;/gi;
 const NBSP_RUN = /[ \t]*\u00A0[ \t\u00A0]*/g;
 
