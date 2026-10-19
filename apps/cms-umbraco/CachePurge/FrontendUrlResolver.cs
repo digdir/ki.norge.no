@@ -2,20 +2,25 @@ using KiNorge.Cms.CachePurge.Cloudflare;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Models;
-using Umbraco.Extensions;
 
 namespace KiNorge.Cms.CachePurge;
 
 public record AffectedUrls(IReadOnlyCollection<string> Urls, bool PurgeEverything);
 
-// Frontend ruter på slug-feltet, ikke Umbraco-treet, så URLene bygges fra content type + slug.
+// Sidens egen sti kommer fra ContentRouteResolver (shared/content-routes.json), samme kilde
+// som forhåndsvisningen og søket. Her står bare sidene som viser noden uten å være dens egen URL.
 public class FrontendUrlResolver
 {
+    private readonly ContentRouteResolver _routes;
     private readonly IOptionsMonitor<CloudflareOptions> _options;
     private readonly ILogger<FrontendUrlResolver> _logger;
 
-    public FrontendUrlResolver(IOptionsMonitor<CloudflareOptions> options, ILogger<FrontendUrlResolver> logger)
+    public FrontendUrlResolver(
+        ContentRouteResolver routes,
+        IOptionsMonitor<CloudflareOptions> options,
+        ILogger<FrontendUrlResolver> logger)
     {
+        _routes = routes;
         _options = options;
         _logger = logger;
     }
@@ -27,91 +32,36 @@ public class FrontendUrlResolver
             return new AffectedUrls([], PurgeEverything: false);
 
         string alias = content.ContentType.Alias;
-        string? slug = content.GetValue<string>("slug");
-        var paths = new List<string>();
+        if (alias == "globaleInnstillinger")
+            return new AffectedUrls([], PurgeEverything: true);
 
-        switch (alias)
-        {
-            case "globaleInnstillinger":
-                return new AffectedUrls([], PurgeEverything: true);
+        string? path = _routes.Resolve(content);
+        if (path == null)
+            return Escalate(alias, content.Id);
 
-            case "forside":
-                paths.Add("/");
-                break;
-
-            case "artikkel":
-                AddItem(paths, "/artikler", slug, alsoHome: true);
-                break;
-            case "eksempel":
-                AddItem(paths, "/eksempler", slug, alsoHome: true);
-                break;
-            case "kalenderhendelse":
-                AddItem(paths, "/kalender", slug, alsoHome: true);
-                break;
-
-            case "veiledningGuide":
-            case "enkelVeiledning":
-                AddItem(paths, "/veiledning", slug, alsoHome: true);
-                break;
-
-            case "veiledningSteg":
-            {
-                string? guideSlug = content.GetValue<string>("guideSlug");
-                if (string.IsNullOrWhiteSpace(guideSlug))
-                    return Escalate(alias, content.Id);
-                paths.Add($"/veiledning/{guideSlug}");
-                if (!string.IsNullOrWhiteSpace(slug))
-                    paths.Add($"/veiledning/{guideSlug}/{slug}");
-                break;
-            }
-
-            case "side":
-                if (string.IsNullOrWhiteSpace(slug)) return Escalate(alias, content.Id);
-                paths.Add($"/{slug}");
-                break;
-
-            case "omOss":
-                paths.Add("/om-oss");
-                break;
-            case "sandkasse":
-                paths.Add("/sandkasse");
-                break;
-
-            case "artikler":
-                paths.Add("/artikler"); paths.Add("/");
-                break;
-            case "eksempler":
-                paths.Add("/eksempler"); paths.Add("/");
-                break;
-            case "veiledninger":
-                paths.Add("/veiledning"); paths.Add("/");
-                break;
-            case "kalender":
-                paths.Add("/kalender"); paths.Add("/");
-                break;
-
-            default:
-                return Escalate(alias, content.Id);
-        }
-
-        List<string> urls = paths
+        List<string> urls = AlsoShownOn(alias, path)
+            .Prepend(path)
             .Distinct()
             .Select(p => baseUrl + p)
             .ToList();
         return new AffectedUrls(urls, PurgeEverything: false);
     }
 
-    private static void AddItem(List<string> paths, string listing, string? slug, bool alsoHome)
+    private static string[] AlsoShownOn(string alias, string path) => alias switch
     {
-        if (!string.IsNullOrWhiteSpace(slug)) paths.Add($"{listing}/{slug}");
-        paths.Add(listing);
-        if (alsoHome) paths.Add("/");
-    }
+        "artikkel" => ["/artikler", "/"],
+        "eksempel" => ["/eksempler", "/"],
+        "kalenderhendelse" => ["/kalender", "/"],
+        "veiledningGuide" or "enkelVeiledning" => ["/veiledning", "/"],
+        "veiledningSteg" => [path[..path.LastIndexOf('/')]],
+        "artikler" or "eksempler" or "veiledninger" or "kalender" => ["/"],
+        _ => [],
+    };
 
     private AffectedUrls Escalate(string alias, int contentId)
     {
         _logger.LogInformation(
-            "Ingen URL-regel for content type '{Alias}' (id {Id}) — eskalerer til purge_everything",
+            "Fant ingen frontend-URL for content type '{Alias}' (id {Id}), eskalerer til purge_everything",
             alias, contentId);
         return new AffectedUrls([], PurgeEverything: true);
     }

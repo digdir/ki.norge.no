@@ -15,7 +15,6 @@ public class HeadlessPreviewComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
-        builder.Services.AddSingleton<ContentRouteResolver>();
         builder.Services.AddUnique<IDocumentPreviewService, KiNorgePreviewService>();
     }
 }
