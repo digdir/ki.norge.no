@@ -24,7 +24,7 @@ export default function KiTiltakCard({ tiltak, query, onOpen }: Props) {
   return (
     <button
       type="button"
-      className="tiltak-kort"
+      className="tiltak-kort ds-focus"
       aria-haspopup="dialog"
       aria-labelledby={titleId}
       aria-describedby={showsDescription ? `${orgId} ${descId} ${topicId}` : `${orgId} ${topicId}`}

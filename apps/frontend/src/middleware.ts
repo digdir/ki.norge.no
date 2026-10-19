@@ -1,5 +1,4 @@
 import { defineMiddleware } from 'astro:middleware';
-import { handleAdminAccess, isAdminCookie, requiresAdmin } from './lib/admin-access';
 import {
   htmlToMarkdown,
   prefersMarkdown,
@@ -21,8 +20,10 @@ import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, wi
  * Preview requests (cookie or query param) bypass the cache entirely so
  * editors always see fresh draft content.
  *
- * Cache invalidation: Umbraco publishes trigger a Cloudflare cache purge
- * via webhook, so the next visitor gets a fresh render.
+ * Selve cachen ligger i cache-workeren foran (apps/cache-kinorgeportal), som
+ * cacher etter Cache-Control herfra. CMS-et purger selv ved publisering
+ * (apps/cms-umbraco/CachePurge/), og en frontend-deploy purger med
+ * scripts/purge-cache.mjs.
  *
  * Browser revalidation: HTML bruker s-maxage (delt/edge-cache) men max-age=0,
  * must-revalidate for nettleseren. Uten dette serverte nettleseren cachet HTML
@@ -35,65 +36,14 @@ import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, wi
 
 const CACHE_MAX_AGE = 60 * 10; // 10 minutes edge cache (s-maxage)
 
-// Public hostnames that sit behind the holding page until launch. The
-// *.workers.dev preview URLs and localhost are intentionally NOT listed, so
-// CMS preview and editor access stay open without a key.
-const GATED_HOSTS = new Set(['ki.norge.no', 'ki.test.norge.no']);
-
 // /health er et maskin-endepunkt som /api/*, selv om adressen er lik
-// info.altinn.no/health. Uten dette ville holdesiden svart 200 på den i
-// kommer-snart-modus, og overvåkingen hadde trodd alt var i orden.
+// info.altinn.no/health. Den skal aldri caches eller behandles som en side.
 const isMachineRoute = (pathname: string) => pathname.startsWith('/api/') || pathname === '/health';
-
-// Launch switch. Gated hosts show the holding page UNLESS LAUNCH_MODE is "live".
-// Fail-safe: any other value (or unset) keeps them gated, so a misconfigured
-// deploy can never accidentally expose the site.
-// To go live: set LAUNCH_MODE=live for that env in wrangler.jsonc and deploy.
-const LAUNCH_MODE = process.env.LAUNCH_MODE || import.meta.env.LAUNCH_MODE || '';
 
 // Må matche HeadlessPreview:PreviewSecret i CMS-et, som legger den på
 // forhåndsvisningslenkene sine. Er den tom eller for svak, er forhåndsvisning
 // avslått for alle. Se USABLE_SECRET i lib/preview.ts.
 const PREVIEW_SECRET = process.env.PREVIEW_SECRET || import.meta.env.PREVIEW_SECRET || '';
-
-// Branding-/delingsassets som alltid skal kunne hentes, selv mens hosten er
-// gated. Slik kan lenkeforhandsvisninger (og:image) og favicon hentes for
-// lansering uten a eksponere sideinnhold. Kun statiske merkevarefiler her,
-// ikke JS-bundles eller sider.
-const PUBLIC_ASSET_PATHS = new Set([
-  '/og-image.png',
-  '/og-image.svg',
-  '/favicon.ico',
-  '/manifest.webmanifest',
-]);
-
-// Ikonvariantene ligger samlet under /favicon/. Prefiks framfor å liste hver
-// enkelt størrelse, så en ny variant ikke blir gated ved et uhell.
-const PUBLIC_ASSET_PREFIXES = ['/favicon/'];
-
-const COMING_SOON_HTML = `<!doctype html>
-<html lang="no">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KI Norge</title>
-  <meta name="robots" content="noindex" />
-  <style>
-    /* Systemfont. Denne siden er noindex og står alene uten bundlet CSS, så den
-       skal ikke dra inn en fontfil. Hentet Inter fra Google fram til nå. */
-    * { margin: 0; box-sizing: border-box; }
-    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--ds-color-background-default); color: #1e293b; }
-    .card { text-align: center; padding: 3rem 2rem; max-width: 600px; }
-    h1 { font-size: 2rem; font-weight: 600; margin-bottom: 1rem; }
-    p { font-size: 1.1rem; line-height: 1.6; color: #475569; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>KI Norge</h1>
-  </div>
-</body>
-</html>`;
 
 /**
  * Markdown for agenter, i to former.
@@ -144,47 +94,6 @@ async function toMarkdownResponse(
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies } = context;
 
-  // Admin access (status page, coming-soon bypass). /admin-tilgang setter
-  // ki_admin-cookien, fra skjemaet eller med ?key=<ADMIN_SECRET>.
-  const adminSecret = process.env.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || '';
-  if (url.pathname === '/admin-tilgang') {
-    return handleAdminAccess(context.request, adminSecret);
-  }
-
-  // Verdien må stemme med hemmeligheten, ikke bare finnes. Se lib/admin-access.ts.
-  // Regnes ut bare når en rute faktisk trenger svaret.
-  let adminCheck: Promise<boolean> | null = null;
-  const isAdmin = () => (adminCheck ??= isAdminCookie(cookies.get('ki_admin')?.value, adminSecret));
-
-  // Statussiden og datakilden bak den krever admin-cookie. /api/status-checks
-  // sto utenfor og var offentlig lesbar på prod, selv om ruta selv dokumenterte
-  // at middlewaren beskyttet den. Den svarer med interne vertsnavn i dis-core.
-  if (requiresAdmin(url.pathname) && !(await isAdmin())) {
-    return new Response('Ikke autorisert. Trenger ki_admin-cookie. Logg inn på /admin-tilgang.', {
-      status: 401,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-    });
-  }
-
-  // Holding-page wall for the public domains (GATED_HOSTS). The admin cookie
-  // (see /admin-tilgang) bypasses it; workers.dev and localhost are never gated,
-  // so CMS preview stays open. Flip LAUNCH_MODE to "live" and deploy to launch.
-  const isComingSoon = LAUNCH_MODE !== 'live' && GATED_HOSTS.has(url.hostname);
-
-  if (isComingSoon) {
-    const isApiRoute = isMachineRoute(url.pathname);
-    const isPublicAsset =
-      PUBLIC_ASSET_PATHS.has(url.pathname) ||
-      PUBLIC_ASSET_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
-
-    if (!isApiRoute && !isPublicAsset && !(await isAdmin())) {
-      return new Response(COMING_SOON_HTML, {
-        status: 200,
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
-      });
-    }
-  }
-
   // Eneste stedet forhåndsvisning avgjøres. Sidene leser svaret fra locals, så
   // ingen av dem kan komme til å stole på ?preview på egen hånd igjen.
   const { isPreview, shouldSetCookie } = resolvePreview({
@@ -202,14 +111,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const isApiRoute = isMachineRoute(url.pathname);
-  const isAdminRoute = requiresAdmin(url.pathname) || url.pathname === '/admin-tilgang';
 
   const isReadRequest = context.request.method === 'GET' || context.request.method === 'HEAD';
   // /.well-known/ er maskin-endepunkter med egne ruter, ikke sider. Uten dette
   // kapret .md-omskrivingen /.well-known/agent-skills/<navn>/SKILL.md, som er en
   // ekte rute og ikke markdown-varianten av noen side.
   const isWellKnown = url.pathname.startsWith('/.well-known/');
-  const isPage = !isApiRoute && !isAdminRoute && !isWellKnown && isReadRequest;
+  const isPage = !isApiRoute && !isWellKnown && isReadRequest;
 
   // `/veiledning.md` rendrer den vanlige siden og leverer den som markdown. Egen
   // URL gir egen cache-nøkkel, og det er det som gjør denne veien pålitelig.
@@ -276,16 +184,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Content-Security-Policy', import.meta.env.DEV ? DEV_CSP : FALLBACK_CSP);
   }
 
-  // Don't cache preview, API, or admin routes — eller sider som selv har bedt om
+  // Don't cache preview or API routes — eller sider som selv har bedt om
   // å ikke caches. En side setter `no-store` i sin egen catch når CMS-henting
   // feilet, slik at en degradert render (manglende hero/innhold) aldri caches på
   // edgen og serveres til alle. Uten dette ville et transient CMS-blaff bli
   // fanget i edge-cachen i opptil s-maxage og vist til alle besøkende.
   const pageOptedOutOfCache = response.headers.get('Cache-Control')?.includes('no-store');
-  // En admin ser den ekte sida bak kommer-snart-veggen. Cache-workeren bruker bare
-  // URL-en som nøkkel, så uten dette ble sida servert fra kanten til alle.
-  const adminBehindWall = isComingSoon && (await isAdmin());
-  if (bypassesCache(url, isPreview) || isApiRoute || isAdminRoute || pageOptedOutOfCache || adminBehindWall) {
+  if (bypassesCache(url, isPreview) || isApiRoute || pageOptedOutOfCache) {
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   }

@@ -12,12 +12,10 @@ export const EXCLUDED_CONTENT_TYPES = new Set<string>([]);
 // Sti-prefikser som aldri skal i sitemap. Speiler Disallow-listen i
 // src/pages/robots.txt.ts. Hold de to listene synkronisert (én delt konstant
 // kan vurderes i en senere runde). Brukes som fallback når et innholdsnode
-// likevel resolver til en reservert sti (f.eks. en `side` med slug "status").
+// likevel resolver til en reservert sti (f.eks. en `side` med slug "404").
 export const EXCLUDED_PATH_PREFIXES = [
   '/media',
-  '/admin-tilgang',
   '/preview-tilgang',
-  '/status',
   '/api',
   '/503',
   '/404',

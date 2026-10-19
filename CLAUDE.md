@@ -46,6 +46,8 @@ Frontend henter innhold via Umbraco Delivery API v2. Miljøer, workere og drift 
 
 ## CMS (Umbraco)
 
+- Alle composers, hva de gjør, om de er i bruk i drift og hvilken konfig som slår dem på: `docs/cms-composers.md`
+
 **Skjemaendringer nås IKKE lenger via composeren i drift.** Både `syncroot/prod/` og
 `syncroot/tt02/` setter `USYNC_OWNS_SCHEMA=true`, og `ContentTypeComposer` hopper da over
 hele skjema-assertingen (`ContentTypeComposer.cs:116`). Den kjører fortsatt lokalt, der
@@ -72,8 +74,7 @@ Alt deployes fra `main`. Frontend-skriptene stopper når arbeidstreet ikke er re
 - Media ligger i Azure Blob (`AzureBlobMediaComposer.cs`). `umbraco-media` er bevisst ikke montert på `/app/wwwroot/media`, se `syncroot/base/umbraco/deployment.yaml`
 - Ingen dark mode (bevisst valg)
 - Ingen Tailwind
-- Admin-tilgang via skjemaet på `/admin-tilgang` (eller `?key=<ADMIN_SECRET>`) setter ki_admin cookie, som utløper på serveren etter 30 dager
-- Kommer-snart-modus gjelder `GATED_HOSTS` med mindre `LAUNCH_MODE=live` (per miljø i `wrangler.jsonc`)
+- Ingen admin-innlogging og ingen kommer-snart-vegg i frontenden. Helsa sjekkes på den offentlige `/health`
 
 ## Dokumentasjon
 

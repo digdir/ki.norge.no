@@ -6,9 +6,9 @@ using Umbraco.Cms.Core.Notifications;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Prevents the seeded admin account (admin@ki.norge.no) from being deleted
-/// or having its email changed. Without this, an editor with user-management
-/// permissions could lock everyone out by deleting the only admin.
+/// Prevents the seeded admin account (admin@ki.norge.no) from being deleted.
+/// Without this, an editor with user-management permissions could lock
+/// everyone out by deleting the only admin.
 ///
 /// To intentionally rotate the admin: change ProtectedAdminEmail below first,
 /// then deploy, then perform the change in the UI.

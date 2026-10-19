@@ -1,4 +1,4 @@
-import type { Kalenderhendelse } from './umbraco';
+import { buildUrlForContent, type Kalenderhendelse } from './umbraco';
 
 // Norske maanedsnavn. Vi bruker en fast tabell (ikke toLocaleString('nb-NO'))
 // fordi ICU-locale-data ikke er garantert tilgjengelig paa Cloudflare Workers,
@@ -76,7 +76,9 @@ export function hendelseTilEventCard(
   const { variant = 'kort', clickable = true } = opts;
   const dato = formatHendelseDato(h.startDato, h.sluttDato);
   return {
-    href: clickable ? `/kalender/${h.slug}` : undefined,
+    href: clickable
+      ? buildUrlForContent({ contentType: 'kalenderhendelse', properties: { slug: h.slug } }, [])
+      : undefined,
     title: variant === 'featured' ? '' : h.tittel,
     description: variant === 'featured' ? '' : (h.ingress || ''),
     tags: parseMerkelapp(h.type),

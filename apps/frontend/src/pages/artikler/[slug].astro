@@ -7,6 +7,7 @@ import NewsCard from '../../components/shared/NewsCard.astro';
 import { getArtikkel, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_WIDTH, bakgrunnSurface } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
+import { flereNyeste } from '../../lib/flere-innhold';
 
 const { slug } = Astro.params;
 const isPreview = Astro.locals.isPreview;
@@ -23,7 +24,7 @@ const heroBg = bakgrunnSurface(article.bakgrunn);
 const articleJsonLd = articleSchema({
   headline: seoTitle,
   description: seoDesc,
-  slug: slug!,
+  path: Astro.url.pathname,
   datePublished: article.publishedAt,
   dateModified: article.updatedAt || article.publishedAt,
 });
@@ -35,8 +36,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
 ]);
 
 // Fetch other articles for "Flere artikler" section
-const allArticlesRes = await getArtikler(10);
-const otherArticles = allArticlesRes.data.filter(a => a.slug !== slug).slice(0, 3);
+const allArticlesRes = await getArtikler();
+const otherArticles = flereNyeste(allArticlesRes.data, slug!);
 
 // Byline moves to the sidebar — pull it out of the block flow so it isn't
 // also rendered inline in the content column.

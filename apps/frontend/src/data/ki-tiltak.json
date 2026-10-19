@@ -664,18 +664,6 @@
     "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
   },
   {
-    "id": "e03243ab-d743-4809-9c65-58525cb09f38",
-    "navn": "Felles digital tilskuddsforvaltning for stat, fylkeskommuner og kommuner",
-    "virksomhet": "KOMMUNAL- OG DISTRIKTSDEPARTEMENTET",
-    "orgnr": "972417858",
-    "fagomrade": "Demokrati og styresett",
-    "beskrivelse": "Kommunal- og distriktsdepartementet skal, i nært samarbeid med KS lage en tilskuddsportal for søknad, utbetaling og rapportering om tilskudd, samt fagsystem for tilskuddsforvaltning med integrasjoner mot andre fellesløsninger (FIKS og Altinn) og mulig tilrettelegging for KI. Løsningen vil gjenbruke komponenter i det offentlige økosystemet.\r\n\r\nLøsningen vil ha nytte i form av mer effektiv tilskuddsforvaltning i det offentlige, samt mindre tid brukt på søknadsprosesser for næringslivet, frivilligheten og innbyggerne.",
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null
-  },
-  {
     "id": "fa7e8763-174e-489a-86be-3177dab0b26c",
     "navn": "Fellesløft for KI-standarder",
     "virksomhet": "HAVINDUSTRITILSYNET",
@@ -833,6 +821,23 @@
     "kontaktinfo": "Ketil.Thorvik@hemit.no"
   },
   {
+    "id": "82ffa5b4-524f-4d95-8bf4-10ee6a202b63",
+    "navn": "HR-veiledning",
+    "virksomhet": "HOLMESTRAND KOMMUNE",
+    "orgnr": "917151229",
+    "fagomrade": "Arbeid",
+    "beskrivelse": "SvaHR er en KI-agent som gir generell HR-veiledning til ledere og ansatte i Holmestrand kommune. Agenten skal gjøre det enklere å finne riktig informasjon om personalhåndbok, tariffavtaler, arbeidsmiljøloven, ferie, permisjon og rutiner, som i dag er spredt på flere systemer. Svarene bygger kun på kvalitetssikrede kommunale kilder og lovverk. Agenten behandler ikke personopplysninger, vurderer ikke enkeltsaker og tar ingen beslutninger. Ved behov for skjønn henvises brukeren til HR. Målet er lik og korrekt informasjon og mer tid i HR til oppgaver som krever faglig vurdering.",
+    "fase": "Gjennomføring",
+    "leveranse": [
+      "Løsning i produksjon"
+    ],
+    "kiType": [
+      "Agentisk KI",
+      "Språkteknologi"
+    ],
+    "kontaktinfo": "farid.ghiami@holmestrand.kommune.no"
+  },
+  {
     "id": "17c18fcb-4265-4da4-bf36-b396f2a87419",
     "navn": "IcoBrain MS",
     "virksomhet": "VESTRE VIKEN HF",
@@ -881,6 +886,22 @@
     "kontaktinfo": null
   },
   {
+    "id": "2072f9c8-2364-40be-bd1e-9a05b32f1d1a",
+    "navn": "Journalføring med Vidd",
+    "virksomhet": "AKERSHUS UNIVERSITETSSYKEHUS HF",
+    "orgnr": "983971636",
+    "fagomrade": "Helse og omsorg",
+    "beskrivelse": "Redusere journalføringsbyrden for klinikere som jobber med psykisk helsevern.",
+    "fase": "I drift",
+    "leveranse": [
+      "Pilot"
+    ],
+    "kiType": [
+      "Generativ KI"
+    ],
+    "kontaktinfo": "eilin.mork@ahus.no"
+  },
+  {
     "id": "ee046e19-3361-4ec1-88d3-8d8b67bd7f59",
     "navn": "KF Tsetlin, forklarbar KI for offentlig sektor",
     "virksomhet": "Kommuneforlaget AS",
@@ -899,7 +920,7 @@
       "Prediktiv KI",
       "Agentisk KI"
     ],
-    "kontaktinfo": "haakon.meland.eriksen@kf.no"
+    "kontaktinfo": null
   },
   {
     "id": "647d928c-0302-4235-af25-98d46f377462",
@@ -1101,7 +1122,7 @@
       "Språkteknologi",
       "Anbefalingssystemer"
     ],
-    "kontaktinfo": "jorgen.kongsro@dfo.no"
+    "kontaktinfo": null
   },
   {
     "id": "390a354a-d8c2-4ada-8a76-5aaf8541a1f6",
@@ -1980,12 +2001,12 @@
     "kontaktinfo": "Ketil.Thorvik@hemit.no"
   },
   {
-    "id": "e2c9f22a-bd02-4ea8-8ff8-52e63879913d",
-    "navn": "Tverrspråklig effektiv kommunikasjon",
+    "id": "30424074-bbe6-42d0-9e01-1bad4f770d8f",
+    "navn": "Tverrspråklig effektiv kommunikasjon (TEK)",
     "virksomhet": "POLITIDIREKTORATET",
     "orgnr": "982531950",
     "fagomrade": "Innbygger",
-    "beskrivelse": "Politiet ønsker å bruke KI og språkmodeller til å løse utfordringen med språkbarrierer i kommunikasjonen mellom politiet og innbyggere som ikke snakker norsk eller engelsk. Prosjektet Tverrspråklig effektiv kommunikasjon tar sikte på å forbedre første kontakt med politiet for brukere uten norsk eller engelsk-kunnskap for å sikre at alle brukere, uavhengig av språkbakgrunn, har lik tilgang til politiets førstelinje-tjenester. Å fjerne språkbarrierer kan øke tilgjengelighet, effektivitet, service og kvalitet på essensielle og livsviktige tjenester for alle samfunnsgrupper. Politiet er også opptatt av at løsningen som utvikles bør kunne benyttes på tvers av offentlig sektor.",
+    "beskrivelse": "Politiet ønsker å utforske om KI og språkmodeller kan være med å løse utfordringen med språkbarrierer i kommunikasjonen mellom politiet og innbyggere som ikke snakker norsk eller engelsk.",
     "fase": null,
     "leveranse": [],
     "kiType": [],

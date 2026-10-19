@@ -35,7 +35,7 @@ const heroImageUrl = heroImage?.url ? getMediaUrl(heroImage, MEDIA_WIDTH.hero) :
 const articleJsonLd = articleSchema({
   headline: seoTitle,
   description: seoDesc,
-  slug: `${guideSlug}/${stepSlug}/${stegartikkelSlug}`,
+  path: Astro.url.pathname,
   datePublished: article.publishedAt,
   dateModified: article.updatedAt || article.publishedAt,
 });

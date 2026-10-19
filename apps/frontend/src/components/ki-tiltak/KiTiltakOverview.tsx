@@ -119,26 +119,25 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
     <>
       <PromoBanner onRegistrer={() => setRegisterOpen(true)} />
 
-      <div className="tiltak-sokefelt">
-        <Label className="tiltak-sokelabel" htmlFor="sok-tiltak">
-          Søk etter tiltak
-        </Label>
-        <Search>
-          <Search.Input
-            id="sok-tiltak"
-            value={filter.query}
-            onChange={(event) => setFilter((previous) => ({ ...previous, query: event.target.value }))}
-          />
-          <Search.Clear />
-        </Search>
-      </div>
-
       {/*
-        Filterknapp, antall og aktive filtre ligger på én rad under søkefeltet,
-        slik prototypens .filter-row gjør. Tidligere delte søkefeltet rad med
-        knappen og antallet, og chipsene lå på en egen rad under.
+        Søkefelt og filterknapp deler rad, og knappen brytes under feltet når
+        det ikke er plass. Antall og aktive filtre ligger på raden under.
       */}
-      <div className="tiltak-filterrad">
+      <div className="tiltak-sokerad">
+        <div className="tiltak-sokefelt">
+          <Label className="tiltak-sokelabel" htmlFor="sok-tiltak">
+            Søk etter tiltak
+          </Label>
+          <Search>
+            <Search.Input
+              id="sok-tiltak"
+              value={filter.query}
+              onChange={(event) => setFilter((previous) => ({ ...previous, query: event.target.value }))}
+            />
+            <Search.Clear />
+          </Search>
+        </div>
+
         <Button
           variant="secondary"
           onClick={() => setFilterOpen(true)}
@@ -149,7 +148,9 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
           Filter
           {activeChips.length > 0 && <Badge count={activeChips.length} />}
         </Button>
+      </div>
 
+      <div className="tiltak-filterrad">
         <p className="tiltak-antall" aria-live="polite">
           {countText}
         </p>

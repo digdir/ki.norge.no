@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   formatDuration,
+  HEALTH_ENTRIES,
   httpStatusFor,
   memoize,
   runHealthChecks,
@@ -21,9 +22,14 @@ type Handler = (url: string, init?: RequestInit) => Promise<Response>;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function fakeFetch(handlers: { umbraco?: Handler; proxy?: Handler; es?: Handler }): typeof fetch {
+type Handlers = { umbraco?: Handler; proxy?: Handler; backoffice?: Handler; es?: Handler };
+
+function fakeFetch(handlers: Handlers): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    if (url.endsWith('/umbraco/management/api/v1/server/status')) {
+      return (handlers.backoffice ?? (async () => json({ serverStatus: 'Run' })))(url, init);
+    }
     if (url.startsWith(CONFIG.umbracoUrl)) return (handlers.umbraco ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.proxy ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.esEndpoint)) return (handlers.es ?? (async () => json({ hits: {} })))(url, init);
@@ -31,7 +37,7 @@ function fakeFetch(handlers: { umbraco?: Handler; proxy?: Handler; es?: Handler 
   }) as typeof fetch;
 }
 
-const run = (handlers: { umbraco?: Handler; proxy?: Handler; es?: Handler }, config = CONFIG, timeoutMs = 3000) =>
+const run = (handlers: Handlers, config = CONFIG, timeoutMs = 3000) =>
   runHealthChecks(config, { fetch: fakeFetch(handlers), now: Date.now, timeoutMs });
 
 /** Svarer aldri, men respekterer avbrudd, som et CMS som henger. */
@@ -58,8 +64,30 @@ describe('runHealthChecks', () => {
     expect(r.status).toBe('Healthy');
     expect(r.entries.umbraco.status).toBe('Healthy');
     expect(r.entries['cms-proxy'].status).toBe('Healthy');
+    expect(r.entries.backoffice.status).toBe('Healthy');
     expect(r.entries.elasticsearch.status).toBe('Healthy');
     expect(httpStatusFor(r.status)).toBe(200);
+  });
+
+  // Én regel i vakta skal dekke begge miljøene, og tt02 skal teste det samme som prod.
+  test.each([
+    ['prod, med egen proxy', CONFIG],
+    ['tt02, offentlig adresse lik den interne', { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl }],
+    ['lokalt, uten offentlig adresse og uten søkenøkkel', { ...CONFIG, umbracoPublicUrl: '', esApiKey: '' }],
+  ])('samme sett med sjekker i %s', async (_miljø, config) => {
+    const r = await run({}, config);
+    expect(Object.keys(r.entries)).toEqual([...HEALTH_ENTRIES]);
+  });
+
+  test('cms-proxy sjekker den offentlige adressen også når den er lik den interne', async () => {
+    const kalt: string[] = [];
+    await run({ umbraco: async (url) => { kalt.push(url); return json({ total: 3 }); } }, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
+    expect(kalt.filter((u) => u.includes('/delivery/api/'))).toHaveLength(2);
+  });
+
+  test('cms-proxy bruker den interne adressen når den offentlige mangler, som umbraco.ts', async () => {
+    const r = await run({ umbraco: async () => json({}, 502) }, { ...CONFIG, umbracoPublicUrl: '' });
+    expect(r.entries['cms-proxy'].status).toBe('Degraded');
   });
 
   // #600: proxyen var av, nettstedet var uten bilder, og alt annet svarte.
@@ -71,14 +99,37 @@ describe('runHealthChecks', () => {
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
-  test('cms-proxy utelates når den offentlige adressen er den samme som den interne', async () => {
-    const r = await run({}, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
-    expect(r.entries['cms-proxy']).toBeUndefined();
+  // Nettstedet virker uten backoffice, men redaktørene kan ikke publisere.
+  test('backoffice nede gir Degraded og 200, ikke Unhealthy', async () => {
+    const r = await run({ backoffice: async () => json({}, 502) });
+    expect(r.entries.backoffice.status).toBe('Degraded');
+    expect(r.entries.umbraco.status).toBe('Healthy');
+    expect(r.status).toBe('Degraded');
+    expect(httpStatusFor(r.status)).toBe(200);
   });
 
-  test('cms-proxy utelates når den offentlige adressen mangler', async () => {
-    const r = await run({}, { ...CONFIG, umbracoPublicUrl: '' });
-    expect(r.entries['cms-proxy']).toBeUndefined();
+  test.each(['Upgrade', 'Install', 'BootFailed'])('backoffice som svarer %s er Degraded', async (serverStatus) => {
+    const r = await run({ backoffice: async () => json({ serverStatus }) });
+    expect(r.entries.backoffice.status).toBe('Degraded');
+  });
+
+  test('backoffice som svarer noe annet enn JSON er Degraded', async () => {
+    const r = await run({ backoffice: async () => new Response('<html>innlogging</html>', { status: 200 }) });
+    expect(r.entries.backoffice.status).toBe('Degraded');
+  });
+
+  test('backoffice sjekkes på den interne adressen, uten innlogging', async () => {
+    let seen: { url: string; init?: RequestInit } | null = null;
+    await run({ backoffice: async (url, init) => { seen = { url, init }; return json({ serverStatus: 'Run' }); } });
+    expect(seen!.url).toBe('https://cms.intern.example/umbraco/management/api/v1/server/status');
+    expect(JSON.stringify(seen!.init?.headers)).not.toMatch(/authorization|api-key/i);
+  });
+
+  test('backoffice som henger gir Degraded innen tidsgrensen', async () => {
+    const t0 = Date.now();
+    const r = await run({ backoffice: henger }, CONFIG, 50);
+    expect(r.entries.backoffice.status).toBe('Degraded');
+    expect(Date.now() - t0).toBeLessThan(1000);
   });
 
   // Fella fra Umbraco-oppgraderingene: migreringer hoppet over, API-et svarer
@@ -124,10 +175,14 @@ describe('runHealthChecks', () => {
     expect(r.status).toBe('Unhealthy');
   });
 
-  test('søk som ikke er satt opp blir utelatt, ikke rapportert nede', async () => {
-    const r = await run({}, { ...CONFIG, esApiKey: '' });
-    expect(r.entries.elasticsearch).toBeUndefined();
-    expect(r.status).toBe('Healthy');
+  // Uten nøkkel faller søket tilbake på Umbracos enkle søk. En nøkkel som
+  // forsvinner i drift skal synes, ikke gjøre at sjekken forsvinner.
+  test('søk som ikke er satt opp er Degraded uten å kalle noe', async () => {
+    let kalt = false;
+    const r = await run({ es: async () => { kalt = true; return json({}); } }, { ...CONFIG, esApiKey: '' });
+    expect(r.entries.elasticsearch.status).toBe('Degraded');
+    expect(r.status).toBe('Degraded');
+    expect(kalt).toBe(false);
   });
 
   // Node godtar fetch kalt som metode på et hvilket som helst objekt. Cloudflare

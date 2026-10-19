@@ -45,7 +45,7 @@ Dette gjør ingen av dem:
 - **Microsoft.OpenApi 3 brekker swagger ved kjøring mens CI er grønn** (#742). Pinnene på Microsoft.OpenApi og SQLitePCLRaw i csproj løfter transitive pakker over Umbracos eget gulv og må bli (#791).
 - **Umbraco-minor kan inneholde migreringer som skriver om innhold**, som 17.5 som skrev om lenker i riktekst. `UpgradeUnattended=true` ligger i `appsettings.json` (#595). Uten den svarer Delivery API 200 med tom liste.
 - **uSync kan re-nøkle ved import.** Da blir alt blokkinnhold «Unsupported». `SchemaRekeyGuard` stopper importen, men hver uSync-versjon må måles (oppskrift 5.5). Regenerer aldri `apps/cms-umbraco/uSync/`.
-- **CMS-deploy.** Hver deploy trenger en ny image-tag (`imagePullPolicy: IfNotPresent`). Deployen er `Recreate` med én pod, som gir ca. 45 sekunders nedetid. Velg alltid `database=AzureSQL`. En grønn workflow betyr ikke at podden har rullet (Flux bruker noen minutter).
+- **CMS-deploy.** Hver deploy trenger en ny image-tag (`imagePullPolicy: IfNotPresent`). Deployen er `Recreate` med én pod, som gir ca. 45 sekunders nedetid. En grønn workflow betyr ikke at podden har rullet (Flux bruker noen minutter).
 - **Workers.** `fetch` kalt som metode (`deps.fetch()`) kaster «Illegal invocation». `Date.now()` er 0 i modul-scope. Cache-workeren slår opp på URL alene.
 - **Frontend-deploy krever ren main i sync med origin.** Kjøres fra primær-checkouten.
 - **Rull aldri CMS under image 69.** Tagger, ingress og virksomhet forsvinner da med verdiene sine (uSync `RemoveProperties`).
@@ -168,7 +168,7 @@ Major-versjoner av Umbraco følger i tillegg Umbracos egen oppgraderingsguide fo
 gh run list --repo digdir/ki.norge.no --workflow publish-syncroot-main.yaml --limit 3   # siste tag, velg neste nummer
 gh workflow run docker-publish.yaml --repo digdir/ki.norge.no --ref main -f tag=<N>-<kort-navn>
 gh workflow run publish-syncroot-main.yaml --repo digdir/ki.norge.no --ref main \
-  -f environment=tt02 -f image-tag=<N>-<kort-navn> -f database=AzureSQL
+  -f environment=tt02 -f image-tag=<N>-<kort-navn>
 ```
 
 - **Podden har rullet** når `Last-Modified` på `https://<cms-vert>/App_Plugins/Malform/umbraco-package.json?cb=$RANDOM` endrer seg til byggetidspunktet. Bruk alltid en cache-buster.

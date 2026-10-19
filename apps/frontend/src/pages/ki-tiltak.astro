@@ -21,7 +21,9 @@ const seoDesc = `Oversikt over ${kiTiltak.length} KI-tiltak i norsk offentlig se
     </div>
   </section>
 
-  <section data-layout-block="content" class="tiltak-innhold">
-    <KiTiltakOverview client:load turnstileSiteKey={turnstileSiteKey} />
+  <section data-layout-block="edge" class="tiltak-innhold">
+    <div data-layout-block="content">
+      <KiTiltakOverview client:load turnstileSiteKey={turnstileSiteKey} />
+    </div>
   </section>
 </Layout>

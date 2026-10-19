@@ -1,11 +1,23 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
 namespace KiNorge.Cms;
+
+/// <summary>
+/// Forhåndsvisningen, søket, Målform og cache-purgen bruker alle ContentRouteResolver.
+/// Registreringen står her, så ingen av dem avhenger av at en annen composer kjører.
+/// </summary>
+public class ContentRouteComposer : IComposer
+{
+    public void Compose(IUmbracoBuilder builder) => builder.Services.AddSingleton<ContentRouteResolver>();
+}
 
 /// <summary>
 /// Resolves an Umbraco node to its public ki.norge.no frontend path (e.g.
@@ -17,8 +29,8 @@ namespace KiNorge.Cms;
 /// (scripts/sync-content-routes.js) because the Docker build context is this
 /// directory alone and cannot reach /shared. The generated copy is git-ignored.
 ///
-/// Returns null when the content type has no route, or when a required ancestor
-/// slug is missing.
+/// Returns null when the content type has no route, or when its own or a required
+/// ancestor slug is missing.
 /// </summary>
 public sealed class ContentRouteResolver
 {
@@ -51,6 +63,14 @@ public sealed class ContentRouteResolver
         }
 
         var slug = content.GetValue<string>("slug") ?? "";
+        if (string.IsNullOrWhiteSpace(slug) && pattern.Contains("{slug}"))
+        {
+            _logger.LogWarning(
+                "Cannot resolve URL for {ContentType} (id={Id}): missing slug. Pattern: {Pattern}",
+                contentType, content.Id, pattern);
+            return null;
+        }
+
         var ancestorSlugByType = CollectAncestorSlugs(content);
 
         string? unresolved = null;

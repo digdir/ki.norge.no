@@ -7,6 +7,7 @@ import ExampleCard from '../../components/shared/ExampleCard.astro';
 import { getEksempel, getEksempler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakgrunnSurface, type Eksempel } from '../../lib/umbraco';
 import { eksempelSchema, breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
+import { flereNyeste } from '../../lib/flere-innhold';
 
 const { slug } = Astro.params;
 const isPreview = Astro.locals.isPreview;
@@ -22,7 +23,7 @@ const heroImage = article.artikkelBilde;
 const articleJsonLd = eksempelSchema({
   headline: seoTitle,
   description: seoDesc,
-  slug: slug!,
+  path: Astro.url.pathname,
   datePublished: article.publishedAt,
   dateModified: article.updatedAt || article.publishedAt,
 });
@@ -33,8 +34,8 @@ const breadcrumbJsonLd = breadcrumbSchema([
   { name: article.tittel, url: `/eksempler/${slug}` },
 ]);
 
-const allEksemplerRes = await getEksempler({ take: 10 });
-const otherArticles = allEksemplerRes.data.filter(a => a.slug !== slug).slice(0, 3);
+const allEksemplerRes = await getEksempler();
+const otherArticles = flereNyeste(allEksemplerRes.data, slug!);
 
 // Byline moves to the sidebar — pull it out of the block flow so it isn't
 // also rendered inline in the content column.

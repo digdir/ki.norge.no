@@ -1,5 +1,5 @@
 {
-  "$comment": "Single source of truth for content-type to frontend-URL mapping. Consumed by both apps/frontend (RTE internal link resolution, see lib/umbraco.ts) and apps/cms-umbraco (editor preview URL, see HeadlessPreviewUrlProvider.cs). When adding a new content type, add its pattern here.",
+  "$comment": "Single source of truth for content-type to frontend-URL mapping. Consumed by both apps/frontend (RTE internal link resolution, see lib/umbraco.ts) and apps/cms-umbraco (ContentRouteResolver.cs: editor preview, search indexing and Cloudflare cache purge). When adding a new content type, add its pattern here.",
   "patternSyntax": {
     "{slug}": "the item's own slug field",
     "{<contentTypeAlias>.slug}": "slug of an ancestor with that content type alias; resolver returns null/'#' if the ancestor cannot be found"

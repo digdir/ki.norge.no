@@ -6,8 +6,10 @@
  * begge.
  *
  * Svaret er offentlig og sier bare hvordan det står til. Ingen adresser, ingen
- * feilmeldinger, ingen versjoner. Detaljene hører hjemme på /status, bak
- * admin-cookien.
+ * feilmeldinger, ingen versjoner.
+ *
+ * Settet med sjekker er det samme i alle miljøer. Da dekker én regel i vakta
+ * både prod og tt02, og tt02 tester det samme som prod.
  */
 
 export type HealthStatus = 'Healthy' | 'Degraded' | 'Unhealthy';
@@ -26,7 +28,7 @@ export interface HealthReport {
 
 export interface HealthConfig {
   umbracoUrl: string;
-  /** Adressen nettleseren henter bilder fra. I prod en proxy, på tt02 lik umbracoUrl. */
+  /** Adressen nettleseren henter bilder fra. I prod en proxy, på tt02 lik umbracoUrl. Tom betyr umbracoUrl, som i umbraco.ts. */
   umbracoPublicUrl: string;
   esEndpoint: string;
   esApiKey: string;
@@ -108,10 +110,14 @@ async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<Hea
  * bare en sjekk mot den offentlige adressen, og den gir Degraded, fordi sidene
  * fortsatt rendres. Den kaller Delivery API gjennom proxyen, ikke en bildefil,
  * så den fanger at proxyen er nede, men ikke en feil i selve bildelagringen.
+ *
+ * Sjekken kjører også der den offentlige adressen er lik den interne, som på
+ * tt02. Den tester da samme vei som nettleseren, og settet blir likt i alle miljøer.
  */
 async function checkCmsProxy(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
+  const publicUrl = config.umbracoPublicUrl || config.umbracoUrl;
   const { ok, ms } = await timed(deps, async (signal) => {
-    const res = await callFetch(deps, `${config.umbracoPublicUrl}/umbraco/delivery/api/v2/content?take=1`, {
+    const res = await callFetch(deps, `${publicUrl}/umbraco/delivery/api/v2/content?take=1`, {
       headers: { Accept: 'application/json' },
       signal,
     });
@@ -125,11 +131,39 @@ async function checkCmsProxy(config: HealthConfig, deps: HealthDeps): Promise<He
 }
 
 /**
+ * Redaktørene trenger backofficet, men nettstedet virker uten det, så feil her
+ * gir Degraded. server/status er åpen uten innlogging og svarer «Run» bare når
+ * Umbraco er ferdig startet og ikke venter på installasjon eller oppgradering.
+ */
+async function checkBackoffice(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
+  const { ok, ms } = await timed(deps, async (signal) => {
+    const res = await callFetch(deps, `${config.umbracoUrl}/umbraco/management/api/v1/server/status`, {
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as { serverStatus?: unknown };
+    return body.serverStatus === 'Run';
+  });
+  return {
+    status: ok ? 'Healthy' : 'Degraded',
+    duration: formatDuration(ms),
+    tags: ['dependencies'],
+  };
+}
+
+/**
  * Nede søk er ikke nede nettsted, så feil her gir Degraded. Kallet er et søk
  * med size 0 og ikke et indeks-oppslag, fordi nøkkelen bare har lesetilgang,
  * og det er nøyaktig det søket bruker.
+ *
+ * Mangler nøkkelen, faller søket tilbake på Umbracos enkle søk. Det er også
+ * Degraded, så en nøkkel som forsvinner i drift synes i vakta.
  */
 async function checkElasticsearch(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
+  if (!config.esEndpoint || !config.esApiKey) {
+    return { status: 'Degraded', duration: formatDuration(0), tags: ['dependencies'] };
+  }
   const { ok, ms } = await timed(deps, async (signal) => {
     const res = await callFetch(deps, `${config.esEndpoint}/${config.esIndex}/_search`, {
       method: 'POST',
@@ -146,24 +180,23 @@ async function checkElasticsearch(config: HealthConfig, deps: HealthDeps): Promi
   };
 }
 
+export const HEALTH_ENTRIES = ['umbraco', 'cms-proxy', 'backoffice', 'elasticsearch'] as const;
+
 export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): Promise<HealthReport> {
   const t0 = deps.now();
-  // Søk som ikke er satt opp er ikke søk som er nede. Lokalt mangler nøkkelen.
-  const esConfigured = Boolean(config.esEndpoint && config.esApiKey);
-
-  // Er den offentlige adressen den samme som den interne, som på tt02, tester
-  // en egen sjekk ingenting nytt.
-  const separatProxy = Boolean(config.umbracoPublicUrl) && config.umbracoPublicUrl !== config.umbracoUrl;
-
-  const [umbraco, cmsProxy, elasticsearch] = await Promise.all([
+  const [umbraco, cmsProxy, backoffice, elasticsearch] = await Promise.all([
     checkUmbraco(config, deps),
-    separatProxy ? checkCmsProxy(config, deps) : Promise.resolve(null),
-    esConfigured ? checkElasticsearch(config, deps) : Promise.resolve(null),
+    checkCmsProxy(config, deps),
+    checkBackoffice(config, deps),
+    checkElasticsearch(config, deps),
   ]);
 
-  const entries: Record<string, HealthEntry> = { umbraco };
-  if (cmsProxy) entries['cms-proxy'] = cmsProxy;
-  if (elasticsearch) entries.elasticsearch = elasticsearch;
+  const entries: Record<(typeof HEALTH_ENTRIES)[number], HealthEntry> = {
+    umbraco,
+    'cms-proxy': cmsProxy,
+    backoffice,
+    elasticsearch,
+  };
 
   const worst = Object.values(entries).reduce<HealthStatus>(
     (acc, e) => (RANK[e.status] > RANK[acc] ? e.status : acc),

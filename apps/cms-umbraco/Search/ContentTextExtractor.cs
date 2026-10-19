@@ -13,7 +13,7 @@ namespace KiNorge.Cms.Search;
 /// ki-content hybrid index. ki.norge.no content is culture-invariant (all bokmål),
 /// so each node is indexed once with language "nb".
 ///
-/// Title is taken from the tittel/sporsmal/term property (falling back to the node
+/// Title is taken from the tittel property (falling back to the node
 /// name); body is harvested from every text-bearing property (TextBox/TextArea,
 /// RichText, Block List/Grid), mirroring the proven Delivery-API crawler: container
 /// content types are skipped and nodes with almost no prose (&lt; 20 chars) are dropped.
@@ -41,13 +41,12 @@ public class ContentTextExtractor
     // Everything else is indexed (exclude-list), so new page types are picked up automatically.
     private static readonly HashSet<string> NonIndexableContentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "artikler", "faqSamling", "ordbokSamling", "sider", "caser",
-        "veiledninger", "merkelapper", "merkelapp", "forside",
+        "artikler", "sider", "veiledninger", "forside",
         "globaleInnstillinger", "eksempler", "kalender",
     };
 
     // Property aliases that hold the display title, in priority order.
-    private static readonly string[] TitleAliases = ["tittel", "sporsmal", "term"];
+    private static readonly string[] TitleAliases = ["tittel"];
 
     private static readonly HashSet<string> TextEditors = new(StringComparer.Ordinal)
     {
