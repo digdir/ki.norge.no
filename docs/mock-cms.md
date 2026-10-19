@@ -18,7 +18,7 @@ it in the same command. Ctrl-C, or `pnpm exec astro dev stop` in
 `apps/frontend`, stops both. The mock port cannot be 5060 or 5061, they
 are blocked by fetch. Requires `pnpm install` in `apps/frontend` first.
 
-Only the mock server on its own: `npm run mock-cms`.
+Only the mock server on its own: `node apps/frontend/tools/mock-cms/server.mjs`.
 
 ## What the mock supports
 
