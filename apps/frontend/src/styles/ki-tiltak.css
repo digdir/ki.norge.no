@@ -193,12 +193,25 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
 
 /* The card lifts 2px and gets a soft wine shadow (0 8px 20px at 8 %). The
    designsystemet shadows are neutral black, so the colour is mixed from the
-   wine text token. Reduced motion only removes the transition (global.css). */
-.tiltak-kort:hover {
-  border-color: var(--ds-color-accent-border-subtle);
-  transform: translateY(calc(var(--ds-size-1) / -2));
-  box-shadow: 0 var(--ds-size-2) var(--ds-size-5)
+   wine text token. Reduced motion only removes the transition (global.css).
+   Only with a mouse, so a tapped card does not stay lifted on touch screens,
+   and with keyboard focus the shadow is added to the focus ring's inner
+   ring instead of replacing it. */
+.tiltak-kort {
+  --tiltak-kort-skygge: 0 var(--ds-size-2) var(--ds-size-5)
     color-mix(in oklab, var(--ds-color-accent-text-default) 8%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tiltak-kort:hover {
+    border-color: var(--ds-color-accent-border-subtle);
+    transform: translateY(calc(var(--ds-size-1) / -2));
+    box-shadow: var(--tiltak-kort-skygge);
+  }
+
+  .tiltak-kort:hover:focus-visible {
+    box-shadow: var(--dsc-focus-boxShadow), var(--tiltak-kort-skygge);
+  }
 }
 
 /* Title and organisations 4px apart, the rest of the card 12px apart. */
@@ -332,8 +345,6 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
      prototype's 24px circle. */
   --dsc-suggestion-clear-size: var(--ds-size-8);
   --dsc-suggestion-clear-border-radius: var(--ds-border-radius-full);
-  --dsc-suggestion-clear-background--hover: var(--ds-color-accent-text-subtle);
-  --dsc-suggestion-clear-background--active: var(--ds-color-accent-text-subtle);
   color: var(--tiltak-tekst-dempet);
 
   /* The magnifier turns accent while the field has focus. */
@@ -342,14 +353,15 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   }
 }
 
-/* Pink circle with a soft wine cross. On hover the circle fills with the
-   accent and the cross turns pale. */
+/* Pink circle with a soft wine cross. On hover and press the circle fills
+   with the accent and the cross turns pale (5.4:1). */
 .tiltak-sokefelt .ds-search > button[type="reset"] {
   background: var(--ds-color-accent-surface-tinted);
   color: var(--tiltak-tekst-myk);
 
   &:hover,
   &:active {
+    background: var(--ds-color-accent-text-subtle);
     color: var(--ds-color-accent-surface-tinted);
   }
 }
@@ -385,6 +397,8 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   font-size: var(--ds-body-sm-font-size);
   color: var(--tiltak-tekst-dempet);
   white-space: nowrap;
+  /* 12px from the filter button with the row gap, as in the prototype. */
+  margin-inline-start: var(--ds-size-1);
 }
 
 /* Paging under the grid. The prototype's .load-more is a transparent pill
@@ -483,12 +497,22 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   --dsc-chip-color: var(--tiltak-tekst-myk);
   --dsc-chip-height: var(--ds-size-10);
   --dsc-chip-icon-size: var(--ds-size-4);
+  /* A full pill also when a long value wraps onto two lines. */
+  --dsc-chip-border-radius: var(--ds-border-radius-full);
   color: var(--tiltak-tekst-myk);
   font-size: var(--ds-body-xs-font-size);
+  /* Group name and value side by side, 6px apart, each wrapping in its own
+     column, as in the prototype. */
+  display: inline-flex;
+  align-items: center;
+  column-gap: calc(var(--ds-size-3) / 2);
 
-  /* The cross is muted and turns accent on hover. */
+  /* The cross is muted, vertically centred also on two lines, and turns
+     accent on hover. */
   &::after {
     background: var(--tiltak-tekst-dempet);
+    inset-block-start: 50%;
+    translate: 0 -50%;
   }
 
   &:hover::after {
@@ -587,6 +611,21 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Keeps the focus ring of the last visible row clear of the footer line. */
+  scroll-padding-block: var(--ds-size-3);
+}
+
+/* On short screens and at high zoom the fixed head and footer would leave
+   almost no room for the list, so the whole panel scrolls again there. */
+@media (max-height: 30rem) {
+  .tiltak-filter[open] {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .tiltak-filter .tiltak-panel-kropp {
+    overflow: visible;
+  }
 }
 
 /* A 44px pale circle with a small wine cross, 28px from the corner, with no
@@ -980,10 +1019,20 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
     box-shadow 0.18s ease;
 }
 
+/* With keyboard focus the hover shadow is added to the focus ring's inner
+   ring instead of replacing it. */
+.tiltak-promo-knapp {
+  --tiltak-promo-skygge: 0 calc(var(--ds-size-1) / 2) calc(var(--ds-size-5) / 2)
+    color-mix(in oklab, var(--ds-color-brand1-text-default) 28%, transparent);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .tiltak-promo-knapp:hover {
-    box-shadow: 0 calc(var(--ds-size-1) / 2) calc(var(--ds-size-5) / 2)
-      color-mix(in oklab, var(--ds-color-brand1-text-default) 28%, transparent);
+    box-shadow: var(--tiltak-promo-skygge);
+  }
+
+  .tiltak-promo-knapp:hover:focus-visible {
+    box-shadow: var(--dsc-focus-boxShadow), var(--tiltak-promo-skygge);
   }
 }
 
@@ -992,6 +1041,7 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   .tiltak-antall {
     white-space: normal;
     width: 100%;
+    margin-inline-start: 0;
   }
 
   /* The icon stays beside the text, the button gets its own row. */
@@ -1091,6 +1141,11 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   --dsc-field-content-spacing: var(--ds-size-1);
 }
 
+/* Error messages keep the designsystemet's 8px under the field. */
+.tiltak-registrer .ds-field > [data-field='validation'] {
+  margin-top: var(--ds-size-2);
+}
+
 /* Textfield pakker hvert input i en egen .ds-field-affixes-wrapper (for
    prefiks/suffiks-bruk). Ingen felt i denne dialogen bruker prefix/suffix,
    men wrapperen setter uansett en grå bakgrunn
@@ -1127,8 +1182,13 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   font-size: var(--ds-body-md-font-size);
 }
 
-/* Help text is 16px in the prototype, one step below the 18px labels. */
-.tiltak-registrer [data-field='description'] {
+/* Help text is 16px in the prototype, one step below the 18px labels. A
+   fieldset's help text ("Du kan velge flere svar.") is a plain paragraph
+   after the legend, so it needs its own selector. The character counter
+   follows the help text while it is under the limit. */
+.tiltak-registrer [data-field='description'],
+.tiltak-registrer .ds-fieldset > legend + p,
+.tiltak-registrer [data-field='counter']:not([data-state='over']) {
   color: var(--tiltak-tekst-dempet);
   font-size: var(--ds-body-sm-font-size);
 }
@@ -1171,11 +1231,17 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
    warning and info. The designsystemet pattern for required fields
    recommends exactly "a yellow tag for Må fylles ut and a blue one for
    Valgfritt", and Tag takes the colour as a prop. Only the placement next
-   to the label is set here: 10px from the label, as in the prototype. The
-   tag has data-size="sm", where the size scale is one step smaller, so
-   --ds-size-3 resolves to 10px inside it. */
+   to the label is set here: 10px from the label, as in the prototype, and
+   under a long label it wraps flush to the left instead of keeping a
+   margin. */
+.tiltak-etikett {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--ds-size-5) / 2);
+}
+
 .tiltak-merke {
-  margin-inline-start: var(--ds-size-3);
   vertical-align: middle;
 }
 
@@ -1209,6 +1275,7 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   --dsc-button-background--active: transparent;
   --dsc-button-color: var(--ds-color-accent-text-default);
   --dsc-button-color--hover: var(--ds-color-accent-base-hover);
+  --dsc-button-color--active: var(--ds-color-accent-base-hover);
   --dsc-button-padding: 0;
   --dsc-button-size: var(--ds-size-11);
   font-size: var(--ds-body-sm-font-size);
@@ -1228,6 +1295,10 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
 .tiltak-registrer > button[command="close"] {
   --dsc-button-background: var(--ds-color-brand2-background-default);
   --dsc-button-border-radius: var(--ds-border-radius-full);
+  /* Wine cross with a light pink hover, as the prototype's modal close. */
+  --dsc-button-background--hover: var(--ds-color-accent-surface-tinted);
+  --dsc-button-background--active: var(--ds-color-accent-surface-tinted);
+  color: var(--ds-color-accent-text-default);
   position: absolute;
   top: var(--dsc-dialog-icon-spacing);
   right: var(--dsc-dialog-icon-spacing);
@@ -1295,6 +1366,17 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
 .tiltak-valg-felt .ds-field {
   min-height: var(--ds-size-11);
   align-content: center;
+}
+
+/* The 14px option text gets a 24px line, as tall as the control, and the
+   control drops the designsystemet offset that is tuned for 18px text, so
+   the two are centred on each other. */
+.tiltak-valg-felt label.ds-label {
+  line-height: var(--ds-size-6);
+}
+
+.tiltak-valg-felt .ds-input:is([type='radio'], [type='checkbox']) {
+  translate: none;
 }
 
 /* The prototype stacks the choices (.status-radio.is-stacked) instead of
@@ -1401,13 +1483,14 @@ body:has(.tiltak-hero) .header .header-container .hamburger-toggle:hover {
   padding-block: var(--ds-size-10) var(--ds-size-11);
 }
 
-/* Haken er ikke en systemmelding om vellykket lagring, men en del av
-   kvitteringen. Prototypen tegner den i accent-rødt, ikke i den grønne
-   success-fargen fra designsystemet. */
+/* The check mark is not a system message about a successful save but part
+   of the receipt. The prototype draws it as a thin 44px circle in the
+   accent red (the SVG in RegisterTiltakDialog.tsx), not in the
+   designsystemet's green success colour. 28px down to the title (20px +
+   8px in the prototype). */
 .tiltak-suksess-ikon {
-  font-size: var(--ds-size-11);
+  flex: none;
   color: var(--ds-color-accent-text-subtle);
-  /* 28px down to the title in the prototype (20px + 8px). */
   margin-bottom: var(--ds-size-7);
 }
 
