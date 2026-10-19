@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.DataProtection;
             using var tcp = new System.Net.Sockets.TcpClient();
             tcp.Connect("127.0.0.1", port);
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine($"Port {port} er allerede i bruk! En annen CMS-instans kjører sannsynligvis.");
-            Console.Error.WriteLine("Stopp den med: pkill -f KiNorge.Cms");
+            Console.Error.WriteLine($"Port {port} is already in use! Another CMS instance is probably running.");
+            Console.Error.WriteLine("Stop it with: pkill -f KiNorge.Cms");
             Console.ResetColor();
             Environment.Exit(1);
         }
@@ -32,7 +32,7 @@ using Microsoft.AspNetCore.DataProtection;
         catch (IOException)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine("CMS kjører allerede! Stopp den andre instansen først (Ctrl+C / pkill -f KiNorge.Cms).");
+            Console.Error.WriteLine("CMS is already running! Stop the other instance first (Ctrl+C / pkill -f KiNorge.Cms).");
             Console.ResetColor();
             Environment.Exit(1);
         }
@@ -41,13 +41,13 @@ using Microsoft.AspNetCore.DataProtection;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// ── DataProtection-nøkler på disk ──
-// Uten dette lager ASP.NET nøklene under $HOME/.aspnet/DataProtection-Keys, som er
-// pod-lokalt. Hver nye pod får nye nøkler, og da kan ikke backoffice-cookiene
-// (__Host-umbAccessToken, __Host-umbRefreshToken, UMB_UCONTEXT) dekrypteres lenger.
-// Alle redaktører blir logget ut ved hver deploy. umbraco-data er ReadWriteOnce med
-// replicas: 1 og strategy: Recreate, så bare én pod skriver hit om gangen.
-// Stien finnes bare i drift; lokalt faller den tilbake til standarden.
+// ── DataProtection keys on disk ──
+// Without this, ASP.NET creates the keys under $HOME/.aspnet/DataProtection-Keys, which is
+// pod-local. Every new pod gets new keys, and then the backoffice cookies
+// (__Host-umbAccessToken, __Host-umbRefreshToken, UMB_UCONTEXT) can no longer be decrypted.
+// All editors are logged out on every deploy. umbraco-data is ReadWriteOnce with
+// replicas: 1 and strategy: Recreate, so only one pod writes here at a time.
+// The path only exists in the deployed environments; locally it falls back to the default.
 var dpKeys = builder.Configuration["DataProtection:KeyPath"];
 if (!string.IsNullOrWhiteSpace(dpKeys))
 {
@@ -74,7 +74,7 @@ if (!string.IsNullOrWhiteSpace(akvUri))
         // A vault problem must never take down the CMS. Log and continue without it:
         // secret config (e.g. the Delivery API preview key) just won't load until the
         // vault is reachable again, but published content keeps serving.
-        Console.Error.WriteLine($"[KeyVault] Kunne ikke laste fra {akvUri}: {ex.Message}. Fortsetter uten.");
+        Console.Error.WriteLine($"[KeyVault] Could not load from {akvUri}: {ex.Message}. Continuing without it.");
     }
 }
 
@@ -118,8 +118,8 @@ if (!string.IsNullOrEmpty(configuredBackOfficeHost) &&
     });
 }
 
-// Backoffice skal ikke kunne rammes inn fra andre nettsteder. Frontenden i
-// forhåndsvisningen er en annen sak, den styres av frontendens egen CSP.
+// The backoffice must not be frameable from other sites. The frontend in
+// the preview is another matter, it is governed by the frontend's own CSP.
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>
@@ -157,13 +157,13 @@ app.MapGet("/api/health/ready", (Umbraco.Cms.Core.Services.IContentTypeService c
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Readiness-sjekken feilet");
+        logger.LogError(ex, "The readiness check failed");
         return Results.Json(new { status = "not_ready", reason = "readiness check failed" }, statusCode: 503);
     }
 });
 
-// Viser tilstanden composeren lager. Composeren kjører bare lokalt og i CI, så
-// endepunktet finnes bare der.
+// Shows the state the composer creates. The composer only runs locally and in CI, so
+// the endpoint only exists there.
 if (app.Environment.IsDevelopment())
 {
     app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService cts,

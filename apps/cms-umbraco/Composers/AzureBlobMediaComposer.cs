@@ -8,15 +8,15 @@ using Umbraco.StorageProviders.AzureBlob.IO;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Flytter media til Azure Blob Storage i miljø der en storage-konto er konfigurert.
-/// Podden autentiserer med workload identity, samme mekanisme som mot Key Vault,
-/// så ConnectionString er endepunkt-URL-en til kontoen og ikke en nøkkel.
+/// Moves media to Azure Blob Storage in environments where a storage account is configured.
+/// The pod authenticates with workload identity, the same mechanism as for Key Vault,
+/// so ConnectionString is the account's endpoint URL and not a key.
 /// </summary>
 /// <remarks>
-/// Registreringen er betinget. Providerens options er merket Required og valideres,
-/// så en tom ConnectionString ville tatt ned oppstarten lokalt der media skal ligge
-/// på disk. Loggen sier hvilken backend som faktisk er i bruk, slik at feil
-/// konfigurasjon ikke kan gå upåaktet hen slik den gjorde i tre måneder.
+/// The registration is conditional. The provider's options are marked Required and validated,
+/// so an empty ConnectionString would take down startup locally, where media is meant to live
+/// on disk. The log says which backend is actually in use, so that wrong
+/// configuration cannot go unnoticed the way it did for three months.
 /// </remarks>
 public class AzureBlobMediaComposer : IComposer
 {
@@ -27,7 +27,7 @@ public class AzureBlobMediaComposer : IComposer
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            Console.WriteLine("[Media] Lagring: lokalt filsystem (wwwroot/media)");
+            Console.WriteLine("[Media] Storage: local file system (wwwroot/media)");
             return;
         }
 
@@ -35,6 +35,6 @@ public class AzureBlobMediaComposer : IComposer
             options.TryCreateBlobContainerClientUsingUri(
                 uri => new BlobContainerClient(uri, new DefaultAzureCredential())));
 
-        Console.WriteLine($"[Media] Lagring: Azure Blob {connectionString}/{containerName}");
+        Console.WriteLine($"[Media] Storage: Azure Blob {connectionString}/{containerName}");
     }
 }

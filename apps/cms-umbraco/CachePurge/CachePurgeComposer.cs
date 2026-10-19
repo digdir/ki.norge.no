@@ -43,9 +43,9 @@ internal sealed class CachePurgeStartupLogger : IHostedService
         _logger.LogInformation(
             "Cloudflare cache-purge: Enabled={Enabled}, ZoneId={Zone}, ApiToken={Token}, SiteBaseUrl={Site}, Threshold={Threshold}",
             o.Enabled,
-            string.IsNullOrWhiteSpace(o.ZoneId) ? "<tom>" : "<satt>",
-            string.IsNullOrWhiteSpace(o.ApiToken) ? "<tom>" : "<satt>",
-            string.IsNullOrWhiteSpace(o.SiteBaseUrl) ? "<tom>" : o.SiteBaseUrl,
+            string.IsNullOrWhiteSpace(o.ZoneId) ? "<empty>" : "<set>",
+            string.IsNullOrWhiteSpace(o.ApiToken) ? "<empty>" : "<set>",
+            string.IsNullOrWhiteSpace(o.SiteBaseUrl) ? "<empty>" : o.SiteBaseUrl,
             o.AffectedUrlThreshold);
         return Task.CompletedTask;
     }

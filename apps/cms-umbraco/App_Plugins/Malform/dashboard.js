@@ -7,8 +7,8 @@ const prosent = (n) => (n * 100).toLocaleString('nb-NO', { minimumFractionDigits
 
 const ETIKETT = { nn: 'Nynorsk', nb: 'Bokmål', ukjent: 'Ukjent' };
 
-// Rapporten sender content.Key, som er den samme GUID-en redigeringsvisningen bruker.
-// Vanlig lenke framfor klikk-håndtering, så midtklikk og "åpne i ny fane" virker.
+// The report sends content.Key, which is the same GUID the edit view uses.
+// A plain link rather than click handling, so middle-click and "open in new tab" work.
 const redigerLenke = (id) => `/umbraco/section/content/workspace/document/edit/${id}/invariant/`;
 
 export default class KiNorgeMalformDashboard extends UmbLitElement {
@@ -131,7 +131,7 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
       this._sortStigende = !this._sortStigende;
     } else {
       this._sortKol = kol;
-      // Tekst leses naturlig A til Å, tall er mest interessante fra toppen.
+      // Text reads naturally A to Å, numbers are most interesting from the top.
       this._sortStigende = kol === 'navn' || kol === 'innholdstype' || kol === 'malform';
     }
   }
@@ -141,15 +141,15 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
     const retning = this._sortStigende ? 1 : -1;
 
     return [...this._rapport.sider].sort((a, b) => {
-      // Målformkolonnen viser både hvilken målform som dominerer og hvor rein siden
-      // er. Sortering følger det som vises: først gruppe, så blandingsgrad, så at
-      // ukjente alltid havner nederst.
+      // The Målform column shows both which written standard dominates and how pure the page
+      // is. Sorting follows what is shown: first group, then degree of mixing, then
+      // unknowns always end up at the bottom.
       if (kol === 'malform') {
         const rang = (s) => (s.malform === 'ukjent' ? 2 : s.malform === 'nb' ? 0 : 1);
         const ra = rang(a);
         const rb = rang(b);
-        // Ukjente er ikke en målform og hører nederst uansett retning. Bokmål og
-        // nynorsk bytter derimot plass, ellers gjør pilen ingenting synlig.
+        // Unknowns are not a written standard and belong at the bottom whatever the direction. Bokmål and
+        // nynorsk on the other hand swap places, otherwise the arrow does nothing visible.
         if (ra !== rb) return ra === 2 || rb === 2 ? ra - rb : (ra - rb) * retning;
         if (a.malform === 'ukjent') return (a.nynorskTreff + a.bokmalTreff) - (b.nynorskTreff + b.bokmalTreff);
         return (a.andel - b.andel) * retning;
@@ -160,9 +160,9 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
       const primaer = typeof x === 'number' && typeof y === 'number'
         ? (x - y) * retning
         : String(x).localeCompare(String(y), 'nb') * retning;
-      // Ved lik verdi er den største siden mest interessant. Det gjør at et klikk på
-      // Målform samler bokmålssidene med de største øverst, som er det man er ute
-      // etter når man leter etter hva som skal oversettes.
+      // On equal values the largest page is the most interesting. That makes a click on
+      // Målform gather the bokmål pages with the largest at the top, which is what you are
+      // after when looking for what to translate.
       return primaer !== 0 ? primaer : b.tegn - a.tegn;
     });
   }
@@ -183,8 +183,8 @@ export default class KiNorgeMalformDashboard extends UmbLitElement {
       </uui-table-head-cell>`;
   }
 
-  /// Rein målform trenger ingen prosent. Den vises bare når siden faktisk blander,
-  /// slik at tallet er et unntak som betyr noe og ikke støy på hver rad.
+  /// A pure written standard needs no percentage. It is only shown when the page actually mixes,
+  /// so that the number is an exception that means something and not noise on every row.
   #blanding(s) {
     if (s.malform === 'ukjent') {
       return html`<span class="svak">${s.nynorskTreff + s.bokmalTreff} markørord</span>`;

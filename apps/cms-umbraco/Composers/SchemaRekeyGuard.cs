@@ -12,17 +12,17 @@ using uSync.Core.Notifications;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Stopper en uSync-import som ville gitt eksisterende content-typer eller datatyper
-/// NYE nøkler.
+/// Stops a uSync import that would give existing content types or data types
+/// NEW keys.
 ///
-/// Hvorfor: innhold refererer blokker via typens nøkkel. Importerer vi en skjemaeksport
-/// som er tatt fra en ANNEN database enn denne, re-nøkles typene og alt blokkinnhold blir
-/// «Unsupported». uSync 17.3.6 re-nøkler uten å spørre (målt på tt02: 468 nøkkelendringer).
+/// Why: content references blocks via the type's key. If we import a schema export
+/// taken from a DIFFERENT database than this one, the types are re-keyed and all block content becomes
+/// "Unsupported". uSync 17.3.6 re-keys without asking (measured on tt02: 468 key changes).
 ///
-/// Guarden er siste skanse. Den bryr seg ikke om hvordan filene havnet i repoet, så den
-/// dekker også hånd-redigerte filer og filer skrevet av en agent.
+/// The guard is the last line of defence. It does not care how the files ended up in the repo, so it
+/// also covers hand-edited files and files written by an agent.
 ///
-/// Bevisst re-nøkling (f.eks. å aligne tt02 mot prod) krever env-var USYNC_ALLOW_REKEY=true.
+/// Deliberate re-keying (e.g. aligning tt02 with prod) requires the env var USYNC_ALLOW_REKEY=true.
 /// </summary>
 public class SchemaRekeyGuardComposer : IComposer
 {
@@ -34,13 +34,13 @@ public class SchemaRekeyGuardComposer : IComposer
 }
 
 /// <summary>
-/// Gjør en skjema-import som faktisk ENDRET noe synlig.
+/// Makes a schema import that actually CHANGED something visible.
 ///
-/// Prod logger på Warning-nivå (appsettings.Production.json), så uSync sin egen
-/// oppsummering på Info-nivå finnes ikke i loggen der. En import som endrer skjema i prod
-/// er nettopp det man vil oppdage, så den logges på Error og skrives til stdout.
+/// Prod logs at Warning level (appsettings.Production.json), so uSync's own
+/// summary at Info level is not in the log there. An import that changes schema in prod
+/// is exactly what you want to catch, so it is logged at Error and written to stdout.
 ///
-/// Null endringer er den normale tilstanden og logges ikke.
+/// Zero changes is the normal state and is not logged.
 /// </summary>
 public class SchemaImportReporter : INotificationHandler<uSyncImportCompletedNotification>
 {
@@ -60,9 +60,9 @@ public class SchemaImportReporter : INotificationHandler<uSyncImportCompletedNot
         var more = changed.Count > 8 ? $" (+{changed.Count - 8})" : "";
 
         _logger.LogError(
-            "uSync-import ENDRET skjema: {Count} elementer. {Summary}{More}. " +
-            "Forventet tilstand er 0 endringer. Er dette uventet, sjekk om skjemafilene " +
-            "i uSync/v17 kommer fra en annen database enn denne.",
+            "uSync import CHANGED schema: {Count} items. {Summary}{More}. " +
+            "Expected state is 0 changes. If this is unexpected, check whether the schema files " +
+            "in uSync/v17 come from a different database than this one.",
             changed.Count, summary, more);
 
         Console.Error.WriteLine(
@@ -96,27 +96,27 @@ public class SchemaRekeyGuard : INotificationHandler<uSyncImportStartingNotifica
             StringComparison.OrdinalIgnoreCase);
 
         var summary = string.Join("\n  ", conflicts.Take(10));
-        var more = conflicts.Count > 10 ? $"\n  … og {conflicts.Count - 10} til" : "";
+        var more = conflicts.Count > 10 ? $"\n  … and {conflicts.Count - 10} more" : "";
 
         if (allowed)
         {
             Console.WriteLine(
-                $"ADVARSEL SchemaRekeyGuard: importen re-nøkler {conflicts.Count} typer, " +
-                $"men USYNC_ALLOW_REKEY=true så den slippes gjennom.\n  {summary}{more}");
+                $"WARNING SchemaRekeyGuard: the import re-keys {conflicts.Count} types, " +
+                $"but USYNC_ALLOW_REKEY=true so it is let through.\n  {summary}{more}");
             return;
         }
 
-        // notification.Cancel respekteres IKKE av uSync 17.3.6 (verifisert: importen kjørte
-        // videre og re-nøklet 80 elementer). Vi kaster i stedet, som avbryter operasjonen.
+        // notification.Cancel is NOT respected by uSync 17.3.6 (verified: the import carried
+        // on and re-keyed 80 items). We throw instead, which aborts the operation.
         notification.Cancel = true;
         var message =
-            $"SchemaRekeyGuard STOPPET uSync-importen. Den ville gitt {conflicts.Count} " +
-            $"eksisterende typer nye nøkler, og alt blokkinnhold ville blitt «Unsupported».\n" +
+            $"SchemaRekeyGuard STOPPED the uSync import. It would have given {conflicts.Count} " +
+            $"existing types new keys, and all block content would have become \"Unsupported\".\n" +
             $"  {summary}{more}\n" +
-            $"  Årsak er nesten alltid at skjemafilene i uSync/v17 er eksportert fra en ANNEN " +
-            $"database enn denne. De skal tas fra prod.\n" +
-            $"  Er re-nøklingen tilsiktet, sett USYNC_ALLOW_REKEY=true.";
-        Console.Error.WriteLine($"FEIL {message}");
+            $"  The cause is almost always that the schema files in uSync/v17 were exported from a DIFFERENT " +
+            $"database than this one. They must be taken from prod.\n" +
+            $"  If the re-keying is intended, set USYNC_ALLOW_REKEY=true.";
+        Console.Error.WriteLine($"ERROR {message}");
         throw new InvalidOperationException(message);
     }
 
@@ -141,10 +141,10 @@ public class SchemaRekeyGuard : INotificationHandler<uSyncImportStartingNotifica
                 if (fileKey is null || string.IsNullOrWhiteSpace(alias)) continue;
 
                 var dbKey = resolver(alias);
-                // Finnes ikke i databasen = ny type, ingen re-nøkling.
+                // Not in the database = new type, no re-keying.
                 if (dbKey is null || dbKey == fileKey) continue;
 
-                conflicts.Add($"{folder}/{alias}: databasen har {dbKey}, fila har {fileKey}");
+                conflicts.Add($"{folder}/{alias}: the database has {dbKey}, the file has {fileKey}");
             }
         }
 
@@ -167,7 +167,7 @@ public class SchemaRekeyGuard : INotificationHandler<uSyncImportStartingNotifica
         }
         catch
         {
-            // Ulesbar fil er ikke denne guardens problem; uSync rapporterer den selv.
+            // An unreadable file is not this guard's problem; uSync reports it itself.
             return (null, null);
         }
     }

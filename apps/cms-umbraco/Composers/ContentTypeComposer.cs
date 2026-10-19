@@ -28,7 +28,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     // Data types (resolved at init time)
     private IDataType _textStringDt = null!;
-    private IDataType _urlDt = null!;                 // Lenke / URL: TextBox-felt som auto-vaskes (interne stier) ved lagring
+    private IDataType _urlDt = null!;                 // Lenke / URL: TextBox field that is auto-washed (internal paths) on save
     private IDataType _textAreaDt = null!;
     private IDataType _richTextDt = null!;            // Standard RichText (full toolbar)
     private IDataType _richTextDtRestricted = null!;  // Restricted RichText (no headings, no source editor)
@@ -36,8 +36,8 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _mediaPickerDt = null!;
     private IDataType _contentPickerDt = null!;
     private IDataType _calloutVariantDt = null!;
-    private IDataType _bakgrunnDropdownDt = null!;    // Fargevelger (ColorPicker) for Artikkelhode-bakgrunn
-    private IDataType _kolonneDropdownDt = null!;     // 1/2/3/4 kolonner for eksempel-grupper
+    private IDataType _bakgrunnDropdownDt = null!;    // Color picker (ColorPicker) for the Artikkelhode background
+    private IDataType _kolonneDropdownDt = null!;     // 1/2/3/4 columns for eksempel groups
     private IDataType _blockListEksemplerSeksjonerDt = null!;
     private IDataType _trueFalseDt = null!;           // Boolean checkbox
     private IDataType _datePickerDt = null!;          // Date picker
@@ -58,8 +58,8 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _blockListForsideDt = null!;
     private IDataType _blockListForsideArtikkelKortDt = null!;
     private IDataType _blockListForsideEksempelKortDt = null!;
-    private IDataType _blockListForstaLenkerDt = null!;          // Forstå regelverket: lenkeliste (forside)
-    private IDataType _blockListArtiklerSeksjonerDt = null!;     // Artikler-oversikt moduler
+    private IDataType _blockListForstaLenkerDt = null!;          // Forstå regelverket: link list (forside)
+    private IDataType _blockListArtiklerSeksjonerDt = null!;     // Artikler overview modules
 
     public ContentTypeComponent(
         IContentTypeService contentTypeService,
@@ -79,10 +79,10 @@ public class ContentTypeComponent : IAsyncComponent
         _propertyEditors = propertyEditors;
     }
 
-    // Kjør ett oppstart-steg isolert. Tidligere lå HELE InitializeAsync i én try/catch, så
-    // en feil i ett steg (f.eks. duplikat "seo"-gruppe) svelget feilen og hoppet stille over
-    // ALT som kom etter — inkludert footer-oppsettet. Nå logges feilen høyt per steg og de
-    // øvrige stegene kjører videre.
+    // Run one startup step in isolation. Previously ALL of InitializeAsync was in one try/catch, so
+    // an error in one step (e.g. a duplicate "seo" group) swallowed the error and silently skipped
+    // EVERYTHING that came after, including the footer setup. Now the error is logged loudly per step and the
+    // remaining steps carry on.
     private static void Step(string label, Action step)
     {
         try
@@ -91,12 +91,12 @@ public class ContentTypeComponent : IAsyncComponent
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ContentTypeComposer: STEG '{label}' feilet (hoppes over, resten fortsetter): {ex.Message}");
+            Console.WriteLine($"ContentTypeComposer: STEP '{label}' failed (skipped, the rest continues): {ex.Message}");
         }
     }
 
-    // Vanlig mønster: opprett content type hvis den mangler, ellers migrer eksisterende.
-    // Isolert via Step slik at én type-feil ikke stopper resten av oppsettet.
+    // Common pattern: create the content type if it is missing, otherwise migrate the existing one.
+    // Isolated via Step so that one type error does not stop the rest of the setup.
     private void EnsureType(string alias, Action create, Action migrate = null)
     {
         Step(alias, () =>
@@ -110,12 +110,12 @@ public class ContentTypeComponent : IAsyncComponent
     {
         if (_runtimeState.Level < RuntimeLevel.Run) return Task.CompletedTask;
 
-        // Når uSync eier skjemaet, som i prod og tt02, må composeren ikke asserte content-typer,
-        // ellers racer den uSync-importen og gir typene tilfeldige nøkler. Uten env-varen,
-        // lokalt og i CI, bygger composeren skjemaet selv. Se docs/cms-composers.md.
+        // When uSync owns the schema, as in prod and tt02, the composer must not assert content types,
+        // otherwise it races the uSync import and gives the types random keys. Without the env var,
+        // locally and in CI, the composer builds the schema itself. See docs/cms-composers.md.
         if (string.Equals(Environment.GetEnvironmentVariable("USYNC_OWNS_SCHEMA"), "true", StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine("ContentTypeComposer: USYNC_OWNS_SCHEMA=true, hopper over skjema-asserting (uSync eier skjemaet).");
+            Console.WriteLine("ContentTypeComposer: USYNC_OWNS_SCHEMA=true, skipping schema asserting (uSync owns the schema).");
             return Task.CompletedTask;
         }
 
@@ -145,7 +145,7 @@ public class ContentTypeComponent : IAsyncComponent
             EnsureType("artikkelProsessStegItem", () => CreateArtikkelProsessStegItemElement());
             // Om Oss seksjon block (replaces standalone omOssSeksjon child content)
             EnsureType("omOssBlokk", () => CreateOmOssBlokkElement());
-            // Forfatter og dato variants
+            // Author and date variants
             EnsureType("artikkelByline", () => CreateArtikkelBylineElement());
             EnsureType("artikkelInnholdFra", () => CreateArtikkelInnholdFraElement());
             EnsureType("artikkelKontaktkort", () => CreateArtikkelKontaktkortElement());
@@ -161,11 +161,11 @@ public class ContentTypeComponent : IAsyncComponent
             Step("migrateVeiledningKort", () => MigrateVeiledningKort());
             Step("migrateVerktoyKort", () => MigrateVerktoyKort());
 
-            // veiledningInfo sitt trekkspill-felt bruker accordion-block-list-datatypen.
-            // På fresh install kjører CreateBlockListDataTypes() lenger ned, så vi må
-            // sikre at datatypen finnes her. CreateOrGetBlockListDataType er idempotent,
-            // så det senere kallet er uberørt. Uten dette krasjer InitializeAsync med
-            // "Value cannot be null (Parameter 'dataType')" og 0 content types seedes.
+            // veiledningInfo's trekkspill field uses the accordion block list data type.
+            // On a fresh install CreateBlockListDataTypes() runs further down, so we must
+            // make sure the data type exists here. CreateOrGetBlockListDataType is idempotent,
+            // so the later call is unaffected. Without this InitializeAsync crashes with
+            // "Value cannot be null (Parameter 'dataType')" and 0 content types are seeded.
             Step("blockListAccordion", () => _blockListAccordionDt = CreateOrGetBlockListDataType(
                 "Block List - Accordion Sections", "accordionSection"));
 
@@ -180,18 +180,18 @@ public class ContentTypeComponent : IAsyncComponent
             EnsureType("eksempelRelatert", () => CreateEksempelRelatertElement());
             EnsureType("eksempelKontakt", () => CreateEksempelKontaktElement());
 
-            // Artikler-oversikt moduler (speiler eksempel-modulene). MÅ opprettes før
-            // CreateBlockListDataTypes() som bygger _blockListArtiklerSeksjonerDt.
+            // Artikler overview modules (mirror the eksempel modules). MUST be created before
+            // CreateBlockListDataTypes(), which builds _blockListArtiklerSeksjonerDt.
             EnsureType("artikkelFeatured", () => CreateArtikkelFeaturedElement());
             EnsureType("artikkelGruppe", () => CreateArtikkelGruppeElement());
             EnsureType("artikkelRelatert", () => CreateArtikkelRelatertElement());
 
-            // Forside-moduler (block list)
-            // Kort-element-typene og deres block-list-datatyper MÅ opprettes/resolves FØR
-            // forside-seksjonene (forsideAktuelt/forsideLaerAvAndre) som refererer dem.
-            // Ellers er _blockListForside*Dt null når seksjonen bygges -> hele
-            // InitializeAsync krasjer med "Value cannot be null (Parameter 'dataType')"
-            // og 0 content types seedes (fresh install / CI).
+            // Forside modules (block list)
+            // The card element types and their block list data types MUST be created/resolved BEFORE
+            // the forside sections (forsideAktuelt/forsideLaerAvAndre) that reference them.
+            // Otherwise _blockListForside*Dt is null when the section is built -> the whole
+            // InitializeAsync crashes with "Value cannot be null (Parameter 'dataType')"
+            // and 0 content types are seeded (fresh install / CI).
             EnsureType("forsideArtikkelKort", () => CreateForsideArtikkelKortElement());
             EnsureType("forsideEksempelKort", () => CreateForsideEksempelKortElement());
             EnsureType("forsideForstaLenke", () => CreateForsideForstaLenkeElement());
@@ -212,14 +212,14 @@ public class ContentTypeComponent : IAsyncComponent
 
             Step("createBlockListDataTypes", () => CreateBlockListDataTypes());
 
-            // Legg til kort/lenketekst/lenkeUrl på eksisterende forside-element-typer.
-            // Må kjøre etter at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er satt.
+            // Add kort/lenketekst/lenkeUrl to existing forside element types.
+            // Must run after _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt are set.
             Step("migrateForsideKortFelter", () => MigrateForsideKortFelter());
 
-            // Relabel/retype/standard-tekster + arrangement/veiledning-pickere på eksisterende moduler.
+            // Relabel/retype/default texts + arrangement/veiledning pickers on existing modules.
             Step("migrateForsideModuler", () => MigrateForsideModuler());
 
-            // Nye felt på eksisterende modul-element-typer (eksempel-ingress/tags, aktuelt fremhevet).
+            // New fields on existing module element types (eksempel ingress/tags, aktuelt fremhevet).
             Step("migrateModulFelter", () => MigrateModulFelter());
 
             Step("migrateVeiledningElementNames", () => MigrateVeiledningElementNames());
@@ -271,11 +271,11 @@ public class ContentTypeComponent : IAsyncComponent
             EnsureType("omOss", () => CreateOmOss(), () => MigrateOmOss());
             EnsureType("sandkasse", () => CreateSandkasse(), () => MigrateSandkasse());
 
-            // Farge (bakgrunn) kun på rik artikkelmal (artikkel + eksempel), Lars 2026-06-05.
-            // Sikrer feltet der og fjerner det fra de enkle sidetypene.
+            // Farge (bakgrunn) only on the rich article template (artikkel + eksempel), Lars 2026-06-05.
+            // Ensures the field there and removes it from the simple page types.
             Step("enforceBakgrunnScope", () => EnforceBakgrunnScope());
 
-            // Slug ikke-obligatorisk på rike maler (auto fra tittel ved lagring, ContentSlugHandler).
+            // Slug not mandatory on rich templates (auto from tittel on save, ContentSlugHandler).
             Step("ensureSlugOptional", () => EnsureSlugOptional());
 
             // Create container types if missing
@@ -318,8 +318,8 @@ public class ContentTypeComponent : IAsyncComponent
             Step("globaleInnstillinger", () => { if (_contentTypeService.Get("globaleInnstillinger") == null) CreateGlobaleInnstillinger(); });
             Step("migrateGlobaleInnstillinger", () => MigrateGlobaleInnstillinger());
 
-            // Repeker manuelle lenkefelt til "Lenke / URL"-datatypen så de auto-vaskes
-            // (UrlFieldWashHandler). Kjøres til slutt når alle content types finnes.
+            // Repoint manual link fields to the "Lenke / URL" data type so they are auto-washed
+            // (UrlFieldWashHandler). Runs last, when all content types exist.
             Step("repointUrlFields", () => RepointUrlFields());
 
             // RichText data types are ensured by ResolveDataTypes() at the very start of this method.
@@ -372,11 +372,11 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType CreateOrGetBakgrunnFargevelger()
     {
-        // Fargevelger (ColorPicker) med labels: editor ser bade fargerute og navn, og slipper
-        // dropdownens tomme forste rad. Hex matcher DS surface-tokenene frontend bruker
+        // Color picker (ColorPicker) with labels: the editor sees both the color swatch and the name, and avoids
+        // the dropdown's empty first row. Hex matches the DS surface tokens the frontend uses
         // (bakgrunnSurface): Accent #e9c0c8, Brand 1 #dfc2d4, Brand 2 #e2d8d2.
-        // VIKTIG: ColorPicker-validatoren krever at "items" er JSON (ikke et CLR object[]),
-        // ellers feiler datatypen med InvalidConfiguration. Bygg derfor en JsonNode.
+        // IMPORTANT: the ColorPicker validator requires "items" to be JSON (not a CLR object[]),
+        // otherwise the data type fails with InvalidConfiguration. So build a JsonNode.
         System.Text.Json.Nodes.JsonNode BuildItems() => System.Text.Json.Nodes.JsonNode.Parse(
             System.Text.Json.JsonSerializer.Serialize(new[]
             {
@@ -461,10 +461,10 @@ public class ContentTypeComponent : IAsyncComponent
         return dt;
     }
 
-    // Gjenbrukbart "Lenke / URL"-felt: vanlig TextBox, men en egen datatype slik at
-    // UrlFieldWashHandler kan kjenne den igjen og vaske interne stier ved lagring.
-    // Eksterne URLer (http..., mailto:, bart domene osv.) lar washeren stå urørt.
-    // Bruk denne datatypen på alle felt der en redaktør skriver inn en lenke.
+    // Reusable "Lenke / URL" field: a plain TextBox, but its own data type so that
+    // UrlFieldWashHandler can recognize it and wash internal paths on save.
+    // External URLs (http..., mailto:, bare domain etc.) are left untouched by the washer.
+    // Use this data type on every field where an editor types in a link.
     private IDataType CreateOrGetUrlTextBox()
     {
         const string name = "Lenke / URL";
@@ -486,9 +486,9 @@ public class ContentTypeComponent : IAsyncComponent
         return dt;
     }
 
-    // Felt der redaktører skriver inn en lenke for hånd. Repekes til "Lenke / URL"-datatypen
-    // slik at de vaskes automatisk (UrlFieldWashHandler). Innholdspickere og slug er holdt utenfor.
-    // Nye URL-felt: bruk _urlDt direkte i Create-metoden, eller legg dem til her.
+    // Fields where editors type in a link by hand. Repointed to the "Lenke / URL" data type
+    // so they are washed automatically (UrlFieldWashHandler). Content pickers and slug are left out.
+    // New URL fields: use _urlDt directly in the Create method, or add them here.
     private static readonly (string ContentType, string Property)[] UrlFields =
     {
         ("kalenderhendelse", "lenke"),
@@ -510,9 +510,9 @@ public class ContentTypeComponent : IAsyncComponent
         ("globaleInnstillinger", "footerLenke6Url"),
     };
 
-    // Repeker eksisterende lenkefelt fra vanlig TextBox til "Lenke / URL"-datatypen.
-    // TextBox -> TextBox (samme Nvarchar-lagring), så lagrede verdier er uberørt.
-    // Idempotent: hopper over felt som allerede peker riktig.
+    // Repoints existing link fields from a plain TextBox to the "Lenke / URL" data type.
+    // TextBox -> TextBox (same Nvarchar storage), so saved values are untouched.
+    // Idempotent: skips fields that already point correctly.
     private void RepointUrlFields()
     {
         foreach (var (ctAlias, propAlias) in UrlFields)
@@ -526,7 +526,7 @@ public class ContentTypeComponent : IAsyncComponent
             prop.DataTypeKey = _urlDt.Key;
             prop.ValueStorageType = _urlDt.DatabaseType;
             _contentTypeService.Save(ct);
-            Console.WriteLine($"ContentTypeComposer: repekte {ctAlias}.{propAlias} til 'Lenke / URL'-datatypen");
+            Console.WriteLine($"ContentTypeComposer: repointed {ctAlias}.{propAlias} to the 'Lenke / URL' data type");
         }
     }
 
@@ -1027,7 +1027,7 @@ public class ContentTypeComponent : IAsyncComponent
             Console.WriteLine("ContentTypeComposer: Removed variant property from veiledningObs");
         }
 
-        // Tittel er valgfri (Dorte): tom tittel vises som "Obs" i frontend. Relax eksisterende noder.
+        // Tittel is optional (Dorte): an empty tittel is shown as "Obs" in the frontend. Relax existing nodes.
         var tittel = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "tittel");
         if (tittel != null && tittel.Mandatory)
         {
@@ -1035,8 +1035,8 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Backoffice-ikon: bytt advarselstrekant til "merk deg dette" (Dorte).
-        // Publisert side bruker HandKnot; her oppdateres eksisterende noder i prod/tt02.
+        // Backoffice icon: swap the warning triangle for "take note" (Dorte).
+        // The published page uses HandKnot; here existing nodes in prod/tt02 are updated.
         if (ct.Icon != "icon-pushpin")
         {
             ct.Icon = "icon-pushpin";
@@ -1144,7 +1144,7 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
-    // --- Artikler Oversikt element types (speiler eksempel-modulene, men for artikler) ---
+    // --- Artikler Oversikt element types (mirror the eksempel modules, but for artikler) ---
 
     private IContentType CreateArtikkelFeaturedElement()
     {
@@ -1206,8 +1206,8 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
-    // Suffikser veiledning-element-typenes display-navn så de ikke kolliderer
-    // med artikkel-elementer i Document Types-listen.
+    // Suffixes the veiledning element types' display names so they do not collide
+    // with artikkel elements in the Document Types list.
     private void MigrateVeiledningElementNames()
     {
         var renames = new[]
@@ -1323,9 +1323,9 @@ public class ContentTypeComponent : IAsyncComponent
     };
 
     /// <summary>
-    /// Per-block label shown i Block List-oversikten, så redaktør ser et utdrag av hver
-    /// modul uten å åpne den (Dorte-ønske, Drupal-stil). Bruker Umbraco Flavored Markdown:
-    /// {umbValue: alias | filter}. Aliaser uten oppføring her får standard-label (modulnavn).
+    /// Per-block label shown in the Block List overview, so the editor sees an excerpt of each
+    /// module without opening it (Dorte's request, Drupal style). Uses Umbraco Flavored Markdown:
+    /// {umbValue: alias | filter}. Aliases without an entry here get the default label (module name).
     /// </summary>
     private static readonly Dictionary<string, string> BlockLabelByContent = new()
     {
@@ -1469,7 +1469,7 @@ public class ContentTypeComponent : IAsyncComponent
         "veiledningObs",
     };
 
-    // Forside-moduler i Figma-rekkefølge (default når redaktør bygger siden).
+    // Forside modules in Figma order (default when the editor builds the page).
     private static readonly string[] ForsideModules =
     {
         "forsideHero",
@@ -1802,8 +1802,8 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Ingress er ikke lenger påkrevd på stegsider (Dorte): innhold skal ligge i en
-        // brødtekst-modul slik at all tekst får lik størrelse. Relax eksisterende noder.
+        // Ingress is no longer required on step pages (Dorte): content is to live in a
+        // body text module so that all text gets the same size. Relax existing nodes.
         var ingressProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "ingress");
         if (ingressProp != null && ingressProp.Mandatory)
         {
@@ -1826,8 +1826,8 @@ public class ContentTypeComponent : IAsyncComponent
             }
         }
 
-        // guideSlug settes automatisk fra guiden (VeiledningStegGuideSlugHandler), så det er ikke lenger
-        // påkrevd. Relax eksisterende noder.
+        // guideSlug is set automatically from the guide (VeiledningStegGuideSlugHandler), so it is no longer
+        // required. Relax existing nodes.
         var guideSlugProp = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "guideSlug");
         if (guideSlugProp != null && guideSlugProp.Mandatory)
         {
@@ -1889,16 +1889,16 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt.", sortOrder: 4), "innhold");
 
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
-        // Ikke-obligatorisk: tom slug auto-genereres fra tittel ved lagring (ContentSlugHandler).
+        // Not mandatory: an empty slug is auto-generated from tittel on save (ContentSlugHandler).
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, description: "URL-vennlig identifikator. Genereres automatisk fra tittel hvis tom.", sortOrder: 1), "innstillinger");
-        // Bakgrunnsfarge er IKKE en del av det delte hodet lenger — farge kun på artikkel (se MigrateArtikkelType).
+        // Background color is NOT part of the shared header any more, color only on artikkel (see MigrateArtikkelType).
     }
 
     /// <summary>
-    /// Farge (bakgrunn) skal kun kunne velges på rik artikkelmal (Lars + designere 2026-06-05):
-    /// artikkel, eksempel, enkelVeiledning, sandkasse, omOss. De enkle malene (side, stegartikkel) skal
-    /// ikke ha farge. Andre farger (kort, seksjoner) baserer seg på dette valget i frontend. Sikrer feltet
-    /// på de rike typene og fjerner det fra de enkle. Fjerning er destruktiv: dropper hvit/lyseblaa-verdier.
+    /// Farge (bakgrunn) may only be chosen on the rich article template (Lars + designers 2026-06-05):
+    /// artikkel, eksempel, enkelVeiledning, sandkasse, omOss. The simple templates (side, stegartikkel) must
+    /// not have a color. Other colors (cards, sections) are based on this choice in the frontend. Ensures the field
+    /// on the rich types and removes it from the simple ones. Removal is destructive: drops hvit/lyseblaa values.
     /// </summary>
     private void EnforceBakgrunnScope()
     {
@@ -1910,9 +1910,9 @@ public class ContentTypeComponent : IAsyncComponent
             var bakgrunn = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "bakgrunn");
             if (bakgrunn != null)
             {
-                // Feltet finnes alt: migrer til fargevelgeren, gjor det obligatorisk (ingen tom
-                // rad) og oppdater beskrivelsen. AddPropertyType under kjorer ikke pa eksisterende
-                // felt, sa dette maa gjores eksplisitt.
+                // The field already exists: migrate to the color picker, make it mandatory (no empty
+                // row) and update the description. AddPropertyType below does not run on existing
+                // fields, so this has to be done explicitly.
                 bool changed = false;
                 if (bakgrunn.DataTypeKey != _bakgrunnDropdownDt.Key)
                 {
@@ -1926,7 +1926,7 @@ public class ContentTypeComponent : IAsyncComponent
                 if (changed)
                 {
                     _contentTypeService.Save(ct);
-                    Console.WriteLine($"ContentTypeComposer: Migrerte bakgrunn til fargevelger pa '{alias}'");
+                    Console.WriteLine($"ContentTypeComposer: Migrated bakgrunn to color picker on '{alias}'");
                 }
                 continue;
             }
@@ -1934,16 +1934,16 @@ public class ContentTypeComponent : IAsyncComponent
                 ct.AddPropertyGroup("innstillinger", "Innstillinger");
             ct.AddPropertyType(Prop("bakgrunn", "Bakgrunn", _bakgrunnDropdownDt, mandatory: true, description: bakgrunnDesc, sortOrder: 2), "innstillinger");
             _contentTypeService.Save(ct);
-            Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rik artikkelmal)");
+            Console.WriteLine($"ContentTypeComposer: Ensured bakgrunn on '{alias}' (rich article template)");
         }
-        // Rydd vekk den gamle dropdown-datatypen (erstattet av fargevelgeren) nar ingen felt
-        // refererer den lenger. Fargevelgeren har samme navn men annen editor-alias.
+        // Clean away the old dropdown data type (replaced by the color picker) when no field
+        // references it any more. The color picker has the same name but a different editor alias.
         foreach (var oldDropdown in _dataTypeService
                      .GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
                      .Where(dt => dt.Name == "Artikkelhode Bakgrunn").ToList())
         {
             _dataTypeService.Delete(oldDropdown);
-            Console.WriteLine("ContentTypeComposer: Slettet gammel dropdown-datatype 'Artikkelhode Bakgrunn'");
+            Console.WriteLine("ContentTypeComposer: Deleted old dropdown data type 'Artikkelhode Bakgrunn'");
         }
         foreach (var alias in new[] { "side", "stegartikkel" })
         {
@@ -1952,19 +1952,19 @@ public class ContentTypeComponent : IAsyncComponent
             if (!ct.PropertyTypes.Any(p => p.Alias == "bakgrunn")) continue;
             ct.RemovePropertyType("bakgrunn");
             _contentTypeService.Save(ct);
-            Console.WriteLine($"ContentTypeComposer: Removed bakgrunn from '{alias}' (farge kun på rik artikkelmal)");
+            Console.WriteLine($"ContentTypeComposer: Removed bakgrunn from '{alias}' (color only on the rich article template)");
         }
     }
 
     /// <summary>
-    /// Slug kan stå tom og auto-genereres fra tittel ved lagring (ContentSlugHandler), jf.
-    /// feltbeskrivelsen. Gjør slug ikke-obligatorisk på de rike malene og relax eksisterende noder.
+    /// Slug can be left empty and is auto-generated from tittel on save (ContentSlugHandler), cf.
+    /// the field description. Makes slug not mandatory on the rich templates and relaxes existing nodes.
     /// </summary>
     private void EnsureSlugOptional()
     {
-        // veiledningGuide/veiledningSteg manglet her, så slug var obligatorisk der -> redaktør
-        // MÅTTE skrive den for hånd og bommet (innhold forsvant). ContentSlugHandler auto-genererer
-        // fra tittel når feltet er tomt, så non-mandatory + en tydelig beskrivelse er nok.
+        // veiledningGuide/veiledningSteg were missing here, so slug was mandatory there -> the editor
+        // HAD to type it by hand and got it wrong (content disappeared). ContentSlugHandler auto-generates
+        // from tittel when the field is empty, so non-mandatory + a clear description is enough.
         const string autoDesc = "URL-vennlig identifikator. La stå tom for å generere automatisk fra tittelen.";
         foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning", "sandkasse", "omOss", "side", "stegartikkel", "veiledningGuide", "veiledningSteg" })
         {
@@ -1974,7 +1974,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (slug == null) continue;
             bool changed = false;
             if (slug.Mandatory) { slug.Mandatory = false; changed = true; }
-            // Sett hjelpetekst kun når den er tom eller den gamle standarden (ikke overskriv tilpasset).
+            // Set the help text only when it is empty or the old default (do not overwrite a customized one).
             if ((string.IsNullOrWhiteSpace(slug.Description) || slug.Description == "URL-vennlig identifikator.")
                 && slug.Description != autoDesc)
             {
@@ -1984,7 +1984,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (changed)
             {
                 _contentTypeService.Save(ct);
-                Console.WriteLine($"ContentTypeComposer: slug ikke-obligatorisk + hjelpetekst på '{alias}'");
+                Console.WriteLine($"ContentTypeComposer: slug not mandatory + help text on '{alias}'");
             }
         }
     }
@@ -2081,7 +2081,7 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("bildeAlt", "Alternativ tekst for bilde", _textStringDt, description: "Beskriver bildet for skjermlesere. La stå tom hvis bildet kun er dekorativt."), "innhold");
             changed = true;
         }
-        // bakgrunn (farge) eies av EnforceBakgrunnScope() — gjelder rik artikkelmal (artikkel + eksempel).
+        // bakgrunn (farge) is owned by EnforceBakgrunnScope(), applies to the rich article template (artikkel + eksempel).
         if (EnsureInnstillingerGroup(ct, "slug")) changed = true;
         if (SetPropertySortOrders(ct,
             ("tittel", 1), ("ingress", 2), ("artikkelBilde", 3), ("bildeAlt", 4), ("innhold", 5),
@@ -2181,16 +2181,16 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListEksemplerSeksjonerDt, description: "Bygg opp /eksempler med fremhevet eksempel, grupper med 1–4 kolonner, relaterte lenker og kontakt-CTA. Reorder ved drag og drop.", sortOrder: 3), "innhold");
             changed = true;
         }
-        // Ingress på selve oversiktssiden droppes (Lars). Fremhevet-modulen har egen ingress.
+        // The ingress on the overview page itself is dropped (Lars). The Fremhevet module has its own ingress.
         if (RemoveProp(ct, "heroIngress")) changed = true;
         if (changed)
         {
             _contentTypeService.Save(ct);
-            Console.WriteLine("ContentTypeComposer: Migrated eksempler oversikt (seksjoner, fjernet heroIngress)");
+            Console.WriteLine("ContentTypeComposer: Migrated eksempler oversikt (seksjoner, removed heroIngress)");
         }
     }
 
-    // Legg til nye felt på eksisterende modul-element-typer (eksempel/forside).
+    // Add new fields to existing module element types (eksempel/forside).
     private void MigrateModulFelter()
     {
         var feat = _contentTypeService.Get("eksempelFeatured");
@@ -2448,8 +2448,8 @@ public class ContentTypeComponent : IAsyncComponent
         return ct;
     }
 
-    // type -> Merkelapp (kommaseparert), og tagger droppes (slått sammen med merkelapp).
-    // pris lagt til i ettertid (valgfri, #460), arrangor likeså (#717).
+    // type -> Merkelapp (comma-separated), and tagger is dropped (merged with merkelapp).
+    // pris added afterwards (optional, #460), arrangor likewise (#717).
     private void MigrateKalenderhendelse()
     {
         var ct = _contentTypeService.Get("kalenderhendelse");
@@ -2585,8 +2585,8 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = false,  // lives under Sider container
         };
 
-        // Om Oss bruker rik artikkelmal: samme artikkelhode og samme modul-blokkliste som artikkel
-        // (Lars + designere 2026-06-05). Farge legges på av EnforceBakgrunnScope.
+        // Om Oss uses the rich article template: the same artikkelhode and the same module block list as artikkel
+        // (Lars + designers 2026-06-05). Farge is added by EnforceBakgrunnScope.
         ct.AddPropertyGroup("innhold", "Innhold");
         AddArtikkelhodeFields(ct);
         ct.AddPropertyType(Prop("innhold", "Innhold", _blockListArtikkelDt, description: "Hovedinnhold", sortOrder: 5), "innhold");
@@ -2596,7 +2596,7 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("seoBeskrivelse", "SEO-beskrivelse", _textAreaDt, description: "Overstyr beskrivelse i søkeresultater og sosiale medier"), "seo");
         ct.AddPropertyType(Prop("seoBilde", "SEO-bilde", _mediaPickerDt, description: "Bilde som vises ved deling på sosiale medier"), "seo");
 
-        // No allowed children — innholdet ligger som moduler på siden
+        // No allowed children, the content lives as modules on the page
         ct.AllowedContentTypes = Array.Empty<ContentTypeSort>();
 
         SetStandardGroupSortOrders(ct);
@@ -2611,8 +2611,8 @@ public class ContentTypeComponent : IAsyncComponent
 
         bool changed = false;
 
-        // Bygg om Om Oss til rik artikkelmal (Lars + designere 2026-06-05): samme artikkelhode og
-        // samme modul-blokkliste som artikkel. Farge legges på av EnforceBakgrunnScope.
+        // Rebuild Om Oss as the rich article template (Lars + designers 2026-06-05): the same artikkelhode and
+        // the same module block list as artikkel. Farge is added by EnforceBakgrunnScope.
         if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
         {
             ct.AddPropertyGroup("innhold", "Innhold");
@@ -2629,8 +2629,8 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Fjern gamle Om Oss-spesifikke felt. Destruktivt: gammelt innhold (hero/intro/misjon/seksjoner)
-        // må flyttes til modulene av redaktør.
+        // Remove old Om Oss specific fields. Destructive: old content (hero/intro/misjon/seksjoner)
+        // must be moved to the modules by an editor.
         foreach (var alias in new[] { "heroTittel", "heroUndertittel", "introTekst", "misjonTekst", "seksjoner" })
         {
             if (ct.PropertyTypeExists(alias))
@@ -2773,7 +2773,7 @@ public class ContentTypeComponent : IAsyncComponent
             AllowedAsRoot = true,
         };
 
-        // Forsiden er modularisert: ett block-list-felt med moduler (reorderbart).
+        // The forside is modularized: one block list field with modules (reorderable).
         ct.AddPropertyGroup("innhold", "Innhold");
         ct.AddPropertyType(Prop("seksjoner", "Seksjoner", _blockListForsideDt, description: "Bygg opp forsiden ved å legge til moduler. Reorder ved drag og slipp."), "innhold");
 
@@ -2947,8 +2947,8 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("ikon", "Ikon", _textStringDt, description: "Ikonnavn fra Aksel (f.eks. HandHeart, Package)"), "innhold");
             changed = true;
         }
-        // Lenke-picker så redaktør kan klikke seg til intern veiledning/artikkel/eksempel
-        // i stedet for å lime inn URL (#513). Additivt: URL-feltet og verdiene beholdes.
+        // Link picker so the editor can click through to an internal veiledning/artikkel/eksempel
+        // instead of pasting a URL (#513). Additive: the URL field and its values are kept.
         if (!ct.PropertyTypeExists("lenke"))
         {
             ct.AddPropertyType(Prop("lenke", "Lenke", _contentPickerDt, description: "Velg veiledning, artikkel eller eksempel. Overstyrer URL-feltet. Bruk URL for eksterne lenker."), "innhold");
@@ -2956,7 +2956,7 @@ public class ContentTypeComponent : IAsyncComponent
         }
         var url = ct.PropertyTypes.FirstOrDefault(p => p.Alias == "url");
         if (url != null && url.Name != "URL (ekstern lenke)") { url.Name = "URL (ekstern lenke)"; changed = true; }
-        // Kanonisk rekkefølge (picker rett over URL) så backoffice ser likt ut på ferske og migrerte noder.
+        // Canonical order (picker right above URL) so the backoffice looks the same on fresh and migrated nodes.
         foreach (var (alias, order) in new[] { ("tittel", 0), ("beskrivelse", 1), ("lenke", 2), ("url", 3), ("ikon", 4) })
         {
             var pt = ct.PropertyTypes.FirstOrDefault(p => p.Alias == alias);
@@ -3006,10 +3006,10 @@ public class ContentTypeComponent : IAsyncComponent
     }
 
     /// <summary>
-    /// "Andre sider"-container holder generelle CMS-redigerbare sider (cookies, personvern,
-    /// tilgjengelighet osv.). Primær child-type er "side". Andre eksisterende CT-er
-    /// (omOss, sandkasse) tillates også slik at de kan flyttes inn hit i CMS-treet.
-    /// Children av andre containere (artikkel, eksempel, veiledningGuide osv.) ekskluderes.
+    /// The "Andre sider" container holds general CMS-editable pages (cookies, privacy,
+    /// accessibility etc.). The primary child type is "side". Other existing CTs
+    /// (omOss, sandkasse) are also allowed so that they can be moved in here in the CMS tree.
+    /// Children of other containers (artikkel, eksempel, veiledningGuide etc.) are excluded.
     /// </summary>
     private void LockSiderContainer()
     {
@@ -3116,7 +3116,7 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("heroBilde", "Hero-bilde", _mediaPickerDt), "hero");
             changed = true;
         }
-        // Seksjon 1 (vises som "Fremhevet veiledning og artikler" i backoffice)
+        // Seksjon 1 (shown as "Fremhevet veiledning og artikler" in the backoffice)
         if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon1"))
         {
             ct.AddPropertyGroup("seksjon1", "Fremhevet veiledning og artikler");
@@ -3124,7 +3124,7 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("seksjon1Kort", "Kort", _blockListVeiledningKortDt), "seksjon1");
             changed = true;
         }
-        // Seksjon 2 (vises som "Rik liste" i backoffice)
+        // Seksjon 2 (shown as "Rik liste" in the backoffice)
         if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon2"))
         {
             ct.AddPropertyGroup("seksjon2", "Rik liste");
@@ -3132,8 +3132,8 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("seksjon2Kort", "Kort", _blockListVeiledningKortDt), "seksjon2");
             changed = true;
         }
-        // Seksjon 3 (vises som "Enkel liste" i backoffice) — enkel lenkeliste, kun
-        // tittel + URL brukes på frontend ("Forstå regelverket"-seksjonen). (#389)
+        // Seksjon 3 (shown as "Enkel liste" in the backoffice), a simple link list, only
+        // tittel + URL are used in the frontend (the "Forstå regelverket" section). (#389)
         if (!ct.PropertyGroups.Any(g => g.Alias == "seksjon3"))
         {
             ct.AddPropertyGroup("seksjon3", "Enkel liste");
@@ -3141,9 +3141,9 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("seksjon3Kort", "Kort", _blockListVeiledningKortDt), "seksjon3");
             changed = true;
         }
-        // Re-label til beskrivende modulnavn (Dorte, Figma-tavle 2026-06-04). Aliasene
-        // beholdes, så ingen data flyttes. Kjorer hver oppstart slik at noder opprettet
-        // med de gamle "Seksjon 1/2/3"-navnene ogsaa oppdateres.
+        // Re-label to descriptive module names (Dorte, Figma board 2026-06-04). The aliases
+        // are kept, so no data moves. Runs on every startup so that nodes created
+        // with the old "Seksjon 1/2/3" names are updated too.
         foreach (var (alias, name) in new[] { ("seksjon1", "Fremhevet veiledning og artikler"), ("seksjon2", "Rik liste"), ("seksjon3", "Enkel liste") })
         {
             var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == alias);
@@ -3159,7 +3159,7 @@ public class ContentTypeComponent : IAsyncComponent
             var pt = ct.PropertyTypes.FirstOrDefault(x => x.Alias == alias);
             if (pt != null && pt.Name != name) { pt.Name = name; changed = true; }
         }
-        // Verktøy-seksjonen er borte fra Figma — fjern fra eksisterende noder
+        // The Verktøy section is gone from Figma, remove it from existing nodes
         foreach (var alias in new[] { "verktoyTittel", "verktoyKort" })
         {
             if (ct.PropertyTypes.Any(p => p.Alias == alias))
@@ -3174,9 +3174,9 @@ public class ContentTypeComponent : IAsyncComponent
             ct.PropertyGroups.Remove("verktoy");
             changed = true;
         }
-        // Lær av andre: redaksjonell merkelapp på eksempelkortene. Seksjonen bygges
-        // automatisk på frontend, så feltet ligger på siden (ikke på en modul). Guard på
-        // property, ikke gruppe (samme mønster som SEO under).
+        // Lær av andre: editorial merkelapp on the eksempel cards. The section is built
+        // automatically in the frontend, so the field lives on the page (not on a module). Guard on
+        // property, not group (same pattern as SEO below).
         if (!ct.PropertyTypeExists("eksempelKortTag"))
         {
             if (!ct.PropertyGroups.Any(g => g.Alias == "laerAvAndre"))
@@ -3184,11 +3184,11 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("eksempelKortTag", "Merkelapp på eksempelkort", _textStringDt, description: "Tekst på merkelappen på eksempelkortene i \"Lær av andre\". Standard: Eksempel"), "laerAvAndre");
             changed = true;
         }
-        // SEO. Guard på property, ikke gruppe: på prod var seo-gruppa lagret med en alias
-        // som ikke matchet "seo", så gruppe-guarden bommet og AddPropertyGroup("seo") kastet
-        // "An item with the same key has already been added. Key: seo" -> hele composeren
-        // stoppet før footer-steget (MigrateGlobaleInnstillinger). Når seoTittel finnes,
-        // finnes gruppa, så vi hopper trygt over. Samme mønster som MigrateArtiklerToOversikt.
+        // SEO. Guard on property, not group: in prod the seo group was stored with an alias
+        // that did not match "seo", so the group guard missed and AddPropertyGroup("seo") threw
+        // "An item with the same key has already been added. Key: seo" -> the whole composer
+        // stopped before the footer step (MigrateGlobaleInnstillinger). When seoTittel exists,
+        // the group exists, so we skip safely. Same pattern as MigrateArtiklerToOversikt.
         if (!ct.PropertyTypeExists("seoTittel"))
         {
             if (!ct.PropertyGroups.Any(g => g.Alias == "seo"))
@@ -3199,12 +3199,12 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Allowed children for "veiledninger" eies av MigrateVeiledningerContainer (eget
-        // steg, kjorer for dette): den setter [veiledningGuide, enkelVeiledning] og fjerner
-        // dermed implisitt den gamle veiledningOversikt-typen. Tidligere satte denne metoden
-        // allowed children til KUN veiledningGuide og kastet enkelVeiledning ut igjen hver
-        // oppstart, slik at "Enkel veiledningsmal" forsvant fra Opprett-menyen. Vi rorer
-        // ikke allowed children her lenger.
+        // Allowed children for "veiledninger" are owned by MigrateVeiledningerContainer (its own
+        // step, runs before this one): it sets [veiledningGuide, enkelVeiledning] and thereby
+        // implicitly removes the old veiledningOversikt type. Previously this method set
+        // allowed children to ONLY veiledningGuide and threw enkelVeiledning out again on every
+        // startup, so that "Enkel veiledningsmal" disappeared from the Create menu. We no longer
+        // touch allowed children here.
 
         if (changed)
         {
@@ -3233,14 +3233,14 @@ public class ContentTypeComponent : IAsyncComponent
     {
         var ct = _contentTypeService.Get("forside");
         if (ct == null) return;
-        // Ferdig migrert: har seksjoner-feltet og ingen gamle flate felt igjen.
+        // Fully migrated: has the seksjoner field and no old flat fields left.
         if (ct.PropertyTypeExists("seksjoner") && !ct.PropertyTypeExists("heroOverskrift")) return;
 
         bool changed = false;
 
-        // Forsiden er modularisert (block list). Fjern alle gamle flate felt: Hero, Tre råd,
-        // Sandkasse, Veiledning, Aktuelt, Arrangement, Footer (flyttet til globaleInnstillinger),
-        // Rekkefølge (erstattet av drag-og-slipp i block lista). Ingen innhold går tapt.
+        // The forside is modularized (block list). Remove all old flat fields: Hero, Tre råd,
+        // Sandkasse, Veiledning, Aktuelt, Arrangement, Footer (moved to globaleInnstillinger),
+        // Rekkefølge (replaced by drag and drop in the block list). No content is lost.
         var legacyFields = new[]
         {
             "heroOverskrift", "heroTekst", "heroBilde",
@@ -3266,7 +3266,7 @@ public class ContentTypeComponent : IAsyncComponent
             }
         }
 
-        // Fjern de tomme gamle gruppene (samme mønster som MigrateGlobaleInnstillinger).
+        // Remove the empty old groups (same pattern as MigrateGlobaleInnstillinger).
         foreach (var groupAlias in new[] { "hero", "treRaad", "sandkassen", "veiledning", "aktuelt", "arrangement", "bunn", "rekkefolge" })
         {
             var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == groupAlias);
@@ -3277,7 +3277,7 @@ public class ContentTypeComponent : IAsyncComponent
             }
         }
 
-        // Legg til block-list-feltet hvis det mangler.
+        // Add the block list field if it is missing.
         if (!ct.PropertyTypeExists("seksjoner"))
         {
             if (!ct.PropertyGroups.Any(g => g.Alias == "innhold"))
@@ -3289,12 +3289,12 @@ public class ContentTypeComponent : IAsyncComponent
         if (changed)
         {
             _contentTypeService.Save(ct);
-            Console.WriteLine("ContentTypeComposer: Modulariserte forside (block list, fjernet gamle flate felt)");
+            Console.WriteLine("ContentTypeComposer: Modularized forside (block list, removed old flat fields)");
         }
     }
 
-    // Additivt: legger til kort/lenketekst/lenkeUrl på eksisterende forside-element-typer.
-    // Krever at _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt er initialisert først.
+    // Additive: adds kort/lenketekst/lenkeUrl to existing forside element types.
+    // Requires _blockListForsideArtikkelKortDt/_blockListForsideEksempelKortDt to be initialized first.
     private void MigrateForsideKortFelter()
     {
         var aktuelt = _contentTypeService.Get("forsideAktuelt");
@@ -3364,9 +3364,9 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
-    // --- In-place migrering av forside-element-typer (relabel/retype/standard-tekster) ---
-    // AddPropertyType rorer ikke eksisterende felt, sa relabel/retype/beskrivelse maa settes
-    // eksplisitt pa eksisterende tt02/prod-DB. Hjelperne returnerer true ved endring.
+    // --- In-place migration of forside element types (relabel/retype/default texts) ---
+    // AddPropertyType does not touch existing fields, so relabel/retype/description must be set
+    // explicitly on an existing tt02/prod DB. The helpers return true on change.
 
     private static bool SetPropDescription(IContentType ct, string alias, string description)
     {
@@ -3411,7 +3411,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     private void MigrateForsideModuler()
     {
-        // Hero: overskrift -> rik tekst (uthevbar), standard-tekster pa lenkefelt.
+        // Hero: overskrift -> rich text (can be emphasized), default texts on link fields.
         var hero = _contentTypeService.Get("forsideHero");
         if (hero != null)
         {
@@ -3423,7 +3423,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (changed) _contentTypeService.Save(hero);
         }
 
-        // Aktuelt: "Default" -> "Standard" + standard-URL.
+        // Aktuelt: "Default" -> "Standard" + default URL.
         var aktuelt = _contentTypeService.Get("forsideAktuelt");
         if (aktuelt != null)
         {
@@ -3435,7 +3435,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (changed) _contentTypeService.Save(aktuelt);
         }
 
-        // Arrangementer: fremhevet arrangement-picker + standard-tekster.
+        // Arrangementer: fremhevet arrangement picker + default texts.
         var arr = _contentTypeService.Get("forsideArrangementer");
         if (arr != null)
         {
@@ -3450,7 +3450,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (changed) _contentTypeService.Save(arr);
         }
 
-        // Veiledning: veiledning-picker, tittel -> "Lenketekst" (ikke obligatorisk), fjern dobbelt lenketekst.
+        // Veiledning: veiledning picker, tittel -> "Lenketekst" (not mandatory), remove duplicate lenketekst.
         var veil = _contentTypeService.Get("forsideVeiledning");
         if (veil != null)
         {
@@ -3470,7 +3470,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (changed) _contentTypeService.Save(veil);
         }
 
-        // Lær av andre: "Default" -> "Standard" + standard-URL.
+        // Lær av andre: "Default" -> "Standard" + default URL.
         var laer = _contentTypeService.Get("forsideLaerAvAndre");
         if (laer != null)
         {
@@ -3480,7 +3480,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (changed) _contentTypeService.Save(laer);
         }
 
-        // Kort: ingress-overstyring nevner standarden.
+        // Kort: the ingress override mentions the default.
         var artKort = _contentTypeService.Get("forsideArtikkelKort");
         if (artKort != null && SetPropDescription(artKort, "ingress", "Standard: artikkelens egen ingress. Skriv her for å overstyre."))
             _contentTypeService.Save(artKort);
@@ -3488,7 +3488,7 @@ public class ContentTypeComponent : IAsyncComponent
         if (eksKort != null && SetPropDescription(eksKort, "ingress", "Standard: eksemplets egen ingress. Skriv her for å overstyre."))
             _contentTypeService.Save(eksKort);
 
-        // Sandkasse: overskrift -> "Lenketekst", tekst -> vanlig tekst, fjern dobbelt lenketekst.
+        // Sandkasse: overskrift -> "Lenketekst", tekst -> plain text, remove duplicate lenketekst.
         var sand = _contentTypeService.Get("forsideSandkasse");
         if (sand != null)
         {
@@ -3503,12 +3503,12 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
-    // Slot 6 har ingen hardkodet standardverdi i frontenden, i motsetning til 1-5.
-    // Tom = ingen oppforing.
+    // Slot 6 has no hardcoded default value in the frontend, unlike 1-5.
+    // Empty = no entry.
     private const string Slot6Beskrivelse =
         "La stå tom for å skjule oppføringen. Både tekst og URL må fylles ut for at lenken skal vises.";
 
-    // Footer-lenkene i visnings-rekkefolge.
+    // The footer links in display order.
     private static readonly (string alias, string label, int sort)[] FooterLenker =
     {
         ("footerLenke1Tekst", "Om KI Norge", 0),
@@ -3542,7 +3542,7 @@ public class ContentTypeComponent : IAsyncComponent
         return true;
     }
 
-    // Footer er en fane med underseksjoner: Beskrivelse / Kontakt / Lenker.
+    // Footer is a tab with subsections: Beskrivelse / Kontakt / Lenker.
     private bool EnsureFooterGroups(IContentType ct)
     {
         bool changed = false;
@@ -3564,7 +3564,7 @@ public class ContentTypeComponent : IAsyncComponent
         return changed;
     }
 
-    // Fersk DB: bygg footer-fanen med underseksjoner og felt direkte.
+    // Fresh DB: build the footer tab with subsections and fields directly.
     private void AddFooterFields(IContentType ct)
     {
         EnsureFooterGroups(ct);
@@ -3582,14 +3582,14 @@ public class ContentTypeComponent : IAsyncComponent
         }
     }
 
-    // Eksisterende DB: migrer flat footer-gruppe til fane med underseksjoner, fjern ubrukte felt,
-    // legg til eget e-post-felt, relabel + flytt lenker. Returnerer true ved endring.
+    // Existing DB: migrate the flat footer group to a tab with subsections, remove unused fields,
+    // add a separate email field, relabel + move links. Returns true on change.
     private bool MigrateFooter(IContentType ct)
     {
         bool changed = EnsureFooterGroups(ct);
 
-        // Fjern ubrukte felt: merkenavn og SoMe-URLer. (Lenke2 var tidligere e-post-hacken,
-        // men brukes nå til Informasjonskapsler, så den fjernes ikke lenger.)
+        // Remove unused fields: merkenavn and SoMe URLs. (Lenke2 was previously the email hack,
+        // but is now used for Informasjonskapsler, so it is no longer removed.)
         foreach (var alias in new[] { "footerTittel", "footerSosialInstagram", "footerSosialLinkedin", "footerSosialX" })
             changed |= RemoveProp(ct, alias);
 
@@ -3706,7 +3706,7 @@ public class ContentTypeComponent : IAsyncComponent
             changed = true;
         }
 
-        // Footer: legg til hvis den mangler helt (eldre noder), ellers rydd/migrer eksisterende.
+        // Footer: add it if it is missing entirely (older nodes), otherwise clean up/migrate the existing one.
         if (!ct.PropertyGroups.Any(g => g.Alias == "footer") && !ct.PropertyTypes.Any(p => p.Alias.StartsWith("footer")))
         {
             AddFooterFields(ct);

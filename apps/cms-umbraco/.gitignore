@@ -14,9 +14,9 @@ App_Data/
 wwwroot/media/*
 !wwwroot/media/.gitkeep
 
-## uSync-eksporter. Innhold og media er speilings-artefakter og skal aldri i repo.
-## Skjemaet (ContentTypes/DataTypes) er prods og committes bare fra en eksport tatt
-## fra PROD. Se uSync/README.md.
+## uSync exports. Content and media are mirroring artifacts and must never go in the repo.
+## The schema (ContentTypes/DataTypes) belongs to prod and is only committed from an export taken
+## from PROD. See uSync/README.md.
 uSync/*
 !uSync/README.md
 !uSync/v17
@@ -34,8 +34,8 @@ uSync/v17/*
 umbraco-package-schema.json
 appsettings-schema.*.json
 
-## Generated mirror of /shared/content-routes.json (se scripts/sync-content-routes.js).
-## Eneste kilde er /shared/content-routes.json. Speilet lages ved build.
+## Generated mirror of /shared/content-routes.json (see scripts/sync-content-routes.js).
+## The only source is /shared/content-routes.json. The mirror is created at build.
 content-routes.json
 
 ## User secrets

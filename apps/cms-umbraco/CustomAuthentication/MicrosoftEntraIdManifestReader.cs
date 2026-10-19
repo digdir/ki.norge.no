@@ -5,16 +5,16 @@ using Umbraco.Cms.Infrastructure.Manifest;
 namespace KiNorge.Cms.CustomAuthentication;
 
 /// <summary>
-/// Leverer authProvider-manifestet (Microsoft-knappen på backoffice-login) via kode
-/// i stedet for en statisk App_Plugins-fil. Registreres KUN av composeren når Entra-
-/// konfig finnes, så uten secrets finnes ingen knapp og login-skjermen er helt som
-/// standard (kun lokal pålogging). Det gjør artefakten trygg i prod uansett om
-/// secrets er lagt i vaulten eller ikke.
+/// Delivers the authProvider manifest (the Microsoft button on the backoffice login) via code
+/// instead of a static App_Plugins file. Registered ONLY by the composer when Entra
+/// config exists, so without secrets there is no button and the login screen is exactly
+/// the default (local sign-in only). That makes the artifact safe in prod whether or not
+/// the secrets have been added to the vault.
 /// </summary>
 public class MicrosoftEntraIdManifestReader : IPackageManifestReader
 {
-    // Samme innhold som det gamle App_Plugins/ExternalLoginProviders/umbraco-package.json.
-    // Parses som JsonNode så nøklene serialiseres ordrett (uavhengig av naming-policy).
+    // Same content as the old App_Plugins/ExternalLoginProviders/umbraco-package.json.
+    // Parsed as JsonNode so the keys are serialized verbatim (regardless of naming policy).
     private const string ExtensionsJson = """
     [
       {

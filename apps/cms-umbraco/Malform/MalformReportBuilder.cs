@@ -5,16 +5,16 @@ using Umbraco.Cms.Core.Services;
 namespace KiNorge.Cms.Malform;
 
 /// <summary>
-/// Teller opp hvor mye av det publiserte innholdet som er nynorsk. Gjenbruker
-/// tekstuttrekket fra søkeindekseringen, så RTE, Block List og textbox behandles
-/// likt de to stedene.
+/// Counts how much of the published content is nynorsk. Reuses
+/// the text extraction from the search indexing, so RTE, Block List and textbox are handled
+/// the same way in both places.
 ///
-/// Rapporten regnes ut på nytt hver gang den etterspørres. Med under hundre noder
-/// koster det millisekunder, og da slipper vi en lagret verdi som kan bli utdatert.
+/// The report is computed anew every time it is requested. With under a hundred nodes
+/// it costs milliseconds, and that spares us a stored value that can go stale.
 /// </summary>
 public sealed class MalformReportBuilder
 {
-    /// <summary>Språklova paragraf 12. Ingen målform under 25 prosent.</summary>
+    /// <summary>Språklova section 12. No written standard below 25 percent.</summary>
     public const double Kravet = 0.25;
 
     private readonly IContentService _contentService;
@@ -45,8 +45,8 @@ public sealed class MalformReportBuilder
             }
             catch (Exception ex)
             {
-                // En enkelt node med rar property-form skal ikke tømme hele rapporten.
-                _logger.LogError(ex, "Målformanalyse feilet for innhold {ContentId}", content.Id);
+                // A single node with an odd property shape must not empty the whole report.
+                _logger.LogError(ex, "Målform analysis failed for content {ContentId}", content.Id);
             }
         }
 
@@ -97,8 +97,8 @@ public sealed class MalformReportBuilder
             tegnTotalt == 0 ? 0 : (double)tegnNynorsk / tegnTotalt,
             klassifiserte == 0 ? 0 : (double)nynorsk.Count / klassifiserte,
             mangler,
-            // Uten målbar tekst er kravet verken innfridd eller brutt. Uten denne
-            // sjekken blir gapet 0 og et tomt innholdstre framstår som grønt.
+            // Without measurable text the requirement is neither met nor broken. Without this
+            // check the gap becomes 0 and an empty content tree appears green.
             tegnTotalt > 0 && mangler == 0,
             sider);
     }

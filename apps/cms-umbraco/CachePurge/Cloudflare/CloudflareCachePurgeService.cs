@@ -49,10 +49,10 @@ public class CloudflareCachePurgeService : ICloudflareCachePurgeService
         }
 
         _logger.LogDebug(
-            "Cloudflare purge hoppet over — Enabled={Enabled}, ApiToken {TokenState}, ZoneId {ZoneState}",
+            "Cloudflare purge skipped, Enabled={Enabled}, ApiToken {TokenState}, ZoneId {ZoneState}",
             opts.Enabled,
-            string.IsNullOrWhiteSpace(opts.ApiToken) ? "tom" : "satt",
-            string.IsNullOrWhiteSpace(opts.ZoneId) ? "tom" : "satt");
+            string.IsNullOrWhiteSpace(opts.ApiToken) ? "empty" : "set",
+            string.IsNullOrWhiteSpace(opts.ZoneId) ? "empty" : "set");
         return false;
     }
 
@@ -70,7 +70,7 @@ public class CloudflareCachePurgeService : ICloudflareCachePurgeService
         {
             string detail = await response.Content.ReadAsStringAsync(ct);
             _logger.LogError(
-                "Cloudflare purge_cache feilet for sone {ZoneId}: {Status} {Detail}",
+                "Cloudflare purge_cache failed for zone {ZoneId}: {Status} {Detail}",
                 opts.ZoneId, (int)response.StatusCode, detail);
             response.EnsureSuccessStatusCode();
         }

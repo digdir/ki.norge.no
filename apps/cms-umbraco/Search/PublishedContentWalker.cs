@@ -4,9 +4,9 @@ using Umbraco.Cms.Core.Services;
 namespace KiNorge.Cms.Search;
 
 /// <summary>
-/// Flat liste over alt publisert innhold, dybde først fra rotnodene. Upublisert
-/// innhold hoppes over, men barna deres besøkes likevel, siden en upublisert
-/// mellomnode kan ha publiserte barn.
+/// Flat list of all published content, depth first from the root nodes. Unpublished
+/// content is skipped, but its children are still visited, since an unpublished
+/// intermediate node can have published children.
 /// </summary>
 public static class PublishedContentWalker
 {

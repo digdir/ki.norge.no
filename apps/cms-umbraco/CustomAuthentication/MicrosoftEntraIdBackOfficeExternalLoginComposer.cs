@@ -8,10 +8,10 @@ using Umbraco.Cms.Infrastructure.Manifest;
 namespace KiNorge.Cms.CustomAuthentication;
 
 /// <summary>
-/// Registrerer Microsoft Entra ID som ekstern paalogging for Umbraco-backoffice,
-/// inkludert Microsoft-knappen paa login-skjermen (via MicrosoftEntraIdManifestReader).
-/// Aktiveres kun naar all konfig under MicrosoftEntraId finnes, ellers er den inert,
-/// ingen knapp vises og lokal passord-paalogging er uendret.
+/// Registers Microsoft Entra ID as external sign-in for the Umbraco backoffice,
+/// including the Microsoft button on the login screen (via MicrosoftEntraIdManifestReader).
+/// Only enabled when all config under MicrosoftEntraId exists, otherwise it is inert,
+/// no button is shown and local password sign-in is unchanged.
 /// </summary>
 public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
 {
@@ -46,8 +46,8 @@ public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
         builder.Services.ConfigureOptions<MicrosoftEntraIdBackOfficeExternalLoginProviderOptions>();
         builder.Services.ConfigureOptions<ConfigureMicrosoftEntraIdAuthenticationOptions>();
 
-        // Microsoft-knappen paa login-skjermen leveres via MicrosoftEntraIdManifestReader,
-        // registrert kun her (samme secrets-gate). Uten konfig finnes ingen knapp.
+        // The Microsoft button on the login screen is delivered via MicrosoftEntraIdManifestReader,
+        // registered only here (same secrets gate). Without config there is no button.
         builder.Services.AddSingleton<IPackageManifestReader, MicrosoftEntraIdManifestReader>();
 
         builder.AddBackOfficeExternalLogins(logins =>
@@ -64,7 +64,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
                         schemeName,
                         options =>
                         {
-                            // Konfig settes i ConfigureMicrosoftEntraIdAuthenticationOptions
+                            // Config is set in ConfigureMicrosoftEntraIdAuthenticationOptions
                         });
                 });
         });

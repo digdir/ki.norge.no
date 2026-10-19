@@ -6,8 +6,8 @@ using System.Security.Claims;
 namespace KiNorge.Cms.CustomAuthentication;
 
 /// <summary>
-/// Opsjoner for Microsoft Entra ID-ekstern paalogging. Auto-lenker brukere ved foerste
-/// paalogging, synker navn, og mapper Entra app-roller til Umbraco-grupper.
+/// Options for Microsoft Entra ID external sign-in. Auto-links users on first
+/// sign-in, syncs names, and maps Entra app roles to Umbraco groups.
 /// </summary>
 public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigureNamedOptions<BackOfficeExternalLoginProviderOptions>
 {
@@ -34,9 +34,9 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
         {
             OnAutoLinking = (autoLinkUser, loginInfo) =>
             {
-                // Uten denne opprettes brukeren ikke-godkjent og kastes tilbake til
-                // login-skjermen. Hører hjemme her, ikke i OnExternalLogin, som ville
-                // gjenopplivet brukere man bevisst har deaktivert ved offboarding.
+                // Without this the user is created unapproved and thrown back to
+                // the login screen. Belongs here, not in OnExternalLogin, which would
+                // revive users that were deliberately disabled at offboarding.
                 autoLinkUser.IsApproved = true;
 
                 var nameClaim = loginInfo.Principal.FindFirst("name");
@@ -48,14 +48,14 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
             OnExternalLogin = (user, loginInfo) =>
             {
-                // Synk navn fra Entra
+                // Sync name from Entra
                 var nameClaim = loginInfo.Principal.FindFirst("name");
                 if (nameClaim != null)
                 {
                     user.Name = nameClaim.Value;
                 }
 
-                // Hent app-roller fra Entra
+                // Get app roles from Entra
                 var roles = loginInfo.Principal
                     .FindAll(ClaimTypes.Role)
                     .Select(r => r.Value)
@@ -63,20 +63,20 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
                 var mappedGroups = new List<string>();
 
-                // Mapping fra Entra app-rolle til Umbraco-gruppe
+                // Mapping from Entra app role to Umbraco group
                 if (roles.Contains("umbraco-admin"))
                     mappedGroups.Add("admin");
 
                 if (roles.Contains("umbraco-redaktor"))
                     mappedGroups.Add("editor");
 
-                // Nekt paalogging hvis ingen rolle matcher
+                // Deny sign-in if no role matches
                 if (!mappedGroups.Any())
                 {
                     return false;
                 }
 
-                // Sett gruppene i Umbraco
+                // Set the groups in Umbraco
                 user.Roles.Clear();
                 foreach (var group in mappedGroups)
                 {
@@ -87,8 +87,8 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
             }
         };
 
-        // Behold lokal passord-paalogging ved siden av Entra under utrulling.
-        // Settes til true for ren Entra-only senere.
+        // Keep local password sign-in alongside Entra during rollout.
+        // Set to true for pure Entra-only later.
         options.DenyLocalLogin = false;
     }
 }

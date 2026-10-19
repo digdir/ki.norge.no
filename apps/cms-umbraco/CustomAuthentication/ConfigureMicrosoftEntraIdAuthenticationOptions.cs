@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 namespace KiNorge.Cms.CustomAuthentication;
 
 /// <summary>
-/// Setter OpenID Connect-opsjoner for Microsoft Entra ID-paalogging.
+/// Sets OpenID Connect options for Microsoft Entra ID sign-in.
 /// </summary>
 public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOptions<OpenIdConnectOptions>
 {
@@ -46,7 +46,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         options.GetClaimsFromUserInfoEndpoint = true;
 
-        // Claim-typer som matcher det Entra ID leverer
+        // Claim types that match what Entra ID delivers
         options.TokenValidationParameters.NameClaimType = "name";
         options.TokenValidationParameters.RoleClaimType =
             "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
@@ -56,8 +56,8 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
-        // Traefik skriver om host internt, saa bygg redirect-URI fra den
-        // offentlige backoffice-hosten naar den er satt (per miljoe i syncroot).
+        // Traefik rewrites the host internally, so build the redirect URI from the
+        // public backoffice host when it is set (per environment in syncroot).
         var applicationUrl = _configuration["Umbraco:CMS:Security:BackOfficeHost"];
         if (!string.IsNullOrEmpty(applicationUrl))
         {
