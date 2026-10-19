@@ -235,7 +235,7 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 
 **Traps.**
 
-- If `ConnectionString` is removed, the CMS puts media on disk in the pod without an error message. The line `[Media] Lagring: …` at startup says which storage is used.
+- If `ConnectionString` is removed, the CMS puts media on disk in the pod without an error message. The line `[Media] Storage: …` at startup says which storage is used.
 - Which source serves a file can be seen from `last-modified`, see "Media files" in [system-documentation.md](system-documentation.md#media-files).
 
 ### CachePurgeComposer
@@ -244,7 +244,7 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 
 **Does.** On publish, unpublish and move to the recycle bin, `FrontendUrlResolver` finds the affected frontend URLs, based on content type and slug, and purges them in Cloudflare in the background. Global settings, a content type without a URL rule, an error in the calculation or more URLs than `AffectedUrlThreshold` (30) give a purge of everything. At startup it logs whether token and zone are set.
 
-**In production.** Yes in prod. The purge requires all three values: `Cloudflare:ApiToken` and `Cloudflare:ZoneId` from Key Vault (`Cloudflare--ApiToken`, `Cloudflare--ZoneId`) and `Cloudflare:SiteBaseUrl`, which is set per environment in `syncroot/`. Whether tt02 has token and zone is shown by the log line at startup there: `Cloudflare cache-purge: Enabled=…, ZoneId=<satt>, ApiToken=<satt>`. See also [cloudflare-cache-purge.md](cloudflare-cache-purge.md).
+**In production.** Yes in prod. The purge requires all three values: `Cloudflare:ApiToken` and `Cloudflare:ZoneId` from Key Vault (`Cloudflare--ApiToken`, `Cloudflare--ZoneId`) and `Cloudflare:SiteBaseUrl`, which is set per environment in `syncroot/`. Whether tt02 has token and zone is shown by the log line at startup there: `Cloudflare cache-purge: Enabled=…, ZoneId=<set>, ApiToken=<set>`. See also [cloudflare-cache-purge.md](cloudflare-cache-purge.md).
 
 **Traps.**
 

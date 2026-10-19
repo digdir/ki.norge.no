@@ -52,7 +52,7 @@ For each environment (prod + tt02), put the secrets in the environment's Key Vau
 - `Cloudflare--ZoneId` = norge.no Zone ID (same value for prod and tt02)
 
 Redeploy the CMS. Verify in the startup log:
-`Cloudflare cache-purge: Enabled=True, ZoneId=<satt>, ApiToken=<satt>, SiteBaseUrl=https://ki.norge.no`.
+`Cloudflare cache-purge: Enabled=True, ZoneId=<set>, ApiToken=<set>, SiteBaseUrl=https://ki.norge.no`.
 
 ## Purge on deploy, and why it uses purge_everything
 

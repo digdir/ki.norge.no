@@ -105,7 +105,7 @@ cd apps/frontend && pnpm run test:unit
 
 The tests check that the file is valid JSON, unique ids, valid subject areas and phases, required fields, that no removed fields are included, and the sorting. They also run in CI, so an error stops the build, but it is faster to discover it locally.
 
-If there is a syntax error, the test `ki-tiltak.json > er gyldig JSON` says which line it concerns, and what is probably missing. Most often it is a comma between two initiatives, one comma too many after the last one, or a missing `{`.
+If there is a syntax error, the test `ki-tiltak.json > is valid JSON` says which line it concerns, and what is probably missing. Most often it is a comma between two initiatives, one comma too many after the last one, or a missing `{`.
 
 ## New export from the register
 

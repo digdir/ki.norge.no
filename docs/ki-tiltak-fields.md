@@ -118,6 +118,6 @@ End the description with a full stop. 52 of the 58 existing ones already do. Thi
 - unknown phase or subject area, and duplicate ids
 - org numbers missing a name in `ki-tiltak-virksomhetsnavn.json`
 
-The error message names the initiative, for example `ukjent KI-type på #DataSaman`.
+The error message names the initiative, for example `unknown KI type on #DataSaman`.
 
 New fields are not stopped. They are shown only once the code starts using them.
