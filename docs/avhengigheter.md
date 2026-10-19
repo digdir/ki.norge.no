@@ -23,7 +23,7 @@ Sist gjennomgått 2026-10-05 (runde 2).
 
 - **Renovate** bruker det delte oppsettet `digdir/renovate-config` (bygger på `config:recommended`). Det kjører torsdager før 07:00 og krever at en versjon er tre dager gammel. Minor og patch samles i én PR per økosystem («npm non-major dependencies», «nuget non-major dependencies»). Docker og Actions låses med digest. Våre egne regler står i `renovate.json`. `prHourlyLimit: 0` gjør at alle PR-ene i vinduet lages samme morgen. `prConcurrentLimit` (10) gjelder fortsatt. Status for alt ligger i Dependency Dashboard (issue #214).
 - **pnpm** krever i tillegg at en versjon er 24 timer gammel (`minimumReleaseAge: 1440` i `pnpm-workspace.yaml`). Det blokkerer hardt, ikke bare med en advarsel.
-- **Dependabot** lager sikkerhets-PR-er for npm (repo-innstilling) og månedlige PR-er for Actions (`.github/dependabot.yml`).
+- **Dependabot** lager sikkerhets-PR-er for npm. Det er en innstilling i repoet. `.github/dependabot.yml` ble slettet i [#811](https://github.com/digdir/ki.norge.no/pull/811), og Renovate oppdaterer også GitHub Actions.
 - **Rutinen** er en launchd-jobb på Lars' Mac (`no.digdir.ki-norge.dep-routine`), som kjører morgen og ettermiddag. Den merger minor, patch og digest på grønn CI, og flagger major og runtime. Loggen ligger i `~/projects/TODO/Avhengigheter-logg.md`. Den kjører bare når Mac-en er våken, og venter på nett etter oppvåkning.
 
 Dette gjør ingen av dem:

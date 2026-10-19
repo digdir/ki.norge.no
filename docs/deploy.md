@@ -8,7 +8,7 @@ Oppskrift for å legge ut nye versjoner etter at kode er endret.
 - [CMS-worker (cms-kinorgeportal)](#cms-worker-cms-kinorgeportal)
 - [Rekkefølge når flere deler endres](#rekkefølge-når-flere-deler-endres)
 
-Alt deployes fra `main`. Frontend-skriptene nekter å kjøre fra en annen branch, med skittent arbeidstre, eller når du ikke er i synk med origin.
+Alt deployes fra `main`. Frontend-skriptene (`deploy:check-main`) stopper når arbeidstreet ikke er rent. Er det rent, bytter de til `main` og stopper hvis `main` ikke er i takt med origin. I et git-arbeidstre der `main` er sjekket ut et annet sted, feiler byttet, og deployen stopper.
 
 ## Frontend (ki-norge-frontend)
 
@@ -86,6 +86,21 @@ Backoffice-hashen duger **ikke** til å se om podden rullet. Den speiler bare Um
 ### 4. Sjekk at innholdet er intakt
 
 Etter en skjemaendring: tell blokker, innholdstyper og «Unsupported» i Delivery API før og etter. Er tallene like, ble ingenting re-nøklet. Er antall «Unsupported» over null, stopp og se på uSync-nøklene før du gjør noe mer.
+
+### Alt i én kommando: `scripts/deploy-cms.sh`
+
+```bash
+bash scripts/deploy-cms.sh tt02 [tag]
+bash scripts/deploy-cms.sh prod [tag]
+```
+
+Skriptet gjør steg 1 til 3 over. Det starter «Docker build and publish» og «Publish Syncroot artifacts» med `gh workflow run`, venter til podden kjører det nye imaget, og sjekker helsen.
+
+- **Tagen må være et heltall** (`^[0-9]+$`). Uten tag tar skriptet det høyeste tallet etter «Deploy» i titlene på de siste kjøringene av «Publish Syncroot artifacts», og legger til 1. Tagger med stikkord, som `63-adressefelt`, godtas ikke. Skriptet og oppskriften over gir derfor tagger på ulik form.
+- Krever `gh` med rett til å starte workflowene, rent arbeidstre og `HEAD` lik `origin/main`. Skriptet bytter ikke gren selv.
+- Velger alltid AzureSQL. For prod må du skrive `prod` for å fortsette.
+- Med Altinn-VPN venter det i opptil om lag 15 minutter på at podden kjører `umbraco:<tag>@sha256:…` og er klar. Uten VPN kan det ikke bekrefte at det nye imaget kjører, og helsesjekken sier bare at noe svarer.
+- Helsesjekken venter på 200 fra frontenden og et svar med `total` fra Delivery API. Med VPN leser den også loggen, og stopper hvis uSync-importen endret skjemaet. Etter en ønsket skjemaendring skjer nettopp det, så da må du lese loggen selv.
 
 ## Cache-worker (cache-kinorgeportal)
 

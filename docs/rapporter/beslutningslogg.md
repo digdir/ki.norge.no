@@ -2,6 +2,11 @@
 
 Beslutninger og milepæler, med det nyeste øverst. Hvert punkt sier hva som ble bestemt, hvorfor, og hvor detaljene står. Loggen starter 2026-10-05. Se [README](README.md) for hva mappa er til.
 
+## 2026-10-07
+
+- **CMS-podden er låst til digesten til image-taggen.** «Publish Syncroot artifacts» slår opp digesten taggen peker på, og podden hentes på digest med taggen som merkelapp. En tag som flyttes, endrer ikke det som kjører, og en tag som ikke finnes, stopper publiseringen før noe pushes. `deploy-cms.sh` og `backup-prod.sh` leser referansen på formen `umbraco:<tag>@sha256:…`. Se [#861](https://github.com/digdir/ki.norge.no/pull/861) og [#844](https://github.com/digdir/ki.norge.no/issues/844).
+- **CMS-podden har prober.** Uten prober oppdaget ikke Kubernetes en pod som hang eller hadde startet uten database. Oppstart og liveness går mot `/api/health`, som ikke sjekker databasen, så et kort databaseavbrudd gir ikke omstart. Readiness går mot `/api/health/ready`. Linkerd slapp ikke probene gjennom fordi `Server`-en har egne ruter, så probestiene fikk en egen rute. Se [#863](https://github.com/digdir/ki.norge.no/pull/863) og [#876](https://github.com/digdir/ki.norge.no/issues/876).
+
 ## 2026-10-06
 
 - **Skyra får ikke `'unsafe-eval'` i CSP-en.** Undersøkelsen virker med dagens policy. Bruddet som vises i konsollen, kommer fra en sjekk i Zod 4 (`allowsEval`) som prøver `eval` inne i en try/catch og tåler å bli blokkert. Å åpne for `eval` ville svekket policyen for hele nettstedet uten at noe virker bedre. Se [#841](https://github.com/digdir/ki.norge.no/issues/841) og [#856](https://github.com/digdir/ki.norge.no/pull/856).
@@ -34,5 +39,11 @@ Beslutninger og milepæler, med det nyeste øverst. Hvert punkt sier hva som ble
   - Avhengigheter: js-yaml-overriden er fjernet ([#830](https://github.com/digdir/ki.norge.no/pull/830)), `@types/node` følger runtime på v24 ([#831](https://github.com/digdir/ki.norge.no/pull/831)), og http-cache-semantics er løftet til 4.3.0 ([#839](https://github.com/digdir/ki.norge.no/pull/839)).
 - **Ny KI-tiltak-liste bare til tt02, prod venter til lista er godkjent.** Registerets eksport fra 2026-10-05 ([#829](https://github.com/digdir/ki.norge.no/pull/829)) hadde nye id-er og verdier som avviker fra begrepslista, og ble vist i tt02 for gjennomsyn før prod.
 - **Forhåndsvisning av kladder er samlet bak én validert inngang og er i prod.** Middleware avgjør forhåndsvisning ett sted, og hemmeligheten fra CMS-et sjekkes. Uten en gyldig hemmelighet er forhåndsvisning av. Prod-utrullingen ventet til hemmeligheten var satt for prod-workeren. Se [#723](https://github.com/digdir/ki.norge.no/pull/723).
-- **Søket faller tilbake til BM25 når den semantiske delen feiler.** Embedding-modellen skalerer til 0 og kaldstarter, og da ga søket «Ingen resultater». Minimum én instans lagres ikke på Elastic Serverless, så reserven er løsningen. Se [#824](https://github.com/digdir/ki.norge.no/pull/824), [#822](https://github.com/digdir/ki.norge.no/issues/822) og `infrastructure/elasticsearch/README.md` ([#828](https://github.com/digdir/ki.norge.no/pull/828)).
+- **Søket faller tilbake til BM25 når den semantiske delen feiler.** Embedding-modellen skalerer til 0 og kaldstarter, og da ga søket «Ingen resultater». Minimum én instans lagres ikke på Elastic Serverless, så reserven er løsningen. Se [#824](https://github.com/digdir/ki.norge.no/pull/824), [#822](https://github.com/digdir/ki.norge.no/issues/822) og [elasticsearch-indeks.md](../elasticsearch-indeks.md) ([#828](https://github.com/digdir/ki.norge.no/pull/828)).
 - **Renovate lager alle PR-ene i torsdagsvinduet samme morgen** (`prHourlyLimit: 0`). Se [#828](https://github.com/digdir/ki.norge.no/pull/828) og [avhengigheter.md](../avhengigheter.md).
+
+## 2026-06-04
+
+Skrevet i ettertid 2026-10-13. Kilde: [#351](https://github.com/digdir/ki.norge.no/pull/351), og kartleggingen i `docs/seeder-content-write-audit.md`, som ligger i git-historikken.
+
+- **Innhold skrives aldri fra oppstartskode.** `ContentSeeder` opprettet og publiserte innholdsnoder ved oppstart og kjørte engangsmigreringer av struktur. Den eneste sperren var `LAUNCH_MODE`, som ikke var satt i dis-core, så seederen kjørte i prod og tt02 og publiserte en duplisert veiledningsguide. Det var tredje gang innholdsskriving fra oppstart ga en hendelse i prod. Seederen ble slettet, og innhold lages i backofficet.

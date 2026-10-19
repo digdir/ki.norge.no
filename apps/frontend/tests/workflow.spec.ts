@@ -465,7 +465,7 @@ test.describe('Document types', () => {
 // Innhold lages nå av redaktører, så antall og titler er ikke noe testene skal
 // låse fast. Målt mot prod da de ble fjernet: artikkel=6 (testen krevde 4),
 // faq=0 (krevde 5), merkelapp=0 (krevde 8). De kunne aldri passert igjen.
-// Se docs/seeder-content-write-audit.md.
+// Se beslutningsloggen, docs/rapporter/beslutningslogg.md.
 
 
 // ── Delivery API edge cases ─────────────────────────────────────

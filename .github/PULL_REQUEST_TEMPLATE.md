@@ -8,7 +8,6 @@
 
 - [ ] `dotnet build` (CMS) passes
 - [ ] `npx astro build` (frontend) passes
-- [ ] `bash scripts/smoke-test.sh --local` passes (or noted why not)
 - [ ] Manual check in browser if UI changed
 
 ## Notes for reviewer
