@@ -11,10 +11,10 @@ import { INLINE_SCRIPT_FILES, OTHER_DIRECTIVES, SCRIPT_SOURCES, STYLE_SOURCES } 
 const sha256 = (/** @type {string} */ file) =>
   /** @type {const} */ (`sha256-${createHash('sha256').update(readFileSync(new URL(file, import.meta.url))).digest('base64')}`);
 
-// I dev mot prod/tt02-CMS (frontend:dev:prod / :tt02) kjører vi SSR på node-adapteren.
-// Cloudflare-adapterens workerd-runtime feiler ("Network connection lost") når den henter
-// fra det Cloudflare-frontede CMS-et på workers.dev. Node-adapterens fetch fungerer fint.
-// Bygg/deploy bruker alltid cloudflare().
+// In dev against the prod/tt02 CMS (frontend:dev:prod / :tt02) we run SSR on the node adapter.
+// The Cloudflare adapter's workerd runtime fails ("Network connection lost") when it fetches
+// from the Cloudflare-fronted CMS on workers.dev. The node adapter's fetch works fine.
+// Build/deploy always uses cloudflare().
 const useNodeAdapter = process.env.DEV_USE_NODE === '1';
 
 // https://astro.build/config
@@ -24,7 +24,7 @@ export default defineConfig({
     react(),
   ],
   site: 'https://ki.norge.no',
-  // Ingen sider rendres fra markdown. Shiki bruker inline-stiler, og Astro advarer om det med CSP på.
+  // No pages are rendered from markdown. Shiki uses inline styles, and Astro warns about that with CSP on.
   markdown: { syntaxHighlight: false },
   security: {
     csp: {

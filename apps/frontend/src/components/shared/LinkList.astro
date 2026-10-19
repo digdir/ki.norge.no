@@ -20,7 +20,7 @@ const { links, heading } = Astro.props;
   <ul class="link-list-items">
     {links.map((link) => {
       const id = `link-list-${crypto.randomUUID().slice(0, 8)}`;
-      // Pilen limes til siste ord så den ikke brekker alene (#464)
+      // The arrow is glued to the last word so it does not wrap alone (#464)
       const titleParts = splitLastWord(link.title);
       return (
         <li class="link-list-item" data-clickdelegatefor={id}>

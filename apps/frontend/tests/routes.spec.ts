@@ -7,7 +7,7 @@ type RouteExpectation = {
   expectedStatus: number;
 };
 
-// Ruter som med vilje ikke finnes. Alt annet i fixturen forventes å svare 200.
+// Routes that deliberately do not exist. Everything else in the fixture is expected to return 200.
 const EXPECTED_404 = new Set(['/__does_not_exist__', '/personvern', '/tilgjengelighet']);
 
 function normalizeRoute(p: string): string {
@@ -22,21 +22,21 @@ async function loadRoutesFromFixture(): Promise<RouteExpectation[]> {
 
   const addRoute = (routePath: string) => {
     const normalized = normalizeRoute(routePath);
-    // Dynamiske mønstre (/artikler/[slug]) har ingen konkret URL å slå opp.
+    // Dynamic patterns (/artikler/[slug]) have no concrete URL to look up.
     if (!normalized.includes('[')) paths.add(normalized);
   };
 
   for (const raw of content.split(/\r?\n/)) {
     const line = raw.trim();
 
-    // Ruteoverskrift: "### /foo"
+    // Route heading: "### /foo"
     const sectionMatch = /^###\s+(\/\S*)\s*$/.exec(line);
     if (sectionMatch) {
       addRoute(sectionMatch[1]);
       continue;
     }
 
-    // Punktliste med ruter, f.eks. i 404-seksjonen: "- GET /personvern -> 404"
+    // Bullet list of routes, e.g. in the 404 section: "- GET /personvern -> 404"
     const bulletMatch = /^-\s*(?:GET\s+)?(\/\S+)/.exec(line);
     if (bulletMatch) addRoute(bulletMatch[1]);
   }

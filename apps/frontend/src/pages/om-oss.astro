@@ -7,7 +7,7 @@ import { getOmOss, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_W
 import { breadcrumbSchema } from '../lib/seo';
 import { ordlengde } from '../lib/text';
 
-// Om Oss er rik artikkelmal (#362): artikkelhode (tittel/ingress/hovedbilde) + innhold-blokkliste.
+// Om Oss is a rich article template (#362): article header (title/ingress/main image) + innhold block list.
 const isPreview = Astro.locals.isPreview;
 const omOss = await getOmOss({ preview: isPreview });
 
@@ -17,7 +17,7 @@ try {
   latestArticles = artiklerRes.data;
 } catch (e) {
   console.error('Failed to fetch om-oss articles:', e);
-  // CMS-henting feilet: ikke cache den degraderte renderen (se middleware).
+  // CMS fetch failed: do not cache the degraded render (see middleware).
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
@@ -25,7 +25,7 @@ const tittel = omOss?.tittel;
 const seoTitle = omOss?.seoTittel || 'Om oss';
 const seoDesc = omOss?.seoBeskrivelse || omOss?.ingress || 'Om KI Norge – en nasjonal satsing for ansvarlig bruk av kunstig intelligens.';
 const seoImage = omOss?.seoBilde?.url || omOss?.artikkelBilde?.url;
-// SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
+// The SEO image is for share previews and must never become content (#738).
 const heroImage = omOss?.artikkelBilde;
 
 const breadcrumbJsonLd = breadcrumbSchema([
@@ -84,7 +84,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
 </Layout>
 
 <style>
-  /* Hero: tittel over fullbredde banner-bilde (2:1, object-fit cover) */
+  /* Hero: title above full-width banner image (2:1, object-fit cover) */
   .article-hero-inner {
     display: flex;
     flex-direction: column;
@@ -100,9 +100,9 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     grid-column: 4;
     margin-block-start: 0;
 
-    /* Samme bruddpunkt som artikkelgridet. Står bildet i kolonne 4 når gridet
-       har én kolonne, lager nettleseren tre ekstra kolonner, og teksten presses
-       ned i 77 px mellom 768 og 1024. */
+    /* Same breakpoint as the article grid. If the image sits in column 4 when the grid
+       has one column, the browser creates three extra columns, and the text is squeezed
+       into 77 px between 768 and 1024. */
     @media (max-width: 1024px) {
       grid-column: 1 / 5;
       margin-block-start: var(--ds-size-6);

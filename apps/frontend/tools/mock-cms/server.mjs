@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Mock-CMS for lokal frontend-utvikling.
-// Speiler Umbraco Delivery API v2 sitt content-endepunkt fra en fanget fixture
-// (delivery-content.json), slik at frontend kan kjores uten et ekte CMS.
-// Kun ment for utvikling. Fixturen fanges fra en seedet lokal CMS-instans.
+// Mock CMS for local frontend development.
+// Mirrors the Umbraco Delivery API v2 content endpoint from a captured fixture
+// (delivery-content.json), so the frontend can run without a real CMS.
+// Meant for development only. The fixture is captured from a seeded local CMS instance.
 import http from 'node:http';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -19,8 +19,8 @@ function getField(item, field) {
   return item.properties ? item.properties[field] : undefined;
 }
 
-// Speiler de query-parametrene umbraco.ts faktisk bruker: filter (contentType),
-// sort, take, skip. Andre filtre ignoreres bevisst for ikke a tomme resultater.
+// Mirrors the query parameters umbraco.ts actually uses: filter (contentType),
+// sort, take, skip. Other filters are deliberately ignored so results aren't emptied.
 function handleCollection(url) {
   let items = ALL.slice();
 
@@ -79,5 +79,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[mock-cms] Delivery API mock paa http://localhost:${PORT} (${ALL.length} noder fra fixture)`);
+  console.log(`[mock-cms] Delivery API mock on http://localhost:${PORT} (${ALL.length} nodes from fixture)`);
 });

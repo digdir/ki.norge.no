@@ -52,10 +52,10 @@ test.describe('Visual regression tests', () => {
     });
   });
 
-  // Dark mode-testene er FJERNET (2026-08-07). Siden har ikke dark mode:
-  // Layout.astro hardkoder data-color-scheme="light", og CLAUDE.md fører opp
-  // «Ingen dark mode (bevisst valg)». Testen ventet class=/dark/ på <html>,
-  // noe som aldri kan bli sant.
+  // The dark mode tests are REMOVED (2026-08-07). The site has no dark mode:
+  // Layout.astro hardcodes data-color-scheme="light", and CLAUDE.md lists
+  // "No dark mode (deliberate choice)". The test expected class=/dark/ on <html>,
+  // which can never be true.
 });
 
 test.describe('Responsive layouts', () => {

@@ -5,8 +5,8 @@ import type { CardImage } from '../../lib/umbraco';
 interface Props {
   title: string;
   href: string;
-  // Streng for statiske bilder. CardImage fra getCardImage() for CMS-media,
-  // som i tillegg gir srcset, sizes og sideforhold.
+  // String for static images. CardImage from getCardImage() for CMS media,
+  // which also gives srcset, sizes and aspect ratio.
   image?: string | CardImage;
   imageAlt?: string;
   imagePosition?: 'left' | 'right';
@@ -18,7 +18,7 @@ const { title, href, image, imageAlt = '', imagePosition = 'right', label } = As
 const illustrasjon: CardImage | undefined =
   typeof image === 'string' ? { src: image } : image;
 
-// Pilen limes til siste ord så den ikke brekker alene (#464)
+// The arrow is glued to the last word so it does not wrap alone (#464)
 ---
 
 <div class="text-with-image" data-image-position={imagePosition}>
@@ -53,7 +53,7 @@ const illustrasjon: CardImage | undefined =
     gap: var(--ds-size-12);
 
     @media (min-width: 768px) {
-      /* Smalere tekstkolonne gir illustrasjonen mer plass (#585). */
+      /* A narrower text column gives the illustration more room (#585). */
       grid-template-columns: 1fr 1fr;
       align-items: center;
       gap: var(--ds-size-22);

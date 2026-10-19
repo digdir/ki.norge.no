@@ -1,2 +1,2 @@
-// Eldre adresse. Svarer det samme som /health og deler resultatet med den.
+// Older address. Answers the same as /health and shares the result with it.
 export { GET, HEAD } from '../../health';

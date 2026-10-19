@@ -1,33 +1,33 @@
-// Tømmer Cloudflare-cachen etter en frontend-deploy.
+// Purges the Cloudflare cache after a frontend deploy.
 //
-// En deploy roterer de innholdshashede filnavnene i _astro og sletter de gamle.
-// Edgen sitter samtidig på HTML fra før deployen i inntil s-maxage (10 min), og
-// den HTML-en peker på filer som ikke finnes lenger. Resultatet er en ustylet
-// side (#428). Purge fjerner den gamle HTML-en med én gang.
+// A deploy rotates the content-hashed file names in _astro and deletes the old ones.
+// Meanwhile the edge holds HTML from before the deploy for up to s-maxage (10 min), and
+// that HTML points to files that no longer exist. The result is an unstyled
+// page (#428). Purge removes the old HTML right away.
 //
-// Forgjengeren prøvde å løse det motsatt, ved å holde gamle assets i live
-// (keep-previous-assets.mjs). Det arkivet lå på maskinen som deployet og hjalp
-// bare hvis samme maskin deployet sist, og skjulte dessuten symptomet framfor å
-// fjerne årsaken.
+// The predecessor tried to solve it the other way round, by keeping old assets alive
+// (keep-previous-assets.mjs). That archive lived on the machine that deployed and only helped
+// if the same machine deployed last, and it also hid the symptom rather than
+// removing the cause.
 //
-// Kaller Cloudflare-API-et direkte, slik CMS-et gjør ved publisering.
+// Calls the Cloudflare API directly, like the CMS does on publish.
 
 import fs from 'node:fs';
 
-// Deployen gjelder ett miljø, men Cloudflare-sonen er delt mellom ki.norge.no og
-// ki.test.norge.no. purge_everything treffer derfor begge. Det er samme
-// oppførsel som CMS-et har ved hver publisering, og konsekvensen er kun
-// cache-bom i noen minutter.
+// The deploy applies to one environment, but the Cloudflare zone is shared between ki.norge.no and
+// ki.test.norge.no. purge_everything therefore hits both. It is the same
+// behaviour the CMS has on every publish, and the consequence is only
+// cache misses for a few minutes.
 //
-// purge_everything er et MÅLT valg, ikke latskap. Purge per URL (files) er
-// vurdert og forkastet: cache-nøkkelen er hele URLen med query, så et
-// files-purge bommer på utm-taggede varianter og blir delvis der dette er
-// uttømmende. Sonens sprengradius er dessuten målt til bare våre egne fire
-// hostnavn. Se docs/cloudflare-cache-purge.md før du endrer dette.
+// purge_everything is a MEASURED choice, not laziness. Purge per URL (files) was
+// considered and rejected: the cache key is the full URL with query, so a
+// files purge misses utm-tagged variants and becomes partial where this is
+// exhaustive. The zone's blast radius has also been measured to be just our own four
+// hostnames. See docs/cloudflare-cache-purge.md before you change this.
 const ENVIRONMENTS = new Set(['prod', 'tt02']);
 
-// Astro leser .env selv, men et rent node-skript gjør det ikke. Enkel lesing
-// holder her, og et ekte miljø får overstyre fila.
+// Astro reads .env itself, but a plain node script does not. Simple parsing
+// is enough here, and a real environment may override the file.
 function readEnvFile(file = '.env') {
   if (!fs.existsSync(file)) return {};
   const values = {};
@@ -40,7 +40,7 @@ function readEnvFile(file = '.env') {
 
 const env = process.argv[2];
 if (!ENVIRONMENTS.has(env)) {
-  console.error(`[purge-cache] ukjent miljø "${env}". Gyldige: ${[...ENVIRONMENTS].join(', ')}`);
+  console.error(`[purge-cache] unknown environment "${env}". Valid: ${[...ENVIRONMENTS].join(', ')}`);
   process.exit(1);
 }
 
@@ -48,14 +48,14 @@ const fileEnv = readEnvFile();
 const zoneId = process.env.CLOUDFLARE_ZONE_ID || fileEnv.CLOUDFLARE_ZONE_ID;
 const token = process.env.CLOUDFLARE_PURGE_TOKEN || fileEnv.CLOUDFLARE_PURGE_TOKEN;
 
-// Hardt stopp framfor stille hopp. En deploy som tror den purger, men ikke gjør
-// det, er nøyaktig fella keep-previous-assets satt seg i.
+// Hard stop rather than a silent skip. A deploy that thinks it purges, but doesn't,
+// is exactly the trap keep-previous-assets fell into.
 if (!zoneId || !token) {
   console.error(
-    '[purge-cache] mangler Cloudflare-nøkler, og da kan ikke cachen tømmes.\n' +
-      'Sett disse i apps/frontend/.env:\n' +
-      '  CLOUDFLARE_ZONE_ID      sone-IDen for norge.no (Cloudflare-dashbordet, Overview)\n' +
-      '  CLOUDFLARE_PURGE_TOKEN  API-token som starter med cfat_, med Zone.Cache Purge',
+    '[purge-cache] missing Cloudflare keys, so the cache cannot be purged.\n' +
+      'Set these in apps/frontend/.env:\n' +
+      '  CLOUDFLARE_ZONE_ID      the zone ID for norge.no (Cloudflare dashboard, Overview)\n' +
+      '  CLOUDFLARE_PURGE_TOKEN  API token starting with cfat_, with Zone.Cache Purge',
   );
   process.exit(1);
 }
@@ -70,8 +70,8 @@ const result = await res.json().catch(() => ({}));
 
 if (!res.ok || result.success === false) {
   const detail = (result.errors ?? []).map((e) => `${e.code} ${e.message}`).join('; ');
-  console.error(`[purge-cache] ${env}: purge feilet (${res.status}) ${detail}`);
+  console.error(`[purge-cache] ${env}: purge failed (${res.status}) ${detail}`);
   process.exit(1);
 }
 
-console.log(`[purge-cache] ${env}: cachen er tømt`);
+console.log(`[purge-cache] ${env}: cache purged`);

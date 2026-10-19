@@ -12,7 +12,7 @@
  * sprinkle new values.
  */
 
-/* Sitat (legacy) */
+/* Quote (legacy) */
 .article-quote {
   margin: 32px 0;
   padding: 24px 32px;
@@ -68,12 +68,12 @@
   font-size: var(--ds-font-size-3);
 }
 
-/* Innhold fra organisasjon */
+/* Content from organisation (innholdFra) */
 .article-innhold-fra {
   padding-block: var(--ds-size-6);
 }
 
-/* Kontaktkort */
+/* Contact card (kontaktkort) */
 .article-kontaktkort {
   background: var(--ds-color-base-active);
   color: var(--ds-color-background-default);
@@ -101,7 +101,7 @@
   line-height: 1.7;
 }
 
-/* Prosessteg */
+/* Process steps (prosessteg) */
 .article-prosessteg {
   background: var(--ds-color-base-hover);
   color: var(--ds-color-base-contrast-default);
@@ -266,20 +266,20 @@
   height: 400px;
   background: var(--image-fallback-bg, #D9D9D9);
 }
-/* Bildetekst skal skille seg fra brødteksten, men lavmælt (#756).
-   Farge: text-subtle er #5b5d60 mot hvit bakgrunn = 6,60:1, altså godt over
-   WCAG AA-kravet på 4,5:1 for vanlig tekst. Mot background-tinted blir det
-   5,96:1, så den tåler et tonet panel også.
-   Størrelse: figcaption arver nettleserens 16px, siden verken body eller
-   .article-layout setter font-size, mens brødteksten er 1,125rem. Teksten er
-   altså allerede litt mindre. font-size-2 (0,875rem) er ett tokensteg videre
-   ned, samme proporsjon som steget fra 1,125 til 1.
-   Ikke kursiv: i denne fila betyr font-style: italic allerede SITAT, både i
-   .article-quote-text og .article-fremheving-text--quote. Gjenbrukt på
-   bildetekst svekker begge signalene, og farge og størrelse gjør jobben. */
-/* Nøytral grå, ikke --ds-color-text-subtle. Den er en kontekstavhengig alias som
-   løser til aksentfargen (#af2844, karmosin) med mindre du står i en nøytral
-   fargekontekst, så bildeteksten ble rød. Nøytralvarianten er alltid #5b5d60. */
+/* The image caption should stand apart from the body text, but quietly (#756).
+   Color: text-subtle is #5b5d60 against a white background = 6.60:1, well above
+   the WCAG AA requirement of 4.5:1 for normal text. Against background-tinted it is
+   5.96:1, so it handles a tinted panel too.
+   Size: figcaption inherits the browser's 16px, since neither body nor
+   .article-layout sets font-size, while the body text is 1.125rem. The text is
+   therefore already a little smaller. font-size-2 (0.875rem) is one token step further
+   down, the same proportion as the step from 1.125 to 1.
+   Not italic: in this file font-style: italic already means QUOTE, both in
+   .article-quote-text and .article-fremheving-text--quote. Reusing it on
+   captions weakens both signals, and color and size do the job. */
+/* Neutral gray, not --ds-color-text-subtle. That is a context-dependent alias that
+   resolves to the accent color (#af2844, crimson) unless you are in a neutral
+   color context, so the caption turned red. The neutral variant is always #5b5d60. */
 .article-image-section figcaption {
   margin-top: var(--ds-size-2);
   color: var(--ds-color-neutral-text-subtle);

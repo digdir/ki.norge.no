@@ -1,30 +1,30 @@
-/* KI-tiltak-siden. Se docs/ki-tiltak-design.md for tokenkartleggingen. */
+/* The ki-tiltak page. See docs/ki-tiltak-design.md for the token mapping. */
 
 :root {
-  /* Prototypens tredje tekstnyanse. Ingen designsystemet-token treffer disse
-     midtnyansene direkte, så vi avleder dem fra eksisterende tokens via
-     color-mix i oklab. Prosentene er justert til å lande nær prototypens
-     hex, ikke en offisiell verdi i seg selv. Se docs/ki-tiltak-design.md. */
+  /* The prototype's third text shade. No designsystemet token matches these
+     mid shades directly, so we derive them from existing tokens via
+     color-mix in oklab. The percentages are tuned to land close to the prototype's
+     hex, not an official value in themselves. See docs/ki-tiltak-design.md. */
   --tiltak-tekst-myk: color-mix(in oklab, var(--ds-color-accent-text-default) 79%, var(--ds-color-accent-border-subtle));
   --tiltak-tekst-dempet: color-mix(in oklab, var(--ds-color-accent-text-default) 65%, var(--ds-color-accent-surface-tinted));
-  /* Samme vinrøde vask som prototypens --border-soft (#541321 ved 12 %
-     opasitet), brukt til kant og fot-strek i stedet for den faste pastellfargen. */
+  /* Same wine-red wash as the prototype's --border-soft (#541321 at 12 %
+     opacity), used for borders and the footer rule instead of the fixed pastel color. */
   --tiltak-kant-vask: color-mix(in oklab, var(--ds-color-accent-text-default) 12%, transparent);
-  /* Bakteppet bak dialogene. Se .tiltak-registrer for hvorfor det er nøytralt. */
+  /* The backdrop behind the dialogs. See .tiltak-registrer for why it is neutral. */
   --tiltak-bakteppe: color-mix(in oklab, var(--ds-color-neutral-text-default) 32%, transparent);
 }
 
-/* Båndet er nå heltonet mørkt, ikke lyst rosa. Prototypen måler #3E263D.
-   Ingen accent-token er i nærheten: accent er vinrød, og dens mørkeste tone
-   (--ds-color-accent-base-active, #701a2c) er langt rødere.
-   --ds-color-brand1-text-default (#422036) er nærmeste token i det genererte
-   temaet, avstand 10 i sRGB. At det er et «text»-token brukt som flate er
-   bevisst: brand1-paletten har ingen mørk flate, siden både
-   brand1-background-default og brand1-surface-default er overstyrt til den
-   kremhvite #F8F3EE i designsystemet.config.json.
-   Teksten bruker brand1-background-default, altså samme palett invertert,
-   som er et eksakt treff på prototypens #F8F3EE. Kontrast måles til rundt
-   13:1, godt over AA. */
+/* The band is now solid dark, not light pink. The prototype measures #3E263D.
+   No accent token is close: accent is wine red, and its darkest tone
+   (--ds-color-accent-base-active, #701a2c) is far redder.
+   --ds-color-brand1-text-default (#422036) is the closest token in the generated
+   theme, distance 10 in sRGB. Using a "text" token as a surface is
+   deliberate: the brand1 palette has no dark surface, since both
+   brand1-background-default and brand1-surface-default are overridden to the
+   cream white #F8F3EE in designsystemet.config.json.
+   The text uses brand1-background-default, the same palette inverted,
+   which is an exact match for the prototype's #F8F3EE. Contrast measures around
+   13:1, well above AA. */
 .tiltak-hero {
   background-color: var(--ds-color-brand1-text-default);
   color: var(--ds-color-brand1-background-default);
@@ -51,22 +51,22 @@ body:has(.tiltak-hero) .footer .footer-logo path[stroke] {
   stroke: var(--ds-color-brand1-background-default);
 }
 
-/* Headeren over det mørke båndet.
-   main har negativ toppmargin (Layout.astro), så første seksjons bakgrunn
-   strekker seg bak den gjennomsiktige headeren. Det er nettopp slik
-   prototypens topband ser ut, med nav og hero på samme mørke flate, men
-   headerens vinrøde tekst blir uleselig mot plommefargen.
-   Scopet på tre måter, med vilje:
-   - body:has(.tiltak-hero) slik at regelen bare gjelder sider med mørkt bånd,
-     ikke bare sider som tilfeldigvis laster dette stilarket
-   - .header-container, altså den øverste linjen, og ikke .header. Søsken
-     .mobile-menu er en popover med lys bakgrunn og gjenbruker .nav-link og
-     .logo-link, så krem tekst der ville blitt usynlig
-   - path[fill] / path[stroke] hver for seg. Logoen har hardkodet #231F20 per
-     path og ikke currentColor, og én av de fire path-ene er bare kontur. En
-     samlet fill-regel ville fylt den.
-   Blir det flere sider med mørkt bånd, hører dette hjemme som en prop på
-   Layout i stedet for her. */
+/* The header over the dark band.
+   main has a negative top margin (Layout.astro), so the first section's background
+   extends behind the transparent header. That is exactly how the
+   prototype's top band looks, with nav and hero on the same dark surface, but
+   the header's wine-red text becomes unreadable against the plum color.
+   Scoped in three ways, on purpose:
+   - body:has(.tiltak-hero) so the rule only applies to pages with a dark band,
+     not just pages that happen to load this stylesheet
+   - .header-container, the top line, and not .header. The sibling
+     .mobile-menu is a popover with a light background and reuses .nav-link and
+     .logo-link, so cream text there would be invisible
+   - path[fill] / path[stroke] separately. The logo has hardcoded #231F20 per
+     path and not currentColor, and one of the four paths is outline only. A
+     combined fill rule would fill it.
+   If more pages get a dark band, this belongs as a prop on
+   Layout instead of here. */
 body:has(.tiltak-hero) .header .header-container,
 body:has(.tiltak-hero) .header .header-container .nav-link,
 body:has(.tiltak-hero) .header .header-container .ds-button {
@@ -81,9 +81,9 @@ body:has(.tiltak-hero) .header .header-container .logo-icon path[stroke] {
   stroke: var(--ds-color-brand1-background-default);
 }
 
-/* Hover-flatene i headeren er lyse (--ds-color-surface-hover), og krem tekst
-   forsvinner mot dem. En gjennomsiktig hvit tone holder seg lesbar på det
-   mørke båndet. */
+/* The hover surfaces in the header are light (--ds-color-surface-hover), and cream text
+   disappears against them. A transparent white tone stays readable on the
+   dark band. */
 body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   background-color: color-mix(
     in oklab,
@@ -93,12 +93,12 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 }
 
 .tiltak-innhold {
-  /* Samme flate som kantblokkene på forsiden, slik at sidebakgrunnen står
-     som en stripe langs begge sider ned hele siden. */
+  /* Same surface as the edge blocks on the front page, so the page background shows
+     as a stripe along both sides all the way down the page. */
   background-color: var(--ds-color-brand2-surface-default);
-  /* Vertikal rytme mellom rosa bånd, kortgrid og resten av siden, hentet fra
-     prototypen (56/22/80px). --ds-size-20 finnes ikke, og --ds-size-18 (72px)
-     og --ds-size-22 (88px) ligger like langt fra 80px, så vi velger 18. */
+  /* Vertical rhythm between the pink band, card grid and the rest of the page, taken from
+     the prototype (56/22/80px). --ds-size-20 does not exist, and --ds-size-18 (72px)
+     and --ds-size-22 (88px) are equally far from 80px, so we pick 18. */
   padding-top: var(--ds-size-14);
   padding-bottom: var(--ds-size-18);
 }
@@ -107,14 +107,14 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--ds-color-brand1-background-default);
   margin: 0 0 var(--ds-size-4);
   font-weight: var(--ds-font-weight-regular);
-  /* Ingen --ds-line-height-* er nær prototypens 1.08 (nærmeste er
-     --ds-line-height-sm på 1.3, likt overskriftens egen standardverdi), så
-     literalen er beholdt som eneste unntak fra tokenkravet her. */
+  /* No --ds-line-height-* is close to the prototype's 1.08 (the closest is
+     --ds-line-height-sm at 1.3, same as the heading's own default), so
+     the literal is kept as the only exception to the token rule here. */
   line-height: 1.08;
 }
 
-/* På mobil får tittelen hele bredden. Med 60 % av 327 px ble det 196 px, og
-   «Offentlige» fikk ikke plass på én linje i 60 px. */
+/* On mobile the title gets the full width. With 60 % of 327 px it became 196 px, and
+   "Offentlige" did not fit on one line at 60 px. */
 @media (min-width: 768px) {
   .tiltak-hero-tittel {
     max-width: 60%;
@@ -131,7 +131,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   }
 }
 
-/* Kortgrid */
+/* Card grid */
 .tiltak-grid,
 .tiltak-tomt {
   margin-top: var(--ds-size-6);
@@ -209,16 +209,16 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   overflow: hidden;
 }
 
-/* Foten skyves ned så streken ligger likt uansett hvor kort brødteksten er.
-   Sjekket i prototypen: fagområde-teksten i foten (.card-fag) er faktisk den
-   dempede nyansen, ikke primærfargen. Bare streken over er en vask. */
+/* The footer is pushed down so the rule sits at the same height however short the body text is.
+   Checked in the prototype: the subject area text in the footer (.card-fag) really is the
+   muted shade, not the primary color. Only the rule above is a wash. */
 .tiltak-kort-fot {
   margin-top: auto;
   padding-top: var(--ds-size-4);
   border-top: var(--ds-border-width-default) solid var(--tiltak-kant-vask);
-  /* Prototypens .card-fag er 14px. Var --ds-body-sm-font-size, men det tokenet
-     løser til 16px i dette temaet, ikke 14px som navnet kan gi inntrykk av.
-     --ds-body-xs-font-size (font-size-2) er 14px. */
+  /* The prototype's .card-fag is 14px. It was --ds-body-sm-font-size, but that token
+     resolves to 16px in this theme, not 14px as the name may suggest.
+     --ds-body-xs-font-size (font-size-2) is 14px. */
   font-size: var(--ds-body-xs-font-size);
   color: var(--tiltak-tekst-dempet);
 }
@@ -228,12 +228,12 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: inherit;
 }
 
-/* Søkefeltet ligger nå på egen rad, med filterknapp, antall og aktive filtre
-   på raden under. Prototypens søkefelt spenner to av tre kolonner i en
-   3-kolonners listbar, altså 66 % av innholdsbredden (målt 584 av 884 px). */
-/* Søkefelt og filterknapp på samme rad. Knappen er bunnjustert mot feltet,
-   siden etiketten står over feltet, og brytes under når feltet ville blitt
-   smalere enn 20rem. */
+/* The search field now sits on its own row, with the filter button, count and active filters
+   on the row below. The prototype's search field spans two of three columns in a
+   3-column list bar, i.e. 66 % of the content width (measured 584 of 884 px). */
+/* Search field and filter button on the same row. The button is bottom-aligned with the field,
+   since the label sits above the field, and wraps below when the field would become
+   narrower than 20rem. */
 .tiltak-sokerad {
   display: flex;
   align-items: flex-end;
@@ -259,18 +259,18 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   margin-bottom: var(--ds-size-5);
 }
 
-/* Prototypens .search-label er 18px. --ds-body-sm-font-size er 16px i dette
-   temaet, så md er den riktige her. */
+/* The prototype's .search-label is 18px. --ds-body-sm-font-size is 16px in this
+   theme, so md is the right one here. */
 .tiltak-sokelabel {
   font-size: var(--ds-body-md-font-size);
   font-weight: var(--ds-font-weight-medium);
   color: var(--tiltak-tekst-myk);
 }
 
-/* Pilleform, samme grep som search-dialog.css bruker på Search. Varm,
-   nesten-hvit bakgrunn og vinrød kant i stedet for nøytral grå. Vasken
-   (--tiltak-kant-vask) ga bare 1,27:1 mot siden, under 3:1-kravet for
-   skjemafelt (WCAG 1.4.11). */
+/* Pill shape, the same trick search-dialog.css uses on Search. Warm,
+   near-white background and wine-red border instead of neutral gray. The wash
+   (--tiltak-kant-vask) only gave 1.27:1 against the page, below the 3:1 requirement for
+   form fields (WCAG 1.4.11). */
 .tiltak-sokefelt [data-field="search"],
 .tiltak-sokefelt input {
   border-radius: var(--ds-border-radius-full);
@@ -281,8 +281,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   }
 }
 
-/* Ligger rett etter filterknappen i .tiltak-filterrad. Tidligere ble den
-   skjøvet helt til høyre med margin-left: auto i den gamle verktøylinjen. */
+/* Sits right after the filter button in .tiltak-filterrad. Previously it was
+   pushed all the way to the right with margin-left: auto in the old toolbar. */
 .tiltak-antall {
   margin: 0;
   font-size: var(--ds-body-sm-font-size);
@@ -290,9 +290,9 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   white-space: nowrap;
 }
 
-/* Paginering under gridet. Prototypens .load-more er en gjennomsiktig pille
-   med heldekket vinrød kant, altså sekundærknappen uten den myke lommen som
-   filterknappen har. */
+/* Pagination below the grid. The prototype's .load-more is a transparent pill
+   with a solid wine-red border, i.e. the secondary button without the soft pocket
+   the filter button has. */
 .tiltak-lastflere-rad {
   display: flex;
   justify-content: center;
@@ -316,10 +316,10 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   margin: 0 0 var(--ds-size-2);
 }
 
-/* [data-variant=secondary] i button.css setter samme egenskaper med lik
-   spesifisitet (0,2,0). .ds-button økes derfor med for å vinne uavhengig av
-   import-rekkefølge. Myk fylt lomme i stedet for den kontrastfylte
-   sekundærknappen, samme varme bakgrunn og vask som søkefeltet. */
+/* [data-variant=secondary] in button.css sets the same properties with equal
+   specificity (0,2,0). .ds-button is therefore added to win regardless of
+   import order. A soft filled pocket instead of the high-contrast filled
+   secondary button, same warm background and wash as the search field. */
 .ds-button.tiltak-filterknapp[data-variant="secondary"] {
   --dsc-button-background: var(--ds-color-brand2-background-default);
   --dsc-button-color: var(--tiltak-tekst-myk);
@@ -330,10 +330,10 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   border-radius: var(--ds-border-radius-full);
 }
 
-/* chip.css gir [data-removable] samme fylte utseende som en avkrysset chip
-   (--dsc-chip-background--checked, altså accent-base-default). Prototypens
-   chips er lyse med tynn kant, samme flate og vask som filterknappen, så
-   variablene settes om her. */
+/* chip.css gives [data-removable] the same filled look as a checked chip
+   (--dsc-chip-background--checked, i.e. accent-base-default). The prototype's
+   chips are light with a thin border, same surface and wash as the filter button, so
+   the variables are reset here. */
 .tiltak-filterrad .ds-chip[data-removable] {
   --dsc-chip-background: var(--ds-color-brand2-background-default);
   --dsc-chip-background--checked: var(--ds-color-brand2-background-default);
@@ -354,20 +354,20 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   text-underline-offset: var(--ds-size-1);
 }
 
-/* Skuff, brukes av både filter- og detaljpanelet. --dsc-dialog-max-width
-   styrer bare senterplasserte dialoger; side-plasserte (data-placement=left/
-   right) leser --dsc-dialog-placement-inline-max-width i stedet. */
+/* Drawer, used by both the filter and the detail panel. --dsc-dialog-max-width
+   only controls centered dialogs; side-placed ones (data-placement=left/
+   right) read --dsc-dialog-placement-inline-max-width instead. */
 .tiltak-panel {
   --dsc-dialog-placement-inline-max-width: 420px;
   --dsc-dialog-backdrop-background: var(--tiltak-bakteppe);
-  /* Skillelinjene mellom blokkene var nøytralt grå. Prototypen bruker den
-     samme vinrøde vasken som kortkantene ellers på siden. */
+  /* The dividers between the blocks were neutral gray. The prototype uses the
+     same wine-red wash as the card borders elsewhere on the page. */
   --dsc-dialog-divider-border-color: var(--tiltak-kant-vask);
 }
 
-/* Hele panelet lå i den nøytrale gråtonen fra designsystemet. Prototypen er
-   vinrød hele veien: overskrift og etiketter #541321, gruppeoverskrifter
-   #af2844 og antallet i den dempede tonen. */
+/* The whole panel was in the neutral gray tone from designsystemet. The prototype is
+   wine red throughout: heading and labels #541321, group headings
+   #af2844 and the count in the muted tone. */
 .tiltak-panel .ds-label,
 .tiltak-panel .ds-heading {
   color: var(--ds-color-accent-text-default);
@@ -376,46 +376,46 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 .tiltak-panel-tittel {
   font-family: var(--ki-heading-font);
   margin: 0;
-  /* Prototypen måler 38px. --ds-heading-lg er nærmeste trinn. */
+  /* The prototype measures 38px. --ds-heading-lg is the closest step. */
   font-size: var(--ds-heading-lg-font-size);
 }
 
-/* Gruppeoverskriftene er en tydeligere rødtone enn brødteksten, og halvfete.
-   #af2844 er --ds-color-accent-text-subtle på nikk. */
+/* The group headings are a clearer red tone than the body text, and semibold.
+   #af2844 is --ds-color-accent-text-subtle exactly. */
 .tiltak-panel legend.ds-label {
   color: var(--ds-color-accent-text-subtle);
   font-weight: var(--ds-font-weight-semibold);
 }
 
-/* Hjelpeteksten under «Status» er mindre og dempet. */
+/* The help text under "Status" is smaller and muted. */
 .tiltak-panel .ds-fieldset > p {
   font-size: var(--ds-body-xs-font-size);
   color: var(--tiltak-tekst-dempet);
 }
 
-/* Avkrysningsboksene var grå og firkantede. Prototypen har rosa kant og
-   mykere hjørner. Prototypens lyse rosa (-subtle) ga bare 1,91:1 mot hvitt,
-   så kanten er -default for å nå 3:1. Størrelsen der er 18px, som ikke
-   finnes i 4px-skalaen; --ds-size-5 (20px) er nærmeste trinn og holder
-   samtidig på et brukbart trykkmål. */
+/* The checkboxes were gray and square. The prototype has a pink border and
+   softer corners. The prototype's light pink (-subtle) only gave 1.91:1 against white,
+   so the border is -default to reach 3:1. The size there is 18px, which does not
+   exist in the 4px scale; --ds-size-5 (20px) is the closest step and also
+   keeps a usable tap target. */
 .tiltak-panel .ds-input[type='checkbox'] {
   --dsc-input-size--toggle: var(--ds-size-5);
   --dsc-input-border-width--toggle: var(--ds-border-width-default);
   --dsc-input-border-color: var(--ds-color-accent-border-default);
   --dsc-input-accent-color: var(--ds-color-accent-text-default);
-  /* input.css setter border-radius direkte på [type=checkbox], ikke gjennom
-     --dsc-input-border-radius, så variabelen alene når ikke fram. */
+  /* input.css sets border-radius directly on [type=checkbox], not through
+     --dsc-input-border-radius, so the variable alone does not reach it. */
   border-radius: var(--ds-border-radius-md);
 }
 
-/* Navn til venstre, antall høyrestilt. Etiketten må fylle raden for at
-   space-between skal ha noe å fordele.
-   label.ds-label, ikke .ds-checkbox label: avkrysningsboksen ligger i en
-   ds-field, ikke i en .ds-checkbox. Elementnavnet skiller den samtidig fra
-   legend.ds-label, som er gruppeoverskriften og skal beholde sin størrelse. */
-/* ds-field er et grid, ikke flex, og krymper til innholdet. Uten dette blir
-   raden bare så bred som teksten, og antallet havner inntil navnet i stedet
-   for ytterst til høyre. Andre kolonne må ta resten av plassen. */
+/* Name on the left, count right-aligned. The label must fill the row for
+   space-between to have something to distribute.
+   label.ds-label, not .ds-checkbox label: the checkbox sits in a
+   ds-field, not in a .ds-checkbox. The element name also separates it from
+   legend.ds-label, which is the group heading and should keep its size. */
+/* ds-field is a grid, not flex, and shrinks to its content. Without this the
+   row is only as wide as the text, and the count ends up next to the name instead
+   of at the far right. The second column must take the rest of the space. */
 .tiltak-panel .ds-field {
   width: 100%;
   grid-template-columns: auto 1fr;
@@ -450,8 +450,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   justify-content: flex-start;
 }
 
-/* Begge knappene er piller i prototypen. Primæren er den mørke plommefargen
-   fra båndet, ikke den lysere accent-rosa. */
+/* Both buttons are pills in the prototype. The primary is the dark plum color
+   from the band, not the lighter accent pink. */
 .tiltak-panel-fot .ds-button {
   --dsc-button-border-radius: var(--ds-border-radius-full);
 }
@@ -461,8 +461,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   --dsc-button-color: var(--ds-color-brand1-background-default);
 }
 
-/* «Nullstill» er en pille med kant og gjennomsiktig flate i prototypen, ikke
-   designsystemets fylte sekundærknapp. */
+/* "Nullstill" is a pill with a border and transparent surface in the prototype, not
+   designsystemet's filled secondary button. */
 .tiltak-panel-fot .ds-button[data-variant='secondary'] {
   --dsc-button-background: transparent;
   --dsc-button-border-color: var(--ds-color-accent-text-default);
@@ -509,8 +509,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--ds-color-accent-text-default);
 }
 
-/* Punktlister i redaksjonell fritekst. Avstanden matcher Paragraph, slik at
-   en liste midt i en beskrivelse ikke bryter rytmen. */
+/* Bullet lists in editorial free text. The spacing matches Paragraph, so that
+   a list in the middle of a description does not break the rhythm. */
 .tiltak-detalj-liste {
   margin: var(--ds-size-2) 0 0;
   padding-left: var(--ds-size-5);
@@ -519,10 +519,10 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   gap: var(--ds-size-1);
 }
 
-/* Fagområdet ligger nå her, som en pille nederst, i stedet for som ren tekst
-   over tittelen. Tag med variant=outline gir prototypens .tag-pill: lys
-   flate, tynn kant i --ds-color-accent-border-subtle (#e3aeb9, et eksakt
-   treff på prototypens --border) og full pilleradius. */
+/* The subject area now sits here, as a pill at the bottom, instead of as plain text
+   above the title. Tag with variant=outline gives the prototype's .tag-pill: light
+   surface, thin border in --ds-color-accent-border-subtle (#e3aeb9, an exact
+   match for the prototype's --border) and full pill radius. */
 .tiltak-detalj-tema {
   display: flex;
   flex-direction: column;
@@ -539,16 +539,16 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   }
 }
 
-/* Tag er firkantet som forvalg (--ds-border-radius-sm, 2px). Prototypens
-   .tag-pill er helt avrundet. Flate, kant og tekstfarge treffer allerede:
-   outline-varianten gir #f6e4e8 med kant i #e3aeb9, som er nøyaktig
-   prototypens --border. */
+/* Tag is square by default (--ds-border-radius-sm, 2px). The prototype's
+   .tag-pill is fully rounded. Surface, border and text color already match:
+   the outline variant gives #f6e4e8 with a border in #e3aeb9, which is exactly
+   the prototype's --border. */
 .tiltak-detalj-tema .ds-tag {
   border-radius: var(--ds-border-radius-full);
 }
 
-/* Type KI og «hva tiltaket skal levere» er flervalg, så merkelappene brytes
-   over flere linjer i stedet for å presse dialogen bredere. */
+/* "Type KI" and "hva tiltaket skal levere" are multiple choice, so the tags wrap
+   over several lines instead of pushing the dialog wider. */
 .tiltak-detalj-tagger {
   display: flex;
   flex-wrap: wrap;
@@ -560,8 +560,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   border-radius: var(--ds-border-radius-full);
 }
 
-/* Egen strek over, slik prototypens .detail-contact har. Skiller
-   redaksjonell kontaktinfo fra selve tiltaksinnholdet. */
+/* Its own rule above, as the prototype's .detail-contact has. Separates
+   editorial contact info from the initiative content itself. */
 .tiltak-detalj-kontakt {
   margin: var(--ds-size-4) 0 0;
   padding-top: var(--ds-size-5);
@@ -569,7 +569,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--tiltak-tekst-myk);
 }
 
-/* Oppfordringsbånd over verktøylinjen */
+/* Call-to-action band above the toolbar */
 .tiltak-promo {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -581,7 +581,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   border: 2px solid var(--tiltak-kant-vask);
 }
 
-/* Uten min-width sprenger lang tekst grid-kolonnen i stedet for å brytes */
+/* Without min-width, long text blows out the grid column instead of wrapping */
 .tiltak-promo-tekst {
   min-width: 0;
 }
@@ -595,10 +595,10 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--tiltak-tekst-myk);
 }
 
-/* Knappen er nå den mørke plommefargen fra båndet, ikke den vinrøde
-   accent-tonen. Samme tokenpar som .tiltak-hero, av samme grunn.
-   Hover mørkner via accent-base-active, som er den mørkeste knappetonen
-   accent har. */
+/* The button is now the dark plum color from the band, not the wine-red
+   accent tone. Same token pair as .tiltak-hero, for the same reason.
+   Hover darkens via accent-base-active, which is the darkest button tone
+   accent has. */
 .tiltak-promo-knapp {
   white-space: nowrap;
   border-radius: var(--ds-border-radius-full);
@@ -612,7 +612,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
     white-space: normal;
   }
 
-  /* 66 % blir for smalt når hele innholdet er smalt. */
+  /* 66 % is too narrow when the whole content is narrow. */
   .tiltak-sokerad {
     max-width: none;
   }
@@ -624,8 +624,8 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 
   .tiltak-promo-knapp {
     grid-column: 1 / -1;
-    /* .ds-button setter alltid width: fit-content, så uten denne
-       har ikke justify-content: center noen effekt */
+    /* .ds-button always sets width: fit-content, so without this
+       justify-content: center has no effect */
     width: 100%;
     justify-content: center;
   }
@@ -634,67 +634,67 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 .tiltak-registrer {
   --dsc-dialog-max-width: 640px;
   --dsc-dialog-max-height: 88vh;
-  /* Bakteppet skal dempe siden, ikke farge den.
-     Her lå --ds-color-accent-text-default (#541321) på 32 %. Mikset mot
-     transparent er det bare den samme vinrøde tonen med alpha, altså
-     rgba(84,19,33,.32), og den la et tydelig rødskjær over siden.
-     Prototypen bruker rgba(42,20,23,.32), som er mørkere og nesten uten
-     metning. --ds-color-neutral-text-default (#292c30) har samme mørkhet
-     (R 41 mot 42) og ingen kulør i det hele tatt, som er nettopp det
-     redaksjonen ba om. Designsystemets standard rgba(0,0,0,.5) ville vært
-     fargeløs den også, men merkbart mørkere enn designet. */
+  /* The backdrop should dim the page, not tint it.
+     This used to be --ds-color-accent-text-default (#541321) at 32 %. Mixed with
+     transparent it is just the same wine-red tone with alpha, i.e.
+     rgba(84,19,33,.32), and it put a clear red cast over the page.
+     The prototype uses rgba(42,20,23,.32), which is darker and almost without
+     saturation. --ds-color-neutral-text-default (#292c30) has the same darkness
+     (R 41 vs 42) and no hue at all, which is exactly what the
+     editorial team asked for. Designsystemet's default rgba(0,0,0,.5) would also be
+     colorless, but noticeably darker than the design. */
   --dsc-dialog-backdrop-background: var(--tiltak-bakteppe);
-  /* Prototypens .modal-form har 40px innrykk til hver side (målt), mot
-     designsystemets standard --dsc-dialog-spacing på --ds-size-6 (24px).
-     --ds-size-10 er nøyaktig 40px. Denne variabelen styrer også den
-     vertikale paddingen i hver Dialog.Block, så seksjonsavstanden fra
-     toppblokken til første seksjon tettes til nærmere prototypens som en
-     bivirkning av samme endring. Skopet til .tiltak-registrer, samme som
-     de andre variablene i denne regelen, så filterpanelet (.tiltak-panel)
-     og detaljskuffen (.tiltak-detalj) er upåvirket. */
+  /* The prototype's .modal-form has 40px inset on each side (measured), vs
+     designsystemet's default --dsc-dialog-spacing of --ds-size-6 (24px).
+     --ds-size-10 is exactly 40px. This variable also controls the
+     vertical padding in each Dialog.Block, so the section spacing from
+     the top block to the first section tightens closer to the prototype's as a
+     side effect of the same change. Scoped to .tiltak-registrer, like
+     the other variables in this rule, so the filter panel (.tiltak-panel)
+     and the detail drawer (.tiltak-detalj) are unaffected. */
   --dsc-dialog-spacing: var(--ds-size-10);
-  /* Radiusskalaen når bare til --ds-border-radius-xl (12px), halvparten av
-     prototypens målte 24px hjørneradius. Ingen radius-token treffer 24px,
-     så --ds-size-6 (også 24px) brukes som verdi i stedet, samme grep som
-     --ds-size-11 for suksess-ikonets font-size der ingen skriftstørrelse-
-     token traff. dialog.css eksponerer ingen --dsc-dialog-border-radius å
-     style over, så border-radius settes direkte her (samme spesifisitet
-     som .ds-dialog sin egen regel, avgjort av lasterekkefølge). Beholder
-     samme clamp-uttrykk som biblioteket, bare med --ds-size-6 som toppverdi
-     i stedet for --ds-border-radius-lg, slik at hjørnene fortsatt flates ut
-     til 0 når dialogen går kant-til-kant på smale skjermer (ellers ville
-     bakteppet lekket gjennom i de avrundede hjørnene). */
+  /* The radius scale only goes up to --ds-border-radius-xl (12px), half of
+     the prototype's measured 24px corner radius. No radius token matches 24px,
+     so --ds-size-6 (also 24px) is used as the value instead, the same trick as
+     --ds-size-11 for the success icon's font-size where no font-size
+     token matched. dialog.css exposes no --dsc-dialog-border-radius to
+     style over, so border-radius is set directly here (same specificity
+     as .ds-dialog's own rule, decided by load order). Keeps
+     the same clamp expression as the library, just with --ds-size-6 as the max value
+     instead of --ds-border-radius-lg, so the corners still flatten
+     to 0 when the dialog goes edge to edge on narrow screens (otherwise the
+     backdrop would leak through in the rounded corners). */
   border-radius: clamp(0px, ((100vw - 4px) - 100%) * 100000, var(--ds-size-6));
 }
 
-/* Input-temaet under er målt mot prototypen (KI_tiltak_klart.html) med
-   getComputedStyle, ikke antatt. Gjelder Textfield (inkl. multiline og
-   type=date), Select og alle andre .ds-input-elementer i dialogen, siden de
-   alle leser samme tre input.css-variabler.
-   Satt på .ds-input selv, ikke på .tiltak-registrer: input.css sin egen
-   .ds-input-regel setter disse tre variablene direkte på inputet, og en
-   direkte deklarasjon på elementet vinner alltid over en arvet verdi fra en
-   forfeder uansett spesifisitet der. Må derfor style samme element som
-   input.css gjør, med høyere spesifisitet (.tiltak-registrer .ds-input er
-   to klasser mot input.css sin ene) for å vinne.
-   Kant: prototypen måler #e3aeb9 (--ds-color-accent-border-subtle), men den
-   gir bare 1,91:1 mot hvitt. -default (#c3546b) gir 4,37:1 og holder
-   3:1-kravet for skjemafelt (WCAG 1.4.11). aria-invalid=true styres av
-   --dsc-input-accent-color--invalid i en egen, mer spesifikk regel
-   (input.css), så feilstiling er upåvirket av denne endringen.
-   Radius: målt 12px. --ds-border-radius-lg er 8px, men --ds-border-radius-xl
-   er nøyaktig 12px (samme token .tiltak-kort allerede bruker).
-   Tekstfarge: målt rgb(84,19,33) = #541321, nøyaktig lik
+/* The input theme below is measured against the prototype (KI_tiltak_klart.html) with
+   getComputedStyle, not assumed. Applies to Textfield (incl. multiline and
+   type=date), Select and all other .ds-input elements in the dialog, since they
+   all read the same three input.css variables.
+   Set on .ds-input itself, not on .tiltak-registrer: input.css's own
+   .ds-input rule sets these three variables directly on the input, and a
+   direct declaration on the element always wins over a value inherited from an
+   ancestor regardless of specificity there. It must therefore style the same element as
+   input.css does, with higher specificity (.tiltak-registrer .ds-input is
+   two classes vs input.css's one) to win.
+   Border: the prototype measures #e3aeb9 (--ds-color-accent-border-subtle), but it
+   only gives 1.91:1 against white. -default (#c3546b) gives 4.37:1 and meets
+   the 3:1 requirement for form fields (WCAG 1.4.11). aria-invalid=true is controlled by
+   --dsc-input-accent-color--invalid in a separate, more specific rule
+   (input.css), so error styling is unaffected by this change.
+   Radius: measured 12px. --ds-border-radius-lg is 8px, but --ds-border-radius-xl
+   is exactly 12px (the same token .tiltak-kort already uses).
+   Text color: measured rgb(84,19,33) = #541321, exactly equal to
    --ds-color-accent-text-default.
-   Hover-ring: input.css sin :hover-regel legger en outline i
-   --dsc-input-outline-color--hover (forvalgt --ds-color-neutral-border-
-   default, grå) utenpå kanten. Målt i prototypen: et hvilende felt endrer
-   seg ikke i det hele tatt ved hover (samme border, outline-style forblir
-   none), bare selve fokus-tilstanden er stylet. Satt til transparent i
-   stedet for en rosa nyanse, fordi selv en fargelik outline ville lagt til
-   en synlig fortykning som prototypen ikke har ved hover.
-   --dsc-focus-boxShadow/--dsc-focus-outline (fokusringen) er egne
-   variabler, upåvirket av dette. */
+   Hover ring: input.css's :hover rule adds an outline in
+   --dsc-input-outline-color--hover (default --ds-color-neutral-border-
+   default, gray) outside the border. Measured in the prototype: a resting field does
+   not change at all on hover (same border, outline-style stays
+   none), only the focus state itself is styled. Set to transparent
+   instead of a pink shade, because even a same-colored outline would add
+   a visible thickening that the prototype does not have on hover.
+   --dsc-focus-boxShadow/--dsc-focus-outline (the focus ring) are separate
+   variables, unaffected by this. */
 .tiltak-registrer .ds-input {
   --dsc-input-border-color: var(--ds-color-accent-border-default);
   --dsc-input-border-radius: var(--ds-border-radius-xl);
@@ -702,37 +702,37 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   --dsc-input-outline-color--hover: transparent;
 }
 
-/* Textfield pakker hvert input i en egen .ds-field-affixes-wrapper (for
-   prefiks/suffiks-bruk). Ingen felt i denne dialogen bruker prefix/suffix,
-   men wrapperen setter uansett en grå bakgrunn
+/* Textfield wraps each input in its own .ds-field-affixes wrapper (for
+   prefix/suffix use). No field in this dialog uses prefix/suffix,
+   but the wrapper sets a gray background anyway
    (--dsc-field-affix-background, --ds-color-neutral-surface-tinted,
-   #e8e8e9) og en fast 4px-radius (border-radius er en direkte deklarasjon i
-   field.css, ikke en variabel, så den kan ikke temaes med en token). Siden
-   inputet inni nå kurver til 12px mens wrapperen bak fortsatt kurver til
-   4px, stakk den grå fyllen synlig ut i hjørnet der de to kurvene ikke
-   følger hverandre (bekreftet med et forstørret skjermbilde av et hjørne).
-   Fjerner fyllen helt i stedet for å prøve å matche radiusene eksakt: uten
-   noen bakgrunn bak inputet finnes det ingenting å stikke ut, uavhengig av
-   input-radiusen. Robust selv om input-radiusen endres igjen senere. */
+   #e8e8e9) and a fixed 4px radius (border-radius is a direct declaration in
+   field.css, not a variable, so it cannot be themed with a token). Since
+   the input inside now curves to 12px while the wrapper behind still curves to
+   4px, the gray fill visibly stuck out in the corner where the two curves do not
+   follow each other (confirmed with a zoomed screenshot of a corner).
+   Removes the fill entirely instead of trying to match the radii exactly: with
+   no background behind the input there is nothing to stick out, regardless of
+   the input radius. Robust even if the input radius changes again later. */
 .tiltak-registrer .ds-field-affixes {
   --dsc-field-affix-background: transparent;
 }
 
-/* label.css eksponerer ingen --dsc-label-*-variabel for font-weight, bare
-   selve --ds-font-weight-medium-tokenet direkte og en data-weight-attributt
-   som Textfield ikke videreformidler noe prop for. Faller derfor tilbake på
-   .ds-label, som er komponentens egen offentlige klasse (samme mønster som
-   .ds-input og .ds-button andre steder i denne filen), ikke en intern
-   detalj. Målt: prototypens etiketter er font-weight 600, våre 500. */
+/* label.css exposes no --dsc-label-* variable for font-weight, only
+   the --ds-font-weight-medium token itself directly and a data-weight attribute
+   that Textfield passes no prop through for. So it falls back to
+   .ds-label, which is the component's own public class (same pattern as
+   .ds-input and .ds-button elsewhere in this file), not an internal
+   detail. Measured: the prototype's labels are font-weight 600, ours 500. */
 .tiltak-registrer .ds-label {
   font-weight: var(--ds-font-weight-semibold);
   color: var(--ds-color-accent-text-default);
 }
 
-/* Skjemateksten arvet den nøytrale gråtonen fra designsystemet. Prototypen
-   bruker vinpaletten hele veien: etikett #541321, ingress #6e3340 og
-   hjelpetekst #875a64. De to siste treffer --tiltak-tekst-myk og
-   --tiltak-tekst-dempet, som allerede er avledet av accent-paletten. */
+/* The form text inherited the neutral gray tone from designsystemet. The prototype
+   uses the wine palette throughout: label #541321, intro #6e3340 and
+   help text #875a64. The last two match --tiltak-tekst-myk and
+   --tiltak-tekst-dempet, which are already derived from the accent palette. */
 .tiltak-registrer .ds-paragraph {
   color: var(--tiltak-tekst-myk);
   font-size: var(--ds-body-md-font-size);
@@ -742,48 +742,48 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--tiltak-tekst-dempet);
 }
 
-/* Designeren ba om tykkere kant på felt med feil. input.css bytter bare farge
-   på [aria-invalid=true] (--dsc-input-accent-color--invalid) og lar bredden
-   ligge igjen.
-   Bredden må settes på --dsc-field-affix-border-width, ikke på
-   --dsc-input-border-width. Field pakker hvert input i .ds-field-affixes, og
-   field.css sin «.ds-field-affixes .ds-input» (spesifisitet 0,2,0) overstyrer
-   da «.ds-input» sin egen border-width (0,1,0) og leser affix-variabelen i
-   stedet. Fargen kommer fortsatt fra .ds-input, som er grunnen til at feltet
-   allerede ble rødt, men ikke tykkere.
-   :has() på beholderen framfor på inputet, slik at et eventuelt prefix eller
-   suffix (.ds-field-affix, som leser samme variabel) får samme kant.
-   Det finnes ingen 2px-token: --ds-border-width-default er 1px og
-   --ds-border-width-focus er 3px. calc(var(--ds-size-1) / 2) er nøyaktig
-   uttrykket designsystemet selv bruker for å utlede 2px, i
-   --dsc-input-border-width--toggle, så verdien er avledet av skalaen og ikke
-   en løsrevet piksel. */
+/* The designer asked for a thicker border on fields with errors. input.css only changes color
+   on [aria-invalid=true] (--dsc-input-accent-color--invalid) and leaves the width
+   as is.
+   The width must be set on --dsc-field-affix-border-width, not on
+   --dsc-input-border-width. Field wraps each input in .ds-field-affixes, and
+   field.css's ".ds-field-affixes .ds-input" (specificity 0,2,0) then overrides
+   ".ds-input"'s own border-width (0,1,0) and reads the affix variable
+   instead. The color still comes from .ds-input, which is why the field
+   already turned red, but not thicker.
+   :has() on the container rather than on the input, so that any prefix or
+   suffix (.ds-field-affix, which reads the same variable) gets the same border.
+   There is no 2px token: --ds-border-width-default is 1px and
+   --ds-border-width-focus is 3px. calc(var(--ds-size-1) / 2) is exactly
+   the expression designsystemet itself uses to derive 2px, in
+   --dsc-input-border-width--toggle, so the value is derived from the scale and not
+   a stray pixel. */
 .tiltak-registrer .ds-field-affixes:has(.ds-input[aria-invalid="true"]) {
   --dsc-field-affix-border-width: calc(var(--ds-size-1) / 2);
 }
 
-/* Select pakkes ikke i .ds-field-affixes, den ligger bare i .ds-field. Der
-   gjelder «.ds-input» sin egen border-width, altså --dsc-input-border-width.
-   Begge reglene trengs derfor: denne for nedtrekkslista, den over for felt
-   med affiks-beholder. For de sistnevnte er denne uvirksom, siden
-   affiks-regelen har høyere spesifisitet. */
+/* Select is not wrapped in .ds-field-affixes, it only sits in .ds-field. There
+   ".ds-input"'s own border-width applies, i.e. --dsc-input-border-width.
+   Both rules are therefore needed: this one for the dropdown, the one above for fields
+   with an affix container. For the latter this one has no effect, since
+   the affix rule has higher specificity. */
 .tiltak-registrer .ds-input[aria-invalid="true"] {
   --dsc-input-border-width: calc(var(--ds-size-1) / 2);
 }
 
-/* «Må fylles ut» og «Valgfritt» er Tag-komponenten, med data-color warning og
-   info. Designsystemets mønster for påkrevde felt anbefaler nettopp «gul tag
-   for Må fylles ut og blå for Valgfritt», og Tag tar fargen som prop. Her
-   settes bare plasseringen ved siden av etiketten. */
+/* "Må fylles ut" and "Valgfritt" are the Tag component, with data-color warning and
+   info. Designsystemet's pattern for required fields recommends exactly "a yellow tag
+   for Må fylles ut and a blue one for Valgfritt", and Tag takes the color as a prop. Here
+   only the placement next to the label is set. */
 .tiltak-merke {
   margin-inline-start: var(--ds-size-2);
   vertical-align: middle;
 }
 
-/* Hver samarbeidsvirksomhet er en egen gruppe som kan legges til og fjernes.
-   Prototypen tegner ikke denne (knappen der er en tom plassholder), så den
-   følger kortspråket ellers på siden: samme vask som kantene og samme varme
-   nesten-hvite flate som søkefeltet. */
+/* Each partner organisation is its own group that can be added and removed.
+   The prototype does not draw this (the button there is an empty placeholder), so it
+   follows the card language elsewhere on the page: same wash as the borders and the same warm
+   near-white surface as the search field. */
 .tiltak-samarbeidsrad {
   display: flex;
   flex-direction: column;
@@ -794,7 +794,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   background: var(--ds-color-brand2-background-default);
 }
 
-/* Bare slett-knappen ligger her nå, etter at overskriften ble fjernet. */
+/* Only the delete button sits here now, after the heading was removed. */
 .tiltak-samarbeidsrad-topp {
   display: flex;
   justify-content: flex-end;
@@ -849,30 +849,30 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 }
 
 
-/* Samme avstand mellom etikett og kontroll som Field bruker
-   (--dsc-field-content-spacing), men uten selve ds-field-elementet. */
+/* Same spacing between label and control as Field uses
+   (--dsc-field-content-spacing), but without the ds-field element itself. */
 .tiltak-valg-felt {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
 }
 
-/* Prototypen bruker nå stablede radioknapper (.status-radio.is-stacked) i
-   stedet for segmentkontrollen. Radioknappene har allerede 2px kant fra
-   --dsc-input-border-width--toggle, så bare avkrysningsfargen settes: den
-   målte #3E263D ligger nærmest --ds-color-accent-text-default (#541321),
-   samme token som send-knappen bruker, og ikke den lysere brand-rosa
-   --ds-color-base-default som er forvalget. */
+/* The prototype now uses stacked radio buttons (.status-radio.is-stacked)
+   instead of the segmented control. The radio buttons already have a 2px border from
+   --dsc-input-border-width--toggle, so only the checked color is set: the
+   measured #3E263D is closest to --ds-color-accent-text-default (#541321),
+   the same token the submit button uses, and not the lighter brand pink
+   --ds-color-base-default which is the default. */
 .tiltak-valg-felt .ds-input[type="radio"] {
   --dsc-input-accent-color: var(--ds-color-accent-text-default);
 }
 
-/* .tiltak-registrer .ds-label gjør alle etiketter halvfete. Radioknappene
-   bruker samme klasse på hvert alternativ, så de ble halvfete også.
-   Prototypen har .status-opt på font-weight 400 og bare feltetiketten fet.
-   Fieldset.Legend rendres som <legend class="ds-label"> og alternativene som
-   <label class="ds-label">, så elementnavnet skiller dem: legenden («Status»)
-   beholder 600, alternativene settes tilbake til normal vekt. */
+/* .tiltak-registrer .ds-label makes all labels semibold. The radio buttons
+   use the same class on each option, so they became semibold too.
+   The prototype has .status-opt at font-weight 400 and only the field label bold.
+   Fieldset.Legend renders as <legend class="ds-label"> and the options as
+   <label class="ds-label">, so the element name separates them: the legend ("Status")
+   keeps 600, the options are set back to normal weight. */
 .tiltak-valg-felt label.ds-label {
   font-weight: var(--ds-font-weight-regular);
 }
@@ -883,21 +883,21 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   justify-content: flex-start;
 }
 
-/* --ds-color-accent-base-default (#b42946), knappens forvalg, er lysere enn
-   prototypens målte rgb(84,19,33). Det er ikke en mørkere «base»-tone (den
-   mørkeste, base-active, er #701a2c og fortsatt for lys), men et eksakt
-   treff på --ds-color-accent-text-default. Bare send inn-knappen, ikke
-   Avbryt (tertiary, uendret farge og plassering etter brukerens ønske). */
-/* Prototypens knapper er helt avrundet. Gjelder alle knappene i dialogen,
-   ikke bare send-knappen, så «Avbryt» og «Tilbake til oversikten» følger med. */
+/* --ds-color-accent-base-default (#b42946), the button's default, is lighter than
+   the prototype's measured rgb(84,19,33). That is not a darker "base" tone (the
+   darkest, base-active, is #701a2c and still too light), but an exact
+   match for --ds-color-accent-text-default. Only the submit button, not
+   Avbryt (tertiary, unchanged color and placement at the user's request). */
+/* The prototype's buttons are fully rounded. Applies to all buttons in the dialog,
+   not just the submit button, so "Avbryt" and "Tilbake til oversikten" follow along. */
 .tiltak-registrer .ds-button {
   --dsc-button-border-radius: var(--ds-border-radius-full);
 }
 
-/* Prototypens .btn-primary er #3E263D overalt, altså samme mørke plomme som
-   båndet og promoknappen. Send-knappen lå på den rødere accent-tonen, og
-   kvitteringsknappen på designsystemets enda lysere standard. Nå er alle tre
-   like. */
+/* The prototype's .btn-primary is #3E263D everywhere, the same dark plum as
+   the band and the promo button. The submit button was on the redder accent tone, and
+   the receipt button on designsystemet's even lighter default. Now all three
+   are the same. */
 .tiltak-registrer-submit,
 .tiltak-suksess .ds-button {
   --dsc-button-background: var(--ds-color-brand1-text-default);
@@ -905,34 +905,34 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   --dsc-button-color: var(--ds-color-brand1-background-default);
 }
 
-/* Form-elementet er eneste barn av .tiltak-registrer-kropp, og eier derfor
-   selv kolonnen og avstanden mellom seksjonene. Skillelinjene er borte i det
-   nye designet, og prototypen bruker samme avstand mellom seksjoner som
-   mellom felt (.form-section margin-top 38px == .field margin-bottom 38px).
-   Samme token som .tiltak-seksjon derfor, ikke en egen, større verdi. */
+/* The form element is the only child of .tiltak-registrer-kropp, and therefore owns
+   the column and the spacing between sections itself. The dividers are gone in the
+   new design, and the prototype uses the same spacing between sections as
+   between fields (.form-section margin-top 38px == .field margin-bottom 38px).
+   Hence the same token as .tiltak-seksjon, not a separate, larger value. */
 .tiltak-skjema {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-10);
 }
 
-/* Ligger sist i skjemaet, rett over knappene, siden den gjelder selve
-   innsendingen og ikke et enkelt felt. */
+/* Sits last in the form, right above the buttons, since it concerns the
+   submission itself and not a single field. */
 .tiltak-sendefeil {
   margin-top: var(--ds-size-4);
 }
 
-/* Ligger nederst i skjemaet, rett over knappene, ikke øverst. Avstanden går
-   derfor oppover, mot siste felt, og ikke nedover mot første. */
+/* Sits at the bottom of the form, right above the buttons, not at the top. The spacing
+   therefore goes upward, toward the last field, and not downward toward the first. */
 .tiltak-feiloppsummering {
   margin-top: var(--ds-size-5);
 }
 
-/* Avstandene settes per element, ikke som én gap.
-   Prototypen har ulik luft mellom de fire delene: 20px under haken, 12px
-   mellom overskrift og brødtekst, og en tydelig pause før knappen. En felles
-   gap ga 12px overalt, og la seg dessuten oppå overskriftens egen
-   bunnmargin, slik at nettopp den avstanden ble dobbelt så stor som resten. */
+/* The spacing is set per element, not as one gap.
+   The prototype has different spacing between the four parts: 20px below the check mark, 12px
+   between heading and body text, and a clear pause before the button. A shared
+   gap gave 12px everywhere, and also stacked on top of the heading's own
+   bottom margin, so exactly that spacing became twice as large as the rest. */
 .tiltak-suksess {
   display: flex;
   flex-direction: column;
@@ -941,24 +941,24 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   padding-block: var(--ds-size-10) var(--ds-size-11);
 }
 
-/* Haken er ikke en systemmelding om vellykket lagring, men en del av
-   kvitteringen. Prototypen tegner den i accent-rødt, ikke i den grønne
-   success-fargen fra designsystemet. */
+/* The check mark is not a system message about a successful save, but part of
+   the receipt. The prototype draws it in accent red, not in the green
+   success color from designsystemet. */
 .tiltak-suksess-ikon {
   font-size: var(--ds-size-11);
   color: var(--ds-color-accent-text-subtle);
   margin-bottom: var(--ds-size-6);
 }
 
-/* Overskriften har allerede 12px bunnmargin, som er akkurat prototypens
-   avstand ned til brødteksten. Her trengs bare pausen før knappen. */
+/* The heading already has a 12px bottom margin, which is exactly the prototype's
+   spacing down to the body text. Only the pause before the button is needed here. */
 .tiltak-suksess .ds-paragraph {
   margin-bottom: var(--ds-size-10);
 }
 
 /*
-  Turnstile-widgeten i innsendingsskjemaet. Iframen har fast størrelse fra
-  Cloudflare, så her styres bare avstanden til feltene over og knappene under.
+  The Turnstile widget in the submission form. The iframe has a fixed size from
+  Cloudflare, so only the spacing to the fields above and the buttons below is set here.
 */
 .tiltak-turnstile:not(:empty) {
   margin-block-start: var(--ds-size-4);

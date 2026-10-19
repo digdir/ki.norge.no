@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Starter mock-CMS + Astro dev-server mot den, i en kommando.
-// Ctrl-C eller `astro dev stop` stopper begge. Kjøres fra repo-rot via
-// "pnpm run frontend:dev:mock", og flagg som --port går videre til astro dev.
+// Starts the mock CMS + the Astro dev server against it, in one command.
+// Ctrl-C or `astro dev stop` stops both. Run from the repo root via
+// "pnpm run frontend:dev:mock", and flags like --port are passed on to astro dev.
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -17,11 +17,11 @@ const mock = spawn('node', [join(here, 'server.mjs')], {
   env: { ...process.env, MOCK_PORT: port },
 });
 
-// Astro 7 legger dev-serveren i bakgrunnen når en agent kjører den, og da
-// avslutter prosessen med en gang. Variabelen er den Astro selv setter på
-// bakgrunnsprosessen, og holder serveren i forgrunnen. Lockfila skrives
-// fortsatt, så `astro dev stop` virker. Astro startes uten pnpm imellom, så
-// kill() treffer selve serveren.
+// Astro 7 puts the dev server in the background when an agent runs it, and then
+// the process exits right away. The variable is the one Astro itself sets on
+// the background process, and keeps the server in the foreground. The lock file is still
+// written, so `astro dev stop` works. Astro is started without pnpm in between, so
+// kill() hits the server itself.
 const frontend = spawn(process.execPath, [astroBin, 'dev', ...process.argv.slice(2)], {
   cwd: frontendDir,
   stdio: 'inherit',
@@ -44,6 +44,6 @@ const stop = (code = 0) => {
 
 process.on('SIGINT', () => stop(0));
 process.on('SIGTERM', () => stop(0));
-// Astro avslutter med 143 når `astro dev stop` sender SIGTERM, og det er en vanlig stopp.
+// Astro exits with 143 when `astro dev stop` sends SIGTERM, and that is a normal stop.
 frontend.on('exit', (code) => stop(code === 143 ? 0 : (code ?? 0)));
 mock.on('exit', () => stop(1));

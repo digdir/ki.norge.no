@@ -47,7 +47,7 @@ const { substeps, guideSlug } = Astro.props;
     column-gap: var(--ds-size-2);
     list-style: none;
     margin: 0;
-    /* Loddrett luft så fokusringen på pillene ikke klippes av overflow-x. */
+    /* Vertical room so the focus ring on the pills is not clipped by overflow-x. */
     padding: var(--ds-size-1) 0;
     overflow-x: auto;
     overscroll-behavior-x: contain;
@@ -66,8 +66,8 @@ const { substeps, guideSlug } = Astro.props;
     border-radius: var(--ds-border-radius-full) !important;
     text-decoration: none;
     white-space: nowrap;
-    /* Uten dette krymper pillene til de passer i stedet for å flyte over,
-       og da blir det ingenting å scrolle. */
+    /* Without this the pills shrink to fit instead of overflowing,
+       and then there is nothing to scroll. */
     flex: 0 0 auto;
 
     &[aria-current="page"] {
@@ -94,8 +94,8 @@ const { substeps, guideSlug } = Astro.props;
     flex-shrink: 0;
   }
 
-  /* Pilene er en musaffordans. Touch swiper, tastatur tabber gjennom lenkene
-     og nettleseren scroller dem selv i syne. */
+  /* The arrows are a mouse affordance. Touch swipes, keyboard tabs through the links
+     and the browser scrolls them into view itself. */
   .substeps-arrow {
     display: none;
   }
@@ -150,16 +150,16 @@ const { substeps, guideSlug } = Astro.props;
       });
     };
 
-    // Sentrer det aktive del-steget. scrollLeft settes direkte i stedet for
-    // scrollIntoView, som ville rullet hele siden loddrett ved innlasting.
+    // Center the active sub-step. scrollLeft is set directly instead of
+    // scrollIntoView, which would scroll the whole page vertically on load.
     const active = list.querySelector<HTMLElement>('[aria-current="page"]');
     const centerActive = () => {
       if (!active) return;
       list.scrollLeft = active.offsetLeft - (list.clientWidth - active.offsetWidth) / 2;
     };
     centerActive();
-    // Nettfonten laster etter at skriptet kjører og gjør pillene bredere.
-    // Uten denne runden havner det aktive del-steget utenfor på smale skjermer.
+    // The web font loads after the script runs and makes the pills wider.
+    // Without this pass the active sub-step ends up out of view on narrow screens.
     document.fonts?.ready.then(centerActive);
 
     arrows.forEach((arrow) => {

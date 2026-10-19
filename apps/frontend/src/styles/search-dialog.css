@@ -1,4 +1,4 @@
-/* ── KI-søk dialog (search-only) ───────────────────────────
+/* ── KI search dialog (search-only) ───────────────────────────
    Uses Designsystemet <Dialog> (native <dialog>) with custom overrides
    for the search-specific layout (max-width, spacing, scroll area).
    Tokens: --ds-* from designsystemet, --dsc-dialog-* from the Dialog component. */
@@ -42,9 +42,9 @@
   padding-inline-end: calc(var(--dsc-search-padding-inline) * 12);
 }
 
-/* Designsystemet tegner et forstørrelsesglass til venstre i feltet fra 1.20.
-   Dialogen har søkeknappen med forstørrelsesglass til høyre, og paddingen over
-   gir ikke plass til et til, så teksten havnet oppå det (#822). */
+/* Designsystemet draws a magnifying glass on the left of the field from 1.20.
+   The dialog has the search button with a magnifying glass on the right, and the padding above
+   leaves no room for another, so the text ended up on top of it (#822). */
 .search-dialog-search::after {
   display: none;
 }
@@ -93,7 +93,7 @@
 .search-empty-state { padding: var(--ds-size-6) 0; text-align: center; }
 .search-error { color: var(--ds-color-danger-text-default); padding: var(--ds-size-2) 0; }
 
-/* Seksjonsoverskrift (Søkeresultater) */
+/* Section heading ("Søkeresultater") */
 .search-section-heading {
   font-size: var(--ds-font-size-6);
   font-weight: var(--ds-font-weight-medium);
@@ -114,7 +114,7 @@
   color: var(--ds-color-accent-base-default);
 }
 
-/* Søkeresultater */
+/* Search results */
 .search-results { padding-top: 0; }
 
 .search-results-list {
@@ -142,7 +142,7 @@
   font-weight: var(--ds-font-weight-medium);
 }
 
-/* Innholdstype-merkelapp (ds-tag accent = rosa fra tokens) — til høyre for tittelen */
+/* Content type tag (ds-tag accent = pink from tokens), to the right of the title */
 .search-result-tag {
   flex: 0 0 auto;
   margin-left: auto;
@@ -162,7 +162,7 @@
   word-break: break-all;
 }
 
-/* Søkeknapp i header */
+/* Search button in header */
 .search-toggle {
   border-radius: var(--ds-border-radius-full);
   color: inherit;

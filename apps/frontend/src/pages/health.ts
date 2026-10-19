@@ -13,8 +13,8 @@ const report = memoize(() => runHealthChecks(config, { fetch: (input, init) => f
 
 const HEADERS = {
   'Content-Type': 'application/json',
-  // Overvåking skal se tilstanden nå, ikke en kopi fra kanten. Belastningen på
-  // CMS-et styres av memoize, ikke av cache.
+  // Monitoring should see the state now, not a copy from the edge. The load on
+  // the CMS is controlled by memoize, not by cache.
   'Cache-Control': 'no-store',
   'X-Robots-Tag': 'noindex',
 };

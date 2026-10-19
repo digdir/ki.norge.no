@@ -2,8 +2,8 @@ import { Link } from '@digdir/designsystemet-react';
 import { FileSearchIcon } from '@navikt/aksel-icons';
 import type { KiResult } from './types';
 
-// Innholdstype-alias → pen merkelapp. Ukjente/stale typer (f.eks. "faq" fra
-// gamle indeks-dokumenter) får ingen merkelapp; reindeksering er CMS-siden (#419).
+// Content type alias → nice label. Unknown/stale types (e.g. "faq" from
+// old index documents) get no label; reindexing is on the CMS side (#419).
 const TYPE_LABELS: Record<string, string> = {
   artikkel: 'Artikkel',
   case: 'Eksempel',

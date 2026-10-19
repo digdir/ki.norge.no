@@ -14,17 +14,17 @@
 	"observability": {
 		"enabled": true,
 	},
-	// Hastighetsgrenser for de to åpne API-rutene. Bindinger arves ikke av
-	// navngitte miljøer, så de gjentas under hver env. Period må være 10 eller 60.
+	// Rate limits for the two open API routes. Bindings are not inherited by
+	// named environments, so they are repeated under each env. Period must be 10 or 60.
 	//
-	// namespace_id gjelder per Cloudflare-konto, ikke per worker: to bindinger
-	// med samme id deler teller selv om de ligger i hver sin worker. Kontoen her
-	// er Digdirs felles konto, så id-ene er bevisst ikke 1001 og 1002, som er
-	// verdiene i Cloudflares egen dokumentasjon og dermed det alle andre får
-	// hvis de kopierer eksempelet.
+	// namespace_id applies per Cloudflare account, not per worker: two bindings
+	// with the same id share a counter even if they live in different workers. The account here
+	// is Digdir's shared account, so the ids are deliberately not 1001 and 1002, which are
+	// the values in Cloudflare's own documentation and thus what everyone else gets
+	// if they copy the example.
 	//
-	// Grensa på søket er romslig med vilje. Målgruppa er offentlig ansatte, og
-	// en hel kommune kan ligge bak én utgående IP. Se src/lib/turnstile.ts.
+	// The limit on search is generous on purpose. The audience is public sector employees, and
+	// a whole municipality can sit behind one outgoing IP. See src/lib/turnstile.ts.
 	"ratelimits": [
 		{ "name": "TILTAK_LIMIT", "namespace_id": "73101", "simple": { "limit": 5, "period": 60 } },
 		{ "name": "SEARCH_LIMIT", "namespace_id": "73102", "simple": { "limit": 60, "period": 60 } },
@@ -34,24 +34,24 @@
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
 				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
-				// Hybrid-søk (Elastic): endepunkt + indeks er offentlige (ikke hemmelige).
-				// ES_API_KEY settes som secret: wrangler secret put ES_API_KEY --env tt02
+				// Hybrid search (Elastic): endpoint + index are public (not secret).
+				// ES_API_KEY is set as a secret: wrangler secret put ES_API_KEY --env tt02
 				"ES_ENDPOINT": "https://kinorgeportal-elasticsearch-tt02-a61b24.es.germanywestcentral.azure.elastic.cloud",
 				"KI_INDEX": "ki-content",
-				// «Del KI-tiltak» sender via Microsoft Graph. Tenant- og klient-id er
-				// identifikatorer, ikke hemmeligheter. Selve hemmeligheten settes med
+				// "Del KI-tiltak" sends via Microsoft Graph. Tenant and client id are
+				// identifiers, not secrets. The secret itself is set with
 				// wrangler secret put GRAPH_CLIENT_SECRET --env tt02
-				// Merk at tt02 sender til den samme, ekte postboksen som prod.
+				// Note that tt02 sends to the same, real mailbox as prod.
 				"GRAPH_TENANT_ID": "008e560f-08af-4cec-a056-b35447503991",
 				"GRAPH_CLIENT_ID": "ac5194d9-cdac-404b-9568-9006a149c395",
 				"KI_TILTAK_MAILBOX": "ki-tiltak@kin.norge.no",
-				// Turnstile på «Del KI-tiltak». Site key er offentlig og hører hjemme
-				// her; fyll den inn fra widgeten i Cloudflare-dashbordet. Hemmeligheten
-				// settes med wrangler secret put TURNSTILE_SECRET_KEY --env tt02
-				// Står den tom, avviser ruta innsendinger med 503.
+				// Turnstile on "Del KI-tiltak". The site key is public and belongs
+				// here; fill it in from the widget in the Cloudflare dashboard. The secret
+				// is set with wrangler secret put TURNSTILE_SECRET_KEY --env tt02
+				// If it is empty, the route rejects submissions with 503.
 				"TURNSTILE_SITE_KEY": "0x4AAAAAAEnMGfLvgsIVZ_Cl",
 			},
-			// Egne id-er, så tt02 ikke deler teller med prod.
+			// Separate ids, so tt02 doesn't share a counter with prod.
 			"ratelimits": [
 				{ "name": "TILTAK_LIMIT", "namespace_id": "73111", "simple": { "limit": 5, "period": 60 } },
 				{ "name": "SEARCH_LIMIT", "namespace_id": "73112", "simple": { "limit": 60, "period": 60 } },
@@ -60,24 +60,24 @@
 		"prod": {
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
-				// Media-URLer hentes av nettleseren, så de må peke på en offentlig host.
-				// Dis-core-hosten krever Altinn-nett; proxy-workeren (#350) er offentlig nåbar.
+				// Media URLs are fetched by the browser, so they must point to a public host.
+				// The dis-core host requires the Altinn network; the proxy worker (#350) is publicly reachable.
 				"UMBRACO_PUBLIC_URL": "https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev",
-				// Hybrid-søk (Elastic): endepunkt + indeks er offentlige (ikke hemmelige).
-				// Samme cluster/indeks som tt02 (holder prod-innhold). ES_API_KEY settes
-				// som secret: wrangler secret put ES_API_KEY --env prod
+				// Hybrid search (Elastic): endpoint + index are public (not secret).
+				// Same cluster/index as tt02 (holds prod content). ES_API_KEY is set
+				// as a secret: wrangler secret put ES_API_KEY --env prod
 				"ES_ENDPOINT": "https://kinorgeportal-elasticsearch-tt02-a61b24.es.germanywestcentral.azure.elastic.cloud",
 				"KI_INDEX": "ki-content",
-				// «Del KI-tiltak» sender via Microsoft Graph. Hemmeligheten settes med
+				// "Del KI-tiltak" sends via Microsoft Graph. The secret is set with
 				// wrangler secret put GRAPH_CLIENT_SECRET --env prod
-				// Secreten utløper 20.02.2028, se docs.
+				// The secret expires 20.02.2028, see docs.
 				"GRAPH_TENANT_ID": "008e560f-08af-4cec-a056-b35447503991",
 				"GRAPH_CLIENT_ID": "ac5194d9-cdac-404b-9568-9006a149c395",
 				"KI_TILTAK_MAILBOX": "ki-tiltak@kin.norge.no",
-				// Turnstile på «Del KI-tiltak». Site key er offentlig og hører hjemme
-				// her; fyll den inn fra widgeten i Cloudflare-dashbordet. Hemmeligheten
-				// settes med wrangler secret put TURNSTILE_SECRET_KEY --env prod
-				// Står den tom, avviser ruta innsendinger med 503.
+				// Turnstile on "Del KI-tiltak". The site key is public and belongs
+				// here; fill it in from the widget in the Cloudflare dashboard. The secret
+				// is set with wrangler secret put TURNSTILE_SECRET_KEY --env prod
+				// If it is empty, the route rejects submissions with 503.
 				"TURNSTILE_SITE_KEY": "0x4AAAAAAEnMGfLvgsIVZ_Cl",
 			},
 			"ratelimits": [

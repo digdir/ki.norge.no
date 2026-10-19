@@ -3,7 +3,7 @@ import { hasValidCheckDigit } from './organisationNumber';
 import { newPartnerRow, emptyForm, type TiltakForm } from './tiltakForm';
 import { ERROR_MESSAGE, errorFor, validateTiltakForm } from './validateTiltakForm';
 
-/** Ekte organisasjonsnummer, altså med gyldig kontrollsiffer. */
+/** Real organisation numbers, that is with a valid check digit. */
 const DIGDIR = '991825827';
 const ENTUR = '917422575';
 
@@ -22,26 +22,26 @@ function validForm(overstyr: Partial<TiltakForm> = {}): TiltakForm {
   };
 }
 
-/** Feilmeldingen for ett felt, eller undefined. */
+/** The error message for one field, or undefined. */
 function message(form: TiltakForm, field: Parameters<typeof errorFor>[1]) {
   return errorFor(validateTiltakForm(form), field);
 }
 
 describe('hasValidCheckDigit', () => {
-  test('godtar ekte organisasjonsnummer', () => {
+  test('accepts real organisation numbers', () => {
     expect(hasValidCheckDigit(DIGDIR)).toBe(true);
     expect(hasValidCheckDigit(ENTUR)).toBe(true);
     expect(hasValidCheckDigit('986128433')).toBe(true);
   });
 
-  test('avviser ni siffer med feil kontrollsiffer', () => {
-    // Ser riktig ut, men kontrollsifferet skulle vært 5.
+  test('rejects nine digits with a wrong check digit', () => {
+    // Looks right, but the check digit should have been 5.
     expect(hasValidCheckDigit('123456789')).toBe(false);
-    // Ett siffer endret i et ekte nummer, den vanligste tastefeilen.
+    // One digit changed in a real number, the most common typo.
     expect(hasValidCheckDigit('991825837')).toBe(false);
   });
 
-  test('avviser alt som ikke er ni siffer', () => {
+  test('rejects anything that is not nine digits', () => {
     expect(hasValidCheckDigit('')).toBe(false);
     expect(hasValidCheckDigit('99182582')).toBe(false);
     expect(hasValidCheckDigit('9918258270')).toBe(false);
@@ -50,34 +50,34 @@ describe('hasValidCheckDigit', () => {
 });
 
 describe('validateTiltakForm', () => {
-  test('gyldig skjema gir ingen feil', () => {
+  test('a valid form gives no errors', () => {
     expect(validateTiltakForm(validForm())).toEqual([]);
   });
 
-  describe('påkrevde felt', () => {
+  describe('required fields', () => {
     const tilfeller: ReadonlyArray<[string, Partial<TiltakForm>, string, string]> = [
-      ['virksomhet', { ansvarligNavn: '   ' }, 'ansvarligNavn', ERROR_MESSAGE.ansvarligNavn],
-      ['organisasjonsnummer', { ansvarligOrgnr: '' }, 'ansvarligOrgnr', ERROR_MESSAGE.orgnrEmpty],
-      ['tiltakets navn', { navn: '   ' }, 'navn', ERROR_MESSAGE.navn],
-      ['beskrivelse', { beskrivelse: '   ' }, 'beskrivelse', ERROR_MESSAGE.beskrivelse],
-      ['tema', { fagomrade: '' }, 'fagomrade', ERROR_MESSAGE.fagomrade],
-      ['kontaktinfo', { kontaktinfo: '  ' }, 'kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty],
-      ['fase', { fase: '' }, 'fase', ERROR_MESSAGE.fase],
-      ['leveranse', { leveranse: '' }, 'leveranse', ERROR_MESSAGE.leveranse],
-      ['ukjent leveranse', { leveranse: 'Noe oppdiktet' }, 'leveranse', ERROR_MESSAGE.leveranse],
+      ['organisation', { ansvarligNavn: '   ' }, 'ansvarligNavn', ERROR_MESSAGE.ansvarligNavn],
+      ['organisation number', { ansvarligOrgnr: '' }, 'ansvarligOrgnr', ERROR_MESSAGE.orgnrEmpty],
+      ['ki-tiltak name', { navn: '   ' }, 'navn', ERROR_MESSAGE.navn],
+      ['description', { beskrivelse: '   ' }, 'beskrivelse', ERROR_MESSAGE.beskrivelse],
+      ['topic', { fagomrade: '' }, 'fagomrade', ERROR_MESSAGE.fagomrade],
+      ['contact info', { kontaktinfo: '  ' }, 'kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty],
+      ['phase', { fase: '' }, 'fase', ERROR_MESSAGE.fase],
+      ['deliverable', { leveranse: '' }, 'leveranse', ERROR_MESSAGE.leveranse],
+      ['unknown deliverable', { leveranse: 'Noe oppdiktet' }, 'leveranse', ERROR_MESSAGE.leveranse],
       [
-        'fritekst når «Annet» er krysset av',
+        'free text when "Annet" is ticked',
         { leveranse: 'Annet', leveranseAnnet: '  ' },
         'leveranseAnnet',
         ERROR_MESSAGE.leveranseAnnet,
       ],
     ];
 
-    test.each(tilfeller)('krever %s', (_navn, overstyr, field, forventet) => {
+    test.each(tilfeller)('requires %s', (_navn, overstyr, field, forventet) => {
       expect(message(validForm(overstyr), field as never)).toBe(forventet);
     });
 
-    test('alle åtte kan mangle samtidig', () => {
+    test('all eight can be missing at once', () => {
       const errors = validateTiltakForm(emptyForm());
       expect(errors).toHaveLength(8);
       expect(errors.map((item) => item.field)).toEqual([
@@ -93,8 +93,8 @@ describe('validateTiltakForm', () => {
     });
   });
 
-  describe('organisasjonsnummer', () => {
-    test('skiller mellom feil format og feil kontrollsiffer', () => {
+  describe('organisation number', () => {
+    test('distinguishes between wrong format and wrong check digit', () => {
       expect(message(validForm({ ansvarligOrgnr: '12345' }), 'ansvarligOrgnr')).toBe(
         ERROR_MESSAGE.orgnrFormat,
       );
@@ -109,7 +109,7 @@ describe('validateTiltakForm', () => {
 
   describe('kontaktinfo', () => {
     test.each(['ikke-en-epost', 'mangler-krøllalfa.no', '@digdir.no', 'to adresser@digdir.no'])(
-      'avviser %s',
+      'rejects %s',
       (value) => {
         expect(message(validForm({ kontaktinfo: value }), 'kontaktinfo')).toBe(
           ERROR_MESSAGE.kontaktinfoFormat,
@@ -118,20 +118,20 @@ describe('validateTiltakForm', () => {
     );
 
     test.each(['postmottak@digdir.no', 'ki-tiltak@kin.norge.no', 'fornavn.etternavn@sub.digdir.no'])(
-      'godtar %s',
+      'accepts %s',
       (value) => {
         expect(message(validForm({ kontaktinfo: value }), 'kontaktinfo')).toBeUndefined();
       },
     );
   });
 
-  describe('samarbeidsvirksomheter', () => {
-    test('en tom rad brukeren aldri fylte ut stopper ikke innsendingen', () => {
+  describe('partner organisations', () => {
+    test('an empty row the user never filled in does not stop the submission', () => {
       const form = validForm({ samarbeid: [newPartnerRow()] });
       expect(validateTiltakForm(form)).toEqual([]);
     });
 
-    test('en utfylt rad krever både navn og gyldig organisasjonsnummer', () => {
+    test('a filled-in row requires both a name and a valid organisation number', () => {
       const row = { ...newPartnerRow(), navn: 'Entur AS' };
       const errors = validateTiltakForm(validForm({ samarbeid: [row] }));
       expect(errorFor(errors, `samarbeid:${row.id}:orgnr`)).toBe(ERROR_MESSAGE.orgnrEmpty);
@@ -141,12 +141,12 @@ describe('validateTiltakForm', () => {
       expect(errorFor(errors2, `samarbeid:${withoutName.id}:navn`)).toBe(ERROR_MESSAGE.samarbeidNavn);
     });
 
-    test('en fullstendig rad er gyldig', () => {
+    test('a complete row is valid', () => {
       const row = { ...newPartnerRow(), navn: 'Entur AS', orgnr: ENTUR };
       expect(validateTiltakForm(validForm({ samarbeid: [row] }))).toEqual([]);
     });
 
-    test('feil i flere rader holdes fra hverandre', () => {
+    test('errors in several rows are kept apart', () => {
       const first = { ...newPartnerRow(), navn: 'Entur AS', orgnr: '123' };
       const second = { ...newPartnerRow(), navn: 'Nav', orgnr: '123456789' };
       const errors = validateTiltakForm(validForm({ samarbeid: [first, second] }));
@@ -156,20 +156,20 @@ describe('validateTiltakForm', () => {
     });
   });
 
-  describe('verdier utenfor alternativlistene', () => {
-    // Skjemaet kan ikke produsere disse. De kan bare komme fra en POST rett
-    // mot ruta, og skal behandles som «ikke valgt».
-    test('ukjent tema behandles som ikke valgt', () => {
+  describe('values outside the option lists', () => {
+    // The form cannot produce these. They can only come from a POST straight
+    // to the route, and are treated as "not selected".
+    test('unknown topic is treated as not selected', () => {
       expect(message(validForm({ fagomrade: 'Oppdiktet tema' }), 'fagomrade')).toBe(
         ERROR_MESSAGE.fagomrade,
       );
     });
 
-    test('ukjent fase behandles som ikke valgt', () => {
+    test('unknown phase is treated as not selected', () => {
       expect(message(validForm({ fase: 'Pågående' }), 'fase')).toBe(ERROR_MESSAGE.fase);
     });
 
-    test('for lang tekst avvises', () => {
+    test('too long text is rejected', () => {
       expect(message(validForm({ navn: 'a'.repeat(201) }), 'navn')).toBe(ERROR_MESSAGE.forLangt);
       expect(message(validForm({ beskrivelse: 'a'.repeat(801) }), 'beskrivelse')).toBe(
         ERROR_MESSAGE.forLangt,
@@ -179,28 +179,28 @@ describe('validateTiltakForm', () => {
       );
     });
 
-    test('tekst innenfor grensen er gyldig', () => {
+    test('text within the limit is valid', () => {
       expect(validateTiltakForm(validForm({ navn: 'a'.repeat(200) }))).toHaveLength(0);
     });
   });
 
-  describe('valgfrie spørsmål', () => {
-    test('kiType kan stå tom', () => {
+  describe('optional questions', () => {
+    test('kiType can be empty', () => {
       expect(validateTiltakForm(validForm({ kiType: [] }))).toHaveLength(0);
     });
 
-    test('«Annet» i kiType uten fritekst slipper gjennom', () => {
+    test('"Annet" in kiType without free text passes', () => {
       const form = validForm({ kiType: ['Annet'], kiTypeAnnet: '' });
       expect(validateTiltakForm(form)).toHaveLength(0);
     });
 
-    test('«Annet» i leveranse med fritekst er gyldig', () => {
+    test('"Annet" in leveranse with free text is valid', () => {
       const form = validForm({ leveranse: 'Annet', leveranseAnnet: 'Rapport' });
       expect(validateTiltakForm(form)).toHaveLength(0);
     });
   });
 
-  test('feilene kommer i samme rekkefølge som feltene står i skjemaet', () => {
+  test('the errors come in the same order as the fields appear in the form', () => {
     const row = { ...newPartnerRow(), navn: 'Entur AS', orgnr: '123' };
     const errors = validateTiltakForm({
       ...emptyForm(),

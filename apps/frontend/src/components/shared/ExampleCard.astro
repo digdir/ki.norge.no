@@ -26,7 +26,7 @@ const merkelapper = [...new Set([tag, ...tags].filter((t): t is string => !!t))]
 
 const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
 
-// Pilen limes til siste ord så den ikke brekker alene (#464)
+// The arrow is glued to the last word so it does not wrap alone (#464)
 ---
 
 <article class="example-card" data-variant={variant} data-variant-mobile={mobileVariant} data-clickdelegatefor={id}>
@@ -93,8 +93,8 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
     margin: 0;
   }
 
-  /* Samme regel som sidetitlene i global.css: på mobil krymper tittelen akkurat
-     nok til at det lengste ordet får plass. 96 px er kortets og sidens marg. */
+  /* Same rule as the page titles in global.css: on mobile the title shrinks just
+     enough for the longest word to fit. 96 px is the card's and the page's margin. */
   @media (max-width: 767px) {
     .example-card .example-card-title {
       font-size: min(var(--ds-heading-md-font-size), calc((100vw - 96px) / (var(--lengste-ord, 1) * 0.52)));

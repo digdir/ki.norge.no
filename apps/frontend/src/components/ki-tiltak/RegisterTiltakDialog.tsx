@@ -38,9 +38,9 @@ interface Props {
   open: boolean;
   onClose: () => void;
   /**
-   * Offentlig Turnstile-nøkkel, sendt fra ki-tiltak.astro. Tom streng betyr at
-   * Turnstile ikke er konfigurert, og da vises ingen widget. Serveren slipper
-   * innsendingen gjennom i det tilfellet, men logger det.
+   * Public Turnstile key, sent from ki-tiltak.astro. An empty string means
+   * Turnstile is not configured, and then no widget is shown. The server lets
+   * the submission through in that case, but logs it.
    */
   turnstileSiteKey: string;
 }
@@ -48,26 +48,26 @@ interface Props {
 const REGISTER_DIALOG_ID = 'tiltak-registrer-dialog';
 
 /**
- * DOM-id-en feiloppsummeringen hopper til, utledet av feltnøkkelen.
- * Utledet framfor slått opp i en tabell, slik at et nytt felt ikke kan bli
- * liggende uten anker.
+ * The DOM id the error summary jumps to, derived from the field key.
+ * Derived rather than looked up in a table, so that a new field cannot be
+ * left without an anchor.
  */
 function fieldId(field: FieldKey): string {
   return `tiltak-${field.replace(/:/g, '-')}`;
 }
 
 /**
- * Organisasjonsnummer er ni siffer og ingenting annet.
+ * An organisation number is nine digits and nothing else.
  *
- * Siler bort alt som ikke er tall mens brukeren skriver, og kutter på ni.
- * maxLength alene holder ikke: den stopper tasting, men ikke innliming, og et
- * limt «org 123 456 789 00» ville ellers blitt til tolv siffer.
+ * Filters out everything that is not a digit while the user types, and cuts at nine.
+ * maxLength alone is not enough: it stops typing, but not pasting, and a
+ * pasted "org 123 456 789 00" would otherwise become twelve digits.
  */
 function onlyDigits(value: string): string {
   return value.replace(/\D/g, '').slice(0, ORGNR_LENGTH);
 }
 
-/** «Må fylles ut» / «Valgfritt» ved siden av etiketten, slik designet viser. */
+/** "Må fylles ut" / "Valgfritt" next to the label, as the design shows. */
 function Badge({ required }: { required: boolean }) {
   return (
     <Tag
@@ -81,9 +81,9 @@ function Badge({ required }: { required: boolean }) {
 }
 
 /**
- * Etiketten med merket i seg. Merket blir dermed en del av det tilgjengelige
- * navnet, altså «Virksomhet, Må fylles ut», som er meningen. Feltene får
- * derfor ikke required i tillegg, for da ville skjermlesere sagt det to ganger.
+ * The label with the badge inside it. The badge thus becomes part of the accessible
+ * name, that is "Virksomhet, Må fylles ut", which is intended. The fields therefore
+ * do not also get required, because then screen readers would say it twice.
  */
 function labelWithBadge(text: string, required: boolean) {
   return (
@@ -101,14 +101,14 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
   const [sending, setSending] = useState(false);
   const [sendFailed, setSendFailed] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
-  /** Tom streng til widgeten har gitt oss et token. */
+  /** Empty string until the widget has given us a token. */
   const [turnstileToken, setTurnstileToken] = useState('');
-  /** Økes for å be widgeten om et nytt token. Tokenet er engangs. */
+  /** Incremented to ask the widget for a new token. The token is single-use. */
   const [turnstileReset, setTurnstileReset] = useState(0);
-  // <ds-error-summary> flytter fokus til seg selv når den settes inn i DOM-en
-  // (0s CSS-animasjon + animationend-håndtering i egen connectedCallback).
-  // Det trigges bare ved innsetting, så et andre mislykket forsøk må
-  // remonteres for å få fokus tilbake. forsok som key tvinger den remonteringen.
+  // <ds-error-summary> moves focus to itself when it is inserted into the DOM
+  // (0s CSS animation + animationend handling in its own connectedCallback).
+  // That only triggers on insertion, so a second failed attempt must
+  // be remounted to get focus back. forsok as key forces that remount.
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -124,11 +124,11 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
     setForm((previous) => ({ ...previous, [field]: value }));
 
   /**
-   * Av og på for en avkryssingsgruppe.
+   * On and off for a checkbox group.
    *
-   * Rekkefølgen tas fra alternativlisten og ikke fra klikkrekkefølgen, slik at
-   * e-posten til redaksjonen alltid lister dem likt. Fritekstfeltet tømmes når
-   * «Annet» hukes av igjen, ellers ville en gammel verdi blitt sendt med.
+   * The order is taken from the option list and not from the click order, so that
+   * the email to the editors always lists them the same way. The free text field is cleared when
+   * "Annet" is unticked again, otherwise an old value would be sent along.
    */
   const toggleMulti =
     (field: 'kiType', options: readonly string[], annetField: keyof TiltakForm) =>
@@ -178,24 +178,24 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, turnstileToken }),
       });
-      // Ruta svarer 202 når Graph har tatt imot meldingen.
+      // The route responds 202 when Graph has accepted the message.
       if (!response.ok) {
-        // 429 er for mange forsøk fra samme sted. Det er den ene feilen
-        // brukeren kan gjøre noe med selv, så den får sin egen melding.
+        // 429 is too many attempts from the same place. It is the one error
+        // the user can do something about, so it gets its own message.
         if (response.status === 429) setRateLimited(true);
         else setSendFailed(true);
         return;
       }
       setSent(true);
     } catch {
-      // Nettverksfeil. Samme melding som ved feil hos oss, siden brukeren
-      // uansett skal gjøre det samme.
+      // Network error. Same message as for an error on our side, since the user
+      // should do the same thing either way.
       setSendFailed(true);
     } finally {
       setSending(false);
-      // Tokenet er brukt opp, uansett hvordan det gikk. Ved suksess vises
-      // kvitteringen og widgeten forsvinner; ellers trenger neste forsøk et
-      // nytt token.
+      // The token is used up, however it went. On success the receipt
+      // is shown and the widget disappears; otherwise the next attempt needs a
+      // new token.
       setTurnstileToken('');
       setTurnstileReset((previous) => previous + 1);
     }
@@ -386,8 +386,8 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                   {FASER.map((fase, index) => (
                     <Radio
                       key={fase}
-                      // Bare den første radioknappen får ankeret, slik at lenken
-                      // i feiloppsummeringen lander på et fokuserbart element.
+                      // Only the first radio button gets the anchor, so that the link
+                      // in the error summary lands on a focusable element.
                       id={index === 0 ? fieldId('fase') : undefined}
                       name="tiltak-fase"
                       label={fase}
@@ -417,7 +417,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                         setForm((previous) => ({
                           ...previous,
                           leveranse: event.target.value,
-                          // Fritekstet hører til «Annet». Byttes valget, skal det ikke sendes med.
+                          // The free text belongs to "Annet". If the choice changes, it must not be sent along.
                           ...(event.target.value === ANNET ? {} : { leveranseAnnet: '' }),
                         }))
                       }
@@ -455,8 +455,8 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                 </Fieldset>
 
                 {/*
-                  Uten feilmelding og uten error-prop: spørsmålet er valgfritt,
-                  så et tomt fritekstfelt skal ikke stoppe innsendingen.
+                  No error message and no error prop: the question is optional,
+                  so an empty free text field must not stop the submission.
                 */}
                 {form.kiType.includes(ANNET) && (
                   <Textfield
@@ -494,9 +494,9 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
               )}
 
               {/*
-                Turnstile står her, rett over feiloppsummeringen og knappene,
-                fordi det er siste steg før innsending. Widgeten er som regel
-                usynlig for brukeren og krever bare handling ved mistanke.
+                Turnstile sits here, right above the error summary and the buttons,
+                because it is the last step before submission. The widget is usually
+                invisible to the user and only asks for action on suspicion.
               */}
               {turnstileSiteKey.length > 0 && (
                 <TurnstileWidget
@@ -507,17 +507,17 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
               )}
 
               {/*
-                Nederst i skjemaet, rett over knappene, ikke øverst.
-                Designsystemet anbefaler «å vise error summary like over
-                Neste/Send inn-knappen», slik at brukeren ser sammenhengen
-                mellom feilen og hvorfor hun ikke kommer videre. Toppen
-                anbefales bare når siden lastes på nytt ved innsending, når
-                brukeren kommer tilbake til et påbegynt skjema, eller når
-                løsningen slipper deg videre med feil. Ingen av delene gjelder
-                her.
+                At the bottom of the form, right above the buttons, not at the top.
+                Designsystemet recommends "showing the error summary just above
+                the Next/Submit button", so that the user sees the connection
+                between the error and why she cannot move on. The top
+                is only recommended when the page reloads on submit, when
+                the user comes back to a partly filled form, or when
+                the solution lets you continue with errors. None of these apply
+                here.
 
-                Fokus flyttes hit ved mislykket innsending uansett plassering,
-                se key={attempt} over.
+                Focus moves here on a failed submission regardless of placement,
+                see key={attempt} above.
               */}
               {errors.length > 0 && (
                 <ErrorSummary key={attempt} className="tiltak-feiloppsummering">
@@ -547,10 +547,10 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
               {sending ? 'Sender…' : 'Del tiltak'}
             </Button>
             {/*
-              command/commandfor i stedet for onClick={onClose}, samme begrunnelse som i
-              KiTiltakFilterPanel.tsx og KiTiltakDetail.tsx. Å lukke via open-prop setter
-              dialog.open direkte og hopper over close()-algoritmen, som låser resten av
-              siden bak en usynlig backdrop og hindrer onClose-eventet i å fyre.
+              command/commandfor instead of onClick={onClose}, same reasoning as in
+              KiTiltakFilterPanel.tsx and KiTiltakDetail.tsx. Closing via the open prop sets
+              dialog.open directly and skips the close() algorithm, which locks the rest of
+              the page behind an invisible backdrop and keeps the onClose event from firing.
             */}
             <Button variant="tertiary" command="close" commandfor={REGISTER_DIALOG_ID}>
               Avbryt

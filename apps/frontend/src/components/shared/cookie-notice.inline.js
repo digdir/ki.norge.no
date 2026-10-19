@@ -41,8 +41,8 @@
     document.head.appendChild(s);
   }
 
-  // Lytterne registreres alltid, slik at banneret kan gjenåpnes fra
-  // "Endre samtykke for informasjonskapsler" i footeren.
+  // The listeners are always registered, so the banner can be reopened from
+  // "Endre samtykke for informasjonskapsler" in the footer.
   allowBtn.addEventListener('click', function () {
     writeConsent('allow');
     notice.hidden = true;
@@ -55,7 +55,7 @@
   });
   window.addEventListener('open-cookie-notice', function () {
     notice.hidden = false;
-    // Brukerinitiert gjenåpning: flytt fokus til banneret (skroller dit selv)
+    // User-initiated reopening: move focus to the banner (scrolls there by itself)
     allowBtn.focus();
   });
 

@@ -45,13 +45,13 @@ afterEach(() => {
 });
 
 describe('POST /api/ki-tiltak', () => {
-  test('sender vertsnavnet i forespørselen videre til Turnstile', async () => {
+  test('passes the hostname from the request on to Turnstile', async () => {
     verifyTurnstile.mockResolvedValue('ok');
     await submit('ki.test.norge.no');
     expect(verifyTurnstile.mock.calls[0][2]).toBe('ki.test.norge.no');
   });
 
-  test('svarer 503 og sender ingenting når Turnstile mangler hemmeligheten', async () => {
+  test('responds 503 and sends nothing when Turnstile is missing the secret', async () => {
     verifyTurnstile.mockResolvedValue('not_configured');
     expect(await submit('ki.norge.no')).toEqual({
       status: 503,
@@ -60,13 +60,13 @@ describe('POST /api/ki-tiltak', () => {
     expect(sendTiltakEmail).not.toHaveBeenCalled();
   });
 
-  test('svarer 403 som før når tokenet avvises', async () => {
+  test('responds 403 as before when the token is rejected', async () => {
     verifyTurnstile.mockResolvedValue('rejected');
     expect(await submit('ki.norge.no')).toEqual({ status: 403, body: { error: 'turnstile_failed' } });
     expect(sendTiltakEmail).not.toHaveBeenCalled();
   });
 
-  test('sender videre når tokenet godtas', async () => {
+  test('forwards when the token is accepted', async () => {
     verifyTurnstile.mockResolvedValue('ok');
     expect(await submit('ki.norge.no')).toEqual({ status: 202, body: { ok: true } });
     expect(sendTiltakEmail).toHaveBeenCalledOnce();

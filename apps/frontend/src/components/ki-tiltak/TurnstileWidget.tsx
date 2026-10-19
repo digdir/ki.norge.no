@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Turnstile-widgeten i «Del KI-tiltak».
+ * The Turnstile widget in "Del KI-tiltak".
  *
- * Rendres eksplisitt i stedet for med den implisitte cf-turnstile-klassen,
- * fordi skjemaet ligger i en dialog som monteres og demonteres. Implisitt
- * rendring finner bare elementer som fantes da skriptet lastet.
+ * Rendered explicitly instead of with the implicit cf-turnstile class,
+ * because the form sits in a dialog that is mounted and unmounted. Implicit
+ * rendering only finds elements that existed when the script loaded.
  */
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-/** Skriptet lastes én gang per side, uansett hvor mange widgets som ber om det. */
+/** The script loads once per page, no matter how many widgets ask for it. */
 let scriptPromise: Promise<void> | null = null;
 
 function loadScript(): Promise<void> {
@@ -43,7 +43,7 @@ function loadScript(): Promise<void> {
     script.async = true;
     script.defer = true;
     script.addEventListener('load', () => resolve());
-    script.addEventListener('error', () => reject(new Error('turnstile lastet ikke')));
+    script.addEventListener('error', () => reject(new Error('turnstile did not load')));
     document.head.appendChild(script);
   });
   return scriptPromise;
@@ -51,11 +51,11 @@ function loadScript(): Promise<void> {
 
 interface Props {
   siteKey: string;
-  /** Tom streng betyr «ikke noe gyldig token nå». */
+  /** Empty string means "no valid token right now". */
   onToken: (token: string) => void;
   /**
-   * Endres for å hente et nytt token. Tokenet er engangs, så skjemaet må
-   * nullstille widgeten etter en innsending som feilet.
+   * Changed to fetch a new token. The token is single-use, so the form must
+   * reset the widget after a failed submission.
    */
   resetKey: number;
 }
@@ -64,7 +64,7 @@ export default function TurnstileWidget({ siteKey, onToken, resetKey }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
-  // Holder siste callback uten å la den trigge ny rendring av widgeten.
+  // Holds the latest callback without letting it trigger a re-render of the widget.
   const onTokenRef = useRef(onToken);
   onTokenRef.current = onToken;
 
@@ -88,8 +88,8 @@ export default function TurnstileWidget({ siteKey, onToken, resetKey }: Props) {
           }) ?? null;
       })
       .catch(() => {
-        // Uten widget finnes det ikke noe token, og serveren avviser. Brukeren
-        // får den vanlige feilmeldingen fra skjemaet.
+        // Without a widget there is no token, and the server rejects. The user
+        // gets the usual error message from the form.
         onTokenRef.current('');
       });
 
@@ -103,7 +103,7 @@ export default function TurnstileWidget({ siteKey, onToken, resetKey }: Props) {
   }, [siteKey]);
 
   useEffect(() => {
-    // Hopper over første kjøring: widgeten er nettopp rendret.
+    // Skips the first run: the widget has just been rendered.
     if (resetKey === 0) return;
     if (widgetIdRef.current !== null && window.turnstile) {
       window.turnstile.reset(widgetIdRef.current);

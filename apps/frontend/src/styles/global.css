@@ -16,9 +16,9 @@
 }
 
 :root {
-  /* Font family — single source of truth for sidens to fonter.
-     Brødtekst: --ds-font-family. Overskrift: --ki-heading-font.
-     Alt annet (inkl. RichText) skal referere disse, ikke gjenta navnene. */
+  /* Font family — single source of truth for the site's two fonts.
+     Body text: --ds-font-family. Headings: --ki-heading-font.
+     Everything else (incl. RichText) should reference these, not repeat the names. */
   --ds-font-family: "Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --ki-heading-font: "PT Serif", serif;
 
@@ -44,19 +44,19 @@ body {
   font-feature-settings: "cv05" 1;
 }
 
-/* Overskrifter deles ikke automatisk med bindestrek. En bindestrek som står i
-   teksten, som i «KI-innhold», er fortsatt et sted linja kan brekke, og et ord
-   som er lengre enn hele linja brytes av word-break. */
+/* Headings are not hyphenated automatically. A hyphen that is in the text,
+   as in "KI-innhold", is still a place the line can break, and a word that
+   is longer than the whole line is broken by word-break. */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--ki-heading-font);
   word-break: break-word;
 }
 
-/* På mobil krymper en sidetittel akkurat nok til at det lengste ordet får plass
-   på én linje. --lengste-ord settes per tittel med ordlengde() i lib/text.ts,
-   og 32 px er sidemargen. 0,52 em per tegn dekker de lengste ordene i prod,
-   målt til 0,46–0,51 i PT Serif («Arrangementer» er bredest). Uten variabelen, eller når
-   ordet uansett får plass, blir størrelsen som før. */
+/* On mobile a page title shrinks just enough for the longest word to fit on
+   one line. --lengste-ord is set per title with ordlengde() in lib/text.ts,
+   and 32 px is the side margin. 0.52 em per character covers the longest words in prod,
+   measured at 0.46-0.51 in PT Serif ("Arrangementer" is widest). Without the variable, or when
+   the word fits anyway, the size stays as before. */
 @media (max-width: 767px) {
   h1.ds-heading[data-size="xl"] {
     font-size: min(var(--ds-heading-xl-font-size), calc((100vw - 32px) / (var(--lengste-ord, 1) * 0.52)));
@@ -64,8 +64,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Utility classes */
-/* Binder siste ord og pil-ikon sammen så pilen ikke brekker alene (#464).
-   Brukes med splitLastWord() fra lib/text.ts. */
+/* Binds the last word and arrow icon together so the arrow doesn't wrap alone (#464).
+   Used with splitLastWord() from lib/text.ts. */
 .u-nowrap {
   white-space: nowrap;
 }
@@ -110,7 +110,7 @@ main a:has(> img)::after {
   --dsc-details-background: var(--ds-color-background-default);
 }
 
-/* ── Reduce motion respect (UU-krav) ──────────────────
+/* ── Reduce motion respect (accessibility requirement) ──────────────────
  * For users who set prefers-reduced-motion, disable transitions and animations.
  */
 @media (prefers-reduced-motion: reduce) {
@@ -122,7 +122,7 @@ main a:has(> img)::after {
   }
 }
 
-/* ── Print stylesheet (også grunnlag for PDF-eksport #143) ──────────────────
+/* ── Print stylesheet (also the basis for PDF export #143) ──────────────────
  * Strip backgrounds, hide non-content chrome, dark text on white.
  */
 @media print {

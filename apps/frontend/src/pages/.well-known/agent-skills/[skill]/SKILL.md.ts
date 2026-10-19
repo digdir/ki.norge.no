@@ -6,8 +6,8 @@ export const GET: APIRoute = async ({ url, params }) => {
   const base = isProdHost(url.hostname) ? CANONICAL_SITE_URL : url.origin;
 
   try {
-    // Samme cachede generasjon som indeksen, ellers kunne digesten der beskrevet
-    // en annen tekst enn den vi serverer her.
+    // Same cached generation as the index, otherwise the digest there could describe
+    // a different text than the one we serve here.
     const skill = (await buildSkills(base)).find((s) => s.name === params.skill);
     if (!skill) {
       return new Response('Ukjent skill.', {
@@ -24,7 +24,7 @@ export const GET: APIRoute = async ({ url, params }) => {
       },
     });
   } catch (error) {
-    console.error('[agent-skills] SKILL.md feilet', error);
+    console.error('[agent-skills] SKILL.md failed', error);
     return new Response('Skill er ikke tilgjengelig.', {
       status: 502,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },

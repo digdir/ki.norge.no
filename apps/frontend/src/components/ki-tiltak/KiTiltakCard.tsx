@@ -7,7 +7,7 @@ interface Props {
   onOpen: (tiltak: KiTiltak) => void;
 }
 
-/** Lange navn krymper i to trinn, ellers sprenger de kortet. 8 av 58 er over 62 tegn. */
+/** Long names shrink in two steps, otherwise they break the card. 8 of 58 are over 62 characters. */
 function lengthClass(navn: string): string {
   if (navn.length > 95) return 'is-xlong';
   if (navn.length > 62) return 'is-long';
@@ -33,7 +33,7 @@ export default function KiTiltakCard({ tiltak, query, onOpen }: Props) {
       <span id={titleId} className={`tiltak-kort-tittel ${lengthClass(tiltak.navn)}`.trim()}>
         {highlight(tiltak.navn, query)}
       </span>
-      {/* Alle virksomhetene etter hverandre, hovedvirksomheten først. Kuttes med … etter to linjer (#806). */}
+      {/* All the organisations in a row, the main organisation first. Truncated with … after two lines (#806). */}
       <span id={orgId} className="tiltak-kort-virksomhet">{highlight(virksomhetTekst(tiltak), query)}</span>
       {showsDescription && (
         <span id={descId} className="tiltak-kort-beskrivelse">{highlight(tiltak.beskrivelse, query)}</span>

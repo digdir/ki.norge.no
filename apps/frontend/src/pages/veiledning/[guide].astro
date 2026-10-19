@@ -34,7 +34,7 @@ let enkelCtx: {
 if (enkel) {
   const seoTitle = enkel.seoTittel || enkel.tittel;
   const seoDesc = enkel.seoBeskrivelse || enkel.ingress || getPlainText(enkel.innhold, 200);
-  // SEO-bildet er for delingsforhaandsvisning og skal aldri bli innhold (#738).
+  // The SEO image is for share previews and must never become content (#738).
   const heroImage = enkel.artikkelBilde;
   const seoImage = enkel.seoBilde?.url || enkel.artikkelBilde?.url;
   enkelCtx = {
@@ -151,9 +151,9 @@ if (guideData) {
 
 <style>
 
-  /* Tittel, ingress og brødtekst deler spalte, slik artikkel- og
-     eksempelsidene gjør det. max-width teller med paddingen fra
-     data-layout-block="content", derfor calc og ikke naken 680. */
+  /* Title, ingress and body text share a column, as the article and
+     example pages do. max-width includes the padding from
+     data-layout-block="content", hence calc and not a bare 680. */
   .guide-header,
   .article-page {
     max-width: calc(680px + 2 * var(--layout-content-padding));
@@ -195,9 +195,9 @@ if (guideData) {
     grid-column: 4;
     margin-block-start: 0;
 
-    /* Samme bruddpunkt som artikkelgridet. Står bildet i kolonne 4 når gridet
-       har én kolonne, lager nettleseren tre ekstra kolonner, og teksten presses
-       ned i 77 px mellom 768 og 1024. */
+    /* Same breakpoint as the article grid. If the image sits in column 4 when the grid
+       has one column, the browser creates three extra columns, and the text is squeezed
+       into 77 px between 768 and 1024. */
     @media (max-width: 1024px) {
       grid-column: 1 / 5;
       margin-block-start: var(--ds-size-6);

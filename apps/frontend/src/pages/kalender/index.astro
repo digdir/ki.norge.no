@@ -14,7 +14,7 @@ try {
   hendelser = h.data;
 } catch (e) {
   console.error('Failed to fetch kalender:', e);
-  // CMS-henting feilet: ikke cache den degraderte renderen (se middleware).
+  // CMS fetch failed: do not cache the degraded render (see middleware).
   Astro.response.headers.set('Cache-Control', 'private, no-store');
 }
 
@@ -27,16 +27,16 @@ const now = new Date();
 const sortByStart = (a: Kalenderhendelse, b: Kalenderhendelse) =>
   new Date(a.startDato).getTime() - new Date(b.startDato).getTime();
 
-// Bruk sluttDato hvis satt så flerdagers-arrangement holder seg som "kommende"
-// helt til siste dag er passert. Sortering bruker fortsatt startDato.
+// Use sluttDato if set so multi-day events stay "upcoming"
+// until the last day has passed. Sorting still uses startDato.
 const effectiveEnd = (h: Kalenderhendelse) => new Date(h.sluttDato || h.startDato);
 
-// Fremhevet inngang styres av redaktøren alene. Uten valgt hendelse vises ingen
-// fremhevet boks, slik at redaktøren kan ta den vekk når det ikke er noe å løfte.
-// Tidligere falt vi tilbake til første kommende hendelse, og da fantes det ingen
-// måte å skru den av på.
-// Picker-objektet fra Delivery API har tomme properties (ingen slug/dato), så
-// slå opp den fulle hendelsen i listen via id.
+// The featured entry is controlled by the editor alone. Without a chosen event no
+// featured box is shown, so the editor can remove it when there is nothing to highlight.
+// We used to fall back to the first upcoming event, and then there was no
+// way to turn it off.
+// The picker object from the Delivery API has empty properties (no slug/date), so
+// look up the full event in the list by id.
 const allKommende = hendelser
   .filter(h => effectiveEnd(h) >= now)
   .sort(sortByStart);
@@ -47,22 +47,22 @@ const featuredId = featured?.id;
 
 const kommende = allKommende
   .filter(h => h.id !== featuredId);
-// Når det eneste kommende arrangementet er løftet til featured, blir denne fanen
-// tom. Da skal vi ikke si "Ingen kommende arrangement" (det motsier featured
-// øverst), men peke brukeren oppover.
+// When the only upcoming event has been lifted to featured, this tab becomes
+// empty. Then we should not say "Ingen kommende arrangement" (that contradicts the
+// featured one at the top), but point the user upwards.
 const featuredErKommende = !!featured && effectiveEnd(featured) >= now;
 const tidligere = hendelser
   .filter(h => h.id !== featuredId)
   .filter(h => effectiveEnd(h) < now)
   .sort((a, b) => sortByStart(b, a));
 
-// Uten kommende arrangement er tidligere-fanen den eneste med innhold. Åpne den
-// med en gang i stedet for å la brukeren lande på en tom fane. u-tabs beholder
-// den fanen som allerede har aria-selected="true" ved oppstart.
+// Without upcoming events the past tab is the only one with content. Open it
+// right away instead of letting the user land on an empty tab. u-tabs keeps
+// the tab that already has aria-selected="true" at startup.
 const startfane = allKommende.length === 0 && tidligere.length > 0 ? 'tidligere' : 'kommende';
 
-// Kommende først, så tidligere. Det er rekkefølgen som er nyttig for en agent
-// som spør "hva skjer framover".
+// Upcoming first, then past. That is the order that is useful for an agent
+// asking "what is happening next".
 const collectionJsonLd = collectionPageSchema({
   name: tittel || seoTitle || 'Kalender',
   description: seoDesc,
@@ -97,10 +97,10 @@ const breadcrumbJsonLd = breadcrumbSchema([
     </section>
   )}
 
-  <!-- Ingen synlig overskrift her: sidetittelen er «Arrangementer», og en h2 med
-       samme ord rett under leses som en dobling (#640). Panelene har i stedet hver
-       sin skjulte h2, ellers hopper sida fra h1 rett til korttitlenes h3. Det
-       skjulte panelet har hidden, så bare det aktive bidrar til overskriftslista. -->
+  <!-- No visible heading here: the page title is "Arrangementer", and an h2 with
+       the same word right below reads as a duplicate (#640). Instead the panels each
+       have their own hidden h2, otherwise the page jumps from h1 straight to the card titles' h3. The
+       hidden panel has hidden, so only the active one contributes to the heading list. -->
   <section class="kalender-arrangementer" data-layout-block="content">
     <ds-tabs class="ds-tabs kalender-tabs">
       <ds-tablist aria-label="Arrangementer">

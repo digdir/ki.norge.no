@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
 /**
- * Pakker hvert treff på query i <mark>. Returnerer teksten uendret når det
- * ikke er noe søk, så kortene slipper unødvendige elementer.
+ * Wraps each match of query in <mark>. Returns the text unchanged when there
+ * is no search, so the cards avoid unnecessary elements.
  */
 export function highlight(text: string, query: string): ReactNode {
   const needle = query.trim();

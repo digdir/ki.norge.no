@@ -22,9 +22,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const CMS = process.env.UMBRACO_URL ?? 'http://localhost:5000';
 
-// Hele denne fila snakker med et Umbraco som må kjøre. Uten det feilet den før
-// med 24 x ECONNREFUSED, som ser ut som ekte testfeil og gjorde at ingen kjørte
-// suiten. Nå hoppes den heller over med en tydelig begrunnelse.
+// This whole file talks to an Umbraco that must be running. Without it, it used to fail
+// with 24 x ECONNREFUSED, which looks like real test failures and meant nobody ran
+// the suite. Now it is skipped instead, with a clear reason.
 test.beforeAll(async ({ request }) => {
   try {
     const res = await request.get(`${CMS}/umbraco/delivery/api/v2/content?take=1`, {
@@ -33,7 +33,7 @@ test.beforeAll(async ({ request }) => {
     });
     if (!res.ok()) throw new Error(`status ${res.status()}`);
   } catch {
-    test.skip(true, `Ingen Umbraco på ${CMS}. Start med "pnpm run cms:dev", eller sett UMBRACO_URL.`);
+    test.skip(true, `No Umbraco at ${CMS}. Start it with "pnpm run cms:dev", or set UMBRACO_URL.`);
   }
 });
 
@@ -459,13 +459,13 @@ test.describe('Document types', () => {
   });
 });
 
-// Seeded content-testene er FJERNET (2026-08-07). De asserterte innhold fra
-// ContentSeeder (4 artikler, 5 FAQ-elementer, 8 merkelapper osv.), og seederen
-// ble slettet helt fordi innholdsskriving fra oppstartskode ga tre prod-incidenter.
-// Innhold lages nå av redaktører, så antall og titler er ikke noe testene skal
-// låse fast. Målt mot prod da de ble fjernet: artikkel=6 (testen krevde 4),
-// faq=0 (krevde 5), merkelapp=0 (krevde 8). De kunne aldri passert igjen.
-// Se beslutningsloggen, docs/rapporter/beslutningslogg.md.
+// The seeded content tests are REMOVED (2026-08-07). They asserted content from
+// ContentSeeder (4 articles, 5 FAQ items, 8 tags etc.), and the seeder
+// was deleted entirely because writing content from startup code caused three prod incidents.
+// Content is now created by editors, so counts and titles are not something the tests should
+// lock down. Measured against prod when they were removed: artikkel=6 (the test required 4),
+// faq=0 (required 5), merkelapp=0 (required 8). They could never pass again.
+// See the decision log, docs/reports/decision-log.md.
 
 
 // ── Delivery API edge cases ─────────────────────────────────────
