@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# Vokter de committede uSync-skjemafilene.
+# Guards the committed uSync schema files.
 #
-# Fanger den ene endringen som kan velte prod: en skjemaeksport tatt fra en ANNEN
-# database enn prod. uSync re-noekler ved import, og content-typene har tilfeldige
-# GUID-er per database, saa en fremmed eksport gir prod-typene nye noekler og gjoer
-# alt blokkinnhold «Unsupported». Se apps/cms-umbraco/uSync/README.md.
+# Catches the one change that can bring down prod: a schema export taken from a DIFFERENT
+# database than prod. uSync re-keys on import, and the content types have random
+# GUIDs per database, so a foreign export gives the prod types new keys and makes
+# all block content "Unsupported". See apps/cms-umbraco/uSync/README.md.
 #
-# Sjekker:
-#   1. Ingen EKSISTERENDE type har faatt ny Key (en fremmed eksport endrer alle paa en gang)
-#   2. Antall typer har ikke falt (fanger avkuttet eller delvis eksport)
-#   3. Hvis .origin finnes, maa den si prod
+# Checks:
+#   1. No EXISTING type has got a new Key (a foreign export changes all of them at once)
+#   2. The number of types has not dropped (catches a truncated or partial export)
+#   3. If .origin exists, it must say prod
 #
-# Bruk: bash scripts/check-usync-schema.sh [base-ref]
-#   base-ref  hva som sammenlignes mot, default origin/main
+# Usage: bash scripts/check-usync-schema.sh [base-ref]
+#   base-ref  what to compare against, default origin/main
 #
-# Bevisst re-noekling slippes gjennom med env USYNC_REKEY_APPROVED=true
-# (i CI settes den av PR-labelen schema-rekey-approved).
+# Deliberate re-keying is let through with env USYNC_REKEY_APPROVED=true
+# (in CI it is set by the PR label schema-rekey-approved).
 
 set -uo pipefail
 
@@ -24,29 +24,29 @@ DIR="apps/cms-umbraco/uSync/v17"
 FAIL=0
 
 note() { echo "▸ $*"; }
-fail() { echo "  FEIL: $*" >&2; FAIL=1; }
+fail() { echo "  ERROR: $*" >&2; FAIL=1; }
 
-git rev-parse --verify -q "$BASE" >/dev/null 2>&1 || { echo "Fant ikke base-ref '$BASE'."; exit 1; }
+git rev-parse --verify -q "$BASE" >/dev/null 2>&1 || { echo "Could not find base-ref '$BASE'."; exit 1; }
 
-# Ingen skjemaendringer = ingenting aa sjekke.
+# No schema changes = nothing to check.
 if git diff --quiet "$BASE"...HEAD -- "$DIR" 2>/dev/null; then
-  note "Ingen endringer i $DIR. Hopper over."
+  note "No changes in $DIR. Skipping."
   exit 0
 fi
 
-note "Skjemafiler er endret. Kjorer vakt-sjekkene…"
+note "Schema files have changed. Running the guard checks…"
 
-# ---- 1. Noekkelendringer paa eksisterende typer ----------------------------
+# ---- 1. Key changes on existing types ----------------------------------
 key_of() { grep -oE 'Key="[^"]+"' <<<"$1" | head -1 | sed 's/Key="//;s/"//'; }
 
 REKEYED=0
 while IFS= read -r f; do
   [ -n "$f" ] || continue
-  # Bare filer som finnes i BEGGE. Nye filer kan ikke re-noekle noe.
+  # Only files that exist in BOTH. New files cannot re-key anything.
   old=$(git show "$BASE:$f" 2>/dev/null) || continue
   new=$(git show "HEAD:$f" 2>/dev/null) || continue
-  # tr, ikke ${x,,}: macOS har bash 3.2 der den utvidelsen ikke finnes, og
-  # scriptet ville da stille passert i stedet for aa feile.
+  # tr, not ${x,,}: macOS has bash 3.2 where that expansion does not exist, and
+  # the script would then silently pass instead of failing.
   ko=$(key_of "$old" | tr 'A-Z' 'a-z'); kn=$(key_of "$new" | tr 'A-Z' 'a-z')
   [ -n "$ko" ] && [ -n "$kn" ] || continue
   if [ "$ko" != "$kn" ]; then
@@ -56,52 +56,52 @@ while IFS= read -r f; do
 done < <(git diff --name-only "$BASE"...HEAD -- "$DIR" | grep '\.config$')
 
 if [ "$REKEYED" -gt 0 ]; then
-  [ "$REKEYED" -gt 8 ] && echo "    … og $((REKEYED-8)) til"
+  [ "$REKEYED" -gt 8 ] && echo "    … and $((REKEYED-8)) more"
   if [ "${USYNC_REKEY_APPROVED:-}" = "true" ]; then
-    note "$REKEYED typer re-noekles, men det er eksplisitt godkjent."
+    note "$REKEYED types are re-keyed, but that is explicitly approved."
   else
-    fail "$REKEYED eksisterende typer ville faatt NY noekkel."
+    fail "$REKEYED existing types would get a NEW key."
     {
       echo ""
-      echo "  Dette skjer naar skjemafilene er eksportert fra en annen database enn prod."
-      echo "  Importeres de i prod, re-noekles typene og ALT blokkinnhold blir «Unsupported»."
-      echo "  Eksporten skal alltid tas fra prod. Se apps/cms-umbraco/uSync/README.md."
+      echo "  This happens when the schema files are exported from a different database than prod."
+      echo "  If they are imported in prod, the types are re-keyed and ALL block content becomes \"Unsupported\"."
+      echo "  The export must always be taken from prod. See apps/cms-umbraco/uSync/README.md."
       echo ""
-      echo "  Er re-noeklingen tilsiktet, sett PR-labelen: schema-rekey-approved"
+      echo "  If the re-keying is intended, set the PR label: schema-rekey-approved"
     } >&2
   fi
 else
-  note "Ingen eksisterende type har endret noekkel."
+  note "No existing type has changed key."
 fi
 
-# ---- 2. Antall typer har ikke falt ----------------------------------------
+# ---- 2. The number of types has not dropped ------------------------------
 count_in() { git ls-tree -r --name-only "$1" -- "$DIR/$2" 2>/dev/null | grep -c '\.config$'; }
 for sub in ContentTypes DataTypes; do
   before=$(count_in "$BASE" "$sub"); after=$(count_in HEAD "$sub")
   if [ "${after:-0}" -lt "${before:-0}" ]; then
-    fail "$sub gikk fra $before til $after filer. Delvis eller avkuttet eksport?"
+    fail "$sub went from $before to $after files. Partial or truncated export?"
   else
-    note "$sub: $before -> $after filer."
+    note "$sub: $before -> $after files."
   fi
 done
 
-# ---- 3. Opprinnelsesmerket ------------------------------------------------
+# ---- 3. The origin marker --------------------------------------------------
 ORIGIN_FILE="$DIR/.origin"
 if git cat-file -e "HEAD:$ORIGIN_FILE" 2>/dev/null; then
   env_name=$(git show "HEAD:$ORIGIN_FILE" | grep -oE '"environment"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"\([^"]*\)"$/\1/')
   if [ "$env_name" = "prod" ]; then
-    note "Opprinnelse: prod."
+    note "Origin: prod."
   else
-    fail "Opprinnelsesmerket sier '$env_name', ikke 'prod'. Eksporten er tatt feil sted."
+    fail "The origin marker says '$env_name', not 'prod'. The export was taken from the wrong place."
   fi
 else
-  note "Ingen .origin-fil enda (skrives ved neste prod-eksport). Hopper over."
+  note "No .origin file yet (written at the next prod export). Skipping."
 fi
 
 echo ""
 if [ "$FAIL" -ne 0 ]; then
-  echo "================ SKJEMAVAKT: AVVIST ================" >&2
+  echo "================ SCHEMA GUARD: REJECTED ============" >&2
   exit 1
 fi
-echo "================ SKJEMAVAKT: OK ===================="
+echo "================ SCHEMA GUARD: OK =================="
 exit 0

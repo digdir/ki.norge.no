@@ -5,16 +5,16 @@ minimumReleaseAge: 1440
 blockExoticSubdeps: true
 overrides:
   devalue: "^5.8.1"
-  # Sikkerhetspinninger for transitive deps Trivy flagger (HIGH). Fjern når
-  # vite/astro drar inn fiksede versjoner selv.
+  # Security pins for transitive deps Trivy flags (HIGH). Remove when
+  # vite/astro pull in fixed versions themselves.
   esbuild: "^0.28.1" # GHSA-gv7w-rqvm-qjhr
   ws: "^8.21.0" # CVE-2026-48779
-  sharp: "^0.35.5" # GHSA-f88m-g3jw-g9cj og GHSA-wq5f-xc86-pv6w, astro 7.2.8+ krever ^0.35.4
-  undici: "^7.29.0" # CVE-2026-13697, transitiv via miniflare/wrangler
-  svgo: "^4.1.0" # GHSA-2p49-hgcm-8545 og CVE-2026-84370 (removeScripts slapp gjennom lenker)
-  # vite-override fjernet: astro 6.4 sin ^7.3.2 drar nå inn en fikset 7.x selv
-  # (CVE-2026-53571 fikset i 7.3.5), så pinningen var overflødig og hindret
-  # Renovate i å la vite flyte. Lar den være transitiv til astro 7 (drar inn vite 8).
+  sharp: "^0.35.5" # GHSA-f88m-g3jw-g9cj and GHSA-wq5f-xc86-pv6w, astro 7.2.8+ requires ^0.35.4
+  undici: "^7.29.0" # CVE-2026-13697, transitive via miniflare/wrangler
+  svgo: "^4.1.0" # GHSA-2p49-hgcm-8545 and CVE-2026-84370 (removeScripts let links through)
+  # vite override removed: astro 6.4's ^7.3.2 now pulls in a fixed 7.x itself
+  # (CVE-2026-53571 fixed in 7.3.5), so the pin was redundant and stopped
+  # Renovate from letting vite float. Left transitive until astro 7 (pulls in vite 8).
 allowBuilds:
   esbuild: true
   sharp: true

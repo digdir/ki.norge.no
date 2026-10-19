@@ -19,11 +19,11 @@ spec:
         linkerd.io/inject: enabled
     spec:
       serviceAccountName: umbraco
-      # 1654 er app-brukeren i .NET-imaget. fsGroup gjør umbraco-data (Azure Disk)
-      # skrivbar for den, også filene root laget før. Krever image 72 eller nyere,
-      # eldre image kjører som root og starter ikke med dette. linkerd-containerne
-      # har egen runAsUser og overstyrer podnivået. Always heller enn
-      # OnRootMismatch, så hele volumet rettes ved hver start. Volumene er små.
+      # 1654 is the app user in the .NET image. fsGroup makes umbraco-data (Azure Disk)
+      # writable for it, including the files root created before. Requires image 72 or newer,
+      # older images run as root and do not start with this. The linkerd containers
+      # have their own runAsUser and override the pod level. Always rather than
+      # OnRootMismatch, so the whole volume is fixed at every start. The volumes are small.
       securityContext:
         runAsNonRoot: true
         runAsUser: 1654
@@ -42,14 +42,14 @@ spec:
           env:
             - name: ASPNETCORE_FORWARDEDHEADERS_ENABLED
               value: "true"
-            # Uten denne hopper Umbraco over ventende databasemigreringer ved
-            # oppstart, og Delivery API svarer 200 OK med tom liste.
+            # Without this Umbraco skips pending database migrations at
+            # startup, and the Delivery API answers 200 OK with an empty list.
             - name: Umbraco__CMS__Unattended__UpgradeUnattended
               value: "true"
-            # Uten en varig sti havner DataProtection-nøklene pod-lokalt, og da
-            # blir alle redaktører logget ut ved hver deploy fordi backoffice-
-            # cookiene ikke lar seg dekryptere av den nye podden. umbraco-data er
-            # montert på /app/umbraco/Data og er ReadWriteOnce med replicas: 1.
+            # Without a persistent path the DataProtection keys end up pod-local, and then
+            # all editors are logged out at every deploy because the backoffice
+            # cookies cannot be decrypted by the new pod. umbraco-data is
+            # mounted at /app/umbraco/Data and is ReadWriteOnce with replicas: 1.
             - name: DataProtection__KeyPath
               value: /app/umbraco/Data/DataProtection-Keys
             - name: KeyVault__AkvUri
@@ -57,8 +57,8 @@ spec:
                 configMapKeyRef:
                   name: umbraco-dis-vault
                   key: AkvUri
-            # Brukes ikke i noe miljø. «Publish Syncroot artifacts» skriver begge
-            # om til Azure SQL før artefaktet publiseres.
+            # Not used in any environment. "Publish Syncroot artifacts" rewrites both
+            # to Azure SQL before the artifact is published.
             - name: ConnectionStrings__umbracoDbDSN
               value: "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
             - name: ConnectionStrings__umbracoDbDSN_ProviderName
@@ -80,10 +80,10 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
-          # Kestrel lytter først når Umbraco har startet, og ved en oppgradering
-          # kjører migreringene før det. Gis det opp midt i en migrering, starter
-          # den på nytt hver gang, derfor 10 minutter. Målt lokalt: 2-7 sekunder.
-          # Probestiene må tillates i network-policies.yaml, ellers avviser linkerd dem.
+          # Kestrel only listens once Umbraco has started, and during an upgrade
+          # the migrations run before that. If it gives up in the middle of a migration, it starts
+          # over every time, hence 10 minutes. Measured locally: 2-7 seconds.
+          # The probe paths must be allowed in network-policies.yaml, otherwise linkerd rejects them.
           startupProbe:
             httpGet:
               path: /api/health
@@ -91,9 +91,9 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 60
-          # /api/health sjekker ikke databasen, så et kort databaseavbrudd gir ikke
-          # omstart. Startet Umbraco uten database, svarer den 500, og da gir en
-          # omstart et nytt forsøk.
+          # /api/health does not check the database, so a short database outage does not cause a
+          # restart. If Umbraco started without a database, it answers 500, and then a
+          # restart gives a new attempt.
           livenessProbe:
             httpGet:
               path: /api/health
@@ -111,17 +111,17 @@ spec:
           volumeMounts:
             - name: umbraco-data
               mountPath: /app/umbraco/Data
-            # uSync-mappa ligger ellers paa containerens skrivelag og forsvinner ved
-            # hver restart. Skjemaet taaler det (ContentTypes/DataTypes bakes inn i
-            # imaget og er tilbake ved boot), men innholdseksporten gjoer ikke det.
-            # Gjenbruker umbraco-data via subPath, saa ingen ny PVC trengs.
+            # The uSync folder otherwise lives on the container's write layer and disappears at
+            # every restart. The schema tolerates that (ContentTypes/DataTypes are baked into
+            # the image and are back at boot), but the content export does not.
+            # Reuses umbraco-data via subPath, so no new PVC is needed.
             - name: umbraco-data
               mountPath: /app/uSync/v17/Content
               subPath: uSync-content
-            # umbraco-media er BEVISST ikke montert paa /app/wwwroot/media. Media
-            # ligger i Azure Blob, og en mount her gjoer at static files serverer
-            # den frosne PVC-kopien foer blob-provideren slipper til. Volumet staar
-            # igjen som frossen kopi. Se Composers/AzureBlobMediaComposer.cs.
+            # umbraco-media is DELIBERATELY not mounted at /app/wwwroot/media. Media
+            # lives in Azure Blob, and a mount here makes static files serve
+            # the frozen PVC copy before the blob provider gets a turn. The volume remains
+            # as a frozen copy. See Composers/AzureBlobMediaComposer.cs.
             - name: umbraco-logs
               mountPath: /app/umbraco/Logs
       volumes:

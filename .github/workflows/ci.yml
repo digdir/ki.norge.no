@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [main]
 
-# Ingen jobb her skriver til repoet. Uten dette arver de repo-standarden, som
-# CodeQL flagger.
+# No job here writes to the repo. Without this they inherit the repo default, which
+# CodeQL flags.
 permissions:
   contents: read
 
@@ -30,26 +30,26 @@ jobs:
         working-directory: apps/frontend
         run: pnpm install --frozen-lockfile
 
-      # Kjører før build, slik at en redaksjonell datafeil i
-      # src/data/ki-tiltak.json stopper her med en tydelig melding i stedet for
-      # å slippe gjennom. Build alene fanger den ikke, fordi siden er
-      # server-rendret og modulen bundles uten å evalueres.
+      # Runs before build, so that an editorial data error in
+      # src/data/ki-tiltak.json stops here with a clear message instead of
+      # slipping through. Build alone does not catch it, because the page is
+      # server-rendered and the module is bundled without being evaluated.
       - name: Unit tests
         working-directory: apps/frontend
         run: pnpm run test:unit
 
-      # astro sync lager typene i .astro/ som tsconfig inkluderer.
-      - name: Typesjekk
+      # astro sync generates the types in .astro/ that tsconfig includes.
+      - name: Typecheck
         working-directory: apps/frontend
         run: pnpm run typecheck
 
-      # Cache-workeren foran ki.norge.no har egne tester, som ikke kjørte noe sted.
-      - name: Cache-worker-tester
+      # The cache worker in front of ki.norge.no has its own tests, which did not run anywhere.
+      - name: Cache worker tests
         run: pnpm --filter cache-kinorgeportal exec vitest run
 
-      # CMS-proxyen foran cms.ki.norge.no har ingen egne avhengigheter, så testene
-      # kjører på Node sin innebygde testløper.
-      - name: CMS-proxy-tester
+      # The CMS proxy in front of cms.ki.norge.no has no dependencies of its own, so the tests
+      # run on Node's built-in test runner.
+      - name: CMS proxy tests
         run: node --test 'apps/cms-kinorgeportal/test/*.test.ts'
 
       - name: Build
@@ -175,14 +175,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      # Trenger full historikk for aa sammenligne mot base-branchen.
+      # Needs full history to compare against the base branch.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - name: Sjekk uSync-skjemafilene
+      - name: Check the uSync schema files
         env:
-          # Labelen schema-rekey-approved er den eksplisitte overstyringen.
+          # The schema-rekey-approved label is the explicit override.
           USYNC_REKEY_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'schema-rekey-approved') }}
         run: |
           git fetch -q origin "${{ github.base_ref }}"

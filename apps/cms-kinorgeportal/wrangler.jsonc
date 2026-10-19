@@ -4,9 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-07",
   "compatibility_flags": ["nodejs_compat"],
-  // workers.dev-hostene MÅ være på: frontendens UMBRACO_PUBLIC_URL (media-URLer
-  // i nettleser) peker på cms-kinorgeportal-prod...workers.dev. De var skrudd på
-  // i dashboardet (drift); "false" her slo dem av ved neste deploy (2026-07-15).
+  // The workers.dev hosts MUST be on: the frontend's UMBRACO_PUBLIC_URL (media URLs
+  // in the browser) points to cms-kinorgeportal-prod...workers.dev. They were turned on
+  // in the dashboard (drift); "false" here turned them off at the next deploy (2026-07-15).
   "workers_dev": true,
   "env": {
     "tt02": {

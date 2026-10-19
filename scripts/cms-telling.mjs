@@ -1,26 +1,26 @@
 #!/usr/bin/env node
-// Teller innholdet et CMS-miljø leverer gjennom Delivery API. Brukes før og etter
-// en CMS-deploy, for å se at innholdet er uendret og at ingen blokker har mistet
-// typen sin (uSync-re-nøkling gir blokker med contentType «Unsupported»).
+// Counts the content a CMS environment delivers through the Delivery API. Used before and after
+// a CMS deploy, to see that the content is unchanged and that no blocks have lost
+// their type (uSync re-keying gives blocks with contentType "Unsupported").
 //
-// Bruk:
-//   node scripts/cms-telling.mjs cms.ki.norge.no           telling
+// Usage:
+//   node scripts/cms-telling.mjs cms.ki.norge.no           count
 //   node scripts/cms-telling.mjs cms.ki.test.norge.no
-//   node scripts/cms-telling.mjs cms.ki.norge.no --noder   én linje per node, for diff før/etter
+//   node scripts/cms-telling.mjs cms.ki.norge.no --noder   one line per node, for diff before/after
 //
-// Delivery API svarer 200 med en tom liste hvis Umbraco har hoppet over en
-// migrering, så «noder=0» er en feil, ikke et tomt miljø.
+// The Delivery API answers 200 with an empty list if Umbraco has skipped a
+// migration, so "nodes=0" is an error, not an empty environment.
 
 const [vert, valg] = process.argv.slice(2);
 if (!vert) {
-  console.error('Bruk: node scripts/cms-telling.mjs <cms-vert> [--noder]');
+  console.error('Usage: node scripts/cms-telling.mjs <cms-host> [--noder]');
   process.exit(2);
 }
 
 const url = `https://${vert}/umbraco/delivery/api/v2/content?take=500&expand=properties%5B%24all%5D&cb=${Date.now()}`;
 const svar = await fetch(url, { headers: { Accept: 'application/json' } });
 if (!svar.ok) {
-  console.error(`${vert} svarte ${svar.status}`);
+  console.error(`${vert} answered ${svar.status}`);
   process.exit(1);
 }
 const data = await svar.json();
@@ -47,5 +47,5 @@ const gå = (o) => {
 };
 data.items.forEach((i) => gå(i.properties));
 
-console.log(`${vert}: noder=${data.total} blokker=${blokker} typer=${typer.size} unsupported=${unsupported}`);
+console.log(`${vert}: nodes=${data.total} blocks=${blokker} types=${typer.size} unsupported=${unsupported}`);
 if (data.total === 0 || unsupported > 0) process.exit(1);

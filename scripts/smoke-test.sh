@@ -4,9 +4,9 @@
 #
 # Usage: bash scripts/smoke-test.sh [--prod | --tt02 | --local]
 #   --prod (default): tests https://ki-norge-frontend... and the prod CMS
-#   --tt02:            tests ki.test.norge.no + tt02-CMS, krever Altinn-VPN.
-#                      Kjor denne etter en speiling: check_blocks fanger innhold
-#                      som har falt til Unsupported paa vei over.
+#   --tt02:            tests ki.test.norge.no + the tt02 CMS, requires the Altinn VPN.
+#                      Run this after a mirroring: check_blocks catches content
+#                      that has fallen to Unsupported on the way over.
 #   --local:           tests http://localhost:4321 + http://localhost:5000
 
 set -uo pipefail
@@ -18,12 +18,12 @@ if [ "$MODE" = "--local" ]; then
   CMS="http://localhost:5000"
 elif [ "$MODE" = "--tt02" ]; then
   FRONTEND="https://ki.test.norge.no"
-  # Ingen proxy foran tt02, saa denne modusen gaar bare over Altinn-VPN.
+  # No proxy in front of tt02, so this mode only works over the Altinn VPN.
   CMS="https://kinorgeportal.tt02.dis-core.altinn.cloud"
 else
   FRONTEND="https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev"
-  # Proxy-hosten, ikke dis-core direkte: dis-core krever Altinn-VPN og er derfor
-  # ikke nabar fra en GitHub-runner. Proxyen star foran samme instans.
+  # The proxy host, not dis-core directly: dis-core requires the Altinn VPN and is therefore
+  # not reachable from a GitHub runner. The proxy sits in front of the same instance.
   CMS="https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev"
 fi
 
@@ -77,19 +77,19 @@ check() {
   fi
 }
 
-# En sjekk som ikke lot seg kjore er IKKE en bestatt sjekk. Teller som feil,
-# ellers leses en tom testkjoring som gronn.
+# A check that could not run is NOT a passed check. Counts as a failure,
+# otherwise an empty test run reads as green.
 skip() {
   echo "  SKIP  $1  ($2)"
   FAIL=$((FAIL+1))
-  FAILURES+=("$1: hoppet over ($2)")
+  FAILURES+=("$1: skipped ($2)")
 }
 
-# Blokk-regresjonsvakt. Blir content-typene re-noklet (f.eks. av en uSync-import
-# med skjemafiler fra feil database) faller alt blokkinnhold til «Unsupported».
-# Delivery API svarer da fortsatt 200, og hver side rendrer fortsatt, bare uten
-# innhold. En ren statuskode-sjekk ville altsa vaert gronn gjennom hele utfallet.
-# Derfor teller vi blokkene og krever at hver enkelt har en contentType.
+# Block regression guard. If the content types are re-keyed (e.g. by a uSync import
+# with schema files from the wrong database) all block content falls to "Unsupported".
+# The Delivery API then still answers 200, and every page still renders, just without
+# content. A plain status code check would thus have been green through the whole outage.
+# So we count the blocks and require each one to have a contentType.
 check_blocks() {
   local label="$1" ct="$2" prop="$3"
   local out
@@ -111,7 +111,7 @@ print(total, bad)
 " 2>/dev/null)
 
   if [ -z "$out" ] || [ "$out" = "PARSE_ERROR" ]; then
-    skip "$label" "kunne ikke lese Delivery API"
+    skip "$label" "could not read the Delivery API"
     return
   fi
 
@@ -120,15 +120,15 @@ print(total, bad)
   bad=$(echo "$out" | cut -d' ' -f2)
 
   if [ "$total" -eq 0 ]; then
-    echo "  FAIL  $label  (fant null blokker i $ct.$prop)"
+    echo "  FAIL  $label  (found zero blocks in $ct.$prop)"
     FAIL=$((FAIL+1))
-    FAILURES+=("$label: null blokker, skjemaet kan vaere re-noklet")
+    FAILURES+=("$label: zero blocks, the schema may be re-keyed")
   elif [ "$bad" -gt 0 ]; then
-    echo "  FAIL  $label  ($bad av $total blokker mangler contentType)"
+    echo "  FAIL  $label  ($bad of $total blocks lack contentType)"
     FAIL=$((FAIL+1))
-    FAILURES+=("$label: $bad av $total blokker er Unsupported")
+    FAILURES+=("$label: $bad of $total blocks are Unsupported")
   else
-    echo "  PASS  $label  ($total blokker, alle med contentType)"
+    echo "  PASS  $label  ($total blocks, all with contentType)"
     PASS=$((PASS+1))
   fi
 }
@@ -145,19 +145,19 @@ echo ""
 echo "=== Frontend detail pages (sample one of each) ==="
 # Find a real article slug from the API and hit its page
 SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:artikkel&take=1" ${api_key_header[@]+"${api_key_header[@]}"} | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
-if [ -n "$SLUG" ]; then check "Artikkel detail"  "$FRONTEND/artikler/$SLUG"; else skip "Artikkel detail" "fant ingen slug via Delivery API"; fi
+if [ -n "$SLUG" ]; then check "Artikkel detail"  "$FRONTEND/artikler/$SLUG"; else skip "Artikkel detail" "found no slug via the Delivery API"; fi
 
 SLUG=$(curl -s "$CMS/umbraco/delivery/api/v2/content?filter=contentType:eksempel&take=1" ${api_key_header[@]+"${api_key_header[@]}"} | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('items',[]); print(items[0]['properties'].get('slug','') if items else '')" 2>/dev/null)
-if [ -n "$SLUG" ]; then check "Eksempel detail"  "$FRONTEND/eksempler/$SLUG"; else skip "Eksempel detail" "fant ingen slug via Delivery API"; fi
+if [ -n "$SLUG" ]; then check "Eksempel detail"  "$FRONTEND/eksempler/$SLUG"; else skip "Eksempel detail" "found no slug via the Delivery API"; fi
 
 echo ""
-echo "=== Regresjonsvakter ==="
-# En ukjent kalender-slug rendret tidligere et oppdiktet arrangement (#636).
-# Skal redirecte til oversikten, ikke svare 200 med innhold.
-check "Ukjent kalender-slug redirecter" "$FRONTEND/kalender/finnes-ikke-smoke-test" "302" "0"
+echo "=== Regression guards ==="
+# An unknown kalender slug used to render a made-up event (#636).
+# Should redirect to the overview, not answer 200 with content.
+check "Unknown kalender slug redirects" "$FRONTEND/kalender/finnes-ikke-smoke-test" "302" "0"
 
-check_blocks "Artikkelblokker har contentType" "artikkel"  "innhold"
-check_blocks "Eksempelblokker har contentType" "eksempel"  "innhold"
+check_blocks "Artikkel blocks have contentType" "artikkel"  "innhold"
+check_blocks "Eksempel blocks have contentType" "eksempel"  "innhold"
 
 echo ""
 echo "=== Delivery API ($CMS) ==="

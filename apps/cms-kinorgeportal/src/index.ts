@@ -3,29 +3,29 @@ export interface Env {
 }
 
 /**
- * Umbraco setter ingen Cache-Control på mediefiler. Nettleseren fikk dermed
- * ingen cache-direktiv i det hele tatt og hentet hvert bilde på nytt ved hvert
- * besøk. Edgen cachet dem uansett (cf-cache-status HIT), så dette gjelder
- * nettleserlaget, ikke CDN-et.
+ * Umbraco sets no Cache-Control on media files. The browser therefore got
+ * no cache directive at all and fetched every image again on every
+ * visit. The edge cached them anyway (cf-cache-status HIT), so this concerns
+ * the browser layer, not the CDN.
  *
- * En uke, ikke immutable. Umbraco lagrer media under unike nøkkelmapper, så et
- * erstattet bilde får normalt ny sti framfor å mutere den gamle. Det gjør lang
- * levetid trygt, men ikke trygt nok til å love at en sti aldri gjenbrukes.
+ * One week, not immutable. Umbraco stores media under unique key folders, so a
+ * replaced image normally gets a new path rather than mutating the old one. That makes a long
+ * lifetime safe, but not safe enough to promise that a path is never reused.
  */
 const MEDIA_CACHE_CONTROL = "public, max-age=604800";
 
 /**
- * cms.ki.norge.no svarte på ren http, også innloggingsskjemaet til backoffice.
- * norge.no er ikke HSTS-preloadet, så en redaktør som skrev adressen uten
- * https kunne sende passordet i klartekst.
+ * cms.ki.norge.no answered on plain http, including the backoffice login form.
+ * norge.no is not HSTS-preloaded, so an editor who typed the address without
+ * https could send the password in clear text.
  */
 const HSTS = "max-age=31536000";
 
 /**
- * SVG kan inneholde skript, og Umbraco renser ikke opplastede SVG-er. Åpnet
- * direkte på cms.ki.norge.no kjører skriptet på backoffice-opphavet, med
- * innloggingen til den som klikket. I et <img> kjører skript uansett ikke, så
- * dette endrer ikke hvordan bildene vises på nettstedet.
+ * SVG can contain scripts, and Umbraco does not sanitize uploaded SVGs. Opened
+ * directly on cms.ki.norge.no the script runs on the backoffice origin, with
+ * the login of whoever clicked. In an <img> scripts never run anyway, so
+ * this does not change how the images are shown on the website.
  */
 const SVG_CSP = "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
@@ -40,7 +40,7 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
-    // CMS-et er headless og har ingenting på rot; send folk til backoffice.
+    // The CMS is headless and has nothing at the root; send people to the backoffice.
     if (url.pathname === "/") {
       return Response.redirect(`${url.origin}/umbraco`, 302);
     }
@@ -65,14 +65,14 @@ export default {
 
     const response: Response = await fetch(proxyRequest);
 
-    // Backoffice bruker websocket. En kopi av svaret mister den.
+    // The backoffice uses a websocket. A copy of the response loses it.
     if (response.webSocket) return response;
 
     const proxied = new Response(response.body, response);
     proxied.headers.set("Strict-Transport-Security", HSTS);
 
-    // Kun media, og kun når origin ikke selv har sagt noe. Backoffice og
-    // Delivery API skal ikke caches i nettleseren.
+    // Only media, and only when origin has not said anything itself. The backoffice and
+    // Delivery API must not be cached in the browser.
     if (
       url.pathname.startsWith("/media/") &&
       response.ok &&
