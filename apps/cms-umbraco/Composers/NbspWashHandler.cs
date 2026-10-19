@@ -8,17 +8,17 @@ using Umbraco.Cms.Core.Notifications;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Gjør alle non-breaking spaces (U+00A0) og literal nbsp-entiteter om til vanlige
-/// mellomrom ved lagring. De snik seg inn ved innliming fra Word o.l. og gir fast
-/// mellomrom som ikke bryter ved linjeskift, eller en synlig "&amp;nbsp;" når entiteten
-/// limes inn som ren tekst. Treffer tekst- og RichText-felt direkte på en document type,
-/// og alt nede i Block List / Block Grid (blank erstatning på blokk-JSON er trygt, fordi
-/// nbsp bare opptrer i tekstinnhold, aldri i JSON- eller HTML-syntaks). Speiler mønsteret
-/// til <see cref="UrlFieldWashHandler"/>.
+/// Turns all non-breaking spaces (U+00A0) and literal nbsp entities into ordinary
+/// spaces on save. They sneak in when pasting from Word and the like, and give a fixed
+/// space that does not break at line wraps, or a visible "&amp;nbsp;" when the entity
+/// is pasted as plain text. Hits text and RichText fields directly on a document type,
+/// and everything down in Block List / Block Grid (a blind replacement on block JSON is safe, because
+/// nbsp only appears in text content, never in JSON or HTML syntax). Mirrors the pattern
+/// of <see cref="UrlFieldWashHandler"/>.
 ///
-/// Påvirker innhold som lagres etter at handleren er deployet. Eksisterende noder vaskes
-/// først når de re-lagres. Frontend normaliserer uansett nbsp ved rendering, så publikum
-/// ser ren tekst med en gang (se normalizeNbsp i frontend).
+/// Affects content saved after the handler is deployed. Existing nodes are washed
+/// only when they are re-saved. The frontend normalizes nbsp at render anyway, so the public
+/// sees clean text right away (see normalizeNbsp in the frontend).
 /// </summary>
 public class NbspWashComposer : IComposer
 {
@@ -30,11 +30,11 @@ public class NbspWashComposer : IComposer
 
 public class NbspWashHandler : INotificationHandler<ContentSavingNotification>
 {
-    // U+00A0 og entitet-formene &nbsp; &#160; &#xA0; (med valgfrie ledende nuller) -> mellomrom.
+    // U+00A0 and the entity forms &nbsp; &#160; &#xA0; (with optional leading zeros) -> space.
     private static readonly Regex Nbsp =
         new("\u00A0|&nbsp;|&#0*160;|&#x0*A0;", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    // Felt-typer hvor nbsp realistisk dukker opp. Block List/Grid vaskes som hel JSON-streng.
+    // Field types where nbsp realistically shows up. Block List/Grid are washed as a whole JSON string.
     private static readonly HashSet<string> WashableEditors = new()
     {
         Constants.PropertyEditors.Aliases.RichText,

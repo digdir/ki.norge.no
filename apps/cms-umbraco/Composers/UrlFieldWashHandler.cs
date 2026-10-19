@@ -10,12 +10,12 @@ using Umbraco.Cms.Core.Services;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Vasker alle felt som bruker "Lenke / URL"-datatypen ved lagring, uansett hvor de
-/// ligger: direkte på en document type, eller nede i en Block List / Block Grid.
-/// Vaskingen kjenner datatypen igjen på dens key, så datatypen er modulær: ta den i
-/// bruk på et hvilket som helst felt og det vaskes automatisk. Kun interne stier
-/// vaskes (se <see cref="InternalUrlWasher"/>); eksterne URLer står urørt.
-/// Speiler mønsteret til <c>ContentSlugHandler</c>.
+/// Washes all fields that use the "Lenke / URL" data type on save, wherever they
+/// are: directly on a document type, or down in a Block List / Block Grid.
+/// The washing recognizes the data type by its key, so the data type is modular: use it
+/// on any field and it is washed automatically. Only internal paths
+/// are washed (see <see cref="InternalUrlWasher"/>); external URLs are left untouched.
+/// Mirrors the pattern of <c>ContentSlugHandler</c>.
 /// </summary>
 public class UrlFieldWashComposer : IComposer
 {
@@ -46,7 +46,7 @@ public class UrlFieldWashHandler : INotificationHandler<ContentSavingNotificatio
         var urlKey = ResolveUrlKey();
         if (urlKey == null) return;
 
-        // Memo for (contentTypeKey, alias) -> (datatype-key, editor-alias) under denne lagringen.
+        // Memo for (contentTypeKey, alias) -> (data type key, editor alias) during this save.
         var memo = new Dictionary<(Guid, string), (Guid?, string?)>();
 
         foreach (var content in notification.SavedEntities)
@@ -88,8 +88,8 @@ public class UrlFieldWashHandler : INotificationHandler<ContentSavingNotificatio
         editorAlias == Constants.PropertyEditors.Aliases.BlockList ||
         editorAlias == Constants.PropertyEditors.Aliases.BlockGrid;
 
-    // Parser block-JSON, vasker URL-verdier (rekursivt for blokker-i-blokker) og
-    // serialiserer tilbake. Returnerer false (og rører ingenting) ved ugyldig JSON.
+    // Parses block JSON, washes URL values (recursively for blocks-in-blocks) and
+    // serializes back. Returns false (and touches nothing) on invalid JSON.
     private bool TryWashBlockJson(string? raw, Guid urlKey,
         Dictionary<(Guid, string), (Guid?, string?)> memo, out string updated)
     {
@@ -150,7 +150,7 @@ public class UrlFieldWashHandler : INotificationHandler<ContentSavingNotificatio
             }
             else if (IsBlockEditor(editorAlias))
             {
-                // Blokk-i-blokk: verdien kan være en JSON-streng eller et JSON-objekt.
+                // Block-in-block: the value can be a JSON string or a JSON object.
                 if (val["value"] is JsonValue inner && inner.TryGetValue<string>(out var innerStr))
                 {
                     if (TryWashBlockJson(innerStr, urlKey, memo, out var upd)) { val["value"] = upd; changed = true; }

@@ -7,11 +7,11 @@ using Umbraco.Cms.Core.Strings;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Vasker det redaktor-synlige slug-feltet til en URL-vennlig verdi ved lagring.
-/// Gjelder alle innholdstyper med et 'slug'-felt (artikkel, eksempel, side, veiledning,
-/// sandkasse, omOss osv.). Er slug tom, utledes den fra tittel (ellers nodenavnet).
-/// Idempotent: en allerede ren slug endres ikke. merkelapp handteres separat
-/// (MerkelappSlugHandler, fra navn).
+/// Washes the editor-visible slug field to a URL-friendly value on save.
+/// Applies to all content types with a 'slug' field (artikkel, eksempel, side, veiledning,
+/// sandkasse, omOss etc.). If slug is empty, it is derived from tittel (otherwise the node name).
+/// Idempotent: an already clean slug is not changed. merkelapp is handled separately
+/// (MerkelappSlugHandler, from navn).
 /// </summary>
 public class ContentSlugComposer : IComposer
 {
@@ -34,7 +34,7 @@ public class ContentSlugHandler : INotificationHandler<ContentSavingNotification
     {
         foreach (var content in notification.SavedEntities)
         {
-            // merkelapp har egen handler som utleder slug fra navn.
+            // merkelapp has its own handler that derives slug from navn.
             if (content.ContentType.Alias == "merkelapp") continue;
             if (!content.HasProperty("slug")) continue;
 
@@ -53,7 +53,7 @@ public class ContentSlugHandler : INotificationHandler<ContentSavingNotification
         }
     }
 
-    /// <summary>Norsk translitterasjon for slug: ø-&gt;o, å-&gt;a, æ-&gt;e (avviker fra Umbracos oe/aa/ae).</summary>
+    /// <summary>Norwegian transliteration for slug: ø-&gt;o, å-&gt;a, æ-&gt;e (differs from Umbraco's oe/aa/ae).</summary>
     private static string Transliterate(string s) => s
         .Replace("Æ", "E").Replace("æ", "e")
         .Replace("Ø", "O").Replace("ø", "o")

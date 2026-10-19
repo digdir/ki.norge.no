@@ -5,8 +5,8 @@ using Umbraco.Cms.Core.DependencyInjection;
 namespace KiNorge.Cms.Malform;
 
 /// <summary>
-/// Registrerer målformrapporten. Scoped fordi den bruker ContentTextExtractor,
-/// som selv er scoped. Ingen notification handlers, rapporten regnes ut på kall.
+/// Registers the målform report. Scoped because it uses ContentTextExtractor,
+/// which is itself scoped. No notification handlers, the report is computed on request.
 /// </summary>
 public class MalformComposer : IComposer
 {

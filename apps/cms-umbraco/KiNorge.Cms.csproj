@@ -14,20 +14,20 @@
     <PackageReference Include="Kjac.HeadlessPreview" Version="3.0.1" />
     <PackageReference Include="MailKit" Version="4.18.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.12" />
-    <!-- Transitiv via Umbraco. Pinnet over sårbar 2.4.1 (GHSA-v5pm-xwqc-g5wc);
-         fjern når Umbraco selv drar >= 2.7.5. -->
+    <!-- Transitive via Umbraco. Pinned above vulnerable 2.4.1 (GHSA-v5pm-xwqc-g5wc);
+         remove when Umbraco itself pulls >= 2.7.5. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
-    <!-- OTLP-eksport til otel-collector. Traces kobles opp i Program.cs, logger
-         via Serilog-sinken (appsettings.Production.json), ikke builder.Logging. -->
+    <!-- OTLP export to otel-collector. Traces are wired up in Program.cs, logs
+         via the Serilog sink (appsettings.Production.json), not builder.Logging. -->
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.19.0" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
-    <!-- Transitiv via Umbraco -> Microsoft.Data.Sqlite. 2.1.11 pakker en sårbar
-         SQLite-binær (GHSA-2m69-gcr7-jv3q, HIGH). Hele familien pinnes samlet så
-         core/provider/lib ikke kommer i utakt. Fjern når Umbraco drar 2.1.12
-         selv. Treffer bare lokal dev, prod kjører Azure SQL. -->
+    <!-- Transitive via Umbraco -> Microsoft.Data.Sqlite. 2.1.11 bundles a vulnerable
+         SQLite binary (GHSA-2m69-gcr7-jv3q, HIGH). The whole family is pinned together so
+         core/provider/lib do not get out of step. Remove when Umbraco pulls 2.1.12
+         itself. Only affects local dev, prod runs Azure SQL. -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
     <PackageReference Include="SQLitePCLRaw.core" Version="2.1.13" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.13" />
@@ -57,27 +57,27 @@
   </ItemGroup>
 
   <!--
-    Skjemafilene uSync importerer ved oppstart, må ligge i imaget. Innhold og
-    media kopieres bevisst IKKE, de transporteres med scripts/sync-prod-til-tt02.sh.
-    Se uSync/README.md.
+    The schema files uSync imports at startup must be in the image. Content and
+    media are deliberately NOT copied, they are transported with scripts/sync-prod-til-tt02.sh.
+    See uSync/README.md.
   -->
   <ItemGroup>
     <None Include="uSync/v17/ContentTypes/**/*.config;uSync/v17/DataTypes/**/*.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-    <!-- Web SDK tar med **/*.config. Testfixturene lastes inn i tt02 fra repoet
-         (scripts/last-testfixturer-tt02.sh) og skal ikke ligge i imaget. -->
+    <!-- The Web SDK includes **/*.config. The test fixtures are loaded into tt02 from the repo
+         (scripts/last-testfixturer-tt02.sh) and must not be in the image. -->
     <Content Remove="uSync-testinnhold/**" />
   </ItemGroup>
 
   <!--
-    Regenererer det git-ignorerte speilet av /shared/content-routes.json fra
-    kilden før build/publish, slik at `dotnet run`/`dotnet build` alltid er i
-    synk uten et eget pre-steg. Condition-en skrur targeten av når /shared ikke
-    er nåbar (Docker-build-konteksten er apps/cms-umbraco/ alene, der
-    GitHub-actionen allerede har staget speilet inn), og når man bevisst vil ha
-    lokal drift: `dotnet run -p:SkipContentRoutesSync=true`.
+    Regenerates the git-ignored mirror of /shared/content-routes.json from
+    the source before build/publish, so that `dotnet run`/`dotnet build` is always in
+    sync without a separate pre-step. The Condition turns the target off when /shared is not
+    reachable (the Docker build context is apps/cms-umbraco/ alone, where
+    the GitHub action has already staged the mirror in), and when you deliberately want
+    local drift: `dotnet run -p:SkipContentRoutesSync=true`.
   -->
   <Target Name="SyncContentRoutes" BeforeTargets="BeforeBuild;BeforePublish"
           Condition="Exists('$(MSBuildProjectDirectory)/../../shared/content-routes.json')

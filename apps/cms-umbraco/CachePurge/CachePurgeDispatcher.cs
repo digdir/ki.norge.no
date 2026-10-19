@@ -43,7 +43,7 @@ public class CachePurgeDispatcher
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Klarte ikke løse URLer for content {ContentId} (reason={Reason})", content.Id, reason);
+                    "Could not resolve URLs for content {ContentId} (reason={Reason})", content.Id, reason);
                 purgeEverything = true;
             }
         }
@@ -54,7 +54,7 @@ public class CachePurgeDispatcher
         SchedulePurge(urls.ToArray(), purgeEverything, reason);
     }
 
-    // Fire-and-forget så backoffice-lagring ikke blokkeres.
+    // Fire-and-forget so backoffice saving is not blocked.
     private void SchedulePurge(string[] urls, bool purgeEverything, string reason)
     {
         _ = Task.Run(async () =>
@@ -73,13 +73,13 @@ public class CachePurgeDispatcher
                 {
                     await purge.PurgeUrlsAsync(urls);
                     _logger.LogInformation(
-                        "Cloudflare purget {Count} URLer (reason={Reason}): {Urls}",
+                        "Cloudflare purged {Count} URLs (reason={Reason}): {Urls}",
                         urls.Length, reason, string.Join(", ", urls));
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Cloudflare-purge feilet (reason={Reason})", reason);
+                _logger.LogError(ex, "Cloudflare purge failed (reason={Reason})", reason);
             }
         });
     }

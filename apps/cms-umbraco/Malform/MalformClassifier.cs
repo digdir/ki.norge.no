@@ -10,9 +10,9 @@ public enum Malform
 }
 
 /// <param name="Andel">
-/// 0,5 til 1. Hvor stor del av markørordene som peker mot den vinnende målformen.
-/// 1 betyr rein målform, verdier ned mot 0,5 betyr at siden blander nynorsk og bokmål.
-/// 0 når det ikke er felt noen dom.
+/// 0.5 to 1. How large a share of the marker words point to the winning written standard.
+/// 1 means a pure written standard, values down towards 0.5 mean the page mixes nynorsk and bokmål.
+/// 0 when no verdict has been reached.
 /// </param>
 public sealed record MalformDom(Malform Malform, int NynorskTreff, int BokmalTreff, double Andel)
 {
@@ -20,22 +20,22 @@ public sealed record MalformDom(Malform Malform, int NynorskTreff, int BokmalTre
 }
 
 /// <summary>
-/// Avgjør om en tekst er nynorsk eller bokmål ved å telle markørord, altså ord som
-/// bare finnes i den ene målformen (ikkje/ikke, frå/fra, offentleg/offentlig).
-/// Ord som er like i begge bærer ingen informasjon og fjernes fra begge listene
-/// ved oppstart, slik at en glipp i listene ikke gir systematisk slagside.
+/// Decides whether a text is nynorsk or bokmål by counting marker words, that is words that
+/// only exist in one of the written standards (ikkje/ikke, frå/fra, offentleg/offentlig).
+/// Words that are the same in both carry no information and are removed from both lists
+/// at startup, so that a slip in the lists does not give a systematic bias.
 /// </summary>
 public static class MalformClassifier
 {
     /// <summary>
-    /// Antall markørord som må til for å felle en dom. Under dette er grunnlaget for
-    /// tynt, og siden vises som ukjent framfor å gjettes på.
+    /// Number of marker words needed to reach a verdict. Below this the basis is too
+    /// thin, and the page is shown as unknown rather than guessed at.
     ///
-    /// Grensen går på bevis, ikke på tekstlengde. En lengdegrense teller ikke ordene
-    /// i det hele tatt, og gjør begge feilene: den gir dom til lange sider med ett
-    /// tilfeldig markørord, og nekter dom til korte sider som er utvetydige. Målt på
-    /// de 74 prod-nodene har 67 sider 6 eller flere markører, så terskelen rammer
-    /// bare det som faktisk er tvilsomt.
+    /// The limit is about evidence, not text length. A length limit does not count the words
+    /// at all, and makes both mistakes: it gives a verdict to long pages with one
+    /// random marker word, and refuses a verdict to short pages that are unambiguous. Measured on
+    /// the 74 prod nodes, 67 pages have 6 or more markers, so the threshold only hits
+    /// what is actually doubtful.
     /// </summary>
     public const int MinsteMarkortreff = 3;
 
@@ -63,18 +63,18 @@ public static class MalformClassifier
         "virksomheter", "være",
     ];
 
-    // Ord som IKKE hører hjemme over, selv om de ser ut som bokmål. Nynorsk tillater
-    // dem, så de gir falske bokmålstreff på reine nynorsksider:
-    //   blir, brukt   nynorsk har bli/blir/blei/blitt og brukt ved siden av verte/vert
-    //   også          gyldig nynorsk, ikke bare "òg"
-    //   først         gyldig nynorsk ved siden av "fyrst"
-    // Målt på personvernerklæringen var 11 av 15 bokmålstreff av denne typen.
+    // Words that do NOT belong above, even though they look like bokmål. Nynorsk allows
+    // them, so they give false bokmål hits on pure nynorsk pages:
+    //   blir, brukt   nynorsk has bli/blir/blei/blitt and brukt alongside verte/vert
+    //   også          valid nynorsk, not only "òg"
+    //   først         valid nynorsk alongside "fyrst"
+    // Measured on the privacy statement, 11 of 15 bokmål hits were of this kind.
     //
-    // Dedupliseringen under fanger ikke slike ord, for den krever at ordet står i
-    // BEGGE listene. "blir" møter aldri "vert". Nye markører må derfor sjekkes mot
-    // om nynorsk faktisk tillater formen, ikke bare mot om nynorsk har en annen.
+    // The deduplication below does not catch such words, because it requires the word to be in
+    // BOTH lists. "blir" never meets "vert". New markers must therefore be checked against
+    // whether nynorsk actually allows the form, not just whether nynorsk has a different one.
     //
-    // Fortsatt usikre, bør vurderes av noen som kan nynorsk: derfor, samtidig,
+    // Still uncertain, should be reviewed by someone who knows nynorsk: derfor, samtidig,
     // spørre, midlertidig, bruker.
 
     private static readonly HashSet<string> Nynorsk;
@@ -108,8 +108,8 @@ public static class MalformClassifier
                 bokmal++;
         }
 
-        // Treffene rapporteres også når de er for få til en dom, så dashboardet kan
-        // skille en side uten norsk tekst fra en side med for tynt grunnlag.
+        // The hits are reported even when they are too few for a verdict, so the dashboard can
+        // tell a page without Norwegian text from a page with too thin a basis.
         var treff = nynorsk + bokmal;
         if (treff < MinsteMarkortreff)
             return new MalformDom(Malform.Ukjent, nynorsk, bokmal, 0);
@@ -122,9 +122,9 @@ public static class MalformClassifier
     }
 
     /// <summary>
-    /// Deler teksten i småbokstavede ord av a-z pluss æøå. Alt annet, inkludert
-    /// siffer og aksenttegn, er skilletegn. Markørlistene må holde seg innenfor
-    /// samme alfabet, ellers blir ordet umulig å treffe.
+    /// Splits the text into lowercased words of a-z plus æøå. Everything else, including
+    /// numerals and accented characters, is a separator. The marker lists must stay within
+    /// the same alphabet, otherwise the word becomes impossible to hit.
     /// </summary>
     private static IEnumerable<string> Ord(string tekst)
     {

@@ -12,11 +12,11 @@ public sealed record MalformSide(
     double Andel);
 
 /// <param name="TegnTotalt">
-/// Summen over klassifiserte sider. Sider med målform "ukjent" holdes utenfor både
-/// teller og nevner, slik at et par korte stubber ikke flytter prosenten.
+/// The sum over classified pages. Pages with målform "ukjent" are kept out of both
+/// numerator and denominator, so that a couple of short stubs do not move the percentage.
 /// </param>
 /// <param name="TegnSomMangler">
-/// Hvor mange tegn som må over fra bokmål til nynorsk for å nå kravet. 0 når kravet er nådd.
+/// How many characters must move from bokmål to nynorsk to meet the requirement. 0 when the requirement is met.
 /// </param>
 public sealed record MalformRapport(
     double Kravet,

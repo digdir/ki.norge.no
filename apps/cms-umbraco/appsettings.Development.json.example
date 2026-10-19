@@ -33,7 +33,7 @@
         "InstallUnattended": true,
         "UnattendedUserName": "Admin",
         "UnattendedUserEmail": "admin@ki.norge.no",
-        "UnattendedUserPassword": "sett-et-lokalt-passord-her!"
+        "UnattendedUserPassword": "set-a-local-password-here!"
       }
     }
   },

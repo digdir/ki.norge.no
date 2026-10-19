@@ -7,8 +7,8 @@ namespace KiNorge.Cms.CachePurge;
 
 public record AffectedUrls(IReadOnlyCollection<string> Urls, bool PurgeEverything);
 
-// Sidens egen sti kommer fra ContentRouteResolver (shared/content-routes.json), samme kilde
-// som forhåndsvisningen og søket. Her står bare sidene som viser noden uten å være dens egen URL.
+// The page's own path comes from ContentRouteResolver (shared/content-routes.json), the same source
+// as the preview and the search. Only the pages that show the node without being its own URL are listed here.
 public class FrontendUrlResolver
 {
     private readonly ContentRouteResolver _routes;
@@ -61,7 +61,7 @@ public class FrontendUrlResolver
     private AffectedUrls Escalate(string alias, int contentId)
     {
         _logger.LogInformation(
-            "Fant ingen frontend-URL for content type '{Alias}' (id {Id}), eskalerer til purge_everything",
+            "Found no frontend URL for content type '{Alias}' (id {Id}), escalating to purge_everything",
             alias, contentId);
         return new AffectedUrls([], PurgeEverything: true);
     }

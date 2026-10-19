@@ -11,8 +11,8 @@ using Umbraco.Cms.Core.Services;
 namespace KiNorge.Cms;
 
 /// <summary>
-/// Forhåndsvisningen, søket, Målform og cache-purgen bruker alle ContentRouteResolver.
-/// Registreringen står her, så ingen av dem avhenger av at en annen composer kjører.
+/// The preview, the search, Målform and the cache purge all use ContentRouteResolver.
+/// The registration lives here, so none of them depend on another composer running.
 /// </summary>
 public class ContentRouteComposer : IComposer
 {

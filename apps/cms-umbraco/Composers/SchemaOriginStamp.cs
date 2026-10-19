@@ -10,18 +10,18 @@ using uSync.BackOffice;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Stempler hver uSync-eksport med hvilket miljø den kom fra.
+/// Stamps every uSync export with the environment it came from.
 ///
-/// Skjemafilene som committes SKAL være tatt fra prod. Uten et merke i selve
-/// eksporten er det umulig å se i etterkant hvor filene kom fra, og en eksport fra
-/// en lokal database ser helt lik ut i en diff.
+/// The schema files that are committed MUST be taken from prod. Without a mark in the
+/// export itself it is impossible to tell afterwards where the files came from, and an export from
+/// a local database looks exactly the same in a diff.
 ///
-/// Merket skrives av kode, ikke av per-maskin-config, så det følger repoet til alle
-/// som kjører CMS-et. CI leser det og avviser en PR der opprinnelsen ikke er prod
+/// The mark is written by code, not by per-machine config, so it follows the repo to everyone
+/// who runs the CMS. CI reads it and rejects a PR where the origin is not prod
 /// (scripts/check-usync-schema.sh).
 ///
-/// Miljøet utledes av UmbracoApplicationUrl, som allerede skiller miljøene fra
-/// hverandre. Ingen ny env-var å huske å sette.
+/// The environment is derived from UmbracoApplicationUrl, which already tells the environments
+/// apart. No new env var to remember to set.
 /// </summary>
 public class SchemaOriginStampComposer : IComposer
 {
@@ -47,7 +47,7 @@ public class SchemaOriginStamp : INotificationHandler<uSyncExportCompletedNotifi
     public void Handle(uSyncExportCompletedNotification notification)
     {
         var dir = Path.Combine(_env.ContentRootPath, "uSync", "v17");
-        // Bare skjema-eksporter er interessante. Finnes ikke mappa, ble det ikke eksportert skjema.
+        // Only schema exports are interesting. If the folder does not exist, no schema was exported.
         if (!Directory.Exists(Path.Combine(dir, "ContentTypes"))) return;
 
         var appUrl = _config["Umbraco:CMS:WebRouting:UmbracoApplicationUrl"] ?? "";
@@ -66,8 +66,8 @@ public class SchemaOriginStamp : INotificationHandler<uSyncExportCompletedNotifi
         }
         catch (Exception ex)
         {
-            // Et manglende merke skal aldri velte en eksport.
-            _logger.LogWarning(ex, "Fikk ikke skrevet uSync .origin-merket.");
+            // A missing mark must never break an export.
+            _logger.LogWarning(ex, "Could not write the uSync .origin mark.");
         }
     }
 

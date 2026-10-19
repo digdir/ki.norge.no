@@ -7,10 +7,10 @@ using Umbraco.Cms.Core.Services;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Setter veiledningSteg.guideSlug automatisk fra den overordnede guiden sin slug ved lagring.
-/// Et steg ligger som barn av veiledningGuide i innholdstreet, så guideSlug trenger ikke fylles
-/// manuelt. Fritekst ga lett mismatch (casing/ø), og da fant frontend ingen steg å lenke til.
-/// Feltet overskrives hver lagring, så det matcher guiden by construction.
+/// Sets veiledningSteg.guideSlug automatically from the parent guide's slug on save.
+/// A step sits as a child of veiledningGuide in the content tree, so guideSlug does not need to be filled in
+/// manually. Free text easily gave a mismatch (casing/ø), and then the frontend found no steps to link to.
+/// The field is overwritten on every save, so it matches the guide by construction.
 /// </summary>
 public class VeiledningStegGuideSlugComposer : IComposer
 {

@@ -13,7 +13,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Umbraco lager /app/Views ved oppstart og krasjer hvis den ikke får lov.
+# Umbraco creates /app/Views at startup and crashes if it is not allowed to.
 RUN mkdir -p /app/umbraco/Data /app/umbraco/Logs /app/umbraco/mediacache /app/wwwroot/media /app/Views/Partials && \
     chown -R $APP_UID:$APP_UID /app/umbraco /app/uSync /app/wwwroot/media
 

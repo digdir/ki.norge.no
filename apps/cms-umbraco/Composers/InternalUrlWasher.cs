@@ -3,26 +3,26 @@ using System.Text.RegularExpressions;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Vasker lenkefelt som redaktører fyller ut for hånd. KUN interne stier vaskes.
-/// Eksterne URLer lar vi stå helt urørt (bortsett fra trimming), fordi en redaktør
-/// som limer inn en ekte URL ikke skal risikere at den blir ødelagt.
+/// Washes link fields that editors fill in by hand. ONLY internal paths are washed.
+/// External URLs are left completely untouched (apart from trimming), because an editor
+/// who pastes a real URL should not risk having it broken.
 ///
-/// Ekstern = noe som har et skjema (http:, https:, mailto:, tel:, ftp: ...),
-/// er protokoll-relativ (//host), er et anker (#...) eller ser ut som et bart
-/// domene (datatilsynet.no/...). Alt annet behandles som intern sti.
+/// External = something that has a scheme (http:, https:, mailto:, tel:, ftp: ...),
+/// is protocol-relative (//host), is an anchor (#...) or looks like a bare
+/// domain (datatilsynet.no/...). Everything else is treated as an internal path.
 ///
-/// Intern vask: trim, ett innledende skråstrek, ingen avsluttende skråstrek,
-/// kollapser doble skråstreker. Query (?) og fragment (#) bevares uendret.
-/// Idempotent: en allerede vasket verdi returneres uendret.
+/// Internal wash: trim, one leading slash, no trailing slash,
+/// collapses double slashes. Query (?) and fragment (#) are kept unchanged.
+/// Idempotent: an already washed value is returned unchanged.
 /// </summary>
 public static class InternalUrlWasher
 {
-    // Skjema som http:, https:, mailto:, tel:, ftp: ... (RFC 3986 scheme).
+    // Schemes like http:, https:, mailto:, tel:, ftp: ... (RFC 3986 scheme).
     private static readonly Regex SchemeRegex =
         new(@"^[a-zA-Z][a-zA-Z0-9+.\-]*:", RegexOptions.Compiled);
 
-    // Bart domene uten skjema: "datatilsynet.no", "example.com/sti". Sjekkes på
-    // første segment (før /, ? eller #). Krever minst én prikk og bokstav-TLD.
+    // Bare domain without a scheme: "datatilsynet.no", "example.com/sti". Checked on
+    // the first segment (before /, ? or #). Requires at least one dot and a letter TLD.
     private static readonly Regex BareDomainRegex =
         new(@"^[a-z0-9\-]+(\.[a-z0-9\-]+)*\.[a-z]{2,}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -32,20 +32,20 @@ public static class InternalUrlWasher
 
         var v = value.Trim();
 
-        // Ekstern eller spesiell: la stå (kun trimmet).
+        // External or special: leave as is (trimmed only).
         if (SchemeRegex.IsMatch(v) || v.StartsWith("//") || v.StartsWith("#")) return v;
 
-        // Skill path fra query/fragment så vi aldri rører ?...  eller #...
+        // Separate path from query/fragment so we never touch ?...  or #...
         var cut = v.IndexOfAny(new[] { '?', '#' });
         var path = cut >= 0 ? v.Substring(0, cut) : v;
         var suffix = cut >= 0 ? v.Substring(cut) : string.Empty;
 
-        // Bart domene (uten skjema) i path-delen -> ekstern, ikke prefiks skråstrek
-        // (ellers blir "datatilsynet.no/x" til "/datatilsynet.no/x" og ødelagt).
+        // Bare domain (without a scheme) in the path part -> external, do not prefix a slash
+        // (otherwise "datatilsynet.no/x" becomes "/datatilsynet.no/x" and broken).
         var firstSegment = path.Split('/')[0];
         if (BareDomainRegex.IsMatch(firstSegment)) return v;
 
-        // Intern sti: rydd opp.
+        // Internal path: clean up.
         path = path.Replace(" ", string.Empty);
         if (!path.StartsWith("/")) path = "/" + path;
         while (path.Contains("//")) path = path.Replace("//", "/");
