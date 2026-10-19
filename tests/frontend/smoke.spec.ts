@@ -14,9 +14,9 @@ const PUBLIC_URLS = [
   { path: '/veiledning', label: 'Veiledning' },
   { path: '/om-oss', label: 'Om oss' },
   { path: '/sandkasse', label: 'Sandkasse' },
-  // /ki-tiltak leser et redaksjonelt vedlikeholdt datasett. En ugyldig status
-  // der kaster i tilStatus() når modulen lastes, så hele siden svarer 500 og
-  // ikke bare ett kort. Denne ruten må være med i CI nettopp derfor.
+  // /ki-tiltak reads an editorially maintained dataset. An invalid status
+  // there throws in tilStatus() when the module loads, so the whole page returns 500 and
+  // not just one card. This route must be in CI for exactly that reason.
   { path: '/ki-tiltak', label: 'KI-tiltak' },
 ];
 
@@ -30,8 +30,8 @@ for (const { path, label } of PUBLIC_URLS) {
   });
 }
 
-// Publisert innhold er åpent i Delivery API. Nøkkelen trengs bare hvis det endres,
-// og hører da hjemme i miljøet, ikke i et offentlig repo.
+// Published content is open in the Delivery API. The key is only needed if that changes,
+// and then belongs in the environment, not in a public repo.
 const deliveryApiHeaders = process.env.UMBRACO_API_KEY
   ? { 'Api-Key': process.env.UMBRACO_API_KEY }
   : undefined;

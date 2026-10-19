@@ -1,16 +1,16 @@
-// Forhåndsvisning bæres av en cookie, og cachen slår opp på URL-en alene. Uten
-// dette fikk redaktøren den publiserte siden fra cachen ved første klikk inne i
-// backoffice-ramma. Frontend sjekker verdien. En falsk cookie gir bare publisert
-// innhold rett fra origin, slik en ny query-parameter også gjør.
-// Samme navn som PREVIEW_COOKIE i apps/frontend/src/lib/preview.ts.
+// Preview is carried by a cookie, and the cache looks up on the URL alone. Without
+// this the editor got the published page from the cache on the first click inside
+// the backoffice frame. The frontend checks the value. A fake cookie only gets published
+// content straight from origin, just as a new query parameter does.
+// Same name as PREVIEW_COOKIE in apps/frontend/src/lib/preview.ts.
 function hasPreviewCookie(request: Request): boolean {
 	const cookie = request.headers.get("Cookie") ?? "";
 	return cookie.split(";").some((part) => part.trim().startsWith("preview="));
 }
 
-// ki.norge.no svarte 200 på ren http, og hele besøket kunne fortsette der.
-// norge.no er ikke HSTS-preloadet, og HSTS-headeren frontend setter, virker bare
-// når siden først er lastet over https.
+// ki.norge.no answered 200 on plain http, and the whole visit could continue there.
+// norge.no is not HSTS-preloaded, and the HSTS header the frontend sets only works
+// once the page has been loaded over https.
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 export default {
@@ -52,10 +52,10 @@ export default {
 				throw new Error(`Failed to fetch GET-request from origin: ${error}`);
 			}
 
-			// Respekter no-store/private fra origin. Preview og degraderte/feilede
-			// renders (CMS-henting feilet) sender disse direktivene, og de skal aldri
-			// lagres på edgen — ellers serveres ett uheldig svar til ALLE besøkende,
-			// ikke bare den som utløste det. Gjelder hver bruker likt.
+			// Respect no-store/private from origin. Preview and degraded/failed
+			// renders (CMS fetch failed) send these directives, and they must never
+			// be stored at the edge. Otherwise one unlucky response is served to ALL visitors,
+			// not just the one who triggered it. Applies to every user equally.
 			const cacheControl = response.headers.get("Cache-Control") || "";
 			const mayCache = !/\b(no-store|private)\b/i.test(cacheControl);
 

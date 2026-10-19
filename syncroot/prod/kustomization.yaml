@@ -31,12 +31,12 @@ patches:
         value:
           name: Umbraco__CMS__Security__BackOfficeHost
           value: https://cms.ki.norge.no
-      # Media ligger på Azure Blob. ConnectionString alene slår på
-      # AzureBlobMediaComposer. Fjernes den, havner media på containerens eget
-      # filsystem og forsvinner ved omstart, fordi umbraco-media ikke er montert.
-      # Containeren ble fylt fra PVC-en 2026-08-28, 33 objekter verifisert mot
-      # md5 tatt i podden. PVC-en står igjen som frossen kopi.
-      # Se apps/cms-umbraco/Composers/AzureBlobMediaComposer.cs.
+      # Media lives in Azure Blob. ConnectionString alone turns on
+      # AzureBlobMediaComposer. If it is removed, media ends up on the container's own
+      # file system and disappears on restart, because umbraco-media is not mounted.
+      # The container was filled from the PVC on 2026-08-28, 33 objects verified against
+      # md5 taken in the pod. The PVC remains as a frozen copy.
+      # See apps/cms-umbraco/Composers/AzureBlobMediaComposer.cs.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
@@ -47,9 +47,9 @@ patches:
         value:
           name: Umbraco__Storage__AzureBlob__Media__ContainerName
           value: umbraco
-      # Samme site som backoffice (cms.ki.norge.no). Fra workers.dev ble
-      # forhåndsvisnings-cookien en tredjeparts-cookie, og Safari mistet
-      # forhåndsvisningen ved første klikk i ramma. Se apps/frontend/src/lib/preview.ts.
+      # Same site as the backoffice (cms.ki.norge.no). From workers.dev the
+      # preview cookie became a third-party cookie, and Safari lost
+      # the preview on the first click in the frame. See apps/frontend/src/lib/preview.ts.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
@@ -60,18 +60,18 @@ patches:
         value:
           name: Cloudflare__SiteBaseUrl
           value: https://ki.norge.no
-      # Skal aldri fjernes. uSync eier skjemaet, og uten flagget kjører
-      # ContentTypeComposer skjema-assertingen mot databasen, med kall som sletter
-      # typer og felt. Det gjelder også etter at composeren er fjernet fra koden,
-      # for en tilbakerulling til et eldre image har den fortsatt.
+      # Must never be removed. uSync owns the schema, and without the flag
+      # ContentTypeComposer runs the schema asserting against the database, with calls that delete
+      # types and fields. This also applies after the composer is removed from the code,
+      # because a rollback to an older image still has it.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: USYNC_OWNS_SCHEMA
           value: "true"
-      # Reconcilerer skjemaet mot de committede filene ved hver oppstart, slik
-      # composeren gjorde. Kun Settings-gruppa: innhold og media er eksport-only
-      # i Default-settet, saa de hoppes over uansett.
+      # Reconciles the schema against the committed files at every startup, as
+      # the composer did. Only the Settings group: content and media are export-only
+      # in the Default set, so they are skipped anyway.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:

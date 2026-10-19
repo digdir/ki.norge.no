@@ -1,46 +1,46 @@
 #!/usr/bin/env bash
-# Gi en person tilgang til Umbraco-backoffice via Entra ID.
+# Give a person access to the Umbraco backoffice via Entra ID.
 #
-# Tilgang styres av medlemskap i Entra-grupper, ikke i Umbraco. Gruppene bærer
-# app-roller som koden mapper til Umbraco-grupper, se
+# Access is controlled by membership in Entra groups, not in Umbraco. The groups carry
+# app roles that the code maps to Umbraco groups, see
 # apps/cms-umbraco/CustomAuthentication/MicrosoftEntraIdBackOfficeExternalLoginProviderOptions.cs
 #   umbraco-admin    -> admin
 #   umbraco-redaktor -> editor
-# Uten rolle-match nektes pålogging.
+# Without a role match, login is denied.
 #
-# Bruk:
-#   pnpm run cms:add-user <e-post> redaktor                 redaktør i prod
-#   pnpm run cms:add-user <e-post> admin                    administrator i prod
-#   pnpm run cms:add-user <e-post> redaktor --dev           samme, men tt02
-#   pnpm run cms:add-user <e-post> redaktor --uten-epost    inviter uten e-post til personen
-#   pnpm run cms:add-user <e-post> redaktor --navn="Fornavn Etternavn"
-#   pnpm run cms:add-user <e-post> redaktor -y --inviter    uten tilsyn, se under
+# Usage:
+#   pnpm run cms:add-user <email> redaktor                  editor in prod
+#   pnpm run cms:add-user <email> admin                     administrator in prod
+#   pnpm run cms:add-user <email> redaktor --dev            same, but tt02
+#   pnpm run cms:add-user <email> redaktor --uten-epost     invite without email to the person
+#   pnpm run cms:add-user <email> redaktor --navn="First Last"
+#   pnpm run cms:add-user <email> redaktor -y --inviter     unattended, see below
 #
-#   Mangler personen i tenanten, tilbyr scriptet å invitere vedkommende som gjest.
-#   Det trengs ikke noe flagg for det, bekreftelsen viser adressen. Kjører du
-#   med -y må du legge til --inviter, siden ingen da ser adressen først.
+#   If the person is missing from the tenant, the script offers to invite them as a guest.
+#   No flag is needed for that, the confirmation shows the address. If you run
+#   with -y you must add --inviter, since nobody then sees the address first.
 #
-#   Visningsnavnet utledes fra e-posten (asli.aydemir -> Asli Aydemir) og kan
-#   KUN settes idet gjesten opprettes. Å rette det etterpå krever
-#   directory-rettigheter vi ikke har. Stemmer ikke gjetningen, bruk --navn=.
+#   The display name is derived from the email (asli.aydemir -> Asli Aydemir) and can
+#   ONLY be set when the guest is created. Fixing it afterwards requires
+#   directory permissions we do not have. If the guess is wrong, use --navn=.
 #
-# Fallgruver scriptet håndterer, alle lært den harde veien:
-#   - Digdir-folk er B2B-gjester i ai-dev-tenanten med UPN på formen
+# Pitfalls the script handles, all learned the hard way:
+#   - Digdir people are B2B guests in the ai-dev tenant with a UPN of the form
 #     navn_digdir.no#EXT#@brreg.onmicrosoft.com. `az ad user show --id navn@digdir.no`
-#     FEILER derfor med "Resource not found". Oppslag må gå via mail-filteret.
-#   - Samme person kan ha en aas-*-adminkonto ved siden av gjestekontoen. Treffer
-#     e-posten flere kontoer, stopper scriptet og lister dem heller enn å gjette.
-#   - Personen finnes kanskje ikke i tenanten i det hele tatt. Da trengs en
-#     B2B-invitasjon først, ikke bare et gruppemedlemskap. Scriptet tilbyr den.
+#     therefore FAILS with "Resource not found". Lookups must go via the mail filter.
+#   - The same person can have an aas-* admin account next to the guest account. If
+#     the email matches several accounts, the script stops and lists them rather than guessing.
+#   - The person may not exist in the tenant at all. Then a B2B
+#     invitation is needed first, not just a group membership. The script offers it.
 #
-# Digdir og ai-dev har automatisk innløsning av gjesteinvitasjoner, så en invitert
-# konto står som Accepted med én gang. Personen trenger ikke gjøre noe med
-# invitasjons-e-posten, den er kun informasjon.
+# Digdir and ai-dev have automatic redemption of guest invitations, so an invited
+# account shows as Accepted right away. The person does not need to do anything with
+# the invitation email, it is for information only.
 #
-# Etter kjøring må personen logge inn én gang med Sign in with Microsoft. Lander
-# brukeren deaktivert i Umbraco -> Users, må en administrator enable den.
+# After running, the person must log in once with Sign in with Microsoft. If
+# the user lands deactivated in Umbraco -> Users, an administrator must enable it.
 #
-# Krever az innlogget som eier av gruppene. Ikke VPN.
+# Requires az logged in as owner of the groups. No VPN.
 
 set -euo pipefail
 
@@ -55,7 +55,7 @@ EPOST=""
 ROLLE=""
 
 bruk() {
-    awk '/^# Bruk:/{v=1} v{if (/^#$/ && !blank) {blank=1} else if (/^# [^ ]/ && blank) exit; print}' "$0" | sed 's/^# \{0,1\}//'
+    awk '/^# Usage:/{v=1} v{if (/^#$/ && !blank) {blank=1} else if (/^# [^ ]/ && blank) exit; print}' "$0" | sed 's/^# \{0,1\}//'
     exit "${1:-1}"
 }
 
@@ -68,23 +68,23 @@ for arg in "$@"; do
         --navn=*) NAVN="${arg#--navn=}" ;;
         -y|--ja) BEKREFT=0 ;;
         -h|--help) bruk 0 ;;
-        -*) echo "Ukjent flagg: $arg" >&2; exit 1 ;;
+        -*) echo "Unknown flag: $arg" >&2; exit 1 ;;
         *)
             if [[ -z "$EPOST" ]]; then EPOST="$arg"
             elif [[ -z "$ROLLE" ]]; then ROLLE="$arg"
-            else echo "For mange argumenter: $arg" >&2; exit 1
+            else echo "Too many arguments: $arg" >&2; exit 1
             fi
             ;;
     esac
 done
 
 [[ -z "$EPOST" || -z "$ROLLE" ]] && bruk 1
-[[ "$EPOST" != *@* ]] && { echo "Ser ikke ut som en e-postadresse: $EPOST" >&2; exit 1; }
+[[ "$EPOST" != *@* ]] && { echo "Does not look like an email address: $EPOST" >&2; exit 1; }
 
-# Visningsnavnet kan KUN settes idet gjesten inviteres. Uten det havner
-# "fornavn.etternavn" i katalogen, og det navnet følger med inn i Umbraco via
-# name-claimet. Å rette det etterpå krever directory-rettigheter Lars ikke har,
-# så gjetningen her er eneste sjanse. Overstyres med --navn="Fornavn Etternavn".
+# The display name can ONLY be set when the guest is invited. Without it
+# "first.last" ends up in the directory, and that name follows into Umbraco via
+# the name claim. Fixing it afterwards requires directory permissions Lars does not have,
+# so the guess here is the only chance. Overridden with --navn="First Last".
 if [[ -z "$NAVN" ]]; then
     NAVN=$(python3 - "$EPOST" <<'PYNAVN'
 import sys
@@ -98,7 +98,7 @@ fi
 case "$ROLLE" in
     red|redaktor|redaktør|editor) GRUPPE_ROLLE="Redaktør"; UMBRACO_GRUPPE="editor" ;;
     admin|administrator) GRUPPE_ROLLE="Administrator"; UMBRACO_GRUPPE="admin" ;;
-    *) echo "Rollen må være redaktor (red) eller admin, fikk: $ROLLE" >&2; exit 1 ;;
+    *) echo "The role must be redaktor (red) or admin, got: $ROLLE" >&2; exit 1 ;;
 esac
 
 if [[ "$MILJO" == "prod" ]]; then
@@ -111,91 +111,91 @@ fi
 
 GRUPPE_NAVN="KI Norge ${GRUPPE_ROLLE} ${GRUPPE_MILJO}"
 
-# --- az-sesjon ---------------------------------------------------------------
+# --- az session --------------------------------------------------------------
 
 if ! AKTIV_TENANT=$(az account show --query tenantId -o tsv 2>/dev/null); then
-    echo "Ikke innlogget i az. Kjør: az login" >&2
+    echo "Not logged in to az. Run: az login" >&2
     exit 1
 fi
 
 if [[ "$AKTIV_TENANT" != "$TENANT" ]]; then
-    echo "Feil tenant. Aktiv: $AKTIV_TENANT, forventet ai-dev: $TENANT" >&2
-    echo "Kjør: az login --tenant $TENANT" >&2
+    echo "Wrong tenant. Active: $AKTIV_TENANT, expected ai-dev: $TENANT" >&2
+    echo "Run: az login --tenant $TENANT" >&2
     exit 1
 fi
 
-# --- finn gruppa -------------------------------------------------------------
+# --- find the group ----------------------------------------------------------
 
 GRUPPE_ID=$(az ad group list --filter "displayName eq '${GRUPPE_NAVN}'" --query "[].id" -o tsv)
 ANTALL_GRUPPER=$(grep -c . <<<"$GRUPPE_ID" || true)
 
 if [[ -z "$GRUPPE_ID" ]]; then
-    echo "Fant ingen Entra-gruppe med navn \"${GRUPPE_NAVN}\"." >&2
-    echo "Eksisterende KI Norge-grupper:" >&2
+    echo "Found no Entra group named \"${GRUPPE_NAVN}\"." >&2
+    echo "Existing KI Norge groups:" >&2
     az ad group list --filter "startswith(displayName,'KI Norge')" --query "[].displayName" -o tsv >&2
     exit 1
 fi
 
 if [[ "$ANTALL_GRUPPER" -ne 1 ]]; then
-    echo "Flere grupper heter \"${GRUPPE_NAVN}\". Rydd opp i Entra før du kjører dette." >&2
+    echo "Several groups are named \"${GRUPPE_NAVN}\". Clean up in Entra before you run this." >&2
     exit 1
 fi
 
-# --- finn personen -----------------------------------------------------------
-# Oppslag på mail, ikke UPN. Gjestekontoer har UPN navn_digdir.no#EXT#@... og
-# `az ad user show --id navn@digdir.no` finner dem ikke.
+# --- find the person ---------------------------------------------------------
+# Lookup on mail, not UPN. Guest accounts have UPN navn_digdir.no#EXT#@... and
+# `az ad user show --id navn@digdir.no` does not find them.
 
-# Array-projeksjon, ikke dict: den garanterer kolonnerekkefølgen cut leser under.
+# Array projection, not dict: it guarantees the column order cut reads below.
 TREFF=$(az ad user list --filter "mail eq '${EPOST}'" \
     --query "[].[id,displayName,userPrincipalName]" -o tsv)
 ANTALL_TREFF=$(grep -c . <<<"$TREFF" || true)
 
 if [[ "$ANTALL_TREFF" -gt 1 ]]; then
-    echo "E-posten ${EPOST} treffer flere kontoer:" >&2
+    echo "The email ${EPOST} matches several accounts:" >&2
     echo "$TREFF" >&2
     echo >&2
-    echo "Typisk en aas-*-adminkonto ved siden av gjestekontoen. Legg til riktig konto manuelt:" >&2
-    echo "  az ad group member add --group ${GRUPPE_ID} --member-id <objekt-id>" >&2
+    echo "Typically an aas-* admin account next to the guest account. Add the right account manually:" >&2
+    echo "  az ad group member add --group ${GRUPPE_ID} --member-id <object-id>" >&2
     exit 1
 fi
 
 if [[ -z "$TREFF" ]]; then
-    # Finnes ikke personen i tenanten, er en B2B-invitasjon eneste vei videre.
-    # Da tilbyr scriptet den framfor å avbryte og be deg kjøre på nytt med et
-    # flagg. Bekreftelsen under viser adressen, og det er den som fanger en
-    # skrivefeil, ikke et flagg du uansett ville satt.
+    # If the person does not exist in the tenant, a B2B invitation is the only way forward.
+    # So the script offers it rather than aborting and asking you to run again with a
+    # flag. The confirmation below shows the address, and that is what catches a
+    # typo, not a flag you would have set anyway.
     #
-    # Unntaket er -y. Da ser ingen adressen før den brukes, og en skrivefeil
-    # ville opprettet en gjestekonto for en fremmed og sendt vedkommende
-    # e-post. Uten tilsyn kreves derfor --inviter som et eksplisitt ja.
+    # The exception is -y. Then nobody sees the address before it is used, and a typo
+    # would create a guest account for a stranger and send them an
+    # email. Unattended, --inviter is therefore required as an explicit yes.
     if [[ "$BEKREFT" -eq 0 && "$INVITER" -eq 0 ]]; then
-        echo "Fant ingen bruker med e-post ${EPOST} i ai-dev-tenanten." >&2
+        echo "Found no user with email ${EPOST} in the ai-dev tenant." >&2
         echo >&2
-        echo "Med -y inviterer scriptet ikke på egen hånd, siden ingen får se" >&2
-        echo "adressen før den brukes. Er den riktig, legg til --inviter." >&2
+        echo "With -y the script does not invite on its own, since nobody gets to see" >&2
+        echo "the address before it is used. If it is correct, add --inviter." >&2
         exit 1
     fi
 
-    echo "Fant ingen bruker med e-post ${EPOST} i ai-dev-tenanten."
-    echo "Personen må inviteres som B2B-gjest for å kunne logge inn."
-    echo "Visningsnavn blir \"${NAVN}\". Det kan IKKE endres etterpå; bruk"
-    echo "--navn=\"Fornavn Etternavn\" hvis dette er feil."
+    echo "Found no user with email ${EPOST} in the ai-dev tenant."
+    echo "The person must be invited as a B2B guest to be able to log in."
+    echo "The display name will be \"${NAVN}\". It can NOT be changed afterwards; use"
+    echo "--navn=\"First Last\" if this is wrong."
     if [[ "$SEND_EPOST" -eq 1 ]]; then
-        echo "Det sendes en invitasjons-e-post fra Microsoft til ${EPOST}."
+        echo "An invitation email is sent from Microsoft to ${EPOST}."
     else
-        echo "Ingen e-post sendes. Du må selv fortelle personen at de skal logge inn på ${CMS_URL}."
+        echo "No email is sent. You must tell the person yourself to log in at ${CMS_URL}."
     fi
 
     if [[ "$BEKREFT" -eq 1 ]]; then
-        read -r -p "Fortsette? [j/N] " svar
-        [[ "$svar" =~ ^[jJyY]$ ]] || { echo "Avbrutt."; exit 0; }
+        read -r -p "Continue? [y/N] " svar
+        [[ "$svar" =~ ^[jJyY]$ ]] || { echo "Aborted."; exit 0; }
     fi
 
     INVITASJON=$(mktemp)
     trap 'rm -f "$INVITASJON"' EXIT
 
-    # Bygges av python, ikke av en heredoc. Et navn med anførselstegn ville
-    # ellers laget ugyldig JSON og fått invitasjonen til å feile.
+    # Built by python, not by a heredoc. A name with quotation marks would
+    # otherwise produce invalid JSON and make the invitation fail.
     python3 - "$EPOST" "$NAVN" "$CMS_URL" "$SEND_EPOST" >"$INVITASJON" <<'PYJSON'
 import json, sys
 epost, navn, cms_url, send = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1"
@@ -223,43 +223,43 @@ PYJSON
 
     BRUKER_NAVN="$EPOST"
     BRUKER_UPN=$(az ad user show --id "$BRUKER_ID" --query userPrincipalName -o tsv)
-    echo "Gjestekonto opprettet: ${BRUKER_UPN}"
+    echo "Guest account created: ${BRUKER_UPN}"
 else
     BRUKER_ID=$(cut -f1 <<<"$TREFF")
     BRUKER_NAVN=$(cut -f2 <<<"$TREFF")
     BRUKER_UPN=$(cut -f3 <<<"$TREFF")
 
     if [[ "$BRUKER_UPN" == aas-* ]]; then
-        echo "Advarsel: ${BRUKER_UPN} ser ut som en aas-adminkonto, ikke en vanlig gjestekonto." >&2
+        echo "Warning: ${BRUKER_UPN} looks like an aas admin account, not a regular guest account." >&2
     fi
 fi
 
-# --- legg til i gruppa -------------------------------------------------------
+# --- add to the group --------------------------------------------------------
 
 ER_MEDLEM=$(az ad group member check --group "$GRUPPE_ID" --member-id "$BRUKER_ID" \
     --query value -o tsv 2>/dev/null || echo "false")
 
 if [[ "$ER_MEDLEM" == "true" ]]; then
-    echo "${BRUKER_NAVN} er allerede medlem av \"${GRUPPE_NAVN}\". Ingenting å gjøre."
+    echo "${BRUKER_NAVN} is already a member of \"${GRUPPE_NAVN}\". Nothing to do."
     exit 0
 fi
 
 echo
 echo "  Person:  ${BRUKER_NAVN} <${EPOST}>"
-echo "  Konto:   ${BRUKER_UPN}"
-echo "  Gruppe:  ${GRUPPE_NAVN}"
-echo "  Gir:     Umbraco-gruppe \"${UMBRACO_GRUPPE}\" på ${CMS_URL}"
+echo "  Account: ${BRUKER_UPN}"
+echo "  Group:   ${GRUPPE_NAVN}"
+echo "  Grants:  Umbraco group \"${UMBRACO_GRUPPE}\" at ${CMS_URL}"
 echo
 
 if [[ "$BEKREFT" -eq 1 ]]; then
-    read -r -p "Legge til? [j/N] " svar
-    [[ "$svar" =~ ^[jJyY]$ ]] || { echo "Avbrutt."; exit 0; }
+    read -r -p "Add? [y/N] " svar
+    [[ "$svar" =~ ^[jJyY]$ ]] || { echo "Aborted."; exit 0; }
 fi
 
 az ad group member add --group "$GRUPPE_ID" --member-id "$BRUKER_ID"
 
-echo "Lagt til i ${GRUPPE_NAVN}."
+echo "Added to ${GRUPPE_NAVN}."
 echo
-echo "Neste steg:"
-echo "  1. ${BRUKER_NAVN} går til ${CMS_URL} og trykker Sign in with Microsoft."
-echo "  2. Lander brukeren deaktivert i Umbraco -> Users, enable den der."
+echo "Next steps:"
+echo "  1. ${BRUKER_NAVN} goes to ${CMS_URL} and clicks Sign in with Microsoft."
+echo "  2. If the user lands deactivated in Umbraco -> Users, enable it there."

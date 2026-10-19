@@ -60,30 +60,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Deployen låser podden til digesten taggen peker på når den kjører. En tag
-      # som skrives over, gir et annet image ved neste deploy eller tilbakerulling
-      # med samme tag, så en tag skal aldri skrives over. Bare «finnes ikke»
-      # slipper gjennom. Feiler oppslaget av en annen grunn, stopper jobben
-      # heller enn å anta at taggen er ledig.
-      - name: Avvis tag som finnes fra før
+      # The deploy locks the pod to the digest the tag points to when it runs. A tag
+      # that is overwritten gives a different image at the next deploy or rollback
+      # with the same tag, so a tag must never be overwritten. Only "does not exist"
+      # gets through. If the lookup fails for another reason, the job stops
+      # rather than assuming the tag is free.
+      - name: Reject a tag that already exists
         env:
           TAG: ${{ github.event.inputs.tag }}
         run: |
           if [[ ! "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
-            echo "Ugyldig tag. Bruk en Docker-tag: bokstaver, tall, _ . og -, maks 128 tegn." >&2
+            echo "Invalid tag. Use a Docker tag: letters, digits, _ . and -, max 128 characters." >&2
             exit 1
           fi
           image="$REGISTRY/$IMAGE_NAME:$TAG"
           if output=$(docker manifest inspect "$image" 2>&1); then
-            echo "Taggen $TAG finnes allerede i $REGISTRY/$IMAGE_NAME. Velg en ny tag." >&2
+            echo "The tag $TAG already exists in $REGISTRY/$IMAGE_NAME. Choose a new tag." >&2
             exit 1
           fi
           if ! grep -qiE 'manifest unknown|no such manifest' <<<"$output"; then
-            echo "Fikk ikke sjekket om $image finnes:" >&2
+            echo "Could not check whether $image exists:" >&2
             echo "$output" >&2
             exit 1
           fi
-          echo "Taggen $TAG er ledig."
+          echo "The tag $TAG is free."
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
@@ -95,8 +95,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: ${{ github.event.inputs.tag }}
 
-      # content-routes.json lever kun i /shared (én kilde). Docker-konteksten er
-      # apps/cms-umbraco/ alene, så vi genererer CMS-speilet inn i konteksten før build.
+      # content-routes.json lives only in /shared (one source). The Docker context is
+      # apps/cms-umbraco/ alone, so we generate the CMS mirror into the context before build.
       - name: Mirror content-routes into CMS build context
         run: node scripts/sync-content-routes.js
 

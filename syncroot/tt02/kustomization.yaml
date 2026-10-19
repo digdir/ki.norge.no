@@ -41,9 +41,9 @@ patches:
         value:
           name: Umbraco__Storage__AzureBlob__Media__ContainerName
           value: umbraco
-      # Samme site som backoffice (cms.ki.test.norge.no). Fra workers.dev ble
-      # forhåndsvisnings-cookien en tredjeparts-cookie, og Safari mistet
-      # forhåndsvisningen ved første klikk i ramma. Se apps/frontend/src/lib/preview.ts.
+      # Same site as the backoffice (cms.ki.test.norge.no). From workers.dev the
+      # preview cookie became a third-party cookie, and Safari lost
+      # the preview on the first click in the frame. See apps/frontend/src/lib/preview.ts.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
@@ -59,18 +59,18 @@ patches:
         value:
           name: uSync__Settings__DefaultSet
           value: Speiling
-      # Skal aldri fjernes, se syncroot/prod/kustomization.yaml.
+      # Must never be removed, see syncroot/prod/kustomization.yaml.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: USYNC_OWNS_SCHEMA
           value: "true"
-      # Naar uSync eier skjemaet maa noe reconcilere det mot filene ved oppstart,
-      # slik composeren gjorde. Content er med i tillegg fordi tt02 skal speile
-      # prod: innholdsmappa er varig (subPath i base-deploymentet), saa hver boot
-      # legger siste transporterte prod-snapshot tilbake. Bivirkning: det som
-      # redigeres i tt02-backoffice nullstilles ved neste restart. Skal tt02
-      # heller vaere et sted aa proeve ting, sett denne tilbake til Settings.
+      # When uSync owns the schema, something must reconcile it against the files at startup,
+      # as the composer did. Content is included as well because tt02 should mirror
+      # prod: the content folder is persistent (subPath in the base deployment), so every boot
+      # puts the last transported prod snapshot back. Side effect: whatever is
+      # edited in the tt02 backoffice is reset at the next restart. If tt02 should
+      # rather be a place to try things, set this back to Settings.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:

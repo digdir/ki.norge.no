@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Viser hvilken .NET-versjon base-imagene i Dockerfile er låst til, og hvilken
-// den samme taggen gir i dag. Digesten i Dockerfile sier ingenting om versjonen,
-// så uten dette ser et image som er flere sikkerhetsoppdateringer bak, likt ut
-// som et ferskt.
+// Shows which .NET version the base images in Dockerfile are locked to, and which
+// the same tag gives today. The digest in Dockerfile says nothing about the version,
+// so without this an image that is several security updates behind looks the same
+// as a fresh one.
 //
-// Bruk: node scripts/dotnet-image-versjon.mjs
+// Usage: node scripts/dotnet-image-versjon.mjs
 
 import { readFileSync } from 'node:fs';
 
@@ -15,11 +15,11 @@ const MANIFEST = 'application/vnd.oci.image.manifest.v1+json, application/vnd.do
 
 async function hent(url, accept) {
   const svar = await fetch(url, { headers: { Accept: accept } });
-  if (!svar.ok) throw new Error(`${url} svarte ${svar.status}`);
+  if (!svar.ok) throw new Error(`${url} answered ${svar.status}`);
   return svar;
 }
 
-/** Versjon og byggedato for linux/amd64-varianten av en digest. */
+/** Version and build date for the linux/amd64 variant of a digest. */
 async function versjon(repo, digest) {
   const indeks = await (await hent(`${REGISTER}/${repo}/manifests/${digest}`, INDEKS)).json();
   const amd64 = indeks.manifests.find((m) => m.platform?.os === 'linux' && m.platform?.architecture === 'amd64');
@@ -27,7 +27,7 @@ async function versjon(repo, digest) {
   const config = await (await hent(`${REGISTER}/${repo}/blobs/${manifest.config.digest}`, '*/*')).json();
   const env = Object.fromEntries((config.config?.Env ?? []).map((e) => e.split('=')));
   const v = env.DOTNET_SDK_VERSION ? `SDK ${env.DOTNET_SDK_VERSION}, runtime ${env.DOTNET_VERSION}` : `runtime ${env.DOTNET_VERSION}`;
-  return `${v} (bygget ${String(config.created).slice(0, 10)})`;
+  return `${v} (built ${String(config.created).slice(0, 10)})`;
 }
 
 const linjer = readFileSync(DOCKERFILE, 'utf-8').matchAll(/^FROM mcr\.microsoft\.com\/([^:\s]+):(\S+)@(sha256:[0-9a-f]+)/gm);
@@ -36,8 +36,8 @@ for (const [, repo, tagg, låst] of linjer) {
   const nå = (await hent(`${REGISTER}/${repo}/manifests/${tagg}`, INDEKS)).headers.get('docker-content-digest');
   const [vLåst, vNå] = await Promise.all([versjon(repo, låst), versjon(repo, nå)]);
   console.log(`${repo}:${tagg}`);
-  console.log(`  låst:  ${vLåst}  ${låst.slice(7, 19)}`);
-  console.log(`  i dag: ${vNå}  ${nå.slice(7, 19)}${låst === nå ? '  (lik)' : ''}`);
+  console.log(`  locked: ${vLåst}  ${låst.slice(7, 19)}`);
+  console.log(`  today:  ${vNå}  ${nå.slice(7, 19)}${låst === nå ? '  (same)' : ''}`);
   if (låst !== nå) bak = true;
 }
 process.exit(bak ? 1 : 0);

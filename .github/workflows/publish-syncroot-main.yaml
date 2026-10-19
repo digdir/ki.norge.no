@@ -34,38 +34,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Inputene går via env og ikke rett inn i skriptet. Ellers kjører en
-      # image-tag med ' i seg som shell, med tilgangen dette jobbet har til prod.
-      # Podden låses til digesten taggen peker på nå, så en tag som flyttes
-      # senere ikke bytter imaget under oss.
+      # The inputs go via env and not straight into the script. Otherwise an
+      # image tag containing ' runs as shell, with the access this job has to prod.
+      # The pod is locked to the digest the tag points to now, so a tag that is moved
+      # later does not swap the image under us.
       - name: Pin image to digest
         env:
           IMAGE_TAG: ${{ inputs.image-tag }}
           TARGET_ENV: ${{ inputs.environment }}
         run: |
           if [[ ! "$IMAGE_TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
-            echo "Ugyldig image-tag. Bruk en Docker-tag: bokstaver, tall, _ . og -, maks 128 tegn." >&2
+            echo "Invalid image tag. Use a Docker tag: letters, digits, _ . and -, max 128 characters." >&2
             exit 1
           fi
           case "$TARGET_ENV" in
             tt02|prod) ;;
-            *) echo "Ukjent miljø: $TARGET_ENV" >&2; exit 1 ;;
+            *) echo "Unknown environment: $TARGET_ENV" >&2; exit 1 ;;
           esac
           kustomization="./syncroot/$TARGET_ENV/kustomization.yaml"
           new_name=$(yq '.images[] | select(.name == "umbraco") | .newName' "$kustomization")
           source_image="${new_name#altinncr.azurecr.io/}:$IMAGE_TAG"
           IMAGE_DIGEST=$(docker buildx imagetools inspect "$source_image" --format '{{json .Manifest}}' | jq -r '.digest')
           if [[ ! "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-            echo "Fant ingen digest for $source_image. Finnes taggen?" >&2
+            echo "Found no digest for $source_image. Does the tag exist?" >&2
             exit 1
           fi
           export IMAGE_DIGEST
           yq -i '(.images[] | select(.name == "umbraco")) |= (.newTag = strenv(IMAGE_TAG) | .digest = strenv(IMAGE_DIGEST))' "$kustomization"
-          echo "$source_image låst til $IMAGE_DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "$source_image locked to $IMAGE_DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
 
-      # Begge miljøene kjører Azure SQL, og base-manifestet peker på SQLite.
-      # Tilkoblingen skrives derfor om ved hver publisering, uten noe valg som
-      # kan peke et miljø mot en tom database.
+      # Both environments run Azure SQL, and the base manifest points to SQLite.
+      # The connection is therefore rewritten at every publish, without any choice that
+      # can point an environment at an empty database.
       - name: Update db connection string
         run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN")).value = "Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\""' ./syncroot/base/umbraco/deployment.yaml
 

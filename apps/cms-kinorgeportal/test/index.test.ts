@@ -9,37 +9,37 @@ beforeEach(() => {
   seen = [];
   globalThis.fetch = async (input: RequestInfo | URL) => {
     seen.push(input as Request);
-    return new Response("fra origin", { status: 200 });
+    return new Response("from origin", { status: 200 });
   };
 });
 
 const call = (url: string) => worker.fetch(new Request(url), env as never, {} as never);
 
-test("http sendes til https med samme sti og query, uten å nå origin", async () => {
+test("http is sent to https with the same path and query, without reaching origin", async () => {
   const res = await call("http://cms.ki.norge.no/umbraco/login?returnUrl=%2Fumbraco");
   assert.equal(res.status, 301);
   assert.equal(res.headers.get("Location"), "https://cms.ki.norge.no/umbraco/login?returnUrl=%2Fumbraco");
   assert.equal(seen.length, 0);
 });
 
-test("https-svar får HSTS", async () => {
+test("https responses get HSTS", async () => {
   const res = await call("https://cms.ki.norge.no/umbraco");
   assert.equal(res.status, 200);
   assert.equal(res.headers.get("Strict-Transport-Security"), "max-age=31536000");
   assert.equal(seen.length, 1);
 });
 
-test("localhost slipper redirecten, så wrangler dev virker", async () => {
+test("localhost skips the redirect, so wrangler dev works", async () => {
   const res = await call("http://localhost:8787/umbraco");
   assert.equal(res.status, 200);
 });
 
-test("media uten Cache-Control får fortsatt en uke i nettleseren", async () => {
+test("media without Cache-Control still gets one week in the browser", async () => {
   const res = await call("https://cms.ki.norge.no/media/abc/bilde.png");
   assert.equal(res.headers.get("Cache-Control"), "public, max-age=604800");
 });
 
-test("SVG fra media får en CSP som stopper skript, og nosniff", async () => {
+test("SVG from media gets a CSP that stops scripts, and nosniff", async () => {
   globalThis.fetch = async () =>
     new Response("<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>", {
       status: 200,
@@ -52,8 +52,8 @@ test("SVG fra media får en CSP som stopper skript, og nosniff", async () => {
   assert.equal(res.headers.get("X-Content-Type-Options"), "nosniff");
 });
 
-// sandbox får Chrome til å nekte å vise PDF-er, så CSP-en gjelder bare SVG.
-test("PDF og bilder fra media får nosniff, men ingen CSP", async () => {
+// sandbox makes Chrome refuse to show PDFs, so the CSP only applies to SVG.
+test("PDF and images from media get nosniff, but no CSP", async () => {
   globalThis.fetch = async () =>
     new Response("%PDF-1.7", { status: 200, headers: { "Content-Type": "application/pdf" } });
   const res = await call("https://cms.ki.norge.no/media/abc/rapport.pdf");
@@ -61,7 +61,7 @@ test("PDF og bilder fra media får nosniff, men ingen CSP", async () => {
   assert.equal(res.headers.get("X-Content-Type-Options"), "nosniff");
 });
 
-test("backoffice får ingen media-CSP", async () => {
+test("backoffice gets no media CSP", async () => {
   globalThis.fetch = async () =>
     new Response("<html></html>", { status: 200, headers: { "Content-Type": "text/html" } });
   const res = await call("https://cms.ki.norge.no/umbraco");

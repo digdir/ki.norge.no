@@ -6,20 +6,20 @@
   "prHourlyLimit": 0,
   "packageRules": [
     {
-      "description": "Overrides i pnpm-workspace.yaml er gulv for sikkerhetsfikser. En major-bump der tvinger en versjon ingen avhengighet har bedt om, og pnpm sier ikke fra.",
+      "description": "Overrides in pnpm-workspace.yaml are floors for security fixes. A major bump there forces a version no dependency has asked for, and pnpm does not warn.",
       "matchManagers": ["npm"],
       "matchDepTypes": ["pnpm-workspace.overrides"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
-      "description": "Pinnene i KiNorge.Cms.csproj løfter transitive pakker over Umbracos eget gulv (Umbraco 17.7.0 erklærer Microsoft.OpenApi 2.9.0 og SQLitePCLRaw 2.1.12/2.1.13). 3.x brekker swagger og splitter SQLite-familien. Fjern regelen når Umbraco selv erklærer 3.x.",
+      "description": "The pins in KiNorge.Cms.csproj lift transitive packages above Umbraco's own floor (Umbraco 17.7.0 declares Microsoft.OpenApi 2.9.0 and SQLitePCLRaw 2.1.12/2.1.13). 3.x breaks swagger and splits the SQLite family. Remove the rule when Umbraco itself declares 3.x.",
       "matchManagers": ["nuget"],
       "matchPackageNames": ["Microsoft.OpenApi", "SQLitePCLRaw.*"],
       "allowedVersions": "<3.0.0"
     },
     {
-      "description": "Umbraco og uSync kan ha migreringer også i minor og patch (17.5 skrev om lenker i riktekst). De får egen PR, så de ikke går med i «nuget non-major» uten prod-lik test (docs/avhengigheter.md 5.5). Umbraco 17 er LTS, og 18 tas som egen, planlagt oppgradering.",
+      "description": "Umbraco and uSync can have migrations in minor and patch too (17.5 rewrote links in rich text). They get their own PR, so they are not included in \"nuget non-major\" without a prod-like test (docs/dependencies.md 5.5). Umbraco 17 is LTS, and 18 is taken as a separate, planned upgrade.",
       "matchManagers": ["nuget"],
       "matchPackageNames": ["Umbraco.Cms", "Umbraco.Cms.*", "Umbraco.StorageProviders.*", "uSync", "uSync.*"],
       "allowedVersions": "<18.0.0",
@@ -28,25 +28,25 @@
       "addLabels": ["umbraco"]
     },
     {
-      "description": ".NET 10 er LTS, og Umbraco 17 bygger på den. .NET 11 tas sammen med en Umbraco-versjon som støtter den.",
+      "description": ".NET 10 is LTS, and Umbraco 17 builds on it. .NET 11 is taken together with an Umbraco version that supports it.",
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["mcr.microsoft.com/dotnet/aspnet", "mcr.microsoft.com/dotnet/sdk"],
       "allowedVersions": "<11"
     },
     {
-      "description": "Digest-PR-ene for base-imagene sto på vent i dashbordet fra juli til september og ble aldri laget. Microsoft bygger nye digests for sikkerhetsoppdateringer, så de skal ikke vente på modning.",
+      "description": "The digest PRs for the base images sat waiting in the dashboard from July to September and were never created. Microsoft builds new digests for security updates, so they should not wait for maturity.",
       "matchManagers": ["dockerfile"],
       "matchUpdateTypes": ["digest"],
       "minimumReleaseAge": "0 days"
     },
     {
-      "description": "Typene for Node følger runtime, som er Node 24 i CI. Løftes til <27 når Node 26 blir LTS 28.10.2026 og CI flyttes dit.",
+      "description": "The Node types follow the runtime, which is Node 24 in CI. Raise to <27 when Node 26 becomes LTS on 2026-10-28 and CI moves there.",
       "matchManagers": ["npm"],
       "matchPackageNames": ["@types/node"],
       "allowedVersions": "<25"
     },
     {
-      "description": "@cloudflare/vitest-pool-workers 0.22.0 krever vitest ^4.1.0. Fjern regelen når den støtter vitest 5.",
+      "description": "@cloudflare/vitest-pool-workers 0.22.0 requires vitest ^4.1.0. Remove the rule when it supports vitest 5.",
       "matchFileNames": ["apps/cache-kinorgeportal/package.json"],
       "matchPackageNames": ["vitest"],
       "allowedVersions": "<5.0.0"

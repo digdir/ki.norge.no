@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# Speil innhold fra prod til tt02 for KI Norge.
+# Mirror content from prod to tt02 for KI Norge.
 #
-# Flytter uSync-innholdseksporten pod-til-pod gjennom din maskin: v17/Content, og
-# v17/Media med media-metadataene når den finnes. Skjemafilene følger ikke med.
-# Skjemaet ligger i imaget og importeres ved oppstart, og en eldre skjemaeksport
-# fra prod kunne rullet tilbake nyere skjema på tt02 og slettet felt.
+# Moves the uSync content export pod to pod through your machine: v17/Content, and
+# v17/Media with the media metadata when it exists. The schema files are not included.
+# The schema lives in the image and is imported at startup, and an older schema export
+# from prod could have rolled back a newer schema on tt02 and deleted fields.
 #
-# Bildefilene følger heller ikke med. De ligger i Azure Blob, og det finnes ikke
-# noe skript som kopierer dem fra prod til tt02.
+# The image files are not included either. They live in Azure Blob, and there is no
+# script that copies them from prod to tt02.
 #
-# Selve Export (prod) og Import (tt02) gjøres i backoffice. Se docs/innholdsspeiling-tt02.md.
+# The Export (prod) and Import (tt02) themselves are done in the backoffice. See docs/content-mirroring-tt02.md.
 #
-# Bruk:
-#   scripts/sync-prod-til-tt02.sh            kopier innholdet, spør først
-#   scripts/sync-prod-til-tt02.sh --sjekk    vis hva som ville blitt kopiert
-#   scripts/sync-prod-til-tt02.sh -y         hopp over bekreftelsen
+# Usage:
+#   scripts/sync-prod-til-tt02.sh            copy the content, ask first
+#   scripts/sync-prod-til-tt02.sh --sjekk    show what would be copied
+#   scripts/sync-prod-til-tt02.sh -y         skip the confirmation
 #
-# Rekkefølge: Export i prod-backoffice -> dette scriptet -> Import i tt02.
-# Krever kubectl med Altinn-VPN, GNU find i podden (Debian-image) og rettigheter til poddene.
+# Order: Export in the prod backoffice -> this script -> Import in tt02.
+# Requires kubectl with the Altinn VPN, GNU find in the pod (Debian image) and permissions on the pods.
 
 set -euo pipefail
 
@@ -30,13 +30,13 @@ USYNC_DIR="/app/uSync/v17"
 
 usage() {
   cat >&2 <<EOF
-Bruk: $0 [--sjekk] [-y]
+Usage: $0 [--sjekk] [-y]
 
-  --sjekk   vis hva som ville blitt kopiert, kopier ingenting
-  -y        hopp over bekreftelsen
+  --sjekk   show what would be copied, copy nothing
+  -y        skip the confirmation
 
-Kopierer v17/Content, og v17/Media når den finnes, fra prod til tt02.
-Rekkefølge: Export i prod-backoffice -> dette scriptet -> Import i tt02-backoffice.
+Copies v17/Content, and v17/Media when it exists, from prod to tt02.
+Order: Export in the prod backoffice -> this script -> Import in the tt02 backoffice.
 EOF
   exit 1
 }
@@ -50,26 +50,26 @@ for arg in "$@"; do
   esac
 done
 
-command -v kubectl >/dev/null || { echo "Fant ikke kubectl i PATH." >&2; exit 1; }
+command -v kubectl >/dev/null || { echo "Could not find kubectl in PATH." >&2; exit 1; }
 
 kprod() { kubectl --context "$PROD_CTX" -n "$NS" "$@"; }
 ktt02() { kubectl --context "$TT02_CTX" -n "$NS" "$@"; }
 
-# Sjekk at begge poddene er nåbare (krever Altinn-VPN).
+# Check that both pods are reachable (requires the Altinn VPN).
 for pair in "PROD:$PROD_CTX" "TT02:$TT02_CTX"; do
   navn="${pair%%:*}"; ctx="${pair#*:}"
   if ! kubectl --context "$ctx" -n "$NS" get "$POD" -o name >/dev/null 2>&1; then
-    echo "Når ikke $navn ($ctx, $NS/$POD). Er Altinn-VPN på og konteksten riktig?" >&2
+    echo "Cannot reach $navn ($ctx, $NS/$POD). Is the Altinn VPN on and the context right?" >&2
     exit 1
   fi
 done
 
-# Innholdsmappa er varig siden #674, i begge miljøene, så den kan inneholde en
-# gammel eksport. Media-metadataene ligger på containerens skrivelag og forsvinner
-# ved restart. Tidspunktet for nyeste fil viser om Export er kjørt nylig.
+# The content folder has been persistent since #674, in both environments, so it can contain an
+# old export. The media metadata lives on the container's write layer and disappears
+# on restart. The time of the newest file shows whether Export has been run recently.
 if ! kprod exec "$POD" -c "$CONTAINER" -- test -d "$USYNC_DIR/Content" 2>/dev/null; then
-  echo "Fant ingen innholdseksport på prod ($USYNC_DIR/Content mangler)." >&2
-  echo "Kjør Export i prod-backoffice (Settings -> uSync -> Export) først, så dette scriptet." >&2
+  echo "Found no content export on prod ($USYNC_DIR/Content is missing)." >&2
+  echo "Run Export in the prod backoffice (Settings -> uSync -> Export) first, then this script." >&2
   exit 1
 fi
 
@@ -78,33 +78,33 @@ if kprod exec "$POD" -c "$CONTAINER" -- test -d "$USYNC_DIR/Media" 2>/dev/null; 
   MAPPER="Content Media"
 fi
 
-echo "Kilde:  $PROD_CTX  $NS/$POD:$CONTAINER"
-echo "Mål:    $TT02_CTX  $NS/$POD:$CONTAINER"
+echo "Source: $PROD_CTX  $NS/$POD:$CONTAINER"
+echo "Target: $TT02_CTX  $NS/$POD:$CONTAINER"
 for mappe in $MAPPER; do
   antall=$(kprod exec "$POD" -c "$CONTAINER" -- sh -c "find $USYNC_DIR/$mappe -type f | wc -l" | tr -d ' ')
   nyeste=$(kprod exec "$POD" -c "$CONTAINER" -- sh -c "find $USYNC_DIR/$mappe -type f -printf '%TY-%Tm-%Td %TH:%TM\n' | sort | tail -1")
-  echo "  $mappe: $antall filer, nyeste ${nyeste:-ingen}"
+  echo "  $mappe: $antall files, newest ${nyeste:-none}"
 done
-[ "$MAPPER" = "Content" ] && echo "  Media: ingen media-metadata på prod. Kjør Export på nytt hvis innholdet viser til bilder."
+[ "$MAPPER" = "Content" ] && echo "  Media: no media metadata on prod. Run Export again if the content refers to images."
 echo
 
 if [ "$SJEKK" -eq 1 ]; then
-  echo "Sjekk-modus, ingenting kopieres."
+  echo "Check mode, nothing is copied."
   exit 0
 fi
 
-echo "NB: forutsetter at du har kjørt Export i prod-backoffice. Husk Import i tt02 etterpå."
+echo "NB: assumes you have run Export in the prod backoffice. Remember Import in tt02 afterwards."
 if [ "$ASSUME_YES" -ne 1 ]; then
-  read -r -p "Fortsette? Dette overskriver tilsvarende filer på tt02. [j/N] " svar
-  case "$svar" in j|J|y|Y) ;; *) echo "Avbrutt."; exit 0 ;; esac
+  read -r -p "Continue? This overwrites the corresponding files on tt02. [y/N] " svar
+  case "$svar" in j|J|y|Y) ;; *) echo "Aborted."; exit 0 ;; esac
 fi
 
-echo "Kopierer $MAPPER..."
-# --no-overwrite-dir: Content er et montert volum på tt02, og tar skal ikke prøve
-# å endre eier eller tider på selve mappa.
+echo "Copying $MAPPER..."
+# --no-overwrite-dir: Content is a mounted volume on tt02, and tar must not try
+# to change the owner or times of the folder itself.
 # shellcheck disable=SC2086
 kprod exec "$POD" -c "$CONTAINER" -- tar czf - -C "$USYNC_DIR" $MAPPER \
   | ktt02 exec -i "$POD" -c "$CONTAINER" -- tar xzf - --no-overwrite-dir -C "$USYNC_DIR"
 
-echo "Ferdig."
-echo "Neste steg: kjør Import i tt02-backoffice (Settings -> uSync -> Import, aldri clean)."
+echo "Done."
+echo "Next step: run Import in the tt02 backoffice (Settings -> uSync -> Import, never clean)."
