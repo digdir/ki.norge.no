@@ -147,7 +147,7 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             <section className="tiltak-detalj-felt">
               <h3 className="tiltak-detalj-merkelapp">Kontaktinformasjon</h3>
               <Paragraph>
-                <a href={`mailto:${tiltak.kontaktinfo.trim()}`}>{tiltak.kontaktinfo.trim()}</a>
+                <a href={`mailto:${tiltak.kontaktinfo.trim()}`} className="ds-link">{tiltak.kontaktinfo.trim()}</a>
               </Paragraph>
             </section>
           )}
@@ -156,7 +156,7 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             <section className="tiltak-detalj-tema">
               <h3 className="tiltak-detalj-merkelapp">Tema</h3>
               <Tag variant="outline" data-size="sm">
-                {tiltak.fagomrade}
+                  {tiltak.fagomrade}
               </Tag>
             </section>
           )}
@@ -167,7 +167,7 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
           */}
           <Paragraph className="tiltak-detalj-kontakt">
             Vil du oppdatere beskrivelsen av eller fasen til tiltaket? Ta kontakt på{' '}
-            <a href="mailto:ki-tiltak@kin.norge.no">ki-tiltak@kin.norge.no</a>.
+            <a href="mailto:ki-tiltak@kin.norge.no" className="ds-link">ki-tiltak@kin.norge.no</a>.
           </Paragraph>
         </Dialog.Block>
       )}
