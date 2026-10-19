@@ -11,7 +11,6 @@
     "deploy:check-main": "[ -z \"$(git status --porcelain)\" ] && git checkout main && git fetch -q origin main && [ \"$(git rev-parse HEAD)\" = \"$(git rev-parse origin/main)\" ] || { echo 'Aborting: uncommitted changes or main not in sync with remote. Commit/push first.'; exit 1; }",
     "deploy:tt02": "pnpm run deploy:check-main && CLOUDFLARE_ENV=tt02 astro build && wrangler deploy --env tt02 && node scripts/purge-cache.mjs tt02",
     "deploy:prod": "pnpm run deploy:check-main && CLOUDFLARE_ENV=prod astro build && wrangler deploy --env prod && node scripts/purge-cache.mjs prod",
-    "deploy:tt02:preview": "CLOUDFLARE_ENV=tt02 astro build && wrangler deploy --env tt02 && node scripts/purge-cache.mjs tt02",
     "test:unit": "vitest run",
     "typecheck": "astro sync && tsc --noEmit",
     "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
