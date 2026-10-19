@@ -1,6 +1,6 @@
 # ki-content index — infrastructure as code
 
-Filene og kommandoene under gjelder `infrastructure/elasticsearch/`, og kjøres derfra.
+The files and commands below apply to `infrastructure/elasticsearch/`, and are run from there.
 
 The Elasticsearch index that powers ki.norge.no hybrid search (`ki-content`) is
 declared here as an Elasticsearch **component + index template**. These JSON files

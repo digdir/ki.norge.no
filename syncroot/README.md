@@ -1,3 +1,3 @@
 # syncroot
 
-Kubernetes-manifestene for CMS-et i Altinn dis-core, med Kustomize: `base/` og ett overlay per miljø (`prod/`, `tt02/`). Beskrivelsen står i [docs/syncroot.md](../docs/syncroot.md), og utrullingen i [docs/deploy.md](../docs/deploy.md).
+The Kubernetes manifests for the CMS in Altinn dis-core, with Kustomize: `base/` and one overlay per environment (`prod/`, `tt02/`). The description is in [docs/syncroot.md](../docs/syncroot.md), and the rollout in [docs/deploy.md](../docs/deploy.md).

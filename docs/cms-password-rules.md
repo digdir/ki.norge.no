@@ -1,34 +1,34 @@
-# Passordregler for CMS-brukere
+# Password rules for CMS users
 
-Vanlig pålogging til backofficet går via Entra ID, med «Microsoft»-knappen. Da har brukeren ikke noe passord i Umbraco. Reglene under gjelder bare lokale kontoer med passord, og lokal pålogging er fortsatt på ved siden av Entra ID.
+Normal login to the backoffice goes through Entra ID, with the "Microsoft" button. Then the user has no password in Umbraco. The rules below apply only to local accounts with a password, and local login is still enabled alongside Entra ID.
 
-## Hva passordet må inneholde
+## What the password must contain
 
-- **Minst 10 tegn**
-- **Minst 2 unike tegn** (samme tegn kan ikke gjenta seg over alt)
-- **Minst én stor bokstav** (A-Z)
-- **Minst én liten bokstav** (a-z)
-- **Minst ett spesialtegn** (`!@#$%^&*()-_+=` osv.)
+- **At least 10 characters**
+- **At least 2 unique characters** (the same character cannot be repeated throughout)
+- **At least one uppercase letter** (A-Z)
+- **At least one lowercase letter** (a-z)
+- **At least one special character** (`!@#$%^&*()-_+=` etc.)
 
-Tall er ikke påkrevd, men anbefalt.
+Digits are not required, but recommended.
 
-## Eksempler
+## Examples
 
-| Passordet har | Godkjent | Hvorfor |
+| The password has | Accepted | Why |
 | --- | --- | --- |
-| 8 tegn | Nei | For kort |
-| 12 tegn, bare små bokstaver og tall | Nei | Mangler stor bokstav og spesialtegn |
-| 12 tegn med store og små bokstaver og tall | Nei | Mangler spesialtegn |
-| 14 tegn med store og små bokstaver og ett spesialtegn | Ja | Oppfyller alle krav |
+| 8 characters | No | Too short |
+| 12 characters, only lowercase letters and digits | No | Missing uppercase letter and special character |
+| 12 characters with uppercase and lowercase letters and digits | No | Missing special character |
+| 14 characters with uppercase and lowercase letters and one special character | Yes | Meets all requirements |
 
-## Hvorfor er dette nødvendig
+## Why this is necessary
 
-CMS-et gir tilgang til alt innhold. Et svakt passord er lett å gjette eller knekke, og kan brukes til å publisere falskt innhold eller sabotere nettstedet.
+The CMS gives access to all content. A weak password is easy to guess or crack, and can be used to publish false content or sabotage the site.
 
-## Hvis endringen av passordet feiler
+## If changing the password fails
 
-Du skal få en melding som sier hvilken regel som mangler, for eksempel «Passordet må være minst 10 tegn». Følg meldingen, og prøv på nytt.
+You should get a message that says which rule is missing, for example "Passordet må være minst 10 tegn". Follow the message, and try again.
 
-Får du bare «Unknown failure» uten detaljer, si fra til en utvikler. Da har noe brutt.
+If you only get "Unknown failure" without details, tell a developer. Then something has broken.
 
-Reglene er definert i `apps/cms-umbraco/appsettings.json` under `Umbraco.CMS.Security.UserPasswordConfiguration`. De norske feilmeldingene kommer fra `NorwegianIdentityErrorDescriber.cs`.
+The rules are defined in `apps/cms-umbraco/appsettings.json` under `Umbraco.CMS.Security.UserPasswordConfiguration`. The Norwegian error messages come from `NorwegianIdentityErrorDescriber.cs`.

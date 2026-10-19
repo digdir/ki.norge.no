@@ -1,10 +1,10 @@
-# Rapporter og beslutningslogg
+# Reports and decision log
 
-Mappa samler det som forklarer hvorfor prosjektet ser ut som det gjør, for den som kommer inn senere.
+The folder collects what explains why the project looks the way it does, for whoever comes in later.
 
-- **[beslutningslogg.md](beslutningslogg.md)** har ett punkt per beslutning eller milepæl, med det nyeste øverst. Hvert punkt har dato, hva som ble bestemt, hvorfor, og en lenke til PR, issue eller dokument i `docs/`.
-- **Rapporter** legges her som HTML, med filnavn på formen `ÅÅÅÅ-MM-DD-<navn>.html`. En rapport henter ingenting utenfra og kan åpnes rett fra disken. Den er en side som alle andre, så kontrast og tastaturnavigasjon skal være i orden.
+- **[decision-log.md](decision-log.md)** has one entry per decision or milestone, newest first. Each entry has a date, what was decided, why, and a link to a PR, issue or document in `docs/`.
+- **Reports** are put here as HTML, with file names in the form `YYYY-MM-DD-<name>.html`. A report fetches nothing from outside and can be opened straight from disk. It is a page like any other, so contrast and keyboard navigation must be in order.
 
-Større arkitekturvalg står i egne dokumenter i `docs/`, og loggen lenker dit i stedet for å gjenta dem.
+Larger architecture choices are in their own documents in `docs/`, and the log links there instead of repeating them.
 
-Repoet er offentlig, så teksten er nøytral. Den har ingen personnavn utenom tildelte roller, ingen sitater, ingen hemmeligheter og ingen persondata.
+The repo is public, so the text is neutral. It has no personal names apart from assigned roles, no quotes, no secrets and no personal data.

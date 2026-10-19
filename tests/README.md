@@ -1,3 +1,3 @@
 # tests
 
-Playwright-testene for frontend og CMS. Hvordan de kjøres, og hvordan de henger sammen med `scripts/smoke-test.sh`, står i [docs/smoketester.md](../docs/smoketester.md).
+The Playwright tests for the frontend and the CMS. How they are run, and how they fit together with `scripts/smoke-test.sh`, is described in [docs/smoke-tests.md](../docs/smoke-tests.md).

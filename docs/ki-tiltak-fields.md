@@ -1,14 +1,14 @@
-# Felt i ki-tiltak.json
+# Fields in ki-tiltak.json
 
-Referanse for den som fører inn tiltak i `apps/frontend/src/data/ki-tiltak.json`.
+Reference for whoever enters initiatives in `apps/frontend/src/data/ki-tiltak.json`.
 
-## Den enkleste veien: lim inn fra e-posten
+## The simplest way: paste from the email
 
-E-posten som kommer til `ki-tiltak@kin.norge.no` har nederst en blokk som heter **TIL KI-TILTAK.JSON**. Den er hele oppføringen, med ny id, riktige feltnavn og verdiene slik skjemaet har dem. Kopier blokken som den står, og lim den inn på linja rett etter `[` øverst i fila. Komma til slutt er med.
+The email that arrives at `ki-tiltak@kin.norge.no` has a block at the bottom called **TIL KI-TILTAK.JSON**. It is the whole entry, with a new id, the right field names and the values as the form has them. Copy the block as it is, and paste it on the line right after `[` at the top of the file. The trailing comma is included.
 
-Da trenger du ikke skrive noe for hånd. Det eneste som kan trenge vask er `virksomhet`, som er navnet innsenderen skrev, og `beskrivelse`, hvis dere vil språkvaske.
+Then you do not need to write anything by hand. The only things that may need cleaning are `virksomhet`, which is the name the submitter wrote, and `beskrivelse`, if you want to copy-edit it.
 
-## Hele modellen
+## The whole model
 
 ```json
 {
@@ -28,96 +28,96 @@ Da trenger du ikke skrive noe for hånd. Det eneste som kan trenge vask er `virk
 }
 ```
 
-De seks øverste er påkrevd og finnes på alle oppføringene. De seks nederste er valgfrie og gjelder bare nye tiltak.
+The top six are required and exist on all entries. The bottom six are optional and apply only to new initiatives.
 
-## De nye feltene
+## The new fields
 
-| Felt | Type | Gyldige verdier |
+| Field | Type | Valid values |
 | --- | --- | --- |
-| `fase` | tekst | `Innsikt og planlegging`, `Gjennomføring`, `I drift`. Vises som **Fase** |
-| `kiType` | liste | `Generativ KI`, `Prediktiv KI`, `Agentisk KI`, `Språkteknologi`, `Computer Vision`, `Anbefalingssystemer`, `Annet` |
-| `kiTypeAnnet` | tekst | Fritekst. Bare når `kiType` inneholder `Annet` |
-| `leveranse` | liste | `PoC`, `MVP`, `Pilot`, `Løsning i produksjon`, `Annet` |
-| `leveranseAnnet` | tekst | Fritekst. Bare når `leveranse` inneholder `Annet` |
-| `kontaktinfo` | tekst | E-postadresse |
+| `fase` | text | `Innsikt og planlegging`, `Gjennomføring`, `I drift`. Shown as **Fase** |
+| `kiType` | list | `Generativ KI`, `Prediktiv KI`, `Agentisk KI`, `Språkteknologi`, `Computer Vision`, `Anbefalingssystemer`, `Annet` |
+| `kiTypeAnnet` | text | Free text. Only when `kiType` contains `Annet` |
+| `leveranse` | list | `PoC`, `MVP`, `Pilot`, `Løsning i produksjon`, `Annet` |
+| `leveranseAnnet` | text | Free text. Only when `leveranse` contains `Annet` |
+| `kontaktinfo` | text | Email address |
 
-**Det finnes ikke noe status-felt.** Det ble fjernet fordi kategorien ikke skal brukes. `fase` er svaret på skjemaets «Hvilken fase er tiltaket i?», og vises som **Fase**.
+**There is no status field.** It was removed because the category is not to be used. `fase` is the answer to the form's "Hvilken fase er tiltaket i?", and is shown as **Fase**.
 
-**Skjemaet gir ett leveranse-valg.** «Hva skal tiltaket levere?» er radioknapper, så en ny innsending har alltid én verdi i `leveranse`. Feltet er likevel en liste i modellen, siden eldre tiltak kan ha flere. E-posten til redaksjonen skriver det som en liste med ett element.
+**The form gives one delivery choice.** "Hva skal tiltaket levere?" is radio buttons, so a new submission always has one value in `leveranse`. The field is still a list in the model, since older initiatives may have several. The email to the editorial team writes it as a list with one element.
 
-**Lister, ikke setninger.** `kiType` og `leveranse` er lister med ordene fra tabellen, stavet likt. Skriv `["MVP", "Pilot"]`, ikke `"MVP og pilot."`. Sida viser dem som vanlig tekst, for eksempel «MVP, Pilot og Løsning i produksjon».
+**Lists, not sentences.** `kiType` and `leveranse` are lists with the words from the table, spelled the same. Write `["MVP", "Pilot"]`, not `"MVP og pilot."`. The page shows them as plain text, for example "MVP, Pilot og Løsning i produksjon".
 
-## Flere virksomheter
+## Several organisations
 
-`virksomhet` og `orgnr` kan være lister i samme rekkefølge, med hovedvirksomheten først:
+`virksomhet` and `orgnr` can be lists in the same order, with the main organisation first:
 
 ```json
 "virksomhet": ["Helse Bergen HF", "Helse Førde HF"],
 "orgnr": ["983974724", "983974732"]
 ```
 
-I detaljvisningen står de én per linje. På kortet står de etter hverandre med komma, kuttet med «…» etter to linjer. Søket går i alle.
+In the detail view they are shown one per line. On the card they are shown one after another with commas, cut with "…" after two lines. Search covers all of them.
 
-Har skjemaet flere virksomheter, skriver e-postblokken **TIL KI-TILTAK.JSON** `virksomhet` og `orgnr` som lister, med ansvarlig virksomhet først og samarbeidsvirksomhetene etter.
+If the form has several organisations, the email block **TIL KI-TILTAK.JSON** writes `virksomhet` and `orgnr` as lists, with the responsible organisation first and the partner organisations after.
 
-## Ny eksport fra registeret
+## New export from the register
 
-Hele lista byttes med én kommando fra roten av repoet:
+The whole list is replaced with one command from the root of the repo:
 
 ```bash
-node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<eksport>.json
+node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<export>.json
 ```
 
-1. Skriptet skriver `apps/frontend/src/data/ki-tiltak.json`. Det setter «NA» og «N/A» til `null`, fjerner NA-biter mellom «;», og bytter registerets varianter, som «Språkteknologi (NLP)», til våre verdier.
-2. Les rapporten. Den viser hvor mange NA og varianter som er rettet, hvilke overstyringer som er brukt, og hva som trenger en hånd: ukjente verdier, orgnr uten navn og tiltak uten fagområde.
-3. Legg nye orgnr inn i `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json` med vanlige store og små bokstaver.
-4. Skal noe i eksporten rettes for hånd, legg det i `apps/frontend/src/data/ki-tiltak-overstyringer.json` under tiltakets id, med `sett` for hele felt eller `erstatt` for en tekstbit, og et `hvorfor`. Da overlever rettingen neste eksport.
-5. Kjør `pnpm --dir apps/frontend run test:unit`.
+1. The script writes `apps/frontend/src/data/ki-tiltak.json`. It sets "NA" and "N/A" to `null`, removes NA pieces between ";", and replaces the register's variants, such as "Språkteknologi (NLP)", with our values.
+2. Read the report. It shows how many NA and variants were corrected, which overrides were applied, and what needs a hand: unknown values, org numbers without a name and initiatives without a subject area.
+3. Add new org numbers to `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json` with normal upper and lower case.
+4. If something in the export is to be corrected by hand, put it in `apps/frontend/src/data/ki-tiltak-overstyringer.json` under the initiative's id, with `sett` for whole fields or `erstatt` for a piece of text, and a `hvorfor`. Then the correction survives the next export.
+5. Run `pnpm --dir apps/frontend run test:unit`.
 
-## Virksomhetsnavn
+## Organisation names
 
-`virksomhet` står som i eksporten, ofte i VERSALER fra Brønnøysundregisteret. Sida viser i stedet navnet fra `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json`, som slår opp på `orgnr`. Kommer en ny virksomhet med, legg til en linje der med orgnr og navnet med vanlige store og små bokstaver. Testene stopper hvis et orgnr mangler.
+`virksomhet` is as in the export, often in CAPITALS from the Brønnøysund Register Centre. The page instead shows the name from `apps/frontend/src/data/ki-tiltak-virksomhetsnavn.json`, which looks up on `orgnr`. If a new organisation comes along, add a line there with the org number and the name in normal upper and lower case. The tests stop if an org number is missing.
 
-`VIRKSOMHETSNAVN` i `apps/frontend/src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene slik de står i dataene). Den finnes for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav og ellers små bokstaver, med kjente forkortelser som HF og AS beholdt. Det blir feil for stedsnavn, og derfor er tabellen førstevalget.
+`VIRKSOMHETSNAVN` in `apps/frontend/src/lib/ki-tiltak.ts` switches between `'tabell'` (default) and `'register'` (the names as they are in the data). It exists to be able to switch quickly. With `'tabell'`, an organisation that is not yet in the table gets a capital first letter and otherwise lower case, with known abbreviations such as HF and AS kept. That is wrong for place names, and that is why the table is the first choice.
 
-## Regler som er verdt å kjenne
+## Rules worth knowing
 
-**Valgfritt betyr virkelig valgfritt.** Utelat feltet, la det stå tomt, eller sett det til `null`, det gjør ingen forskjell. `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt» regnes også som tomt, uten hensyn til store og små bokstaver, og det samme gjør en liste med bare slike verdier. Et tomt felt vises ikke i det hele tatt, heller ikke overskriften. Et tiltak med bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
+**Optional really means optional.** Leave the field out, leave it empty, or set it to `null`, it makes no difference. `NA`, `N/A`, `-`, `–`, `null` and "ikke oppgitt" also count as empty, regardless of upper and lower case, and so does a list with only such values. An empty field is not shown at all, not even the heading. An initiative with only a description and a theme should look finished, not half filled in.
 
-**Ikke etterfyll de gamle.** De nye feltene gjelder bare tiltak som er sendt inn eller oppdatert via skjemaet på /ki-tiltak. Ingen skal gjette seg til hvilken KI-type en virksomhet bruker.
+**Do not backfill the old ones.** The new fields apply only to initiatives submitted or updated via the form on /ki-tiltak. Nobody should guess which AI type an organisation uses.
 
-**«Annet» erstattes av friteksten.** Skriver du `"leveranse": ["Pilot", "Annet"]` og `"leveranseAnnet": "Intern verktøykasse"`, viser sida «Pilot» og «Intern verktøykasse». Ordet «Annet» vises ikke. Står friteksten uten at `Annet` er i lista, blir teksten aldri vist, og en test stopper det.
+**"Annet" is replaced by the free text.** If you write `"leveranse": ["Pilot", "Annet"]` and `"leveranseAnnet": "Intern verktøykasse"`, the page shows "Pilot" and "Intern verktøykasse". The word "Annet" is not shown. If the free text is there without `Annet` being in the list, the text is never shown, and a test stops it.
 
-**Kontaktadressen blir publisert.** Både på nettstedet og i git-historikken til et offentlig repo. En funksjonsadresse som `post@` er å foretrekke, men jobbadressen innsenderen selv har oppgitt er greit.
+**The contact address is published.** Both on the site and in the git history of a public repo. A functional address such as `post@` is preferable, but the work address the submitter gave is fine.
 
-**Hver oppføring trenger en unik id.** To tiltak med tom id får samme lenke, og da åpner begge det første. Blokken i e-posten har en ny id. Skriver du for hånd, lag en på [uuidgenerator.net](https://www.uuidgenerator.net/).
+**Each entry needs a unique id.** Two initiatives with an empty id get the same link, and then both open the first one. The block in the email has a new id. If you write by hand, generate one at [uuidgenerator.net](https://www.uuidgenerator.net/).
 
-## Lenker i beskrivelsen
+## Links in the description
 
-Skrives som markdown: `[Se rapporten](https://example.no/rapport)`.
+Written as markdown: `[Se rapporten](https://example.no/rapport)`.
 
-Bare lenker. Ikke fet skrift, ikke bilder, ikke HTML. Og bare `http` og `https`. Alt annet står som synlig tekst på sida, som ser ut som en feil, så en test fanger det først.
+Only links. Not bold, not images, not HTML. And only `http` and `https`. Anything else is shown as visible text on the page, which looks like an error, so a test catches it first.
 
-Linjeskift skrives som `\n`. Linjer som starter med `-`, `•` eller `1.` blir punktlister ved visning.
+Line breaks are written as `\n`. Lines that start with `-`, `•` or `1.` become bullet lists when displayed.
 
-## Tegnsetting
+## Punctuation
 
-Avslutt beskrivelsen med punktum. 52 av de 58 eksisterende gjør det allerede. Dette håndheves ikke av kode, med vilje: en beskrivelse som slutter med en forkortelse eller en URL ville blitt feil av en automatisk regel.
+End the description with a full stop. 52 of the 58 existing ones already do. This is not enforced by code, on purpose: a description that ends with an abbreviation or a URL would be made wrong by an automatic rule.
 
-## Hva testene fanger
+## What the tests catch
 
-`pnpm --dir apps/frontend run test:unit` kjører i CI på hver PR og stopper:
+`pnpm --dir apps/frontend run test:unit` runs in CI on every PR and stops:
 
-- syntaksfeil, som et manglende komma eller en manglende `{`. Feilmeldingen sier hvilken linje, viser linjene rundt og forklarer hva som pleier å være galt. I en PR vises den også som merknad på linja i fila
-- felt som er fjernet: `status`, og `formaal`, `oppstart` og `slutt` fra en eldre veiledning
-- ukjent verdi i `kiType` eller `leveranse`, altså skrivefeil
-- duplikater eller tomme strenger i de to listene
-- `Annet`-fritekst uten at `Annet` er valgt
-- `kontaktinfo` som ikke ser ut som en e-postadresse
-- lenke i beskrivelsen som ikke er `http` eller `https`
-- ukjent fase eller fagområde, og duplikate id-er
-- orgnr som mangler navn i `ki-tiltak-virksomhetsnavn.json`
+- syntax errors, such as a missing comma or a missing `{`. The error message says which line, shows the surrounding lines and explains what is usually wrong. In a PR it is also shown as an annotation on the line in the file
+- fields that have been removed: `status`, and `formaal`, `oppstart` and `slutt` from an older guide
+- unknown value in `kiType` or `leveranse`, meaning typos
+- duplicates or empty strings in the two lists
+- `Annet` free text without `Annet` being selected
+- `kontaktinfo` that does not look like an email address
+- a link in the description that is not `http` or `https`
+- unknown phase or subject area, and duplicate ids
+- org numbers missing a name in `ki-tiltak-virksomhetsnavn.json`
 
-Feilmeldingen navngir tiltaket, for eksempel `ukjent KI-type på #DataSaman`.
+The error message names the initiative, for example `ukjent KI-type på #DataSaman`.
 
-Nye felt stoppes ikke. De vises først når koden tar dem i bruk.
+New fields are not stopped. They are shown only once the code starts using them.

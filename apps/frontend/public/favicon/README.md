@@ -1,7 +1,7 @@
 # Favicon
 
-`favicon.svg` er kilden. PNG-variantene er rasterisert fra den og skal
-regenereres hvis logoen endres:
+`favicon.svg` is the source. The PNG variants are rasterised from it and must
+be regenerated if the logo changes:
 
 ```bash
 node -e "
@@ -18,13 +18,13 @@ for (const [name, size] of [
 "
 ```
 
-`favicon.ico` blir liggende i roten av `public/`. Nettlesere, RSS-lesere og
-lenkeforhåndsvisninger ber om `/favicon.ico` direkte når de ikke finner en
-`<link>`, så den stien må svare.
+`favicon.ico` stays in the root of `public/`. Browsers, RSS readers and
+link previews request `/favicon.ico` directly when they do not find a
+`<link>`, so that path must respond.
 
-Referansene står i `src/components/layout/Layout.astro` og
-`public/manifest.webmanifest`. Mappa er sluppet gjennom gating-sjekken via
-`PUBLIC_ASSET_PREFIXES` i `src/middleware.ts`.
+The references are in `src/components/layout/Layout.astro` and
+`public/manifest.webmanifest`. The folder is let through the gating check via
+`PUBLIC_ASSET_PREFIXES` in `src/middleware.ts`.
 
-Merket er en detaljert heraldisk løve og blir uleselig under 32 px. Å tegne en
-forenklet variant for de minste størrelsene er en designoppgave, ikke gjort her.
+The emblem is a detailed heraldic lion and becomes illegible below 32 px. Drawing a
+simplified variant for the smallest sizes is a design task, not done here.

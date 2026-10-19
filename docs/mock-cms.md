@@ -1,37 +1,37 @@
-# Mock-CMS for lokal frontend-utvikling
+# Mock CMS for local frontend development
 
-Lar frontend kjore uten et ekte CMS. En liten Node-server speiler Umbraco
-Delivery API v2 sitt content-endepunkt fra en fanget fixture, slik at sider
-rendrer med realistisk innhold. Kun for utvikling.
+Lets the frontend run without a real CMS. A small Node server mirrors the Umbraco
+Delivery API v2 content endpoint from a captured fixture, so that pages
+render with realistic content. Development only.
 
-## Bruk
+## Usage
 
-Fra repo-rot:
+From the repo root:
 
 ```bash
 pnpm run frontend:dev:mock
-pnpm run frontend:dev:mock --port 4324   # flagg går videre til astro dev
+pnpm run frontend:dev:mock --port 4324   # flags are passed on to astro dev
 ```
 
-Starter mock-CMS (port 5050, `MOCK_PORT` for en annen) og Astro dev-server mot
-den i samme kommando. Ctrl-C, eller `pnpm exec astro dev stop` i
-`apps/frontend`, stopper begge. Mock-porten kan ikke være 5060 eller 5061, de
-blokkeres av fetch. Krever `pnpm install` i `apps/frontend` først.
+Starts the mock CMS (port 5050, `MOCK_PORT` for another) and the Astro dev server against
+it in the same command. Ctrl-C, or `pnpm exec astro dev stop` in
+`apps/frontend`, stops both. The mock port cannot be 5060 or 5061, they
+are blocked by fetch. Requires `pnpm install` in `apps/frontend` first.
 
-Bare mock-serveren alene: `npm run mock-cms`.
+Only the mock server on its own: `npm run mock-cms`.
 
-## Hva mock-en stotter
+## What the mock supports
 
-Alle Delivery API-kall i `umbraco.ts` gar mot ett endepunkt
-(`/umbraco/delivery/api/v2/content`) med `filter=contentType:X`, `sort`,
-`take` og `skip`. Mock-serveren implementerer akkurat disse over fixturen.
+All Delivery API calls in `umbraco.ts` go to one endpoint
+(`/umbraco/delivery/api/v2/content`) with `filter=contentType:X`, `sort`,
+`take` and `skip`. The mock server implements exactly these over the fixture.
 
-## Oppdatere fixturen
+## Updating the fixture
 
-Fixturen (`delivery-content.json`) er et øyeblikksbilde av Delivery API-et. Den ble
-fanget fra en lokal CMS-instans med demoinnhold. `ContentSeeder`, som laget det
-innholdet, er fjernet, så et nytt lokalt CMS er tomt. Skal fixturen fanges på nytt,
-må det skje fra et CMS som har innhold:
+The fixture (`delivery-content.json`) is a snapshot of the Delivery API. It was
+captured from a local CMS instance with demo content. `ContentSeeder`, which created that
+content, has been removed, so a new local CMS is empty. If the fixture is to be captured again,
+it has to be done from a CMS that has content:
 
 ```bash
 curl -s "http://localhost:5000/umbraco/delivery/api/v2/content?take=200" \

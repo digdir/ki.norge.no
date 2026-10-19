@@ -1,14 +1,14 @@
 # ki-tiltak.json
 
-Filene ligger i `apps/frontend/src/data/`.
+The files are in `apps/frontend/src/data/`.
 
-Datasettet bak `/ki-tiltak`. Filen vedlikeholdes manuelt av redaksjonen. Det finnes ikke lenger noe byggeskript som genererer den, så det du skriver her er det siden viser.
+The dataset behind `/ki-tiltak`. The file is maintained manually by the editorial team. There is no longer a build script that generates it, so what you write here is what the page shows.
 
-Legg merke til at filen leses ved bygg, ikke ved hvert sidevisning. Endringer krever en ny deploy før de er synlige.
+Note that the file is read at build time, not on every page view. Changes require a new deploy before they are visible.
 
-## Legge til et tiltak
+## Adding an initiative
 
-Kopier et eksisterende objekt, lim det inn på riktig plass i lista, og fyll ut feltene.
+Copy an existing object, paste it in the right place in the list, and fill in the fields.
 
 ```json
 {
@@ -21,33 +21,33 @@ Kopier et eksisterende objekt, lim det inn på riktig plass i lista, og fyll ut 
 }
 ```
 
-De seks feltene over er påkrevd. Nye tiltak kan i tillegg ha `fase`, `kiType`, `leveranse` og `kontaktinfo`, se [ki-tiltak-felt.md](ki-tiltak-felt.md). Der står også hvordan du limer inn et nytt tiltak rett fra e-posten.
+The six fields above are required. New initiatives can also have `fase`, `kiType`, `leveranse` and `kontaktinfo`, see [ki-tiltak-fields.md](ki-tiltak-fields.md). That is also where it says how to paste a new initiative straight from the email.
 
-## Feltene
+## The fields
 
-| felt | krav |
+| field | requirement |
 |---|---|
-| `id` | Unik. Lag en ny GUID, for eksempel med `uuidgen` i terminalen. Gjenbruk aldri en id |
-| `navn` | Tiltakets navn, slik det skal vises |
-| `virksomhet` | Navnet slik det står i eksporten, også i VERSALER. Sida viser navnet fra navnetabellen, se under. Flere virksomheter skrives som liste, med hovedvirksomheten først |
-| `orgnr` | Ni siffer, som i Brønnøysundregisteret. Liste i samme rekkefølge når `virksomhet` er liste |
-| `fagomrade` | Nøyaktig én av verdiene i lista under |
-| `beskrivelse` | Fritekst. Vises avkortet til tre linjer på kortet, i sin helhet i detaljvisningen |
+| `id` | Unique. Create a new GUID, for example with `uuidgen` in the terminal. Never reuse an id |
+| `navn` | The initiative's name, as it should be shown |
+| `virksomhet` | The name as it is in the export, also in CAPITALS. The page shows the name from the name table, see below. Several organisations are written as a list, with the main organisation first |
+| `orgnr` | Nine digits, as in the Brønnøysund Register Centre. A list in the same order when `virksomhet` is a list |
+| `fagomrade` | Exactly one of the values in the list below |
+| `beskrivelse` | Free text. Shown truncated to three lines on the card, in full in the detail view |
 
-Flere virksomheter:
+Several organisations:
 
 ```json
 "virksomhet": ["Helse Bergen HF", "Helse Førde HF"],
 "orgnr": ["983974724", "983974732"]
 ```
 
-I detaljvisningen står de én per linje. På kortet står de etter hverandre med komma, kuttet med «…» etter to linjer.
+In the detail view they are shown one per line. On the card they are shown one after another with commas, cut with "…" after two lines.
 
-Et felt uten verdi vises ikke. Det gjelder `null`, tom tekst, bare mellomrom, tomme lister, og `NA`, `N/A`, `-`, `–`, `null` og «ikke oppgitt».
+A field without a value is not shown. That applies to `null`, empty text, only spaces, empty lists, and `NA`, `N/A`, `-`, `–`, `null` and "ikke oppgitt".
 
-### Gyldige fagområder
+### Valid subject areas
 
-Kopier verdien ordrett, medregnet komma og små bokstaver.
+Copy the value verbatim, including commas and lower case.
 
 ```
 Arbeid
@@ -67,65 +67,64 @@ Virksomhet
 Økonomi, finans og forsikring
 ```
 
-Trenger du et fagområde som ikke står her, må det legges til i `FAGOMRADER` i `apps/frontend/src/lib/ki-tiltak.ts` først. Si det til en utvikler.
+If you need a subject area that is not listed here, it must first be added to `FAGOMRADER` in `apps/frontend/src/lib/ki-tiltak.ts`. Tell a developer.
 
-## Punktlister i beskrivelse og formål
+## Bullet lists in description and purpose
 
-JSON har ingen plass til formatering, så linjeskift skrives som `\n`. Linjer
-som starter med et kulepunkt blir en ekte punktliste i detaljvisningen.
+JSON has no room for formatting, so line breaks are written as `\n`. Lines
+that start with a bullet become a real bullet list in the detail view.
 
 ```json
 "beskrivelse": "Dette er noen eksempler:\n• Første punkt\n• Andre punkt\n• Tredje punkt"
 ```
 
-Det gir en innledning etterfulgt av en liste. Både `•`, `-` og `*` fungerer som
-markør, og markøren fjernes før teksten vises.
+That gives an introduction followed by a list. `•`, `-` and `*` all work as
+markers, and the marker is removed before the text is shown.
 
-Tre ting å være klar over.
+Three things to be aware of.
 
-**Et `\n` er to tegn**, bakstrek og n, ikke et ekte linjeskift. Trykker du enter
-midt inne i en tekst, blir filen ugyldig JSON og bygget stopper.
+**A `\n` is two characters**, backslash and n, not a real line break. If you press enter
+in the middle of a text, the file becomes invalid JSON and the build stops.
 
-**Kortet i oversikten viser ingen lister.** Der vises de tre første linjene som
-løpende tekst, siden kortet bare er en smakebit. Hele lista vises når man åpner
-tiltaket.
+**The card in the overview shows no lists.** There the first three lines are shown as
+running text, since the card is only a teaser. The whole list is shown when you open
+the initiative.
 
-**Lim aldri rett fra Word.** Da følger det med usynlige tegn og gjerne `·` eller
-`▪` i stedet for `•`. Gå via en ren tekstredigerer først.
+**Never paste straight from Word.** Invisible characters come along, often `·` or
+`▪` instead of `•`. Go through a plain text editor first.
 
-## Én fallgruve
+## One pitfall
 
-**Fase og fagområde er strenge.** En skrivefeil som `Gjennomføing` gjør at hele siden svarer med feil, ikke bare det ene kortet. Kopier verdien i stedet for å skrive den inn.
+**Phase and subject area are strict.** A typo such as `Gjennomføing` makes the whole page respond with an error, not just the one card. Copy the value instead of typing it.
 
-## Sjekk før du committer
+## Check before you commit
 
 ```
 cd apps/frontend && pnpm run test:unit
 ```
 
-Testene sjekker at fila er gyldig JSON, unike id-er, gyldige fagområder og faser, påkrevde felt, at ingen fjernede felt er med, og sorteringen. De kjører også i CI, så en feil stopper bygget, men det er raskere å oppdage den lokalt.
+The tests check that the file is valid JSON, unique ids, valid subject areas and phases, required fields, that no removed fields are included, and the sorting. They also run in CI, so an error stops the build, but it is faster to discover it locally.
 
-Er det en syntaksfeil, sier testen `ki-tiltak.json > er gyldig JSON` hvilken linje det gjelder, og hva som trolig mangler. Oftest er det et komma mellom to tiltak, et komma for mye etter det siste, eller en `{` som mangler.
+If there is a syntax error, the test `ki-tiltak.json > er gyldig JSON` says which line it concerns, and what is probably missing. Most often it is a comma between two initiatives, one comma too many after the last one, or a missing `{`.
 
-## Ny eksport fra registeret
+## New export from the register
 
-Hele lista byttes med én kommando fra roten av repoet:
+The whole list is replaced with one command from the root of the repo:
 
 ```bash
-node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<eksport>.json
+node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<export>.json
 ```
 
-1. Skriptet skriver `ki-tiltak.json`. Det setter «NA» og «N/A» til `null`, fjerner NA-biter mellom «;», og bytter registerets varianter, som «Språkteknologi (NLP)», til våre verdier.
-2. Les rapporten. Den viser hvor mange NA og varianter som er rettet, hvilke overstyringer som er brukt, og hva som trenger en hånd: ukjente verdier, orgnr uten navn og tiltak uten fagområde.
-3. Legg nye orgnr inn i `ki-tiltak-virksomhetsnavn.json` med vanlige store og små bokstaver.
-4. Skal noe i eksporten rettes for hånd, legg det i `ki-tiltak-overstyringer.json` under tiltakets id, med `sett` for hele felt eller `erstatt` for en tekstbit, og et `hvorfor`. Da overlever rettingen neste eksport.
-5. Kjør `pnpm --dir apps/frontend run test:unit`.
+1. The script writes `ki-tiltak.json`. It sets "NA" and "N/A" to `null`, removes NA pieces between ";", and replaces the register's variants, such as "Språkteknologi (NLP)", with our values.
+2. Read the report. It shows how many NA and variants were corrected, which overrides were applied, and what needs a hand: unknown values, org numbers without a name and initiatives without a subject area.
+3. Add new org numbers to `ki-tiltak-virksomhetsnavn.json` with normal upper and lower case.
+4. If something in the export is to be corrected by hand, put it in `ki-tiltak-overstyringer.json` under the initiative's id, with `sett` for whole fields or `erstatt` for a piece of text, and a `hvorfor`. Then the correction survives the next export.
+5. Run `pnpm --dir apps/frontend run test:unit`.
 
-## Virksomhetsnavn
+## Organisation names
 
-`ki-tiltak-virksomhetsnavn.json` gir hvert orgnr et visningsnavn med vanlige store og små bokstaver. Ny virksomhet i dataene betyr en ny linje der, ellers stopper testene. `VIRKSOMHETSNAVN` i `apps/frontend/src/lib/ki-tiltak.ts` bytter mellom `'tabell'` (standard) og `'register'` (navnene i dataene), for å kunne bytte raskt. Med `'tabell'` får en virksomhet som ennå ikke står i tabellen, stor forbokstav i stedet for VERSALER, til den er lagt inn.
+`ki-tiltak-virksomhetsnavn.json` gives each org number a display name with normal upper and lower case. A new organisation in the data means a new line there, otherwise the tests stop. `VIRKSOMHETSNAVN` in `apps/frontend/src/lib/ki-tiltak.ts` switches between `'tabell'` (default) and `'register'` (the names in the data), to be able to switch quickly. With `'tabell'`, an organisation that is not yet in the table gets a capital first letter instead of CAPITALS, until it has been added.
 
-## Videre
+## Next
 
-Datasettet skal etter planen flyttes inn i Umbraco, slik at redaksjonen kan redigere tiltak i CMS-et i stedet for i denne filen. Fram til det er på plass er denne filen fasiten.
-
+The plan is to move the dataset into Umbraco, so that the editorial team can edit initiatives in the CMS instead of in this file. Until that is in place, this file is the source of truth.

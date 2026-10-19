@@ -1,74 +1,74 @@
-# Utvikling
+# Development
 
-Kart over koden for den som skal endre den: hvor ting ligger, og lenkene prosjektet bruker. Reglene står i [CLAUDE.md](../CLAUDE.md), og driften i [systemdokumentasjon.md](systemdokumentasjon.md).
+A map of the code for whoever is going to change it: where things are, and the links the project uses. The rules are in [CLAUDE.md](../CLAUDE.md), and operations in [system-documentation.md](system-documentation.md).
 
 ## Frontend
 
-Astro i server-modus, React-øyer, `@digdir/designsystemet-react` og `@digdir/designsystemet-css`. Kjører på Cloudflare Workers.
+Astro in server mode, React islands, `@digdir/designsystemet-react` and `@digdir/designsystemet-css`. Runs on Cloudflare Workers.
 
-**Sider** i `apps/frontend/src/pages/`
+**Pages** in `apps/frontend/src/pages/`
 
-- Forsiden, artikler, eksempler, kalender, veiledning (guide og steg), ki-tiltak, sandkasse og om-oss.
-- Dynamiske ruter: `artikler/[slug]`, `eksempler/[slug]`, `kalender/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`, `veiledning/[guide]/[step]/[stegartikkel]` og toppnivå `[slug]` for CMS-noder av typen `side`.
+- The front page, articles, examples, calendar, guidance (guide and steps), ki-tiltak, sandkasse and om-oss.
+- Dynamic routes: `artikler/[slug]`, `eksempler/[slug]`, `kalender/[slug]`, `veiledning/[guide]`, `veiledning/[guide]/[step]`, `veiledning/[guide]/[step]/[stegartikkel]` and top-level `[slug]` for CMS nodes of type `side`.
 
-**Nøkkelfiler** i `apps/frontend/`
+**Key files** in `apps/frontend/`
 
-- `src/lib/umbraco.ts` henter alt fra CMS-et. Interfaces, fetch-funksjoner, og `mapItem()` som mapper innholdstyper til TypeScript-typer.
-- `src/lib/aksel-icons.ts` er et statisk SVG-kart for Aksel-ikonene. Pakken er bare for React og kan ikke brukes direkte i Astro.
-- `src/lib/seo.ts` lager JSON-LD.
-- `src/middleware.ts` styrer caching, forhåndsvisning, markdown-varianter og sikkerhetsheadere.
-- `src/lib/csp.ts` er CSP-en. Astro setter den på sidene via `astro.config.mjs`, og middleware setter den på svar som mangler den.
-- `src/components/shared/ArticleBlocksRenderer.astro` er det eneste stedet artikkelmoduler rendres. Den brukes av artikler, eksempler, kalender, veiledning, sandkasse, om-oss og toppnivå `[slug]`. CSS-en ligger i `src/styles/article-blocks.css`.
-- `src/components/shared/AkselIcon.astro` rendrer et Aksel-ikon etter navn.
-- `src/components/shared/SearchDialog.tsx` er søkedialogen, en React-øy med `client:load`.
-- `src/components/shared/CookieNotice.astro` er cookie-meldingen. Nettstedet bruker bare nødvendige cookies.
-- `src/styles/` har `global.css`, `search-dialog.css`, `layout.css` og `article-blocks.css`.
+- `src/lib/umbraco.ts` fetches everything from the CMS. Interfaces, fetch functions, and `mapItem()` which maps content types to TypeScript types.
+- `src/lib/aksel-icons.ts` is a static SVG map for the Aksel icons. The package is React-only and cannot be used directly in Astro.
+- `src/lib/seo.ts` produces JSON-LD.
+- `src/middleware.ts` handles caching, preview, markdown variants and security headers.
+- `src/lib/csp.ts` is the CSP. Astro sets it on the pages via `astro.config.mjs`, and middleware sets it on responses that lack it.
+- `src/components/shared/ArticleBlocksRenderer.astro` is the only place article modules are rendered. It is used by articles, examples, calendar, guidance, sandkasse, om-oss and top-level `[slug]`. The CSS is in `src/styles/article-blocks.css`.
+- `src/components/shared/AkselIcon.astro` renders an Aksel icon by name.
+- `src/components/shared/SearchDialog.tsx` is the search dialog, a React island with `client:load`.
+- `src/components/shared/CookieNotice.astro` is the cookie notice. The site uses only essential cookies.
+- `src/styles/` has `global.css`, `search-dialog.css`, `layout.css` and `article-blocks.css`.
 
-**Layout og brytepunkter.** Layout-systemet står i `layout.css`. Gridet bryter ved 768px og 1024px. Eldre kode bruker også 640px.
+**Layout and breakpoints.** The layout system is in `layout.css`. The grid breaks at 768px and 1024px. Older code also uses 640px.
 
 ## CMS
 
-Umbraco 17 på .NET 10. Azure SQL i drift, SQLite lokalt.
+Umbraco 17 on .NET 10. Azure SQL in production, SQLite locally.
 
-**Nøkkelfiler** i `apps/cms-umbraco/`
+**Key files** in `apps/cms-umbraco/`
 
-- `Composers/ContentTypeComposer.cs` oppretter innholdstyper og elementtyper ved oppstart, og registrerer Block List-datatypene. Den kjører ikke i prod eller tt02. Alle composerne er forklart i [cms-composers.md](cms-composers.md).
-- `Program.cs` starter CMS-et, med en sperre mot dobbel start, som ødelegger SQLite.
-- `appsettings.Development.json` er lokal config med connection string, Delivery API-nøkkel og forhåndsvisningshemmelighet.
-- `appsettings.json` er config for drift, med tom connection string, så env-variabelen overstyrer.
+- `Composers/ContentTypeComposer.cs` creates document types and element types at startup, and registers the Block List data types. It does not run in prod or tt02. All the composers are explained in [cms-composers.md](cms-composers.md).
+- `Program.cs` starts the CMS, with a guard against double start, which corrupts SQLite.
+- `appsettings.Development.json` is local config with the connection string, Delivery API key and preview secret.
+- `appsettings.json` is config for production, with an empty connection string, so the env variable overrides it.
 
-**Ny Block List-modul (elementtype).** Les skjemaregelen i `CLAUDE.md` først. Trinn 1 og 2 gjelder bare lokal utvikling inntil skjemaflyten er avklart.
+**New Block List module (element type).** Read the schema rule in `CLAUDE.md` first. Steps 1 and 2 apply only to local development until the schema flow is settled.
 
-1. Lag en ny metode i `ContentTypeComposer.cs` som oppretter elementtypen med feltene.
-2. Registrer den i `InitializeAsync`, og legg den til i riktig Block List-datatype.
-3. Legg til interface og mapping i `mapItem()` eller `mapArtikkelBlocks()` i `umbraco.ts`.
-4. Legg til rendering for den nye `contentType`-verdien i `ArticleBlocksRenderer.astro`.
+1. Create a new method in `ContentTypeComposer.cs` that creates the element type with its fields.
+2. Register it in `InitializeAsync`, and add it to the right Block List data type.
+3. Add the interface and mapping in `mapItem()` or `mapArtikkelBlocks()` in `umbraco.ts`.
+4. Add rendering for the new `contentType` value in `ArticleBlocksRenderer.astro`.
 
-**Elementtyper for artikler**, tillatt i `BlockListArtikkelInnhold` i uSync:
+**Element types for articles**, allowed in `BlockListArtikkelInnhold` in uSync:
 
 - artikkelTekst, artikkelBildeSeksjon, artikkelTrekkspill, artikkelFremheving
 - artikkelProsessteg, artikkelByline, artikkelInnholdFra, artikkelKontaktkort
 
-**RichText-verktøylinja** settes i `ContentTypeComposer` (`EnsureRichTextDataTypes`), og i drift i `uSync/v17/DataTypes/RichtextEditor.config`. Den har H2, H3 og H4.
+**The RichText toolbar** is set in `ContentTypeComposer` (`EnsureRichTextDataTypes`), and in production in `uSync/v17/DataTypes/RichtextEditor.config`. It has H2, H3 and H4.
 
-**Databasen.** Azure SQL i dis-core erstattet SQLite med Litestream, som ga låsekonflikter når flere redaktører jobbet samtidig. Lokalt brukes fortsatt SQLite.
+**The database.** Azure SQL in dis-core replaced SQLite with Litestream, which caused lock conflicts when several editors worked at the same time. SQLite is still used locally.
 
-## Adresser
+## Addresses
 
-- Frontend i prod: https://ki.norge.no, og https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev
-- CMS i prod: https://cms.ki.norge.no/umbraco, internt https://kinorgeportal.prod.dis-core.altinn.cloud/umbraco
-- CMS i tt02: https://cms.ki.test.norge.no/umbraco, internt https://kinorgeportal.tt02.dis-core.altinn.cloud/umbraco
-- Helse: `/health`, se «Helsesjekk» i [systemdokumentasjon.md](systemdokumentasjon.md)
-- Domenet ki.norge.no ligger i en Cloudflare-sone av typen partial på norge.no.
+- Frontend in prod: https://ki.norge.no, and https://ki-norge-frontend-prod.digitaliseringsdirektoratet.workers.dev
+- CMS in prod: https://cms.ki.norge.no/umbraco, internally https://kinorgeportal.prod.dis-core.altinn.cloud/umbraco
+- CMS in tt02: https://cms.ki.test.norge.no/umbraco, internally https://kinorgeportal.tt02.dis-core.altinn.cloud/umbraco
+- Health: `/health`, see "Health check" in [system-documentation.md](system-documentation.md#health-check)
+- The domain ki.norge.no sits in a Cloudflare zone of type partial on norge.no.
 
-Workere og miljøer står i «Miljøer i korthet» i [systemdokumentasjon.md](systemdokumentasjon.md).
+Workers and environments are listed in "Environments at a glance" in [system-documentation.md](system-documentation.md#environments-at-a-glance).
 
-## Lenker
+## Links
 
-- Figma, hovedfil: https://www.figma.com/design/XExt0cORNSEpZFI4rQY8AN/KI-Norge-portal-skisse
-- Figma, handlingsmoduler: https://www.figma.com/design/yOf46bRFjXayIgpQLKJi5h/Handlingsmoduler
-- Confluence, tekniske oppgaver: https://digdir.atlassian.net/wiki/spaces/BTP/pages/4195352733
-- GitHub-prosjektet (kanban): https://github.com/orgs/digdir/projects/58
-- nb-nn-eval, verktøy for oversettelse: https://github.com/larsekhansen/nb-nn-eval
+- Figma, main file: https://www.figma.com/design/XExt0cORNSEpZFI4rQY8AN/KI-Norge-portal-skisse
+- Figma, action modules: https://www.figma.com/design/yOf46bRFjXayIgpQLKJi5h/Handlingsmoduler
+- Confluence, technical tasks: https://digdir.atlassian.net/wiki/spaces/BTP/pages/4195352733
+- The GitHub project (kanban): https://github.com/orgs/digdir/projects/58
+- nb-nn-eval, translation tool: https://github.com/larsekhansen/nb-nn-eval
 - Designsystemet: https://www.designsystemet.no/komponenter
-- Aksel-ikoner: https://aksel.nav.no/ikoner
+- Aksel icons: https://aksel.nav.no/ikoner
