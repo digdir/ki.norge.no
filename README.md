@@ -1,24 +1,24 @@
 # KI Norge
 
-Portal for kunstig intelligens i norsk offentlig sektor, drevet av Digitaliseringsdirektoratet: https://ki.norge.no
+Portal for artificial intelligence in the Norwegian public sector, run by the Norwegian Digitalisation Agency (Digitaliseringsdirektoratet): https://ki.norge.no
 
-- Dokumentasjonen starter i [docs/README.md](docs/README.md).
-- Slik kjører du prosjektet lokalt og bidrar: [CONTRIBUTING.md](CONTRIBUTING.md).
-- Agenter starter i [CLAUDE.md](CLAUDE.md).
+- The documentation starts in [docs/README.md](docs/README.md).
+- How to run the project locally and contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
+- Agents start in [CLAUDE.md](CLAUDE.md).
 
-## Mappene
+## The folders
 
 ```
-apps/frontend/             Astro-frontenden, på Cloudflare Workers
-apps/cms-umbraco/          Umbraco-CMS-et, i Altinn dis-core
-apps/cache-kinorgeportal/  Cache-worker foran ki.norge.no
-apps/cms-kinorgeportal/    Proxy-worker foran cms.ki.norge.no
-syncroot/                  Kubernetes-manifestene for CMS-et
-infrastructure/            Søkeindeksen som kode
-shared/                    content-routes.json, felles for frontend og CMS
-design-tokens/             Kilden til designtokenene
-design-tokens-build/       De bygde tokenene frontenden bruker
-scripts/                   Deploy, sikkerhetskopi, speiling til tt02 og smoketester
-tests/                     Playwright-testene
-docs/                      Dokumentasjonen
+apps/frontend/             The Astro frontend, on Cloudflare Workers
+apps/cms-umbraco/          The Umbraco CMS, in Altinn dis-core
+apps/cache-kinorgeportal/  Cache worker in front of ki.norge.no
+apps/cms-kinorgeportal/    Proxy worker in front of cms.ki.norge.no
+syncroot/                  The Kubernetes manifests for the CMS
+infrastructure/            The search index as code
+shared/                    content-routes.json, shared by frontend and CMS
+design-tokens/             The source of the design tokens
+design-tokens-build/       The built tokens the frontend uses
+scripts/                   Deploy, backup, mirroring to tt02 and smoke tests
+tests/                     The Playwright tests
+docs/                      The documentation
 ```
