@@ -1,31 +1,31 @@
 # syncroot
 
-Kubernetes-manifestene for CMS-et i Altinn dis-core, i namespace `product-kinorgeportal`. De settes sammen med Kustomize: `base/` har ressursene, og `prod/` og `tt02/` legger på det som er ulikt per miljø. «Publish Syncroot artifacts» publiserer resultatet, og Flux i klyngen henter det. Se [deploy.md](deploy.md).
+The Kubernetes manifests for the CMS in Altinn dis-core, in the namespace `product-kinorgeportal`. They are assembled with Kustomize: `base/` has the resources, and `prod/` and `tt02/` add what differs per environment. "Publish Syncroot artifacts" publishes the result, and Flux in the cluster fetches it. See [deploy.md](deploy.md).
 
 ## base/umbraco
 
-| Fil | Innhold |
+| File | Contents |
 | --- | --- |
-| `deployment.yaml` | Podden `umbraco`: én replika, strategien `Recreate`, port 8080, prober, env og volumer |
-| `service.yaml` | Tjenesten `umbraco` |
-| `httproute.yaml` | Ruting fra `traefik-gateway`. Hostnavnene legges på per miljø |
-| `storage.yaml` | `umbraco-data` (Azure Disk, 10Gi, ReadWriteOnce) og `umbraco-media` (Azure Files, 50Gi) |
-| `serviceaccount.yaml` | Tjenestekontoen `umbraco` |
-| `vault.yaml` | Key Vault for miljøet. Adressen kommer inn som `KeyVault__AkvUri` |
-| `network-policies.yaml` | Linkerd-reglene: trafikk fra Traefik, og probene fra kubelet |
+| `deployment.yaml` | The pod `umbraco`: one replica, the strategy `Recreate`, port 8080, probes, env and volumes |
+| `service.yaml` | The service `umbraco` |
+| `httproute.yaml` | Routing from `traefik-gateway`. The hostnames are added per environment |
+| `storage.yaml` | `umbraco-data` (Azure Disk, 10Gi, ReadWriteOnce) and `umbraco-media` (Azure Files, 50Gi) |
+| `serviceaccount.yaml` | The service account `umbraco` |
+| `vault.yaml` | Key Vault for the environment. The address comes in as `KeyVault__AkvUri` |
+| `network-policies.yaml` | The Linkerd rules: traffic from Traefik, and the probes from kubelet |
 
-**Volumene.** `umbraco-data` er montert på `/app/umbraco/Data`, og på `/app/uSync/v17/Content`, så innholdseksporten fra uSync overlever en omstart. `umbraco-media` er bevisst ikke montert. Media ligger i Azure Blob, se «Mediefiler» i [systemdokumentasjon.md](systemdokumentasjon.md). Kommentarene i `deployment.yaml` forklarer hvorfor.
+**The volumes.** `umbraco-data` is mounted at `/app/umbraco/Data`, and at `/app/uSync/v17/Content`, so the content export from uSync survives a restart. `umbraco-media` is deliberately not mounted. Media lives in Azure Blob, see "Media files" in [system-documentation.md](system-documentation.md#media-files). The comments in `deployment.yaml` explain why.
 
-**Brukeren.** Containeren kjører som `app` (UID 1654), og `fsGroup: 1654` gjør volumene skrivbare for den.
+**The user.** The container runs as `app` (UID 1654), and `fsGroup: 1654` makes the volumes writable for it.
 
-## prod og tt02
+## prod and tt02
 
-Hvert overlay setter image-navnet, og legger på:
+Each overlay sets the image name, and adds:
 
-- hostnavnene i `HTTPRoute`
-- `UmbracoApplicationUrl` og `BackOfficeHost`
-- lagringskontoen for media (`Umbraco__Storage__AzureBlob__Media__*`)
-- `HeadlessPreview__FrontendUrl` og `Cloudflare__SiteBaseUrl`
-- `USYNC_OWNS_SCHEMA=true` og `uSync__Settings__ImportAtStartup`. Prod importerer `Settings`, tt02 `Settings,Content`. tt02 bruker i tillegg uSync-settet `Speiling`, se [innholdsspeiling-tt02.md](innholdsspeiling-tt02.md).
+- the hostnames in `HTTPRoute`
+- `UmbracoApplicationUrl` and `BackOfficeHost`
+- the storage account for media (`Umbraco__Storage__AzureBlob__Media__*`)
+- `HeadlessPreview__FrontendUrl` and `Cloudflare__SiteBaseUrl`
+- `USYNC_OWNS_SCHEMA=true` and `uSync__Settings__ImportAtStartup`. Prod imports `Settings`, tt02 `Settings,Content`. tt02 also uses the uSync set `Speiling`, see [content-mirroring-tt02.md](content-mirroring-tt02.md).
 
-Image-taggen står som `will-be-replaced`. «Publish Syncroot artifacts» setter taggen og digesten den peker på.
+The image tag is set to `will-be-replaced`. "Publish Syncroot artifacts" sets the tag and the digest it points to.

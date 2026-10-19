@@ -1,3 +1,3 @@
 # mock-cms
 
-En liten server som etterligner Delivery API-et, så frontenden kan kjøres uten et ekte CMS. Bare for utvikling. Se [docs/mock-cms.md](../../../../docs/mock-cms.md).
+A small server that imitates the Delivery API, so the frontend can run without a real CMS. Development only. See [docs/mock-cms.md](../../../../docs/mock-cms.md).

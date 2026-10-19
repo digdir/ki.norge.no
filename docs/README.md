@@ -1,16 +1,16 @@
-# Dokumentasjon for ki.norge.no
+# Documentation for ki.norge.no
 
-ki.norge.no er portalen for kunstig intelligens i offentlig sektor, drevet av Digitaliseringsdirektoratet. Redaksjonen skriver innholdet i Umbraco, som kjører i Altinn dis-core, og en Astro-frontend på Cloudflare Workers viser det. Søket går mot Elastic Cloud.
+ki.norge.no is the portal for artificial intelligence in the public sector, run by Digitaliseringsdirektoratet. The editorial team writes the content in Umbraco, which runs in Altinn dis-core, and an Astro frontend on Cloudflare Workers displays it. Search runs against Elastic Cloud.
 
-## For den som drifter
+## For operations
 
-- [Systemdokumentasjon](systemdokumentasjon.md): hvordan delene henger sammen, miljøene og helsesjekken.
-- [Deploy](deploy.md): hvordan nye versjoner legges ut, og i hvilken rekkefølge.
-- [Innholdsspeiling til tt02](innholdsspeiling-tt02.md): hvordan innhold kopieres fra prod til tt02.
-- [Avhengigheter](avhengigheter.md): hvor avhengighetene bor, og hvordan de oppdateres.
-- [Composers i CMS-et](cms-composers.md): hva som kjører i CMS-et, og hvilken konfig som slår det på.
-- [Cache-purge](cloudflare-cache-purge.md): hvordan Cloudflare-cachen tømmes når noe publiseres.
+- [System documentation](system-documentation.md): how the parts fit together, the environments and the health check.
+- [Deploy](deploy.md): how new versions are released, and in which order.
+- [Content mirroring to tt02](content-mirroring-tt02.md): how content is copied from prod to tt02.
+- [Dependencies](dependencies.md): where the dependencies live, and how they are updated.
+- [Composers in the CMS](cms-composers.md): what runs in the CMS, and which config turns it on.
+- [Cache purge](cloudflare-cache-purge.md): how the Cloudflare cache is purged when something is published.
 
-## Resten
+## The rest
 
-Alle dokumentene står i [llms.txt](llms.txt), med én linje hver. Beslutningsloggen og rapportene ligger i [rapporter/](rapporter/).
+All the documents are listed in [llms.txt](llms.txt), with one line each. The decision log and the reports are in [reports/](reports/).

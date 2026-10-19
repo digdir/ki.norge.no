@@ -24,10 +24,10 @@ The CMS keeps the index in sync via Umbraco notifications — no external crawl.
 - **`Jobs/ReindexBackgroundJob` + `Controllers/ReindexController`** — full backfill: `POST /umbraco/management/api/v1/search/reindex` (admin) walks all published content and upserts it; `GET …/search/reindex/status` reports progress. Replaces the old crawler's bulk role.
 
 ### Index as code — `infrastructure/elasticsearch/`
-The index mapping is an Elasticsearch **component + index template** (versioned JSON), not defined in app code. `apply-templates.mjs` registers them (idempotent); an index matching `ki-content*` auto-creates with the hybrid mapping on first write. See [elasticsearch-indeks.md](elasticsearch-indeks.md) for apply / recreate / drift commands.
+The index mapping is an Elasticsearch **component + index template** (versioned JSON), not defined in app code. `apply-templates.mjs` registers them (idempotent); an index matching `ki-content*` auto-creates with the hybrid mapping on first write. See [elasticsearch-index.md](elasticsearch-index.md) for apply / recreate / drift commands.
 - `ki-content.component-template.json` — mappings (`title`/`body` → text, `norwegian`, `copy_to: body_semantic`; `body_semantic` → `semantic_text` via the **in-cluster** `e5-large-incluster` endpoint (int8 E5-large on the deployment's ML nodes); `url`/`language`/`type` → keyword).
 - `ki-content.index-template.json` — composes it, matches `ki-content*`.
-- `setup-incluster-embedding.mjs` — provisions `e5-large-incluster` (starts the e5-large deployment with adaptive allocations + creates the endpoint; Serverless keeps min 0). Prerequisite: the model is imported once with Eland — see [elasticsearch-indeks.md](elasticsearch-indeks.md).
+- `setup-incluster-embedding.mjs` — provisions `e5-large-incluster` (starts the e5-large deployment with adaptive allocations + creates the endpoint; Serverless keeps min 0). Prerequisite: the model is imported once with Eland — see [elasticsearch-index.md](elasticsearch-index.md).
 
 ### Retrieval + surface — `apps/frontend/`
 - **`src/lib/search.ts`** — `hybridSearch(query)`: the `linear` 0.4/0.6 retriever, **no reranker** (golden-set Hit@3 93% / MRR 0.893 — see `infrastructure/elasticsearch/eval/BASELINE.md`), via `fetch` (Workers-safe). Falls back to Umbraco search when ES is unconfigured.

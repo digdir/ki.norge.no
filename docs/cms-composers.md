@@ -1,280 +1,280 @@
-# Composers i CMS-et
+# Composers in the CMS
 
-Umbraco finner og laster alle klasser som implementerer `IComposer` ved oppstart, uansett hvilken mappe de ligger i. Det finnes ingen liste å melde dem inn i. Men ikke alle gjør noe i drift. Noen registrerer seg bare når konfigurasjonen finnes, og én reagerer på en innholdstype som ikke finnes.
+Umbraco finds and loads all classes that implement `IComposer` at startup, no matter which folder they are in. There is no list to register them in. But not all of them do anything in production. Some register only when the configuration exists, and one reacts to a content type that does not exist.
 
-I drift betyr her prod og tt02. Konfigurasjonen kommer fra tre steder:
+In production here means prod and tt02. The configuration comes from three places:
 
-- `apps/cms-umbraco/appsettings.json`, med tomme standardverdier
-- env-variabler i `syncroot/`, felles i `base/` og per miljø i `prod/` og `tt02/`
-- miljøets Key Vault, der nøkkelen skrives med `--` i stedet for `:`, for eksempel `Cloudflare--ApiToken` for `Cloudflare:ApiToken`
+- `apps/cms-umbraco/appsettings.json`, with empty default values
+- env variables in `syncroot/`, shared in `base/` and per environment in `prod/` and `tt02/`
+- the environment's Key Vault, where the key is written with `--` instead of `:`, for example `Cloudflare--ApiToken` for `Cloudflare:ApiToken`
 
-Key Vault leses bare ved oppstart, så en ny eller endret verdi krever en ny pod. Feiler lastingen, logger `Program.cs` feilen og starter uten verdiene. Composerne som trenger dem, blir da stille inaktive.
+Key Vault is read only at startup, so a new or changed value requires a new pod. If loading fails, `Program.cs` logs the error and starts without the values. The composers that need them then become silently inactive.
 
-## Oversikt
+## Overview
 
-| Composer | Mappe | Prod | tt02 | Slås på av |
+| Composer | Folder | Prod | tt02 | Turned on by |
 |---|---|---|---|---|
-| `ContentTypeComposer` | `Composers/` | Nei | Nei | Mangler `USYNC_OWNS_SCHEMA=true`. Kjører lokalt og i CI |
-| `SchemaRekeyGuardComposer` | `Composers/` | Ja | Ja | Alltid. Virker ved hver uSync-import |
-| `SchemaOriginStampComposer` | `Composers/` | Ja | Ja | Alltid. Virker bare ved eksport for hånd |
-| `ContentSlugComposer` | `Composers/` | Ja | Ja | Alltid |
-| `MerkelappSlugComposer` | `Composers/` | Nei | Nei | Innholdstypen `merkelapp`, som ikke finnes |
-| `VeiledningStegGuideSlugComposer` | `Composers/` | Ja | Ja | Alltid |
-| `UrlFieldWashComposer` | `Composers/` | Ja | Ja | Datatypen «Lenke / URL» |
-| `NbspWashComposer` | `Composers/` | Ja | Ja | Alltid |
-| `SandkasseSingleInstanceComposer` | `Composers/` | Ja | Ja | Alltid |
-| `AdminProtectionComposer` | `Composers/` | Ja | Ja | Alltid |
-| `NorwegianIdentityErrorDescriberComposer` | `Composers/` | Ja | Ja | Alltid. Gjelder lokale passord |
-| `HeadlessPreviewComposer` | `Composers/` | Ja | Ja | `HeadlessPreview:FrontendUrl` og `HeadlessPreview:PreviewSecret` |
-| `AzureBlobMediaComposer` | `Composers/` | Ja | Ja | `Umbraco:Storage:AzureBlob:Media:ConnectionString` |
-| `MicrosoftEntraIdBackOfficeExternalLoginComposer` | `CustomAuthentication/` | Ja | Ja | Fire `MicrosoftEntraId`-verdier, eller `MicrosoftEntraId:Enabled` |
-| `CachePurgeComposer` | `CachePurge/` | Ja | Se under | `Cloudflare:ApiToken`, `Cloudflare:ZoneId` og `Cloudflare:SiteBaseUrl` |
-| `SearchComposer` | `Search/` | Ja | Nei, med vilje | `Elasticsearch:Endpoint` |
-| `MalformComposer` | `Malform/` | Ja | Ja | Alltid |
-| `OpenTelemetryComposer` | `Telemetry/` | Ja | Ja | `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| `ContentTypeComposer` | `Composers/` | No | No | Missing `USYNC_OWNS_SCHEMA=true`. Runs locally and in CI |
+| `SchemaRekeyGuardComposer` | `Composers/` | Yes | Yes | Always. Acts on every uSync import |
+| `SchemaOriginStampComposer` | `Composers/` | Yes | Yes | Always. Acts only on a manual export |
+| `ContentSlugComposer` | `Composers/` | Yes | Yes | Always |
+| `MerkelappSlugComposer` | `Composers/` | No | No | The content type `merkelapp`, which does not exist |
+| `VeiledningStegGuideSlugComposer` | `Composers/` | Yes | Yes | Always |
+| `UrlFieldWashComposer` | `Composers/` | Yes | Yes | The data type "Lenke / URL" |
+| `NbspWashComposer` | `Composers/` | Yes | Yes | Always |
+| `SandkasseSingleInstanceComposer` | `Composers/` | Yes | Yes | Always |
+| `AdminProtectionComposer` | `Composers/` | Yes | Yes | Always |
+| `NorwegianIdentityErrorDescriberComposer` | `Composers/` | Yes | Yes | Always. Applies to local passwords |
+| `HeadlessPreviewComposer` | `Composers/` | Yes | Yes | `HeadlessPreview:FrontendUrl` and `HeadlessPreview:PreviewSecret` |
+| `AzureBlobMediaComposer` | `Composers/` | Yes | Yes | `Umbraco:Storage:AzureBlob:Media:ConnectionString` |
+| `MicrosoftEntraIdBackOfficeExternalLoginComposer` | `CustomAuthentication/` | Yes | Yes | Four `MicrosoftEntraId` values, or `MicrosoftEntraId:Enabled` |
+| `CachePurgeComposer` | `CachePurge/` | Yes | See below | `Cloudflare:ApiToken`, `Cloudflare:ZoneId` and `Cloudflare:SiteBaseUrl` |
+| `SearchComposer` | `Search/` | Yes | No, on purpose | `Elasticsearch:Endpoint` |
+| `MalformComposer` | `Malform/` | Yes | Yes | Always |
+| `OpenTelemetryComposer` | `Telemetry/` | Yes | Yes | `OTEL_EXPORTER_OTLP_ENDPOINT` |
 
-`InternalUrlWasher.cs` ligger i `Composers/`, men er en hjelpeklasse for `UrlFieldWashHandler` og ikke en composer.
+`InternalUrlWasher.cs` is in `Composers/`, but is a helper class for `UrlFieldWashHandler` and not a composer.
 
-Tre av composerne henger sammen. `MalformComposer` bruker tekstuttrekket som `SearchComposer` registrerer, og tekstuttrekket bruker `ContentRouteResolver`, som bare `HeadlessPreviewComposer` registrerer. Fjernes `SearchComposer`, slutter målformrapporten å virke. Fjernes `HeadlessPreviewComposer`, slutter også indekseringen å virke.
+Three of the composers depend on each other. `MalformComposer` uses the text extractor that `SearchComposer` registers, and the text extractor uses `ContentRouteResolver`, which only `HeadlessPreviewComposer` registers. If `SearchComposer` is removed, the Malform report stops working. If `HeadlessPreviewComposer` is removed, indexing stops working too.
 
-## Skjema og uSync
+## Schema and uSync
 
 ### ContentTypeComposer
 
 `Composers/ContentTypeComposer.cs`
 
-**Gjør.** Oppretter og migrerer innholdstyper, elementtyper og datatyper ved oppstart. Hvert steg kjører for seg, så en feil i ett steg logges og resten fortsetter.
+**Does.** Creates and migrates document types, element types and data types at startup. Each step runs on its own, so an error in one step is logged and the rest continue.
 
-**I drift.** Nei. Composeren stopper når `USYNC_OWNS_SCHEMA=true`, og det er satt i både `syncroot/prod` og `syncroot/tt02`. Skjemaet i drift kommer fra `.config`-filene under `apps/cms-umbraco/uSync/v17/`, som uSync importerer ved oppstart (`uSync__Settings__ImportAtStartup`). Composeren kjører bare lokalt og i CI.
+**In production.** No. The composer stops when `USYNC_OWNS_SCHEMA=true`, and that is set in both `syncroot/prod` and `syncroot/tt02`. The schema in production comes from the `.config` files under `apps/cms-umbraco/uSync/v17/`, which uSync imports at startup (`uSync__Settings__ImportAtStartup`). The composer runs only locally and in CI.
 
-**Feller.**
+**Traps.**
 
-- CI starter CMS-et med `dotnet run`, uten `USYNC_OWNS_SCHEMA` og med `ImportAtStartup: None` fra `appsettings.json`. Ingen uSync-import skjer. Ende-til-ende-testene kjører derfor mot composerens skjema, ikke mot prods.
-- Et felt lagt til her blir grønt lokalt og i CI, men kommer aldri til prod. Nye felt legges i uSync-filene, se «Skjema og uSync» i [systemdokumentasjon.md](systemdokumentasjon.md).
-- Oppryddingen av utgåtte typer sletter typene og alle nodene deres for godt, ved hver oppstart der composeren kjører. Start aldri CMS-et uten `USYNC_OWNS_SCHEMA=true` mot en kopi av en ekte database.
+- CI starts the CMS with `dotnet run`, without `USYNC_OWNS_SCHEMA` and with `ImportAtStartup: None` from `appsettings.json`. No uSync import happens. The end-to-end tests therefore run against the composer's schema, not against prod's.
+- A field added here is green locally and in CI, but never reaches prod. New fields go in the uSync files, see "Schema and uSync" in [system-documentation.md](system-documentation.md#schema-and-usync).
+- The cleanup of retired types deletes the types and all their nodes permanently, on every startup where the composer runs. Never start the CMS without `USYNC_OWNS_SCHEMA=true` against a copy of a real database.
 
 ### SchemaRekeyGuardComposer
 
 `Composers/SchemaRekeyGuard.cs`
 
-**Gjør.** Registrerer to handlere rundt uSync-importen.
+**Does.** Registers two handlers around the uSync import.
 
-- `SchemaRekeyGuard` sammenligner nøkkelen i hver `.config`-fil under `ContentTypes/` og `DataTypes/` med nøkkelen i databasen før importen starter. Ville importen gitt en eksisterende type ny nøkkel, stoppes den. Blokkinnhold refererer typer på nøkkel, så en slik import gjør alt blokkinnhold «Unsupported».
-- `SchemaImportReporter` logger på Error-nivå og til stderr når en import endret noe. Null endringer er normaltilstanden og logges ikke.
+- `SchemaRekeyGuard` compares the key in each `.config` file under `ContentTypes/` and `DataTypes/` with the key in the database before the import starts. If the import would give an existing type a new key, it is stopped. Block content references types by key, so such an import makes all block content "Unsupported".
+- `SchemaImportReporter` logs at Error level and to stderr when an import changed something. Zero changes is the normal state and is not logged.
 
-**I drift.** Ja, ved importen ved hver oppstart og ved import fra backoffice.
+**In production.** Yes, on the import at every startup and on import from the backoffice.
 
-**Feller.**
+**Traps.**
 
-- uSync 17.3.6 respekterer ikke `Cancel`, så guarden kaster et unntak for å stoppe importen.
-- `USYNC_ALLOW_REKEY=true` slipper en re-nøkling gjennom med en advarsel. Bruk den bare når re-nøklingen er tilsiktet.
-- Etter en ønsket skjemaendring logger første oppstart endringen på Error-nivå. Det er forventet.
+- uSync 17.3.6 does not respect `Cancel`, so the guard throws an exception to stop the import.
+- `USYNC_ALLOW_REKEY=true` lets a re-key through with a warning. Use it only when the re-key is intended.
+- After an intended schema change, the first startup logs the change at Error level. That is expected.
 
 ### SchemaOriginStampComposer
 
 `Composers/SchemaOriginStamp.cs`
 
-**Gjør.** Skriver `uSync/v17/.origin` etter en uSync-eksport, med miljøet, `UmbracoApplicationUrl` og tidspunktet. Miljøet utledes av `UmbracoApplicationUrl`. `scripts/check-usync-schema.sh` i CI avviser en PR der `.origin` ikke sier `prod`.
+**Does.** Writes `uSync/v17/.origin` after a uSync export, with the environment, `UmbracoApplicationUrl` and the time. The environment is derived from `UmbracoApplicationUrl`. `scripts/check-usync-schema.sh` in CI rejects a PR where `.origin` does not say `prod`.
 
-**I drift.** Registrert i begge miljøene, men virker bare når noen eksporterer for hånd fra uSync i backoffice. `ExportOnSave` og `ExportAtStartup` står på `None`.
+**In production.** Registered in both environments, but acts only when someone exports manually from uSync in the backoffice. `ExportOnSave` and `ExportAtStartup` are set to `None`.
 
-**Feller.**
+**Traps.**
 
-- Merket skrives ved alle eksporter så lenge `ContentTypes/` finnes, og i drift ligger den alltid i imaget. Også en ren innholdseksport får merket.
+- The stamp is written on all exports as long as `ContentTypes/` exists, and in production it is always in the image. A pure content export also gets the stamp.
 
-## Ved lagring av innhold
+## When content is saved
 
 ### ContentSlugComposer
 
 `Composers/ContentSlugHandler.cs`
 
-**Gjør.** Vasker `slug` til en URL-vennlig verdi ved lagring, for alle innholdstyper som har feltet. Er feltet tomt, lages slug fra `tittel`, ellers fra nodenavnet. Æ, ø og å blir e, o og a.
+**Does.** Cleans `slug` into a URL-friendly value on save, for all content types that have the field. If the field is empty, the slug is created from `tittel`, otherwise from the node name. Æ, ø and å become e, o and a.
 
-**I drift.** Ja.
+**In production.** Yes.
 
-**Feller.**
+**Traps.**
 
-- Translitterasjonen avviker fra Umbracos standard (ae, oe, aa). Andre steder som bruker Umbracos hjelper direkte, gir andre slugs for samme tekst.
-- `merkelapp` hoppes over, fordi `MerkelappSlugComposer` var ment å eie den.
+- The transliteration differs from Umbraco's default (ae, oe, aa). Other places that use Umbraco's helper directly give different slugs for the same text.
+- `merkelapp` is skipped, because `MerkelappSlugComposer` was meant to own it.
 
 ### MerkelappSlugComposer
 
 `Composers/MerkelappSlugHandler.cs`
 
-**Gjør.** Setter `slug` fra `navn` når en node av typen `merkelapp` lagres.
+**Does.** Sets `slug` from `navn` when a node of type `merkelapp` is saved.
 
-**I drift.** Nei. Innholdstypen `merkelapp` finnes ikke i uSync-skjemaet. Lokalt sletter `ContentTypeComposer` den i oppryddingen. Merkelappene på eksemplene er Tags-felt fra [#792](https://github.com/digdir/ki.norge.no/pull/792). Handleren har ingenting å reagere på noe sted.
+**In production.** No. The content type `merkelapp` does not exist in the uSync schema. Locally `ContentTypeComposer` deletes it in the cleanup. The tags on the examples are Tags fields from [#792](https://github.com/digdir/ki.norge.no/pull/792). The handler has nothing to react to anywhere.
 
 ### VeiledningStegGuideSlugComposer
 
 `Composers/VeiledningStegGuideSlugHandler.cs`
 
-**Gjør.** Setter `guideSlug` på et `veiledningSteg` til slug-en til `veiledningGuide`-noden det ligger under. Feltet skrives over ved hver lagring.
+**Does.** Sets `guideSlug` on a `veiledningSteg` to the slug of the `veiledningGuide` node it sits under. The field is overwritten on every save.
 
-**I drift.** Ja. Frontenden bygger stegnavigasjonen fra `guideSlug`, og cache-purgen bruker den til å finne stegets URL.
+**In production.** Yes. The frontend builds the step navigation from `guideSlug`, and the cache purge uses it to find the step's URL.
 
-**Feller.**
+**Traps.**
 
-- Handleren kjører når steget lagres, ikke når guiden lagres. Endres slug-en på en guide, beholder stegene den gamle til de lagres på nytt.
+- The handler runs when the step is saved, not when the guide is saved. If the slug of a guide changes, the steps keep the old one until they are saved again.
 
 ### UrlFieldWashComposer
 
-`Composers/UrlFieldWashHandler.cs` og `Composers/InternalUrlWasher.cs`
+`Composers/UrlFieldWashHandler.cs` and `Composers/InternalUrlWasher.cs`
 
-**Gjør.** Vasker alle felt med datatypen «Lenke / URL» ved lagring, også inne i Block List og Block Grid og i blokker i blokker. Bare interne stier vaskes. De får én skråstrek først, ingen til slutt, ingen doble og ingen mellomrom. Eksterne URL-er, ankre og domener uten skjema blir bare trimmet.
+**Does.** Cleans all fields with the data type "Lenke / URL" on save, also inside Block List and Block Grid and in blocks within blocks. Only internal paths are cleaned. They get one leading slash, no trailing slash, no double slashes and no spaces. External URLs, anchors and domains without a scheme are only trimmed.
 
-**I drift.** Ja. 11 innholdstyper i uSync-skjemaet bruker datatypen.
+**In production.** Yes. 11 content types in the uSync schema use the data type.
 
-**Feller.**
+**Traps.**
 
-- Datatypen finnes igjen på navnet «Lenke / URL». Får den et annet navn, slutter vaskingen uten feilmelding.
-- Et lenkefelt blir bare vasket hvis det bruker denne datatypen, ikke en vanlig tekststreng.
+- The data type is found by the name "Lenke / URL". If it gets a different name, the cleaning stops without an error message.
+- A link field is only cleaned if it uses this data type, not a plain text string.
 
 ### NbspWashComposer
 
 `Composers/NbspWashHandler.cs`
 
-**Gjør.** Bytter hardt mellomrom (U+00A0, `&nbsp;`, `&#160;` og `&#xA0;`) med vanlig mellomrom ved lagring. Gjelder tekst-, tekstområde- og RichText-felt og hele Block List- og Block Grid-verdier.
+**Does.** Replaces non-breaking spaces (U+00A0, `&nbsp;`, `&#160;` and `&#xA0;`) with normal spaces on save. Applies to text, textarea and RichText fields and to whole Block List and Block Grid values.
 
-**I drift.** Ja.
+**In production.** Yes.
 
-**Feller.**
+**Traps.**
 
-- Bare det som lagres etter at handleren kom med, blir vasket. Eldre noder vaskes når de lagres på nytt. Frontenden normaliserer hardt mellomrom ved visning uansett.
-- Også harde mellomrom satt med vilje, som i «10 000», blir vanlige mellomrom.
+- Only what is saved after the handler was added gets cleaned. Older nodes are cleaned when they are saved again. The frontend normalises non-breaking spaces on display anyway.
+- Non-breaking spaces set on purpose, as in "10 000", also become normal spaces.
 
 ### SandkasseSingleInstanceComposer
 
 `Composers/SandkasseSingleInstanceHandler.cs`
 
-**Gjør.** Stopper lagring av en ny `sandkasse`-node når det finnes en fra før, med en feilmelding til redaktøren. Frontenden har bare én `/sandkasse`.
+**Does.** Stops saving a new `sandkasse` node when one already exists, with an error message to the editor. The frontend has only one `/sandkasse`.
 
-**I drift.** Ja.
+**In production.** Yes.
 
-**Feller.**
+**Traps.**
 
-- En sandkasse i papirkurven teller ikke. Upubliserte gjør det.
+- A sandkasse in the recycle bin does not count. Unpublished ones do.
 
-## Backoffice og brukere
+## Backoffice and users
 
 ### MicrosoftEntraIdBackOfficeExternalLoginComposer
 
 `CustomAuthentication/`
 
-**Gjør.** Gir «Microsoft»-knappen på innloggingen til backofficet. En ny bruker kobles og godkjennes automatisk ved første innlogging. Ved hver innlogging settes Umbraco-gruppene fra app-rollene i Entra ID, der `umbraco-admin` gir `admin` og `umbraco-redaktor` gir `editor`. Uten en av rollene nektes innloggingen. Nye brukere legges til med `pnpm run cms:add-user`.
+**Does.** Provides the "Microsoft" button on the backoffice login. A new user is linked and approved automatically on first login. On every login the Umbraco groups are set from the app roles in Entra ID, where `umbraco-admin` gives `admin` and `umbraco-redaktor` gives `editor`. Without one of the roles the login is denied. New users are added with `pnpm run cms:add-user`.
 
-**I drift.** Ja i begge miljøene. Slås på når `MicrosoftEntraId:ClientId`, `ClientSecret`, `Authority` og `CallbackPath` finnes, i Key Vault som `MicrosoftEntraId--ClientId` osv. `MicrosoftEntraId:Enabled` overstyrer. `false` slår innloggingen av, og `true` krever alle fire verdiene.
+**In production.** Yes in both environments. Turned on when `MicrosoftEntraId:ClientId`, `ClientSecret`, `Authority` and `CallbackPath` exist, in Key Vault as `MicrosoftEntraId--ClientId` etc. `MicrosoftEntraId:Enabled` overrides. `false` turns the login off, and `true` requires all four values.
 
-**Feller.**
+**Traps.**
 
-- `Enabled=true` med en verdi som mangler, stopper oppstarten.
-- Grupper satt for hånd i backofficet skrives over ved neste innlogging. Tilgang styres i Entra ID.
-- Lokal passordinnlogging er fortsatt på ved siden av (`DenyLocalLogin = false`).
-- En bruker som er deaktivert i Umbraco, blir ikke aktivert igjen ved innlogging.
+- `Enabled=true` with a missing value stops the startup.
+- Groups set by hand in the backoffice are overwritten on the next login. Access is managed in Entra ID.
+- Local password login is still enabled alongside (`DenyLocalLogin = false`).
+- A user who is disabled in Umbraco is not enabled again on login.
 
 ### AdminProtectionComposer
 
 `Composers/AdminProtectionHandler.cs`
 
-**Gjør.** Stopper sletting av brukeren `admin@ki.norge.no`, så ingen kan låse alle ute ved å slette den eneste administratoren.
+**Does.** Stops deletion of the user `admin@ki.norge.no`, so nobody can lock everyone out by deleting the only administrator.
 
-**I drift.** Ja.
+**In production.** Yes.
 
-**Feller.**
+**Traps.**
 
-- Skal kontoen byttes, endres `ProtectedAdminEmail` i koden og rulles ut før endringen gjøres i backofficet.
+- If the account is to be replaced, `ProtectedAdminEmail` is changed in the code and rolled out before the change is made in the backoffice.
 
 ### NorwegianIdentityErrorDescriberComposer
 
 `Composers/NorwegianIdentityErrorDescriber.cs`
 
-**Gjør.** Erstatter de engelske feilmeldingene for passordregler med norske, så backofficet for eksempel viser «Passordet må være minst 10 tegn.» i stedet for «Unknown failure».
+**Does.** Replaces the English error messages for password rules with Norwegian ones, so that the backoffice for example shows "Passordet må være minst 10 tegn." instead of "Unknown failure".
 
-**I drift.** Ja, for kontoer med lokalt passord. Brukere som logger inn med Entra ID, har ikke passord i Umbraco.
+**In production.** Yes, for accounts with a local password. Users who log in with Entra ID have no password in Umbraco.
 
-**Feller.**
+**Traps.**
 
-- Bare passordmeldingene er oversatt. Andre feil fra ASP.NET Identity, som utestenging, er på engelsk.
+- Only the password messages are translated. Other errors from ASP.NET Identity, such as lockout, are in English.
 
 ### HeadlessPreviewComposer
 
 `Composers/HeadlessPreviewUrlProvider.cs`
 
-**Gjør.** Lager forhåndsvisningslenken i backofficet: `HeadlessPreview:FrontendUrl`, stien fra `content-routes.json` og `?preview=true&secret=` med `HeadlessPreview:PreviewSecret`. Registrerer også `ContentRouteResolver`, som søket og målformrapporten bruker.
+**Does.** Builds the preview link in the backoffice: `HeadlessPreview:FrontendUrl`, the path from `content-routes.json` and `?preview=true&secret=` with `HeadlessPreview:PreviewSecret`. Also registers `ContentRouteResolver`, which search and the Malform report use.
 
-**I drift.** Ja. `HeadlessPreview__FrontendUrl` settes per miljø i `syncroot/`. `HeadlessPreview:PreviewSecret` står ikke i repoet og kommer fra miljøets Key Vault.
+**In production.** Yes. `HeadlessPreview__FrontendUrl` is set per environment in `syncroot/`. `HeadlessPreview:PreviewSecret` is not in the repo and comes from the environment's Key Vault.
 
-**Feller.**
+**Traps.**
 
-- Mangler `FrontendUrl`, peker lenken på `http://localhost:4321`.
-- `PreviewSecret` må være lik `PREVIEW_SECRET` i frontend-workeren. Ellers ser redaktøren bare publisert innhold.
-- `content-routes.json` speiles fra frontenden med `scripts/sync-content-routes.js`. En innholdstype uten rute får meldingen «Forhåndsvisning er ikke tilgjengelig».
+- If `FrontendUrl` is missing, the link points to `http://localhost:4321`.
+- `PreviewSecret` must equal `PREVIEW_SECRET` in the frontend worker. Otherwise the editor sees only published content.
+- `content-routes.json` is mirrored from the frontend with `scripts/sync-content-routes.js`. A content type without a route gets the message "Forhåndsvisning er ikke tilgjengelig".
 
 ### MalformComposer
 
 `Malform/`
 
-**Gjør.** Registrerer rapporten bak dashbordet «Målform» i Innhold, som viser hvor mye av det publiserte innholdet som er nynorsk. Dashbordet ligger i `App_Plugins/Malform/` og henter rapporten fra `/umbraco/management/api/v1/malform`.
+**Does.** Registers the report behind the "Målform" dashboard in Content, which shows how much of the published content is Nynorsk. The dashboard is in `App_Plugins/Malform/` and fetches the report from `/umbraco/management/api/v1/malform`.
 
-**I drift.** Ja, for alle med tilgang til Innhold-seksjonen.
+**In production.** Yes, for everyone with access to the Content section.
 
-**Feller.**
+**Traps.**
 
-- Rapporten bruker tekstuttrekket fra `SearchComposer`, se kjeden over.
-- Rapporten regnes ut på nytt ved hvert kall, over alt publisert innhold.
+- The report uses the text extractor from `SearchComposer`, see the chain above.
+- The report is recomputed on every call, over all published content.
 
-## Integrasjoner
+## Integrations
 
 ### AzureBlobMediaComposer
 
 `Composers/AzureBlobMediaComposer.cs`
 
-**Gjør.** Legger media i Azure Blob Storage når `Umbraco:Storage:AzureBlob:Media:ConnectionString` er satt. Ellers ligger media i `wwwroot/media` på disk. Podden autentiserer med workload identity, så `ConnectionString` er endepunktet til lagringskontoen og ikke en nøkkel.
+**Does.** Puts media in Azure Blob Storage when `Umbraco:Storage:AzureBlob:Media:ConnectionString` is set. Otherwise media is in `wwwroot/media` on disk. The pod authenticates with workload identity, so `ConnectionString` is the endpoint of the storage account and not a key.
 
-**I drift.** Ja i begge miljøene. `ConnectionString` og `ContainerName` settes per miljø i `syncroot/`.
+**In production.** Yes in both environments. `ConnectionString` and `ContainerName` are set per environment in `syncroot/`.
 
-**Feller.**
+**Traps.**
 
-- Fjernes `ConnectionString`, legger CMS-et media på disk i podden uten feilmelding. Linja `[Media] Lagring: …` ved oppstart sier hvilken lagring som brukes.
-- Hvilken kilde som serverer en fil, ser du på `last-modified`, se «Mediefiler» i [systemdokumentasjon.md](systemdokumentasjon.md).
+- If `ConnectionString` is removed, the CMS puts media on disk in the pod without an error message. The line `[Media] Storage: …` at startup says which storage is used.
+- Which source serves a file can be seen from `last-modified`, see "Media files" in [system-documentation.md](system-documentation.md#media-files).
 
 ### CachePurgeComposer
 
 `CachePurge/`
 
-**Gjør.** Ved publisering, avpublisering og flytting til papirkurven finner `FrontendUrlResolver` frontend-URL-ene som berøres, ut fra innholdstype og slug, og purger dem i Cloudflare i bakgrunnen. Globale innstillinger, en innholdstype uten URL-regel, en feil i utregningen eller flere URL-er enn `AffectedUrlThreshold` (30) gir purge av alt. Ved oppstart logges om token og sone er satt.
+**Does.** On publish, unpublish and move to the recycle bin, `FrontendUrlResolver` finds the affected frontend URLs, based on content type and slug, and purges them in Cloudflare in the background. Global settings, a content type without a URL rule, an error in the calculation or more URLs than `AffectedUrlThreshold` (30) give a purge of everything. At startup it logs whether token and zone are set.
 
-**I drift.** Ja i prod. Purgen krever alle tre verdiene: `Cloudflare:ApiToken` og `Cloudflare:ZoneId` fra Key Vault (`Cloudflare--ApiToken`, `Cloudflare--ZoneId`) og `Cloudflare:SiteBaseUrl`, som settes per miljø i `syncroot/`. Om tt02 har token og sone, viser logglinja ved oppstart der: `Cloudflare cache-purge: Enabled=…, ZoneId=<satt>, ApiToken=<satt>`. Se også [cloudflare-cache-purge.md](cloudflare-cache-purge.md).
+**In production.** Yes in prod. The purge requires all three values: `Cloudflare:ApiToken` and `Cloudflare:ZoneId` from Key Vault (`Cloudflare--ApiToken`, `Cloudflare--ZoneId`) and `Cloudflare:SiteBaseUrl`, which is set per environment in `syncroot/`. Whether tt02 has token and zone is shown by the log line at startup there: `Cloudflare cache-purge: Enabled=…, ZoneId=<set>, ApiToken=<set>`. See also [cloudflare-cache-purge.md](cloudflare-cache-purge.md).
 
-**Feller.**
+**Traps.**
 
-- ki.norge.no og ki.test.norge.no ligger i samme Cloudflare-sone. Purge av alt treffer derfor begge miljøene.
-- Purgen kjører etter at lagringen er ferdig. En feil logges, men redaktøren ser en vellykket lagring.
-- Uten `SiteBaseUrl` purges ingenting, heller ikke ved endringer i globale innstillinger.
-- En ny innholdstype uten URL-regel i `FrontendUrlResolver` gir purge av alt ved hver publisering.
+- ki.norge.no and ki.test.norge.no are in the same Cloudflare zone. A purge of everything therefore hits both environments.
+- The purge runs after the save has finished. An error is logged, but the editor sees a successful save.
+- Without `SiteBaseUrl` nothing is purged, not even on changes to global settings.
+- A new content type without a URL rule in `FrontendUrlResolver` gives a purge of everything on every publish.
 
 ### SearchComposer
 
 `Search/`
 
-**Gjør.** Legger publisert innhold inn i Elasticsearch-indeksen `ki-content` ved publisering, og fjerner det ved avpublisering og flytting til papirkurven. Registrerer også en bakgrunnsjobb og en rute i backofficet for full reindeksering, `search/reindex`, som krever administrator.
+**Does.** Puts published content into the Elasticsearch index `ki-content` on publish, and removes it on unpublish and move to the recycle bin. Also registers a background job and a backoffice route for full reindexing, `search/reindex`, which requires an administrator.
 
-**I drift.** Ja i prod. På tt02 er søket av med vilje. Prod og tt02 deler cluster og indeks, og den holder prod-innhold, så CMS-et på tt02 har ikke `Elasticsearch:Endpoint`. Uten endepunkt indekseres ingenting, og det logges en advarsel. Endepunkt og nøkkel står ikke i repoet og kommer fra miljøets Key Vault (`Elasticsearch--Endpoint`, `Elasticsearch--ApiKey`).
+**In production.** Yes in prod. On tt02 search is off on purpose. Prod and tt02 share cluster and index, and it holds prod content, so the CMS on tt02 does not have `Elasticsearch:Endpoint`. Without an endpoint nothing is indexed, and a warning is logged. Endpoint and key are not in the repo and come from the environment's Key Vault (`Elasticsearch--Endpoint`, `Elasticsearch--ApiKey`).
 
-**Feller.**
+**Traps.**
 
-- Søket på tt02 viser prod-innhold.
-- En reindeksering påvirker begge miljøene.
-- Målformrapporten bruker tekstuttrekket herfra, også på tt02, der indekseringen er av.
+- Search on tt02 shows prod content.
+- A reindex affects both environments.
+- The Malform report uses the text extractor from here, also on tt02, where indexing is off.
 
 ### OpenTelemetryComposer
 
 `Telemetry/OpenTelemetryComposer.cs`
 
-**Gjør.** Sender spor over OTLP til `otel-collector` i klyngen. Kall til backofficet, management-API-et, forhåndsvisning, statiske filer, media og `/api/health` tas ikke med. Det gjør heller ikke utgående kall til Key Vault, lagring, Microsoft-innlogging, Umbracos egne tjenester og Cloudflare-API-et.
+**Does.** Sends traces over OTLP to `otel-collector` in the cluster. Calls to the backoffice, the management API, preview, static files, media and `/api/health` are not included. Neither are outgoing calls to Key Vault, storage, Microsoft login, Umbraco's own services and the Cloudflare API.
 
-**I drift.** Ja i begge miljøene. `OTEL_EXPORTER_OTLP_ENDPOINT` settes i `syncroot/base/umbraco/deployment.yaml`. Lokalt er den ikke satt, og composeren gjør ingenting.
+**In production.** Yes in both environments. `OTEL_EXPORTER_OTLP_ENDPOINT` is set in `syncroot/base/umbraco/deployment.yaml`. Locally it is not set, and the composer does nothing.
 
-**Feller.**
+**Traps.**
 
-- Loggene går ikke gjennom denne composeren, men gjennom Serilog-sinken i `appsettings.Production.json`. Umbraco tømmer logg-providerne ved oppstart, så en logg-provider registrert her ville forsvunnet.
+- The logs do not go through this composer, but through the Serilog sink in `appsettings.Production.json`. Umbraco clears the log providers at startup, so a log provider registered here would disappear.

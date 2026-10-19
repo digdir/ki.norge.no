@@ -1,5 +1,5 @@
 # infrastructure/elasticsearch
 
-Mappingen for søkeindeksen `ki-content` som kode, og skriptene for embedding, reindeksering og evaluering. Oppskriftene står i [docs/elasticsearch-indeks.md](../../docs/elasticsearch-indeks.md).
+The mapping for the search index `ki-content` as code, and the scripts for embedding, reindexing and evaluation. The recipes are in [docs/elasticsearch-index.md](../../docs/elasticsearch-index.md).
 
-**Prod og tt02 deler indeksen.** `--rebuild` og en `DELETE` på indeksen treffer begge miljøene.
+**Prod and tt02 share the index.** `--rebuild` and a `DELETE` on the index hit both environments.

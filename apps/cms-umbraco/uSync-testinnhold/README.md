@@ -1,59 +1,59 @@
-# Testfixturer for tt02
+# Test fixtures for tt02
 
-Artikler som presser skjemaet, lagret som uSync Content-filer og lastet inn i tt02 på kommando.
+Articles that push the schema, stored as uSync Content files and loaded into tt02 on command.
 
-## Hvorfor de ligger i git
+## Why they are in git
 
-tt02 hadde slike fixturer før, laget direkte i backoffice. De mistet blokkinnholdet sitt da
-skjemaet ble re-nøklet 5. august, ingen merket det, og 13. august ble de feid vekk sammen med
-resten av tt02s eget innhold fordi de så ut som rot.
+tt02 had such fixtures before, created directly in the backoffice. They lost their block content when
+the schema was re-keyed on 5 August, nobody noticed, and on 13 August they were swept away together with
+the rest of tt02's own content because they looked like clutter.
 
-Løse innholdsnoder i et delt miljø har ingen som passer på seg. Her ligger de under versjons-
-kontroll, de dukker opp i diffen når noen endrer en content-type, og en opprydding kan ikke ta
-dem ved et uhell.
+Loose content nodes in a shared environment have nobody looking after them. Here they are under version
+control, they show up in the diff when someone changes a content type, and a cleanup cannot take
+them by accident.
 
-## Bruk
+## Usage
 
 ```bash
-scripts/last-testfixturer-tt02.sh          # last fixturene
-scripts/last-testfixturer-tt02.sh --sjekk  # vis hva som ville blitt kopiert
+scripts/last-testfixturer-tt02.sh          # load the fixtures
+scripts/last-testfixturer-tt02.sh --sjekk  # show what would be copied
 ```
 
-Scriptet kopierer `.config`-filene inn i tt02-poddens uSync-mappe. Import gjøres i backoffice
-(Settings, uSync, Import) med settet `Speiling`. Aldri Clean.
+The script copies the `.config` files into the tt02 pod's uSync folder. Import is done in the backoffice
+(Settings, uSync, Import) with the set `Speiling`. Never Clean.
 
-Fixturene får parent `cadd506a-4470-4f3d-9a66-3a4369bdc238` (Artikler) og dukker opp i
-artikkellista på tt02. Nøklene starter alle med `7e57f1c0`, så de er lette å kjenne igjen og
-kan ikke kollidere med ekte innhold.
+The fixtures get the parent `cadd506a-4470-4f3d-9a66-3a4369bdc238` (Artikler) and show up in
+the article list on tt02. Their keys all start with `7e57f1c0`, so they are easy to recognise and
+cannot collide with real content.
 
-De ligger på frontenden under `/artikler/<slug>`, for eksempel
-`https://ki.test.norge.no/artikler/testfixtur-alle-moduler/`. Delivery API-et rapporterer
-rota (`/testfixtur-alle-moduler/`), men den ruta finnes ikke i Astro.
+They are on the frontend under `/artikler/<slug>`, for example
+`https://ki.test.norge.no/artikler/testfixtur-alle-moduler/`. The Delivery API reports
+the root (`/testfixtur-alle-moduler/`), but that route does not exist in Astro.
 
-Verifisert 2026-08-13: alle 8 blokktypene rendrer, ingen faller ut, og Delivery API-et er
-friskt på `take=100` etter at fixturene lå inne.
+Verified 2026-08-13: all 8 block types render, none drop out, and the Delivery API is
+healthy on `take=100` after the fixtures were in.
 
-Prod kan ikke importere innhold uansett (`Default`-settet er eksport-only), og scriptet nekter
-å kjøre mot en prod-kontekst.
+Prod cannot import content anyway (the `Default` set is export-only), and the script refuses
+to run against a prod context.
 
-## Fixturene
+## The fixtures
 
-| Fil | Hva den tester |
+| File | What it tests |
 |---|---|
-| `testfixtur-alle-moduler.config` | Hver av de 8 blokktypene `artikkel.innhold` tillater, i én artikkel. Regresjonsvakt mot at en modul faller til Unsupported. |
-| `testfixtur-minimal.config` | Bare påkrevde felt. Fanger rendering som antar at valgfrie felt finnes. |
-| `testfixtur-fiendtlig-innhold.config` | Ekstremt lang tittel, emoji og kombinerende tegn, RTL, nullbredde-tegn, rå HTML limt inn fra Word/Teams, script- og iframe-tagger, tabell uten thead, tre nivåer nøstet liste, tomme avsnitt, ugyldig e-post, tomme valgfrie felt i blokker. |
+| `testfixtur-alle-moduler.config` | Each of the 8 block types `artikkel.innhold` allows, in one article. Regression guard against a module falling to Unsupported. |
+| `testfixtur-minimal.config` | Only required fields. Catches rendering that assumes optional fields exist. |
+| `testfixtur-fiendtlig-innhold.config` | Extremely long title, emoji and combining characters, RTL, zero-width characters, raw HTML pasted from Word/Teams, script and iframe tags, table without thead, three levels of nested list, empty paragraphs, invalid email, empty optional fields in blocks. |
 
-Alle tre er trygge å laste. Skal du lage en fixtur med brutte referanser, altså mediepekere
-eller lenker til nøkler som ikke finnes, husk at én ødelagt property inne i en Block List kan
-velte hele Delivery API-responsen med HTTP 500, ikke bare den ene noden. Det skjedde 13. august
-da en dropdown lå med rå streng i stedet for JSON, og ga 500 på alle spørringer med `take>=50`.
+All three are safe to load. If you create a fixture with broken references, meaning media pointers
+or links to keys that do not exist, remember that one broken property inside a Block List can
+bring down the whole Delivery API response with HTTP 500, not just the one node. That happened on 13 August
+when a dropdown held a raw string instead of JSON, and gave 500 on all queries with `take>=50`.
 
-## Legge til en fixtur
+## Adding a fixture
 
-Filene ble generert én gang og redigeres nå for hånd. Formatet er uSync sitt Content-format:
-XML med property-verdier i CDATA, der Block List-verdier er JSON med `contentData`,
-`settingsData`, `expose` og `layout`. Kopier en eksisterende fixtur og bytt nøkler.
+The files were generated once and are now edited by hand. The format is uSync's Content format:
+XML with property values in CDATA, where Block List values are JSON with `contentData`,
+`settingsData`, `expose` and `layout`. Copy an existing fixture and change the keys.
 
-Alle nøkler i en ny fixtur må være unike. Hold deg til mønsteret `7e57f1c0-NNNN-4000-8000-…`
-så de fortsatt er gjenkjennelige.
+All keys in a new fixture must be unique. Stick to the pattern `7e57f1c0-NNNN-4000-8000-…`
+so they are still recognisable.

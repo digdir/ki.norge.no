@@ -1,21 +1,21 @@
-# Hvordan legge ut nye versjoner (deploy)
+# How to release new versions (deploy)
 
-Oppskrift for å legge ut nye versjoner etter at kode er endret.
+A recipe for releasing new versions after code has changed.
 
 - [Frontend (ki-norge-frontend)](#frontend-ki-norge-frontend)
 - [Umbraco CMS](#umbraco-cms)
-- [Cache-worker (cache-kinorgeportal)](#cache-worker-cache-kinorgeportal)
-- [CMS-worker (cms-kinorgeportal)](#cms-worker-cms-kinorgeportal)
-- [Rekkefølge når flere deler endres](#rekkefølge-når-flere-deler-endres)
+- [Cache worker (cache-kinorgeportal)](#cache-worker-cache-kinorgeportal)
+- [CMS worker (cms-kinorgeportal)](#cms-worker-cms-kinorgeportal)
+- [Order when several parts change](#order-when-several-parts-change)
 
-Alt deployes fra `main`. Frontend-skriptene (`deploy:check-main`) stopper når arbeidstreet ikke er rent. Er det rent, bytter de til `main` og stopper hvis `main` ikke er i takt med origin. I et git-arbeidstre der `main` er sjekket ut et annet sted, feiler byttet, og deployen stopper.
+Everything is deployed from `main`. The frontend scripts (`deploy:check-main`) stop when the working tree is not clean. If it is clean, they switch to `main` and stop if `main` is not in sync with origin. In a git worktree where `main` is checked out somewhere else, the switch fails, and the deploy stops.
 
 ## Frontend (ki-norge-frontend)
 
-Etter endringer i sidemotoren legges nye versjoner ut fra kommandolinjen lokalt.
+After changes to the page engine, new versions are released from the command line locally.
 
-1. Sjekk at endringene er merget til `main` i GitHub.
-2. Hent siste endringer lokalt.
+1. Check that the changes are merged to `main` in GitHub.
+2. Pull the latest changes locally.
 3. Deploy:
 
 ```bash
@@ -23,123 +23,123 @@ pnpm run frontend:deploy:tt02
 pnpm run frontend:deploy:prod
 ```
 
-Skriptet bygger, deployer og tømmer Cloudflare-cachen for miljøet. Du trenger ikke purge manuelt.
+The script builds, deploys and purges the Cloudflare cache for the environment. You do not need to purge manually.
 
-Er du ikke innlogget i Cloudflare-kontoen til Digitaliseringsdirektoratet, blir du bedt om det.
+If you are not logged in to the Digitaliseringsdirektoratet Cloudflare account, you will be asked to.
 
-Deploy til tt02 først når endringen er synlig for brukere. Begge miljøer er åpne, så en feil i prod er en feil publikum ser.
+Deploy to tt02 first when the change is visible to users. Both environments are open, so a fault in prod is a fault the public sees.
 
-### Verifisere at riktig versjon kjører
+### Verifying that the right version is running
 
-Deploy-utskriften gir en `Version ID`, men den sier bare at opplastingen gikk bra. Vil du vite at endringen faktisk er ute, se etter en markør du vet er ny, med cache-buster:
+The deploy output gives a `Version ID`, but it only says the upload went well. If you want to know that the change is actually out, look for a marker you know is new, with a cache buster:
 
 ```bash
-curl -s "https://ki.norge.no/artikler?cb=$RANDOM" | grep -o "noe-du-vet-er-nytt"
+curl -s "https://ki.norge.no/artikler?cb=$RANDOM" | grep -o "something-you-know-is-new"
 ```
 
-Cache-buster er obligatorisk bak Cloudflare. Uten den kan du måle en cachet kopi av forrige versjon.
+A cache buster is mandatory behind Cloudflare. Without it you may measure a cached copy of the previous version.
 
 ## Umbraco CMS
 
-Endringer i Umbraco krever to steg: bygge et image, og rulle det ut. Et grønt bygg betyr ikke at noe er rullet ut.
+Changes to Umbraco require two steps: building an image, and rolling it out. A green build does not mean anything has been rolled out.
 
-### 1. Bygg nytt image
+### 1. Build a new image
 
-1. Sjekk at endringene er merget til `main`.
-2. Finn forrige versjonsnummer på [Publish Syncroot artifacts](https://github.com/digdir/ki.norge.no/actions/workflows/publish-syncroot-main.yaml).
-3. Kjør [Docker build and publish](https://github.com/digdir/ki.norge.no/actions/workflows/docker-publish.yaml) med neste nummer og et stikkord, for eksempel `63-adressefelt`.
+1. Check that the changes are merged to `main`.
+2. Find the previous version number on [Publish Syncroot artifacts](https://github.com/digdir/ki.norge.no/actions/workflows/publish-syncroot-main.yaml).
+3. Run [Docker build and publish](https://github.com/digdir/ki.norge.no/actions/workflows/docker-publish.yaml) with the next number and a keyword, for example `63-adressefelt`.
 
-Imaget lastes opp til ghcr.io.
+The image is uploaded to ghcr.io.
 
-Feiler jobben, les output før du gjør noe annet. Ikke alle feil er dine: cosign-installasjonen henter fra GitHubs release-CDN, og en 504 derfra stopper bygget uten at det er noe galt med koden. Da holder det å kjøre på nytt.
+If the job fails, read the output before doing anything else. Not every failure is yours: the cosign install fetches from GitHub's release CDN, and a 504 from there stops the build without anything being wrong with the code. Then it is enough to run it again.
 
-### 2. Rull ut
+### 2. Roll out
 
-1. Kjør [Publish Syncroot artifacts](https://github.com/digdir/ki.norge.no/actions/workflows/publish-syncroot-main.yaml).
-2. Velg miljø og angi versjonsnummeret fra steg 1.
+1. Run [Publish Syncroot artifacts](https://github.com/digdir/ki.norge.no/actions/workflows/publish-syncroot-main.yaml).
+2. Choose the environment and enter the version number from step 1.
 
-Workflowen peker alltid podden mot Azure SQL. Det finnes ikke noe databasevalg.
+The workflow always points the pod at Azure SQL. There is no database choice.
 
-Workflowen slår opp digesten taggen peker på, og låser podden til den. Finnes ikke taggen, stopper den. Tilbakerulling er det samme med forrige tag.
+The workflow looks up the digest the tag points to, and pins the pod to it. If the tag does not exist, it stops. Rollback is the same with the previous tag.
 
-Workflowen publiserer et artefakt. Flux plukker det opp på et femminuttersintervall, så det tar noen minutter før podden faktisk rulles. **En grønn workflow beviser ikke at utrullingen er skjedd.**
+The workflow publishes an artifact. Flux picks it up on a five-minute interval, so it takes a few minutes before the pod is actually rolled. **A green workflow does not prove that the rollout has happened.**
 
-### 3. Verifiser
+### 3. Verify
 
-Med VPN:
+With VPN:
 
 ```bash
 kubectl get pods -n product-kinorgeportal
 ```
 
-Uten VPN er den mest direkte målingen å be Delivery API om noe du vet er nytt. La en skjemaendring være beviset på seg selv:
+Without VPN the most direct measurement is to ask the Delivery API for something you know is new. Let a schema change be its own proof:
 
 ```bash
 curl -s "https://cms.ki.norge.no/umbraco/delivery/api/v2/content?take=200&expand=properties%5B%24all%5D" \
-  | grep -c "ditt-nye-felt"
+  | grep -c "your-new-field"
 ```
 
-Går det fra 0 til et tall, er både utrullingen og uSync-importen gjennomført. Midt i rullingen svarer API-et tomt et øyeblikk, det er normalt.
+If it goes from 0 to a number, both the rollout and the uSync import are done. In the middle of the rollout the API responds empty for a moment, that is normal.
 
-Backoffice-hashen duger **ikke** til å se om podden rullet. Den speiler bare Umbraco-versjonen. Vil du måle imaget uten VPN, bruk `Last-Modified` på en fil under `App_Plugins`. Det er byggetidspunktet for imaget.
+The backoffice hash is **not** good enough to see whether the pod rolled. It only reflects the Umbraco version. If you want to measure the image without VPN, use `Last-Modified` on a file under `App_Plugins`. That is the build time of the image.
 
-### 4. Sjekk at innholdet er intakt
+### 4. Check that the content is intact
 
-Etter en skjemaendring: tell blokker, innholdstyper og «Unsupported» i Delivery API før og etter. Er tallene like, ble ingenting re-nøklet. Er antall «Unsupported» over null, stopp og se på uSync-nøklene før du gjør noe mer.
+After a schema change: count blocks, content types and "Unsupported" in the Delivery API before and after. If the numbers are the same, nothing was re-keyed. If the number of "Unsupported" is above zero, stop and look at the uSync keys before doing anything more.
 
-### Alt i én kommando: `scripts/deploy-cms.sh`
+### Everything in one command: `scripts/deploy-cms.sh`
 
 ```bash
 bash scripts/deploy-cms.sh tt02 [tag]
 bash scripts/deploy-cms.sh prod [tag]
 ```
 
-Skriptet gjør steg 1 til 3 over. Det starter «Docker build and publish» og «Publish Syncroot artifacts» med `gh workflow run`, venter til podden kjører det nye imaget, og sjekker helsen.
+The script does steps 1 to 3 above. It starts "Docker build and publish" and "Publish Syncroot artifacts" with `gh workflow run`, waits until the pod runs the new image, and checks the health.
 
-- **Tagen må være et heltall** (`^[0-9]+$`). Uten tag tar skriptet det høyeste tallet etter «Deploy» i titlene på de siste kjøringene av «Publish Syncroot artifacts», og legger til 1. Tagger med stikkord, som `63-adressefelt`, godtas ikke. Skriptet og oppskriften over gir derfor tagger på ulik form.
-- Krever `gh` med rett til å starte workflowene, rent arbeidstre og `HEAD` lik `origin/main`. Skriptet bytter ikke gren selv.
-- Velger alltid AzureSQL. For prod må du skrive `prod` for å fortsette.
-- Med Altinn-VPN venter det i opptil om lag 15 minutter på at podden kjører `umbraco:<tag>@sha256:…` og er klar. Uten VPN kan det ikke bekrefte at det nye imaget kjører, og helsesjekken sier bare at noe svarer.
-- Helsesjekken venter på 200 fra frontenden og et svar med `total` fra Delivery API. Med VPN leser den også loggen, og stopper hvis uSync-importen endret skjemaet. Etter en ønsket skjemaendring skjer nettopp det, så da må du lese loggen selv.
+- **The tag must be an integer** (`^[0-9]+$`). Without a tag the script takes the highest number after "Deploy" in the titles of the latest runs of "Publish Syncroot artifacts", and adds 1. Tags with keywords, like `63-adressefelt`, are not accepted. The script and the recipe above therefore produce tags in different forms.
+- Requires `gh` with permission to start the workflows, a clean working tree and `HEAD` equal to `origin/main`. The script does not switch branch itself.
+- Always chooses AzureSQL. For prod you must type `prod` to continue.
+- With the Altinn VPN it waits up to about 15 minutes for the pod to run `umbraco:<tag>@sha256:…` and be ready. Without VPN it cannot confirm that the new image is running, and the health check only says that something responds.
+- The health check waits for 200 from the frontend and a response with `total` from the Delivery API. With VPN it also reads the log, and stops if the uSync import changed the schema. After an intended schema change that is exactly what happens, so then you have to read the log yourself.
 
-## Cache-worker (cache-kinorgeportal)
+## Cache worker (cache-kinorgeportal)
 
-Etter endringer i hva som caches:
+After changes to what is cached:
 
 ```bash
 pnpm run cache-kinorgeportal:deploy:tt02
 pnpm run cache-kinorgeportal:deploy:prod
 ```
 
-Fjern sider som ikke lenger skal caches manuelt fra Cloudflare etterpå.
+Manually remove pages that should no longer be cached from Cloudflare afterwards.
 
-Unngå å tømme hele cachen for ki.norge.no på dagtid.
+Avoid purging the whole cache for ki.norge.no during the day.
 
-## CMS-worker (cms-kinorgeportal)
+## CMS worker (cms-kinorgeportal)
 
-Etter endringer i inngangsporten til redaktørgrensesnittet:
+After changes to the entry gateway to the editor interface:
 
 ```bash
 pnpm run cms-kinorgeportal:deploy:tt02
 pnpm run cms-kinorgeportal:deploy:prod
 ```
 
-Test at pålogging til `https://cms.ki.norge.no/umbraco` fungerer etterpå.
+Test that login to `https://cms.ki.norge.no/umbraco` works afterwards.
 
-Sjekk samtidig at bilder fortsatt lastes på forsiden. Workers.dev-hostnavnene bærer prod-media, og `workers_dev` må stå `true` for denne workeren. Da den ble slått av, falt bildene ut i ti minutter.
+At the same time, check that images still load on the front page. The workers.dev hostnames carry prod media, and `workers_dev` must be `true` for this worker. When it was turned off, the images dropped out for ten minutes.
 
-## Rekkefølge når flere deler endres
+## Order when several parts change
 
-Endrer du både skjema og frontend i samme runde, ta CMS først. Frontend som leser et felt som ikke finnes ennå, viser tomt. CMS som har et felt ingen leser, viser ingenting galt.
+If you change both schema and frontend in the same round, do the CMS first. A frontend that reads a field that does not exist yet shows empty. A CMS that has a field nobody reads shows nothing wrong.
 
-1. Bygg og rull ut CMS-image til tt02, verifiser
-2. Samme til prod, verifiser
-3. Frontend til tt02, så prod
+1. Build and roll out the CMS image to tt02, verify
+2. Same to prod, verify
+3. Frontend to tt02, then prod
 
-## Vanlige feil
+## Common errors
 
-**Innlogging i backoffice går i sløyfe etter deploy.** Serveren er som regel frisk. Prøv privat vindu først, og tøm localStorage.
+**Login to the backoffice loops after deploy.** The server is usually healthy. Try a private window first, and clear localStorage.
 
-**Siden er ustylet etter deploy.** Edge-cachet HTML peker på en `_astro`-hash som er slettet. Riktig fiks er purge, som deploy-skriptet gjør selv.
+**The page is unstyled after deploy.** Edge-cached HTML points to an `_astro` hash that has been deleted. The right fix is a purge, which the deploy script does itself.
 
-**Et felt lagt til i `ContentTypeComposer` dukker ikke opp i prod.** Det skal det ikke. Composeren er avslått i drift. Se [Systemdokumentasjon](systemdokumentasjon.md#skjema-og-usync).
+**A field added in `ContentTypeComposer` does not show up in prod.** It should not. The composer is turned off in production. See [System documentation](system-documentation.md#schema-and-usync).
