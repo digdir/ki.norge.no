@@ -1,120 +1,121 @@
 # Claude Code — ki.norge.no
 
-Portal for kunstig intelligens i norsk offentlig sektor. Drives av Digitaliseringsdirektoratet.
+Portal for artificial intelligence in the Norwegian public sector. Run by the Norwegian Digitalisation Agency (Digitaliseringsdirektoratet).
 
-All dokumentasjon ligger i `docs/`. `docs/llms.txt` indekserer alt, og `docs/utvikling.md` har kodekartet, nøkkelfilene og lenkene. Denne fila har reglene.
+All documentation lives in `docs/`. `docs/llms.txt` indexes everything, and `docs/development.md` has the code map, the key files and the links. This file has the rules.
 
-## Kjøre lokalt
+## Running locally
 
 ```bash
-# Frontend (Astro SSR, Cloudflare-adapteren også lokalt)
+# Frontend (Astro SSR, the Cloudflare adapter also locally)
 pnpm run frontend:dev         # http://localhost:4321
 
 # CMS (Umbraco .NET 10)
 pnpm run cms:dev              # http://localhost:5000/umbraco
                               # admin@ki.norge.no / KiNorge2025!
 
-# Frontend mot prod-CMS (trenger ikke lokal CMS, kjører på Node-adapteren)
+# Frontend against the prod CMS (no local CMS needed, runs on the Node adapter)
 pnpm run frontend:dev:prod
 ```
 
-Første gang CMS kjøres opprettes SQLite-databasen og admin-brukeren automatisk (unattended install). Innhold seedes ikke, se «Innholdsskriving fra kode» under.
+The first time the CMS runs, the SQLite database and the admin user are created automatically (unattended install). Content is not seeded, see "Writing content from code" below.
 
-Innlogget bruker over er en lokal kastebruker mot din egen SQLite-fil. Den gir
-ikke tilgang til noe delt, og passordet er derfor ikke en hemmelighet. Ikke
-gjenbruk verdien, eller mønsteret, noe sted den er ekte. Ekte verdier ligger i
-Azure Key Vault per miljø, og er dokumentert i Confluence.
+The login above is a local throwaway user against your own SQLite file. It gives
+no access to anything shared, so the password is not a secret. Do not
+reuse the value, or the pattern, anywhere it is real. Real values live in
+Azure Key Vault per environment, and are documented in Confluence.
 
-## Arkitektur
+## Architecture
 
-Monorepo med to hovedapper, frontend på Cloudflare Workers og CMS på Altinn dis-core (Kubernetes), og to små workere foran dem.
+Monorepo with two main apps, the frontend on Cloudflare Workers and the CMS on Altinn dis-core (Kubernetes), and two small workers in front of them.
 
 ```
 apps/frontend/          Astro SSR, Cloudflare Workers, designsystemet-react
-apps/cms-umbraco/       Umbraco 17, .NET 10, Azure SQL (prod), SQLite (lokalt)
-apps/cache-kinorgeportal/  Cache-worker foran ki.norge.no
-apps/cms-kinorgeportal/    Proxy-worker foran cms.ki.norge.no
+apps/cms-umbraco/       Umbraco 17, .NET 10, Azure SQL (prod), SQLite (local)
+apps/cache-kinorgeportal/  Cache worker in front of ki.norge.no
+apps/cms-kinorgeportal/    Proxy worker in front of cms.ki.norge.no
 ```
 
-Frontend henter innhold via Umbraco Delivery API v2. Miljøer, workere og drift står i `docs/systemdokumentasjon.md`.
+The frontend fetches content via the Umbraco Delivery API v2. Environments, workers and operations are described in `docs/system-documentation.md`.
 
 ## Frontend
 
-- Søk er en modal (`SearchDialog`, kaller `/api/search`), ikke en egen side. Det finnes IKKE en `/kontakt`-, `/faq`-, `/sok`- eller `/ki-ordbok`-side i koden. Footer har en "Kontakt oss"-seksjon, men ingen kontaktside.
-- `src/components/shared/ArticleBlocksRenderer.astro` er **eneste** sted artikkelmoduler rendres. Endre denne én filen → alle sidene oppdateres.
-- **Designsystem:** Bruk designsystemet-tokens (--ds-size-4, --ds-color-text-default osv.) der de finnes. Ingen Tailwind.
+- Search is a modal (`SearchDialog`, calls `/api/search`), not a separate page. There is NO `/kontakt`, `/faq`, `/sok` or `/ki-ordbok` page in the code. The footer has a "Kontakt oss" section, but no contact page.
+- `src/components/shared/ArticleBlocksRenderer.astro` is the **only** place article modules are rendered. Change this one file → all the pages are updated.
+- **Design system:** Use designsystemet tokens (--ds-size-4, --ds-color-text-default etc.) where they exist. No Tailwind.
 
 ## CMS (Umbraco)
 
-- Alle composers, hva de gjør, om de er i bruk i drift og hvilken konfig som slår dem på: `docs/cms-composers.md`
+- All composers, what they do, whether they are in use in production and which config turns them on: `docs/cms-composers.md`
 
-**Skjemaendringer nås IKKE lenger via composeren i drift.** Både `syncroot/prod/` og
-`syncroot/tt02/` setter `USYNC_OWNS_SCHEMA=true`, og `ContentTypeComposer` hopper da over
-hele skjema-assertingen (`ContentTypeComposer.cs:116`). Den kjører fortsatt lokalt, der
-env-varen mangler. Et nytt felt lagt til i composeren blir altså grønt lokalt og i CI, og
-dukker aldri opp i prod. Skjemaet i drift kommer fra `.config`-filene under
-`apps/cms-umbraco/uSync/`, som skal eksporteres fra prod. **Spør Lars før du planlegger en
-skjemaendring** — flyten er under omlegging (stage 2 fjerner composeren). Ny Block List-modul: se `docs/utvikling.md`.
+**Schema changes NO LONGER reach production via the composer.** Both `syncroot/prod/` and
+`syncroot/tt02/` set `USYNC_OWNS_SCHEMA=true`, and `ContentTypeComposer` then skips
+the whole schema asserting (`ContentTypeComposer.cs:116`). It still runs locally, where
+the env var is missing. A new field added in the composer is therefore green locally and in CI, and
+never shows up in prod. The schema in production comes from the `.config` files under
+`apps/cms-umbraco/uSync/`, which are to be exported from prod. **Ask Lars before you plan a
+schema change**, the flow is being reworked (stage 2 removes the composer). New Block List module: see `docs/development.md`.
 
-**Connection string (lokal SQLite):** Må bruke `|DataDirectory|` i path, ikke relativ sti. Ellers finner ikke Umbraco databasen. Prod kjører Azure SQL via dis-core (connection string injiseres fra Key Vault, ikke SQLite).
+**Connection string (local SQLite):** Must use `|DataDirectory|` in the path, not a relative path. Otherwise Umbraco does not find the database. Prod runs Azure SQL via dis-core (the connection string is injected from Key Vault, not SQLite).
 
-**Innholdsskriving fra kode = anti-pattern**: Skjema (content types) ble satt i kode via `ContentTypeComposer` (nå avslått i drift, se over), men content NODES skal ALDRI skrives fra oppstartskode. Det har gitt 3 prod-incidenter (Sandkasse, nesten Caser, og veiledningsduplikat fra dev-seederen). `ContentSeeder` er derfor fjernet helt; demo/test-innhold lages via editor. Se beslutningsloggen, `docs/rapporter/beslutningslogg.md`.
+**Writing content from code = anti-pattern**: The schema (content types) was set in code via `ContentTypeComposer` (now turned off in production, see above), but content NODES must NEVER be written from startup code. It has caused 3 prod incidents (Sandkasse, almost Caser, and a veiledning duplicate from the dev seeder). `ContentSeeder` has therefore been removed entirely; demo/test content is created via the editor. See the decision log, `docs/reports/decision-log.md`.
 
-**uSync eier skjemaet i prod. IKKE regenerer `apps/cms-umbraco/uSync/`**: filene der er prod sitt skjema og importeres ved hver oppstart. uSync re-nøkler ved import, og content-typene har tilfeldige GUID-er per database. En eksport tatt fra lokal maskin eller tt02, committet inn, gir prod-typene nye nøkler og gjør ALT blokkinnhold «Unsupported». Skal du eksportere eller committe noe der: **stopp og spør Lars først**, og si fra om konsekvensen. Eksporten skal alltid tas fra prod. `SchemaRekeyGuard` avbryter en import som ville re-nøklet, men den er en sikring, ikke en tillatelse. Se `apps/cms-umbraco/uSync/README.md`.
+**uSync owns the schema in prod. Do NOT regenerate `apps/cms-umbraco/uSync/`**: the files there are prod's schema and are imported on every startup. uSync re-keys on import, and the content types have random GUIDs per database. An export taken from a local machine or tt02, committed, gives the prod types new keys and makes ALL block content "Unsupported". If you are going to export or commit anything there: **stop and ask Lars first**, and tell him the consequence. The export must always be taken from prod. `SchemaRekeyGuard` aborts an import that would re-key, but it is a safeguard, not a permission. See `apps/cms-umbraco/uSync/README.md`.
 
 ## Deploy
 
-- **CMS:** dis-core via GitHub Actions («Docker build and publish» + «Publish Syncroot artifacts», miljø tt02/prod).
-- **Frontend:** Cloudflare Workers via `pnpm run frontend:deploy:prod` (og `:tt02`).
+- **CMS:** dis-core via GitHub Actions ("Docker build and publish" + "Publish Syncroot artifacts", environment tt02/prod).
+- **Frontend:** Cloudflare Workers via `pnpm run frontend:deploy:prod` (and `:tt02`).
 
-Alt deployes fra `main`. Frontend-skriptene stopper når arbeidstreet ikke er rent, bytter ellers til `main`, og stopper hvis `main` ikke er i takt med origin. Oppskriften står i `docs/deploy.md`.
+Everything is deployed from `main`. The frontend scripts stop when the working tree is not clean, otherwise switch to `main`, and stop if `main` is not in sync with origin. The recipe is in `docs/deploy.md`.
 
-## Viktige beslutninger
+## Important decisions
 
-- Media ligger i Azure Blob (`AzureBlobMediaComposer.cs`). `umbraco-media` er bevisst ikke montert på `/app/wwwroot/media`, se `syncroot/base/umbraco/deployment.yaml`
-- Ingen dark mode (bevisst valg)
-- Ingen Tailwind
-- Ingen admin-innlogging og ingen kommer-snart-vegg i frontenden. Helsa sjekkes på den offentlige `/health`
+- Media lives in Azure Blob (`AzureBlobMediaComposer.cs`). `umbraco-media` is deliberately not mounted on `/app/wwwroot/media`, see `syncroot/base/umbraco/deployment.yaml`
+- No dark mode (deliberate choice)
+- No Tailwind
+- No admin login and no coming-soon wall in the frontend. Health is checked on the public `/health`
 
-## Dokumentasjon
+## Documentation
 
-**Hvor.** All dokumentasjon ligger i `docs/`. Inngangen for mennesker er `docs/README.md`, og indeksen for agenter er `docs/llms.txt`. Beslutningsloggen og rapportene ligger i `docs/rapporter/`.
+**Where.** All documentation lives in `docs/`. The entry point for humans is `docs/README.md`, and the index for agents is `docs/llms.txt`. The decision log and the reports live in `docs/reports/`.
 
-**Hva som skal i docs.** Det som ikke går fram av koden:
+**What goes in docs.** What is not evident from the code:
 
-- hvordan ting henger sammen i drift
-- miljøer, deploy og rutiner
-- hvilke tilganger som trengs, med navn og aldri verdier
-- konfig som slår ting av og på
-- feller som har kostet tid
+- how things fit together in production
+- environments, deploy and routines
+- which access is needed, with names and never values
+- config that turns things on and off
+- pitfalls that have cost time
 
-Beslutninger føres kort i `docs/rapporter/beslutningslogg.md`. Større valg får et eget dokument.
+Decisions are recorded briefly in `docs/reports/decision-log.md`. Bigger choices get their own document.
 
-**Hva som ikke skal i docs.** Det koden selv sier tydelig. Planer for framtiden, som hører hjemme i issues. Personnavn utenom roller. Hemmelige verdier, og ID-er som ingen trenger.
+**What does not go in docs.** What the code itself says clearly. Plans for the future, which belong in issues. Personal names other than roles. Secret values, and IDs nobody needs.
 
-**Når det oppdateres.**
+**When it is updated.**
 
-- I samme PR som endringen dokumentet beskriver.
-- En PR som endrer drift, deploy, konfig, skjemaflyt eller tilganger, oppdaterer docs i samme PR.
-- `docs/llms.txt` og `docs/README.md` oppdateres når et dokument legges til, flyttes eller slettes.
-- Hver tredje måned, og ved hver overlevering, går noen gjennom docs og retter eller sletter det som er utdatert. Historikken ligger i git.
+- In the same PR as the change the document describes.
+- A PR that changes operations, deploy, config, schema flow or access updates docs in the same PR.
+- `docs/llms.txt` and `docs/README.md` are updated when a document is added, moved or deleted.
+- Every three months, and at every handover, someone goes through docs and fixes or deletes what is outdated. The history is in git.
 
-**Dokumentasjon i ettertid.** En agent kan dokumentere et valg som allerede er gjort, når det mangler dokumentasjon av noe som vanligvis burde vært dokumentert. Da skal det stå at teksten er skrevet i ettertid, med dato og kilde (PR, commit eller issue). Er kilden uklar, står det at det er en tolkning.
+**Documentation after the fact.** An agent may document a choice that has already been made, when documentation is missing for something that usually should have been documented. The text must then say that it was written after the fact, with date and source (PR, commit or issue). If the source is unclear, it says that it is an interpretation.
 
-## Stilpreferanser (kommentarer, issues, commit-meldinger)
+## Style preferences
 
-- Norsk bokmål
-- Ingen emojier
-- Ikke bruk em dash
-- Minimalt med kolon
-- Konsist, sjekkliste-format
+- English for everything on GitHub and in the code: comments, docs, commit messages, branch names, PRs, issues and reviews
+- Norwegian bokmål only for what site visitors and CMS editors see (UI text, aria-labels, error messages in the app, CMS labels and content), with real æ, ø and å
+- No emojis
+- Do not use em dashes
+- Minimal use of colons
+- Concise, checklist format
 
-## Teamet
+## The team
 
-- Sara: redaktør, innholdsansvarlig
+- Sara: editor, responsible for content
 - Eira: designer
-- Benjamin: KI-søk API
-- Pooria: utvikler
-- Marie: prosjektleder
-- Kenneth Helland: norge.no domeneansvarlig
-- drift@digdir.no: DNS-endringer
+- Benjamin: AI search API
+- Pooria: developer
+- Marie: project manager
+- Kenneth Helland: norge.no domain owner
+- drift@digdir.no: DNS changes
