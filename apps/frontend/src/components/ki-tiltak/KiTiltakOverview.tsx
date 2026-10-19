@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Chip, Heading, Label, Paragraph, Search } from '@digdir/designsystemet-react';
-import { FunnelIcon } from '@navikt/aksel-icons';
+import { FilterIcon } from '@navikt/aksel-icons';
 import {
   FILTERETIKETTER,
   FILTERGRUPPER,
@@ -120,8 +120,9 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
       <PromoBanner onRegistrer={() => setRegisterOpen(true)} />
 
       {/*
-        Søkefelt og filterknapp deler rad, og knappen brytes under feltet når
-        det ikke er plass. Antall og aktive filtre ligger på raden under.
+        The search field has its own row, as wide as two card columns. The
+        filter button, the count and the active filters share the row below,
+        as in the design prototype.
       */}
       <div className="tiltak-sokerad">
         <div className="tiltak-sokefelt">
@@ -137,49 +138,52 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
             <Search.Clear />
           </Search>
         </div>
+      </div>
 
+      <div className="tiltak-filterrad">
         <Button
           variant="secondary"
           onClick={() => setFilterOpen(true)}
           aria-haspopup="dialog"
           className="tiltak-filterknapp"
         >
-          <FunnelIcon aria-hidden />
+          <FilterIcon aria-hidden />
           Filter
           {activeChips.length > 0 && <Badge count={activeChips.length} />}
         </Button>
-      </div>
 
-      <div className="tiltak-filterrad">
         <p className="tiltak-antall" aria-live="polite">
           {countText}
         </p>
 
-        {activeChips.map(({ group, value }) => (
-          <Chip.Removable
-            key={`${group}-${value}`}
-            aria-label={`Fjern filter ${FILTERETIKETTER[group]}: ${value}`}
-            onClick={() => removeChip(group, value)}
-          >
-            {/*
-              Gruppenavnet dempet og verdien uthevet, som i prototypen. Chipens
-              tilgjengelige navn kommer fra aria-label over, så oppdelingen her
-              er rent visuell.
-            */}
-            <span className="tiltak-chip-gruppe">{`${FILTERETIKETTER[group]}: `}</span>
-            <strong>{value}</strong>
-          </Chip.Removable>
-        ))}
-
+        {/* The active filters and the reset button wrap together as one group. */}
         {activeChips.length > 0 && (
-          <Button
-            variant="tertiary"
-            data-size="sm"
-            className="tiltak-nullstill"
-            onClick={() => setFilter(utenKategorier)}
-          >
-            Nullstill
-          </Button>
+          <div className="tiltak-chips">
+            {activeChips.map(({ group, value }) => (
+              <Chip.Removable
+                key={`${group}-${value}`}
+                data-wrap="wrap"
+                aria-label={`Fjern filter ${FILTERETIKETTER[group]}: ${value}`}
+                onClick={() => removeChip(group, value)}
+              >
+                {/*
+                  Gruppenavnet dempet og verdien uthevet, som i prototypen. Chipens
+                  tilgjengelige navn kommer fra aria-label over, så oppdelingen her
+                  er rent visuell.
+                */}
+                <span className="tiltak-chip-gruppe">{`${FILTERETIKETTER[group]}: `}</span>
+                <strong>{value}</strong>
+              </Chip.Removable>
+            ))}
+
+            <Button
+              variant="tertiary"
+              className="tiltak-nullstill"
+              onClick={() => setFilter(utenKategorier)}
+            >
+              Nullstill
+            </Button>
+          </div>
         )}
       </div>
 
@@ -210,10 +214,10 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
         </>
       ) : (
         <div className="tiltak-tomt">
-          <Heading level={2} data-size="sm" className="tiltak-tomt-tittel">
+          <Heading level={2} data-size="md" className="tiltak-tomt-tittel">
             Ingen treff på søket
           </Heading>
-          <Paragraph>Prøv et annet søkeord eller endre søkefilteret.</Paragraph>
+          <Paragraph data-size="sm">Prøv et annet søkeord eller endre søkefilteret.</Paragraph>
         </div>
       )}
 

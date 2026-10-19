@@ -16,7 +16,7 @@ import {
   Textfield,
   ValidationMessage,
 } from '@digdir/designsystemet-react';
-import { CheckmarkCircleIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
+import { PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import { ANNET, FAGOMRADER, FASER, KI_TYPER, LEVERANSER } from '../../lib/ki-tiltak';
 import { ORGNR_LENGTH } from './organisationNumber';
 import TurnstileWidget from './TurnstileWidget';
@@ -87,10 +87,29 @@ function Badge({ required }: { required: boolean }) {
  */
 function labelWithBadge(text: string, required: boolean) {
   return (
-    <>
+    // The wrapper lets the badge wrap flush under a long label, as in the design prototype.
+    <span className="tiltak-etikett">
       {text}
       <Badge required={required} />
-    </>
+    </span>
+  );
+}
+
+/** The receipt's thin check circle from the design prototype. Decorative. */
+function SuccessCheck() {
+  return (
+    <svg
+      className="tiltak-suksess-ikon"
+      width="44"
+      height="44"
+      viewBox="0 0 44 44"
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="22" cy="22" r="21" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M14 22.5l6 6 11-13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -214,11 +233,11 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
     >
       {sent ? (
         <Dialog.Block className="tiltak-suksess">
-          <CheckmarkCircleIcon aria-hidden className="tiltak-suksess-ikon" />
+          <SuccessCheck />
           <Heading
             id="tiltak-registrer-tittel"
             level={2}
-            data-size="md"
+            data-size="lg"
             className="tiltak-registrer-tittel"
           >
             Takk for at du deler!
@@ -238,7 +257,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
             <Heading
               id="tiltak-registrer-tittel"
               level={2}
-              data-size="md"
+              data-size="lg"
               className="tiltak-registrer-tittel"
             >
               Del KI&#8209;tiltak
@@ -318,7 +337,6 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                 <Button
                   type="button"
                   variant="tertiary"
-                  data-size="sm"
                   className="tiltak-legg-til"
                   onClick={addRow}
                 >
