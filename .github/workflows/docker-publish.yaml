@@ -60,9 +60,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Prod refererer til tag og ikke digest, så en tag skal aldri skrives over.
-      # Bare «finnes ikke» slipper gjennom. Feiler oppslaget av en annen grunn,
-      # stopper jobben heller enn å anta at taggen er ledig.
+      # Deployen låser podden til digesten taggen peker på når den kjører. En tag
+      # som skrives over, gir et annet image ved neste deploy eller tilbakerulling
+      # med samme tag, så en tag skal aldri skrives over. Bare «finnes ikke»
+      # slipper gjennom. Feiler oppslaget av en annen grunn, stopper jobben
+      # heller enn å anta at taggen er ledig.
       - name: Avvis tag som finnes fra før
         env:
           TAG: ${{ github.event.inputs.tag }}

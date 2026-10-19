@@ -13,13 +13,6 @@ on:
       image-tag:
         description: "Umbraco image tag to deploy"
         required: true
-      database:
-        type: choice
-        description: "Select database"
-        options:
-          - Sqlite
-          - AzureSQL
-        required: true
 
 env:
   SYNCROOT_ARTIFACT_NAME: kinorgeportal/syncroot
@@ -70,12 +63,13 @@ jobs:
           yq -i '(.images[] | select(.name == "umbraco")) |= (.newTag = strenv(IMAGE_TAG) | .digest = strenv(IMAGE_DIGEST))' "$kustomization"
           echo "$source_image låst til $IMAGE_DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # Begge miljøene kjører Azure SQL, og base-manifestet peker på SQLite.
+      # Tilkoblingen skrives derfor om ved hver publisering, uten noe valg som
+      # kan peke et miljø mot en tom database.
       - name: Update db connection string
-        if: inputs.database == 'AzureSQL'
         run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN")).value = "Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\""' ./syncroot/base/umbraco/deployment.yaml
 
       - name: Update db provider
-        if: inputs.database == 'AzureSQL'
         run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN_ProviderName")).value = "Microsoft.Data.SqlClient"' ./syncroot/base/umbraco/deployment.yaml
 
       - name: Build and push syncroot artifact

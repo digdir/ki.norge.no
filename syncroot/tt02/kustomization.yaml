@@ -59,6 +59,7 @@ patches:
         value:
           name: uSync__Settings__DefaultSet
           value: Speiling
+      # Skal aldri fjernes, se syncroot/prod/kustomization.yaml.
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
