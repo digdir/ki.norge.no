@@ -1,12 +1,12 @@
 /**
- * Merkelappene redaktøren setter på et eksempel: sektor og type KI.
+ * The labels the editor puts on an eksempel: sector and type of AI.
  *
- * Begge er Tags-felt i CMS-et, altså fritekst der forslagene er tagger brukt
- * før i samme gruppe. Frontend har derfor ingen egen ordliste, og viser
- * verdiene i rekkefølgen CMS-et leverer dem.
+ * Both are Tags fields in the CMS, i.e. free text where the suggestions are tags
+ * used before in the same group. The frontend therefore has no word list of its own,
+ * and shows the values in the order the CMS delivers them.
  */
 
-/** Tåler både liste og enkeltverdi. Alt annet, og tomme verdier, gir tom liste. */
+/** Handles both a list and a single value. Anything else, and empty values, give an empty list. */
 export function tekstliste(value: unknown): string[] {
   const verdier = Array.isArray(value) ? value : [value];
   return verdier
@@ -15,7 +15,7 @@ export function tekstliste(value: unknown): string[] {
     .filter(Boolean);
 }
 
-/** Sektor først, så type KI. Tomme felt gir ingen merkelapp. */
+/** Sector first, then type of AI. Empty fields give no label. */
 export function eksempelMerkelapper(eksempel: { sektor?: string[]; kiType?: string[] }): string[] {
   return [...new Set([...(eksempel.sektor ?? []), ...(eksempel.kiType ?? [])])];
 }

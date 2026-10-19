@@ -4,15 +4,15 @@ import {
   type RawContentNode,
 } from './umbraco';
 
-// Innholdstyper som har en rute i content-routes.json, men som aldri skal
-// indekseres. Speiler robots.txt på alias-nivå. Tom i dag — mekanismen står
-// klar hvis en slik type dukker opp (match på alias er mer robust enn på sti).
+// Content types that have a route in content-routes.json, but must never
+// be indexed. Mirrors robots.txt at alias level. Empty today; the mechanism is
+// ready if such a type shows up (matching on alias is more robust than on path).
 export const EXCLUDED_CONTENT_TYPES = new Set<string>([]);
 
-// Sti-prefikser som aldri skal i sitemap. Speiler Disallow-listen i
-// src/pages/robots.txt.ts. Hold de to listene synkronisert (én delt konstant
-// kan vurderes i en senere runde). Brukes som fallback når et innholdsnode
-// likevel resolver til en reservert sti (f.eks. en `side` med slug "404").
+// Path prefixes that must never be in the sitemap. Mirrors the Disallow list in
+// src/pages/robots.txt.ts. Keep the two lists in sync (one shared constant
+// can be considered in a later round). Used as a fallback when a content node
+// still resolves to a reserved path (e.g. a `side` with slug "404").
 export const EXCLUDED_PATH_PREFIXES = [
   '/media',
   '/preview-tilgang',
@@ -21,10 +21,10 @@ export const EXCLUDED_PATH_PREFIXES = [
   '/404',
 ] as const;
 
-// Rene .astro-sider uten CMS-node bak seg. /ki-tiltak er kodedrevet med et
-// statisk datasett, så den har ingen singleton-innholdstype å bli plukket opp
-// av. sitemap-pages.test.ts vokter at en ny kun-kode-side får en bevisst
-// sitemap-beslutning i stedet for å falle stille ut.
+// Pure .astro pages without a CMS node behind them. /ki-tiltak is code-driven with a
+// static dataset, so it has no singleton content type to be picked up
+// by. sitemap-pages.test.ts guards that a new code-only page gets a deliberate
+// sitemap decision instead of silently dropping out.
 export const STATIC_ROUTES: string[] = ['/ki-tiltak'];
 
 type SitemapUrl = {
@@ -66,19 +66,19 @@ export function isExcludedPath(path: string): boolean {
   );
 }
 
-// Resolver ett node til en sitemap-URL, eller null om det skal utelates.
-// To utelukkelses-porter: ekskludert innholdstype, eller ekskludert sti.
-// Per-node feiltoleranse: et enkelt dårlig node (f.eks. ancestor-oppslag som
-// feiler) skal ikke tømme hele sitemapet.
+// Resolves one node to a sitemap URL, or null if it is to be left out.
+// Two exclusion gates: excluded content type, or excluded path.
+// Per-node fault tolerance: a single bad node (e.g. an ancestor lookup that
+// fails) must not empty the whole sitemap.
 async function resolveNode(node: RawContentNode, publicBaseUrl: string): Promise<SitemapUrl | null> {
   try {
     if (EXCLUDED_CONTENT_TYPES.has(node.contentType)) return null;
 
     const path = await resolveContentUrl(node);
     if (!path) {
-      // Ingen rute for typen, eller ancestor lot seg ikke resolve. Debug-nivå
-      // slik at en glemt rute-mapping er synlig uten å være støy i produksjon.
-      console.debug(`[sitemap] ingen URL for ${node.contentType} (id=${node.id})`);
+      // No route for the type, or the ancestor could not be resolved. Debug level
+      // so a forgotten route mapping is visible without being noise in production.
+      console.debug(`[sitemap] no URL for ${node.contentType} (id=${node.id})`);
       return null;
     }
 
@@ -86,19 +86,19 @@ async function resolveNode(node: RawContentNode, publicBaseUrl: string): Promise
 
     return { loc: toAbsoluteUrl(publicBaseUrl, path), lastmod: toLastModified(node.updateDate) };
   } catch (error) {
-    console.error(`[sitemap] kunne ikke resolve node ${node.id}`, error);
+    console.error(`[sitemap] could not resolve node ${node.id}`, error);
     return null;
   }
 }
 
 async function collectSitemapUrls(publicBaseUrl: string): Promise<SitemapUrl[]> {
-  // Inkluder alt som standard. Hele det publiserte treet hentes i én paginert
-  // gjennomgang; utelatelse skjer kun gjennom de eksplisitte portene i resolveNode.
+  // Include everything by default. The whole published tree is fetched in one paginated
+  // pass; exclusion only happens through the explicit gates in resolveNode.
   let nodes: RawContentNode[] = [];
   try {
     nodes = await fetchAllPublishedContent();
   } catch (error) {
-    console.error('[sitemap] crawl av innhold feilet', error);
+    console.error('[sitemap] content crawl failed', error);
   }
 
   const resolved = await Promise.all(nodes.map((node) => resolveNode(node, publicBaseUrl)));
@@ -107,8 +107,8 @@ async function collectSitemapUrls(publicBaseUrl: string): Promise<SitemapUrl[]> 
     if (entry) urls.push(entry);
   }
 
-  // Statiske, kun-kode-ruter uten CMS-node, se STATIC_ROUTES over.
-  // Respekter også sti-utelukkelsene her.
+  // Static, code-only routes without a CMS node, see STATIC_ROUTES above.
+  // Respect the path exclusions here too.
   for (const path of STATIC_ROUTES) {
     if (!isExcludedPath(path)) {
       urls.push({ loc: toAbsoluteUrl(publicBaseUrl, path) });
@@ -122,8 +122,8 @@ function dedupeAndSort(urls: SitemapUrl[]): SitemapUrl[] {
   const byLoc = new Map<string, SitemapUrl>();
   for (const url of urls) {
     const existing = byLoc.get(url.loc);
-    // Behold den nyeste lastmod om samme URL dukker opp flere ganger.
-    // (Flere noder kan resolve til samme URL, f.eks. kalenderhendelse-oversikt.)
+    // Keep the newest lastmod if the same URL shows up several times.
+    // (Several nodes can resolve to the same URL, e.g. the kalenderhendelse overview.)
     if (!existing || (url.lastmod && (!existing.lastmod || url.lastmod > existing.lastmod))) {
       byLoc.set(url.loc, url);
     }

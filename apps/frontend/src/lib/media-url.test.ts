@@ -1,11 +1,11 @@
 import { describe, expect, test, beforeAll } from 'vitest';
 
-// Regresjonsvern for media-URL-helperne. Umbraco Delivery API gir relative
-// media-URLer (/media/...); på Cloudflare hentes de fra frontend-domenet i
-// stedet for CMS og gir 404. Helperne gjør dem absolutte mot CMS-hosten.
+// Regression guard for the media URL helpers. The Umbraco Delivery API gives relative
+// media URLs (/media/...); on Cloudflare they are fetched from the frontend domain
+// instead of the CMS and give 404. The helpers make them absolute against the CMS host.
 //
-// umbraco.ts leser UMBRACO_PUBLIC_URL fra env ved import, så vi setter en kjent
-// host FØR dynamisk import. Da avhenger ikke assertions av .env-innhold.
+// umbraco.ts reads UMBRACO_PUBLIC_URL from env at import, so we set a known
+// host BEFORE the dynamic import. Then the assertions do not depend on .env content.
 const CMS = 'https://cms.test.example';
 
 let lib: typeof import('./umbraco');
@@ -17,77 +17,77 @@ beforeAll(async () => {
 });
 
 describe('toAbsoluteMediaUrl', () => {
-  test('prefikser relativ /media med CMS-host', () => {
+  test('prefixes relative /media with the CMS host', () => {
     expect(lib.toAbsoluteMediaUrl('/media/x/foo.jpg')).toBe(`${CMS}/media/x/foo.jpg`);
   });
-  test('lar allerede-absolutt URL passere', () => {
+  test('lets an already absolute URL pass', () => {
     expect(lib.toAbsoluteMediaUrl('https://cdn.example/x.jpg')).toBe('https://cdn.example/x.jpg');
   });
-  test('rører ikke ikke-media relative URLer (f.eks. /og-image.png)', () => {
+  test('does not touch non-media relative URLs (e.g. /og-image.png)', () => {
     expect(lib.toAbsoluteMediaUrl('/og-image.png')).toBe('/og-image.png');
   });
-  test('tom/undefined gir undefined', () => {
+  test('empty/undefined gives undefined', () => {
     expect(lib.toAbsoluteMediaUrl(undefined)).toBeUndefined();
     expect(lib.toAbsoluteMediaUrl('')).toBeUndefined();
   });
 });
 
 describe('getMediaUrl', () => {
-  test('gjør media-objektets url absolutt og default-optimaliserer (content-bredde, webp)', () => {
+  test('makes the media object url absolute and optimizes by default (content width, webp)', () => {
     expect(lib.getMediaUrl({ url: '/media/a/b.jpg' } as never))
       .toBe(`${CMS}/media/a/b.jpg?width=${lib.MEDIA_WIDTH.content}&format=webp&quality=80`);
   });
-  test('respekterer eksplisitt bredde (f.eks. hero)', () => {
+  test('respects an explicit width (e.g. hero)', () => {
     expect(lib.getMediaUrl({ url: '/media/a/b.jpg' } as never, lib.MEDIA_WIDTH.hero))
       .toBe(`${CMS}/media/a/b.jpg?width=${lib.MEDIA_WIDTH.hero}&format=webp&quality=80`);
   });
-  test('undefined media gir undefined', () => {
+  test('undefined media gives undefined', () => {
     expect(lib.getMediaUrl(undefined)).toBeUndefined();
   });
 });
 
-describe('toAbsoluteMediaUrl med width (leveranse-resizing)', () => {
-  test('legger width/format/quality på relativ media-URL', () => {
+describe('toAbsoluteMediaUrl with width (delivery resizing)', () => {
+  test('adds width/format/quality to a relative media URL', () => {
     expect(lib.toAbsoluteMediaUrl('/media/x/foo.jpg', 800))
       .toBe(`${CMS}/media/x/foo.jpg?width=800&format=webp&quality=80`);
   });
-  test('legger params på allerede-absolutt media-URL', () => {
+  test('adds params to an already absolute media URL', () => {
     expect(lib.toAbsoluteMediaUrl('https://cdn.example/x.jpg', 800))
       .toBe('https://cdn.example/x.jpg?width=800&format=webp&quality=80');
   });
-  test('hopper over SVG (vektor skal ikke rasteres)', () => {
+  test('skips SVG (vectors must not be rasterized)', () => {
     expect(lib.toAbsoluteMediaUrl('/media/x/logo.svg', 800)).toBe(`${CMS}/media/x/logo.svg`);
   });
-  test('hopper over GIF (bevarer animasjon)', () => {
+  test('skips GIF (keeps animation)', () => {
     expect(lib.toAbsoluteMediaUrl('/media/x/anim.gif', 800)).toBe(`${CMS}/media/x/anim.gif`);
   });
-  test('uten width er media-URLen urørt (f.eks. og:image)', () => {
+  test('without width the media URL is untouched (e.g. og:image)', () => {
     expect(lib.toAbsoluteMediaUrl('/media/x/foo.jpg')).toBe(`${CMS}/media/x/foo.jpg`);
   });
 });
 
-describe('absolutizeMediaUrls (RichText-brødtekst)', () => {
-  test('absolutiserer img src', () => {
+describe('absolutizeMediaUrls (RichText body text)', () => {
+  test('makes img src absolute', () => {
     expect(lib.absolutizeMediaUrls('<img src="/media/a/b.jpg" alt="x" />'))
       .toBe(`<img src="${CMS}/media/a/b.jpg" alt="x" />`);
   });
-  test('absolutiserer a href (fil-lenke)', () => {
+  test('makes a href absolute (file link)', () => {
     expect(lib.absolutizeMediaUrls('<a href="/media/a/doc.pdf">PDF</a>'))
       .toBe(`<a href="${CMS}/media/a/doc.pdf">PDF</a>`);
   });
-  test('rører ikke interne ruter', () => {
+  test('does not touch internal routes', () => {
     expect(lib.absolutizeMediaUrls('<a href="/artikler/x">lenke</a>'))
       .toBe('<a href="/artikler/x">lenke</a>');
   });
-  test('matcher ikke srcset (kun src/href)', () => {
+  test('does not match srcset (only src/href)', () => {
     const html = '<img srcset="/media/a.jpg 1x" />';
     expect(lib.absolutizeMediaUrls(html)).toBe(html);
   });
-  test('unngår dobbel-prefiks på allerede absolutt URL', () => {
+  test('avoids a double prefix on an already absolute URL', () => {
     const html = `<img src="${CMS}/media/a.jpg" />`;
     expect(lib.absolutizeMediaUrls(html)).toBe(html);
   });
-  test('håndterer flere bilder i samme html', () => {
+  test('handles several images in the same html', () => {
     expect(lib.absolutizeMediaUrls('<img src="/media/a.jpg"/><img src="/media/b.jpg"/>'))
       .toBe(`<img src="${CMS}/media/a.jpg"/><img src="${CMS}/media/b.jpg"/>`);
   });

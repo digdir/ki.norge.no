@@ -33,33 +33,33 @@ function fakeFetch(handlers: Handlers): typeof fetch {
     if (url.startsWith(CONFIG.umbracoUrl)) return (handlers.umbraco ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.proxy ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.esEndpoint)) return (handlers.es ?? (async () => json({ hits: {} })))(url, init);
-    throw new Error(`uventet url ${url}`);
+    throw new Error(`unexpected url ${url}`);
   }) as typeof fetch;
 }
 
 const run = (handlers: Handlers, config = CONFIG, timeoutMs = 3000) =>
   runHealthChecks(config, { fetch: fakeFetch(handlers), now: Date.now, timeoutMs });
 
-/** Svarer aldri, men respekterer avbrudd, som et CMS som henger. */
+/** Never answers, but respects abort, like a CMS that hangs. */
 const henger: Handler = (_url, init) =>
   new Promise((_resolve, reject) => {
     init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
   });
 
 describe('formatDuration', () => {
-  test('skriver TimeSpan som ASP.NET', () => {
+  test('writes TimeSpan like ASP.NET', () => {
     expect(formatDuration(95)).toBe('00:00:00.0950000');
     expect(formatDuration(0)).toBe('00:00:00.0000000');
     expect(formatDuration(3_723_004)).toBe('01:02:03.0040000');
   });
 
-  test('negativ tid blir null, ikke et rart tall', () => {
+  test('negative time becomes zero, not an odd number', () => {
     expect(formatDuration(-5)).toBe('00:00:00.0000000');
   });
 });
 
 describe('runHealthChecks', () => {
-  test('alt oppe gir Healthy og 200', async () => {
+  test('everything up gives Healthy and 200', async () => {
     const r = await run({});
     expect(r.status).toBe('Healthy');
     expect(r.entries.umbraco.status).toBe('Healthy');
@@ -69,29 +69,29 @@ describe('runHealthChecks', () => {
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
-  // Én regel i vakta skal dekke begge miljøene, og tt02 skal teste det samme som prod.
+  // One rule in the monitor should cover both environments, and tt02 should test the same as prod.
   test.each([
-    ['prod, med egen proxy', CONFIG],
-    ['tt02, offentlig adresse lik den interne', { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl }],
-    ['lokalt, uten offentlig adresse og uten søkenøkkel', { ...CONFIG, umbracoPublicUrl: '', esApiKey: '' }],
-  ])('samme sett med sjekker i %s', async (_miljø, config) => {
+    ['prod, with its own proxy', CONFIG],
+    ['tt02, public address equal to the internal one', { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl }],
+    ['local, without a public address and without a search key', { ...CONFIG, umbracoPublicUrl: '', esApiKey: '' }],
+  ])('same set of checks in %s', async (_miljø, config) => {
     const r = await run({}, config);
     expect(Object.keys(r.entries)).toEqual([...HEALTH_ENTRIES]);
   });
 
-  test('cms-proxy sjekker den offentlige adressen også når den er lik den interne', async () => {
+  test('cms-proxy checks the public address also when it equals the internal one', async () => {
     const kalt: string[] = [];
     await run({ umbraco: async (url) => { kalt.push(url); return json({ total: 3 }); } }, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
     expect(kalt.filter((u) => u.includes('/delivery/api/'))).toHaveLength(2);
   });
 
-  test('cms-proxy bruker den interne adressen når den offentlige mangler, som umbraco.ts', async () => {
+  test('cms-proxy uses the internal address when the public one is missing, like umbraco.ts', async () => {
     const r = await run({ umbraco: async () => json({}, 502) }, { ...CONFIG, umbracoPublicUrl: '' });
     expect(r.entries['cms-proxy'].status).toBe('Degraded');
   });
 
-  // #600: proxyen var av, nettstedet var uten bilder, og alt annet svarte.
-  test('offentlig CMS-adresse nede gir Degraded, for sidene rendres fortsatt', async () => {
+  // #600: the proxy was off, the site was without images, and everything else responded.
+  test('public CMS address down gives Degraded, since the pages still render', async () => {
     const r = await run({ proxy: async () => { throw new Error('ENOTFOUND cms-offentlig.example'); } });
     expect(r.entries['cms-proxy'].status).toBe('Degraded');
     expect(r.entries.umbraco.status).toBe('Healthy');
@@ -99,8 +99,8 @@ describe('runHealthChecks', () => {
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
-  // Nettstedet virker uten backoffice, men redaktørene kan ikke publisere.
-  test('backoffice nede gir Degraded og 200, ikke Unhealthy', async () => {
+  // The site works without the backoffice, but the editors cannot publish.
+  test('backoffice down gives Degraded and 200, not Unhealthy', async () => {
     const r = await run({ backoffice: async () => json({}, 502) });
     expect(r.entries.backoffice.status).toBe('Degraded');
     expect(r.entries.umbraco.status).toBe('Healthy');
@@ -108,76 +108,76 @@ describe('runHealthChecks', () => {
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
-  test.each(['Upgrade', 'Install', 'BootFailed'])('backoffice som svarer %s er Degraded', async (serverStatus) => {
+  test.each(['Upgrade', 'Install', 'BootFailed'])('backoffice answering %s is Degraded', async (serverStatus) => {
     const r = await run({ backoffice: async () => json({ serverStatus }) });
     expect(r.entries.backoffice.status).toBe('Degraded');
   });
 
-  test('backoffice som svarer noe annet enn JSON er Degraded', async () => {
+  test('backoffice answering something other than JSON is Degraded', async () => {
     const r = await run({ backoffice: async () => new Response('<html>innlogging</html>', { status: 200 }) });
     expect(r.entries.backoffice.status).toBe('Degraded');
   });
 
-  test('backoffice sjekkes på den interne adressen, uten innlogging', async () => {
+  test('backoffice is checked on the internal address, without login', async () => {
     let seen: { url: string; init?: RequestInit } | null = null;
     await run({ backoffice: async (url, init) => { seen = { url, init }; return json({ serverStatus: 'Run' }); } });
     expect(seen!.url).toBe('https://cms.intern.example/umbraco/management/api/v1/server/status');
     expect(JSON.stringify(seen!.init?.headers)).not.toMatch(/authorization|api-key/i);
   });
 
-  test('backoffice som henger gir Degraded innen tidsgrensen', async () => {
+  test('backoffice that hangs gives Degraded within the time limit', async () => {
     const t0 = Date.now();
     const r = await run({ backoffice: henger }, CONFIG, 50);
     expect(r.entries.backoffice.status).toBe('Degraded');
     expect(Date.now() - t0).toBeLessThan(1000);
   });
 
-  // Fella fra Umbraco-oppgraderingene: migreringer hoppet over, API-et svarer
-  // 200 med tom liste, og nettstedet er tomt uten at noe feiler.
-  test('Delivery API som svarer 200 med tom liste er Unhealthy', async () => {
+  // The trap from the Umbraco upgrades: migrations skipped, the API answers
+  // 200 with an empty list, and the site is empty without anything failing.
+  test('Delivery API answering 200 with an empty list is Unhealthy', async () => {
     const r = await run({ umbraco: async () => json({ total: 0, items: [] }) });
     expect(r.entries.umbraco.status).toBe('Unhealthy');
     expect(r.status).toBe('Unhealthy');
     expect(httpStatusFor(r.status)).toBe(503);
   });
 
-  test('Delivery API som svarer noe annet enn JSON med total er Unhealthy', async () => {
+  test('Delivery API answering something other than JSON with total is Unhealthy', async () => {
     const r = await run({ umbraco: async () => new Response('<html>vedlikehold</html>', { status: 200 }) });
     expect(r.entries.umbraco.status).toBe('Unhealthy');
   });
 
-  test('feilstatus fra CMS er Unhealthy', async () => {
+  test('error status from the CMS is Unhealthy', async () => {
     const r = await run({ umbraco: async () => json({}, 502) });
     expect(r.entries.umbraco.status).toBe('Unhealthy');
   });
 
-  test('nettverksfeil mot CMS er Unhealthy', async () => {
+  test('network error towards the CMS is Unhealthy', async () => {
     const r = await run({ umbraco: async () => { throw new Error('ENOTFOUND cms.intern.example'); } });
     expect(r.entries.umbraco.status).toBe('Unhealthy');
   });
 
-  test('CMS som henger gir Unhealthy innen tidsgrensen, ikke et svar som aldri kommer', async () => {
+  test('a CMS that hangs gives Unhealthy within the time limit, not a response that never comes', async () => {
     const t0 = Date.now();
     const r = await run({ umbraco: henger }, CONFIG, 50);
     expect(r.entries.umbraco.status).toBe('Unhealthy');
     expect(Date.now() - t0).toBeLessThan(1000);
   });
 
-  test('søk nede gir Degraded og 200, for nettstedet virker', async () => {
+  test('search down gives Degraded and 200, since the site works', async () => {
     const r = await run({ es: async () => json({}, 503) });
     expect(r.entries.elasticsearch.status).toBe('Degraded');
     expect(r.status).toBe('Degraded');
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
-  test('CMS og søk nede samtidig gir Unhealthy', async () => {
+  test('CMS and search down at the same time gives Unhealthy', async () => {
     const r = await run({ umbraco: async () => json({}, 500), es: async () => json({}, 500) });
     expect(r.status).toBe('Unhealthy');
   });
 
-  // Uten nøkkel faller søket tilbake på Umbracos enkle søk. En nøkkel som
-  // forsvinner i drift skal synes, ikke gjøre at sjekken forsvinner.
-  test('søk som ikke er satt opp er Degraded uten å kalle noe', async () => {
+  // Without a key, search falls back to Umbraco's simple search. A key that
+  // disappears in production should show, not make the check disappear.
+  test('search that is not set up is Degraded without calling anything', async () => {
     let kalt = false;
     const r = await run({ es: async () => { kalt = true; return json({}); } }, { ...CONFIG, esApiKey: '' });
     expect(r.entries.elasticsearch.status).toBe('Degraded');
@@ -185,10 +185,10 @@ describe('runHealthChecks', () => {
     expect(kalt).toBe(false);
   });
 
-  // Node godtar fetch kalt som metode på et hvilket som helst objekt. Cloudflare
-  // Workers kaster «Illegal invocation», og da feiler alle sjekkene på null ms
-  // i drift mens de er grønne lokalt. Denne falske fetchen oppfører seg som Workers.
-  test('fetch kalles uten this, slik Workers krever', async () => {
+  // Node accepts fetch called as a method on any object. Cloudflare
+  // Workers throws "Illegal invocation", and then all the checks fail at zero ms
+  // in production while they are green locally. This fake fetch behaves like Workers.
+  test('fetch is called without this, as Workers requires', async () => {
     const vanlig = fakeFetch({});
     const somWorkers = function (this: unknown, input: RequestInfo | URL, init?: RequestInit) {
       if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
@@ -199,15 +199,15 @@ describe('runHealthChecks', () => {
     expect(r.entries.elasticsearch.status).toBe('Healthy');
   });
 
-  test('CMS kalles som sidene gjør, uten API-nøkkel', async () => {
+  test('the CMS is called the way the pages do, without an API key', async () => {
     let headers: HeadersInit | undefined;
     await run({ umbraco: async (_url, init) => { headers = init?.headers; return json({ total: 1 }); } });
     expect(JSON.stringify(headers)).not.toMatch(/api-key/i);
   });
 
-  // Nøkkelen har bare lesetilgang. Et indeks-oppslag ville feilet på rettigheter
-  // og gitt Degraded for alltid.
-  test('søk sjekkes med et lesekall med size 0, med ApiKey', async () => {
+  // The key only has read access. An index lookup would fail on permissions
+  // and give Degraded forever.
+  test('search is checked with a read call with size 0, with ApiKey', async () => {
     let seen: { url: string; init?: RequestInit } | null = null;
     await run({ es: async (url, init) => { seen = { url, init }; return json({ hits: {} }); } });
     expect(seen!.url).toBe('https://es.intern.example/ki-content/_search');
@@ -216,7 +216,7 @@ describe('runHealthChecks', () => {
     expect(JSON.stringify(seen!.init?.headers)).toContain('ApiKey hemmelig-nokkel-123');
   });
 
-  test('svaret avslører verken adresser, nøkler eller feilmeldinger', async () => {
+  test('the response reveals neither addresses, keys nor error messages', async () => {
     const utfall = [
       await run({}),
       await run({ umbraco: async () => { throw new Error('ENOTFOUND cms.intern.example'); } }),
@@ -231,7 +231,7 @@ describe('runHealthChecks', () => {
     }
   });
 
-  test('har samme form som info.altinn.no/health', async () => {
+  test('has the same shape as info.altinn.no/health', async () => {
     const r = await run({});
     expect(Object.keys(r).sort()).toEqual(['entries', 'status', 'totalDuration']);
     for (const e of Object.values(r.entries)) {
@@ -245,7 +245,7 @@ describe('runHealthChecks', () => {
 describe('memoize', () => {
   const rapport = (status: HealthReport['status']): HealthReport => ({ status, totalDuration: '00:00:00.0000000', entries: {} });
 
-  test('gjenbruker et ferdig resultat innenfor ttl, og kjører på nytt etterpå', async () => {
+  test('reuses a finished result within ttl, and runs again afterwards', async () => {
     let klokke = 1_000;
     let kjøringer = 0;
     const hent = memoize(async () => { kjøringer += 1; return rapport('Healthy'); }, () => klokke, 15_000);
@@ -260,7 +260,7 @@ describe('memoize', () => {
     expect(kjøringer).toBe(2);
   });
 
-  test('et dårlig resultat gjenbrukes også, så en storm mot et sykt CMS ikke gjør vondt verre', async () => {
+  test('a bad result is also reused, so a storm against a sick CMS does not make things worse', async () => {
     let klokke = 0;
     let kjøringer = 0;
     const hent = memoize(async () => { kjøringer += 1; return rapport('Unhealthy'); }, () => klokke, 15_000);
@@ -270,8 +270,8 @@ describe('memoize', () => {
     expect(kjøringer).toBe(1);
   });
 
-  // Det #4 målte: 200 samtidige kall etter utløp ga 200 runder mot CMS og søk.
-  test('200 samtidige kall etter utløp gir én kjøring, resten får forrige resultat', async () => {
+  // What #4 measured: 200 concurrent calls after expiry gave 200 rounds against the CMS and search.
+  test('200 concurrent calls after expiry give one run, the rest get the previous result', async () => {
     let klokke = 0;
     let kjøringer = 0;
     let slipp: (r: HealthReport) => void = () => {};
@@ -292,14 +292,14 @@ describe('memoize', () => {
     expect(resultater.filter((x) => x.status === 'Degraded')).toHaveLength(1);
   });
 
-  test('et kaldt isolat uten resultat slipper alle gjennom til første svar', async () => {
+  test('a cold isolate without a result lets everyone through until the first response', async () => {
     let kjøringer = 0;
     const hent = memoize(async () => { kjøringer += 1; return rapport('Healthy'); }, () => 0, 15_000);
     await Promise.all([hent(), hent(), hent()]);
     expect(kjøringer).toBe(3);
   });
 
-  test('en oppdatering som henger, slipper taket etter tidsgrensen', async () => {
+  test('a refresh that hangs lets go after the time limit', async () => {
     let klokke = 0;
     let kjøringer = 0;
     const hent = memoize(
@@ -320,9 +320,9 @@ describe('memoize', () => {
     expect(kjøringer).toBe(3);
   });
 
-  // Vakten betyr bare noe når den gamle oppdateringen feiler. Lykkes den, fornyer
-  // den cachen, og da får neste kall et ferskt svar uansett markering.
-  test('en gammel oppdatering som feiler, nullstiller ikke markeringen til den nye', async () => {
+  // The guard only matters when the old refresh fails. If it succeeds, it renews
+  // the cache, and then the next call gets a fresh response regardless of the marker.
+  test('an old refresh that fails does not reset the marker of the new one', async () => {
     let klokke = 0;
     let kjøringer = 0;
     const avvis: Array<(e: Error) => void> = [];
@@ -342,7 +342,7 @@ describe('memoize', () => {
     void hent();
     expect(kjøringer).toBe(3);
 
-    avvis[0](new Error('tidsavbrudd'));
+    avvis[0](new Error('timeout'));
     await gammel.catch(() => {});
     klokke += 1;
     expect((await hent()).status).toBe('Healthy');

@@ -6,34 +6,34 @@ import {
 } from '../components/ki-tiltak/tiltakForm';
 
 /**
- * Bygger e-posten redaksjonen får når noen sender inn et KI-tiltak, og tolker
- * det som kommer inn over HTTP.
+ * Builds the email the editors receive when someone submits a KI-tiltak, and parses
+ * what comes in over HTTP.
  *
- * Holdt fri for React og for nettverkskall, slik at innholdet kan testes uten
- * å gå veien om API-ruta.
+ * Kept free of React and network calls, so the content can be tested without
+ * going through the API route.
  */
 
-/** Sant for vanlige objekter, altså ikke null og ikke array. */
+/** True for plain objects, that is not null and not an array. */
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** Leser et strengfelt. Manglende eller feil type gir tom streng, ikke feil. */
+/** Reads a string field. Missing or wrong type gives an empty string, not an error. */
 function readString(kilde: Record<string, unknown>, navn: string): string {
   const value = kilde[navn];
   return typeof value === 'string' ? value : '';
 }
 
 /**
- * Leser et felt med flere avkryssede verdier.
+ * Reads a field with several checked values.
  *
- * Bare verdier som står i alternativlisten slipper gjennom. Skjemaet kan ikke
- * produsere noe annet, så filteret gjelder POST-er som går rett på ruta og
- * ellers kunne lagt vilkårlig tekst inn i e-posten til redaksjonen. Ukjente
- * verdier forsvinner i stillhet, siden kiType er valgfritt.
+ * Only values in the option list get through. The form cannot
+ * produce anything else, so the filter applies to POSTs that go straight to the route and
+ * could otherwise put arbitrary text into the email to the editors. Unknown
+ * values disappear silently, since kiType is optional.
  *
- * Resultatet følger rekkefølgen i alternativlisten, ikke i innsendingen, slik
- * at e-posten alltid lister valgene likt.
+ * The result follows the order of the option list, not of the submission, so
+ * that the email always lists the choices the same way.
  */
 function readStringArray(
   kilde: Record<string, unknown>,
@@ -46,12 +46,12 @@ function readStringArray(
 }
 
 /**
- * Leser et felt med ett valg. Ukjent verdi gir tom streng, som valideringen
- * fanger.
+ * Reads a single-choice field. An unknown value gives an empty string, which validation
+ * catches.
  *
- * Skjemaet sendte før en liste for leveranse. En side som ligger i
- * nettleserens cache kan fortsatt gjøre det en stund, og da brukes første
- * gyldige verdi i stedet for å avvise innsendingen.
+ * The form used to send a list for leveranse. A page sitting in the
+ * browser's cache may still do so for a while, and then the first
+ * valid value is used instead of rejecting the submission.
  */
 function readChoice(kilde: Record<string, unknown>, navn: string, tillatte: readonly string[]): string {
   const value = kilde[navn];
@@ -59,21 +59,21 @@ function readChoice(kilde: Record<string, unknown>, navn: string, tillatte: read
   return kandidater.find((v): v is string => typeof v === 'string' && tillatte.includes(v)) ?? '';
 }
 
-/** Kontrolltegn, linjeskift inkludert. */
+/** Control characters, line breaks included. */
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g;
 
 /**
- * Leser et felt som er én linje i skjemaet.
+ * Reads a field that is a single line in the form.
  *
- * <input type="text"> kan ikke inneholde linjeskift, så et linjeskift her kan
- * bare komme fra en POST rett mot ruta. Feltene havner i emnefeltet og i
- * brødteksten til redaksjonen, der e-posten har sine egne overskrifter
- * («TILTAKET», «KONTAKT»). Uten dette kan innsendt tekst forfalske dem, og
- * redaktøren kan ikke se hva avsenderen faktisk skrev. Erstattes med mellomrom
- * så ord ikke smelter sammen.
+ * <input type="text"> cannot contain line breaks, so a line break here can
+ * only come from a POST straight to the route. The fields end up in the subject and in
+ * the body for the editors, where the email has its own headings
+ * ("TILTAKET", "KONTAKT"). Without this, submitted text could forge them, and
+ * the editor could not see what the sender actually wrote. Replaced with spaces
+ * so words don't run together.
  *
- * beskrivelse går bevisst ikke gjennom denne: den er et textarea og skal ha
- * linjeskift.
+ * beskrivelse deliberately does not go through this: it is a textarea and should have
+ * line breaks.
  */
 function readLine(kilde: Record<string, unknown>, navn: string): string {
   return readString(kilde, navn).replace(CONTROL_CHARS, ' ');
@@ -94,10 +94,10 @@ function parsePartners(value: unknown): PartnerOrg[] {
 }
 
 /**
- * Tolker kroppen i innsendingen. Klienten er ikke til å stole på, så alt
- * narrows med typevakter og ukjente felt ignoreres. Returnerer null bare når
- * kroppen ikke er et objekt i det hele tatt. Selve innholdsvalideringen gjør
- * validateTiltakForm, som kjører både her og i nettleseren.
+ * Parses the body of the submission. The client cannot be trusted, so everything
+ * is narrowed with type guards and unknown fields are ignored. Returns null only when
+ * the body is not an object at all. The content validation itself is done by
+ * validateTiltakForm, which runs both here and in the browser.
  */
 export function parseTiltakForm(body: unknown): TiltakForm | null {
   if (!isObject(body)) return null;
@@ -119,8 +119,8 @@ export function parseTiltakForm(body: unknown): TiltakForm | null {
 }
 
 /**
- * Avkryssede valg på én linje. Er «Annet» krysset av, settes fritekstet inn i
- * parentes etter det, slik at redaktøren slipper å lete etter det i en egen rad.
+ * Checked choices on one line. If "Annet" is checked, the free text is put in
+ * parentheses after it, so the editor doesn't have to look for it in a separate row.
  */
 function valgt(valgte: string[], annet: string): string {
   const tekst = annet.trim();
@@ -134,10 +134,10 @@ function line(label: string, value: string): string {
 }
 
 /**
- * Hovedvirksomheten først, deretter samarbeidsradene, som i #806. Uten
- * samarbeid blir det tekst, som i resten av ki-tiltak.json. Med samarbeid
- * blir begge lister i samme rekkefølge, og en rad uten orgnr får tom tekst på
- * plassen, så navn og nummer ikke glir fra hverandre.
+ * The main organisation first, then the partner rows, as in #806. Without
+ * partners it becomes text, as in the rest of ki-tiltak.json. With partners
+ * both become lists in the same order, and a row without orgnr gets empty text in
+ * its place, so name and number don't drift apart.
  */
 function virksomheter(form: TiltakForm): { virksomhet: string | string[]; orgnr: string | string[] } {
   const rader = form.samarbeid
@@ -156,14 +156,14 @@ export interface Email {
 }
 
 /**
- * Ren tekst, ikke HTML. Da finnes det ingen vei fra innsendt tekst til markup
- * i e-postklienten, og vi slipper å escape noe som helst.
+ * Plain text, not HTML. Then there is no path from submitted text to markup
+ * in the email client, and we don't have to escape anything at all.
  */
 /**
- * Oppføringen slik den skal stå i ki-tiltak.json, klar til å limes inn rett
- * etter «[» øverst i fila. Da blir avskriften en kopi, og id, feltnavn og
- * verdier kan ikke skrives feil. Komma til slutt, siden de andre tiltakene
- * følger etter. Virksomhetsnavnet er det innsenderen skrev, og kan trenge vask.
+ * The entry as it should appear in ki-tiltak.json, ready to be pasted right
+ * after "[" at the top of the file. Then the transcription is a copy, and id, field names and
+ * values cannot be mistyped. Comma at the end, since the other tiltak
+ * follow. The organisation name is what the submitter wrote, and may need cleaning.
  */
 export function tiltakJson(form: TiltakForm, id: string): string {
   const post: Record<string, unknown> = {
@@ -174,7 +174,7 @@ export function tiltakJson(form: TiltakForm, id: string): string {
     beskrivelse: form.beskrivelse.trim(),
   };
   if (form.fase.trim()) post.fase = form.fase.trim();
-  // Modellen har leveranse som liste, siden eldre tiltak kan ha flere.
+  // The model has leveranse as a list, since older tiltak can have several.
   if (form.leveranse) post.leveranse = [form.leveranse];
   if (form.leveranse === ANNET && form.leveranseAnnet.trim()) post.leveranseAnnet = form.leveranseAnnet.trim();
   if (form.kiType.length > 0) post.kiType = form.kiType;

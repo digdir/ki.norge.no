@@ -1,7 +1,7 @@
 import { describe, expect, test, vi, afterEach } from 'vitest';
 
-// Samme grep som sitemap.test.ts: mock kun crawlen. resolveContentUrl beholdes
-// ekte, så rute-oppslag og sti-utelukkelse testes for det de faktisk gjør.
+// Same approach as sitemap.test.ts: mock only the crawl. resolveContentUrl stays
+// real, so route lookup and path exclusion are tested for what they actually do.
 vi.mock('./umbraco', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./umbraco')>();
   return { ...actual, fetchAllPublishedContent: vi.fn() };
@@ -12,7 +12,7 @@ import { generateLlmsTxt } from './llms-txt';
 
 const mockedCrawl = vi.mocked(fetchAllPublishedContent);
 
-// Egen base per test, ellers lekker den interne timecachen mellom testene.
+// A separate base per test, otherwise the internal hourly cache leaks between the tests.
 let baseCounter = 0;
 async function llmsFor(nodes: RawContentNode[]): Promise<{ text: string; base: string }> {
   baseCounter += 1;
@@ -33,14 +33,14 @@ afterEach(() => {
 });
 
 describe('generateLlmsTxt', () => {
-  test('har H1 og blockquote-oppsummering øverst', async () => {
+  test('has H1 and a blockquote summary at the top', async () => {
     const { text } = await llmsFor([]);
     const lines = text.split('\n');
     expect(lines[0]).toBe('# KI Norge');
     expect(text).toContain('\n> ');
   });
 
-  test('noder blir markdown-lenker med absolutt URL og ingress', async () => {
+  test('nodes become markdown links with absolute URL and ingress', async () => {
     const { text, base } = await llmsFor([
       {
         id: '1',
@@ -51,7 +51,7 @@ describe('generateLlmsTxt', () => {
     expect(text).toContain(`- [KI i skolen](${base}/artikler/ki-i-skolen): Kort om KI i skolen.`);
   });
 
-  test('grupperer på innholdstype og sorterer på sti i seksjonen', async () => {
+  test('groups by content type and sorts by path within the section', async () => {
     const { text } = await llmsFor([
       { id: '1', contentType: 'artikkel', properties: { slug: 'b', tittel: 'B' } },
       { id: '2', contentType: 'artikkel', properties: { slug: 'a', tittel: 'A' } },
@@ -64,7 +64,7 @@ describe('generateLlmsTxt', () => {
     expect(sectionOf(text, 'Eksempler')).toContain('/eksempler/c');
   });
 
-  test('tittel faller tilbake på heroTittel og deretter nodenavn', async () => {
+  test('title falls back to heroTittel and then the node name', async () => {
     const { text } = await llmsFor([
       { id: '1', name: 'Artikler', contentType: 'artikler', properties: { heroTittel: 'Aktuelt' } },
       { id: '2', name: 'Eksempler', contentType: 'eksempler', properties: {} },
@@ -73,7 +73,7 @@ describe('generateLlmsTxt', () => {
     expect(text).toContain('[Eksempler]');
   });
 
-  test('lang ingress kuttes på ordgrense', async () => {
+  test('a long ingress is cut at a word boundary', async () => {
     const long = 'ord '.repeat(200).trim();
     const { text } = await llmsFor([
       { id: '1', contentType: 'artikkel', properties: { slug: 'a', tittel: 'A', ingress: long } },
@@ -84,7 +84,7 @@ describe('generateLlmsTxt', () => {
     expect(line).not.toContain('or…');
   });
 
-  test('ingress uten bokstaver droppes som sammendrag', async () => {
+  test('an ingress without letters is dropped as summary', async () => {
     const { text } = await llmsFor([
       { id: '1', contentType: 'artikkel', properties: { slug: 'a', tittel: 'A', ingress: '______' } },
     ]);
@@ -93,7 +93,7 @@ describe('generateLlmsTxt', () => {
     expect(line.endsWith(')')).toBe(true);
   });
 
-  test('umappet type og ekskludert sti utelates', async () => {
+  test('an unmapped type and an excluded path are left out', async () => {
     const { text } = await llmsFor([
       { id: '1', contentType: 'globaleInnstillinger', properties: {} },
       { id: '2', contentType: 'side', properties: { slug: '404', tittel: 'Ikke funnet' } },
@@ -104,7 +104,7 @@ describe('generateLlmsTxt', () => {
     expect(text).toContain('[OK]');
   });
 
-  test('samme sti fra flere noder tas bare med én gang', async () => {
+  test('the same path from several nodes is included only once', async () => {
     const { text } = await llmsFor([
       { id: '1', contentType: 'artikkel', properties: { slug: 'dupe', tittel: 'Første' } },
       { id: '2', contentType: 'artikkel', properties: { slug: 'dupe', tittel: 'Andre' } },
@@ -113,23 +113,23 @@ describe('generateLlmsTxt', () => {
     expect(hits).toHaveLength(1);
   });
 
-  test('klammer i tittel escapes så markdown-lenka ikke brekker', async () => {
+  test('brackets in the title are escaped so the markdown link does not break', async () => {
     const { text } = await llmsFor([
       { id: '1', contentType: 'artikkel', properties: { slug: 'a', tittel: 'KI [pilot]' } },
     ]);
     expect(text).toContain('- [KI \\[pilot\\]](');
   });
 
-  test('ukjent innholdstype med rute havner under Andre sider', async () => {
+  test('an unknown content type with a route ends up under Andre sider', async () => {
     const { text } = await llmsFor([
       { id: '1', contentType: 'kalenderhendelse', properties: { slug: 'fagdag', tittel: 'Fagdag' } },
     ]);
-    // kalenderhendelse er kjent, så den skal IKKE havne i fallback-seksjonen.
+    // kalenderhendelse is known, so it must NOT end up in the fallback section.
     expect(sectionOf(text, 'Kalender')).toContain('[Fagdag]');
     expect(text).not.toContain('## Andre sider');
   });
 
-  test('tom crawl gir fortsatt et gyldig dokument med endepunkt-seksjonen', async () => {
+  test('an empty crawl still gives a valid document with the endpoint section', async () => {
     const { text, base } = await llmsFor([]);
     expect(text).toContain('## Maskinlesbare endepunkter');
     expect(text).toContain(`${base}/sitemap.xml`);

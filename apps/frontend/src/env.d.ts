@@ -1,6 +1,6 @@
 declare namespace App {
   interface Locals {
-    /** Satt av middleware etter at forhåndsvisnings-hemmeligheten er sjekket. */
+    /** Set by middleware after the preview secret has been checked. */
     isPreview: boolean;
   }
 }

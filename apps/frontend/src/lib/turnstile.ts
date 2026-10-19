@@ -1,14 +1,14 @@
 /**
- * Cloudflare Turnstile, brukt på «Del KI-tiltak».
+ * Cloudflare Turnstile, used on "Del KI-tiltak".
  *
- * Hvorfor Turnstile og ikke bare en IP-grense: målgruppa er ansatte i offentlig
- * sektor, og en hel kommune kan ligge bak én utgående IP. En stram IP-grense
- * ville stengt ute reelle brukere, samtidig som en bot med roterende IP-er går
- * rundt den. Turnstile skiller på «er dette en nettleser med et menneske»,
- * som er det spørsmålet vi faktisk vil ha svar på.
+ * Why Turnstile and not just an IP limit: the audience is public sector
+ * employees, and a whole municipality can sit behind one outgoing IP. A strict IP limit
+ * would shut out real users, while a bot with rotating IPs goes
+ * around it. Turnstile distinguishes on "is this a browser with a human",
+ * which is the question we actually want answered.
  *
- * Samme env-mønster som src/lib/graph-email.ts. Site key er offentlig og ligger
- * i vars, secret key er en secret.
+ * Same env pattern as src/lib/graph-email.ts. The site key is public and lives
+ * in vars, the secret key is a secret.
  */
 
 const SITE_KEY: string = process.env.TURNSTILE_SITE_KEY || import.meta.env.TURNSTILE_SITE_KEY || '';
@@ -17,19 +17,19 @@ const SECRET_KEY: string = process.env.TURNSTILE_SECRET_KEY || import.meta.env.T
 const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 /**
- * Sann bare når begge nøklene er satt. Logges som boolsk tilstedeværelse,
- * aldri som lengde eller innhold, siden CodeQL sporer verdier avledet av en
- * secret til loggen.
+ * True only when both keys are set. Logged as boolean presence,
+ * never as length or content, since CodeQL tracks values derived from a
+ * secret to the log.
  */
 export const turnstileIsConfigured = Boolean(SITE_KEY && SECRET_KEY);
 
-/** Site key er offentlig og sendes til nettleseren av ki-tiltak.astro. */
+/** The site key is public and is sent to the browser by ki-tiltak.astro. */
 export const turnstileSiteKey = SITE_KEY;
 
 /**
- * Vertene skjemaet brukes på. Site key er den samme i tt02 og prod, så et token
- * løst på en av dem er gyldig mot begge. Lista sjekkes mot hostname i svaret fra
- * siteverify, som er der widgeten ble løst.
+ * The hosts the form is used on. The site key is the same in tt02 and prod, so a token
+ * solved on one of them is valid against both. The list is checked against hostname in the response from
+ * siteverify, which is where the widget was solved.
  */
 const FORM_HOSTNAMES = new Set([
   'ki.norge.no',
@@ -53,13 +53,13 @@ function isFormHostname(solvedOn: unknown, requestHostname: string): boolean {
 }
 
 /**
- * Sjekker tokenet fra widgeten mot Cloudflare.
+ * Checks the token from the widget against Cloudflare.
  *
- * Mangler nøklene, avvises innsendingen. Unntaket er lokal utvikling, avgjort
- * av vertsnavnet i forespørselen og ikke av en env-var som kan glemmes i drift.
+ * If the keys are missing, the submission is rejected. The exception is local development, decided
+ * by the hostname in the request and not by an env var that can be forgotten in production.
  *
- * Tokenet er engangs og varer i 300 sekunder. Klienten må derfor hente et nytt
- * ved neste forsøk, og skjemaet nullstiller widgeten når en innsending feiler.
+ * The token is single-use and lasts 300 seconds. The client must therefore fetch a new one
+ * on the next attempt, and the form resets the widget when a submission fails.
  */
 export async function verifyTurnstile(
   token: string,
@@ -68,10 +68,10 @@ export async function verifyTurnstile(
 ): Promise<TurnstileResult> {
   if (!turnstileIsConfigured) {
     if (LOCAL_HOSTNAMES.has(requestHostname)) {
-      console.warn('[turnstile] ikke konfigurert, slipper gjennom på localhost');
+      console.warn('[turnstile] not configured, letting through on localhost');
       return 'ok';
     }
-    console.error('[turnstile] ikke konfigurert, innsending avvist');
+    console.error('[turnstile] not configured, submission rejected');
     return 'not_configured';
   }
   if (token.length === 0) return 'rejected';
@@ -86,7 +86,7 @@ export async function verifyTurnstile(
       body,
     });
     if (!response.ok) {
-      console.error('[turnstile] siteverify svarte ikke ok', { status: response.status });
+      console.error('[turnstile] siteverify did not respond ok', { status: response.status });
       return 'rejected';
     }
 
@@ -94,20 +94,20 @@ export async function verifyTurnstile(
     if (!isObject(data)) return 'rejected';
 
     if (data.success !== true) {
-      // Feilkodene kommer fra Cloudflare, ikke fra innsenderen, og sier noe om
-      // oppsettet vårt. De logges, men sendes aldri videre til klienten.
-      console.error('[turnstile] token avvist', { codes: data['error-codes'] });
+      // The error codes come from Cloudflare, not from the submitter, and say something about
+      // our setup. They are logged, but never passed on to the client.
+      console.error('[turnstile] token rejected', { codes: data['error-codes'] });
       return 'rejected';
     }
     if (!isFormHostname(data.hostname, requestHostname)) {
-      console.error('[turnstile] token løst på en annen vert', { hostname: data.hostname });
+      console.error('[turnstile] token solved on another host', { hostname: data.hostname });
       return 'rejected';
     }
     return 'ok';
   } catch {
-    // Nettverksfeil mot Cloudflare. Vi avviser heller enn å slippe gjennom:
-    // dette er en sikkerhetskontroll, i motsetning til hastighetsgrensa.
-    console.error('[turnstile] kunne ikke nå siteverify');
+    // Network error towards Cloudflare. We reject rather than let through:
+    // this is a security control, unlike the rate limit.
+    console.error('[turnstile] could not reach siteverify');
     return 'rejected';
   }
 }

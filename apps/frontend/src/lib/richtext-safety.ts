@@ -1,13 +1,13 @@
 /**
- * Hva fra rik tekst i CMS-et som får bli HTML på siden.
+ * What from rich text in the CMS is allowed to become HTML on the page.
  *
- * richTextToHtml skrev ut tagg- og attributtnavn slik de kom, så en <script>,
- * en <iframe> eller en onerror= i innholdet kjørte på ki.norge.no. CSP-en har
- * 'unsafe-inline' i script-src og stopper det ikke.
+ * richTextToHtml wrote out tag and attribute names as they came, so a <script>,
+ * an <iframe> or an onerror= in the content ran on ki.norge.no. The CSP has
+ * 'unsafe-inline' in script-src and does not stop it.
  *
- * Taggene står på en liste over det TipTap faktisk lager, pluss vanlig
- * formatering. Ukjente tagger pakkes ut, så teksten blir stående. Tagger som
- * kan kjøre kode eller laste innhold fra andre, forsvinner med innholdet.
+ * The tags are on a list of what TipTap actually produces, plus regular
+ * formatting. Unknown tags are unwrapped, so the text stays. Tags that
+ * can run code or load content from others disappear along with their content.
  */
 
 const ALLOWED_TAGS = new Set([
@@ -34,20 +34,20 @@ export function tagVerdict(tag: string): TagVerdict {
   return 'unwrap';
 }
 
-/** Attributter som aldri er trygge, uansett verdi. */
+/** Attributes that are never safe, regardless of value. */
 const BLOCKED_ATTRIBUTES = new Set(['srcdoc', 'formaction', 'action', 'xmlns']);
 
-/** Attributter som er en adresse nettleseren følger eller henter. */
+/** Attributes that are an address the browser follows or fetches. */
 const URL_ATTRIBUTES = new Set(['href', 'src', 'cite', 'poster', 'background']);
 
 const ATTRIBUTE_NAME = /^[a-z][a-z0-9-]*$/i;
 
-/** Relative adresser og disse skjemaene. Ikke javascript:, data: eller vbscript:. */
+/** Relative addresses and these schemes. Not javascript:, data: or vbscript:. */
 const SAFE_SCHEME = /^(https?|mailto|tel):/i;
 
 /**
- * Om attributtet får stå. Verdien escapes av den som rendrer, så her gjelder
- * det bare hva navnet og adressen kan få nettleseren til å gjøre.
+ * Whether the attribute may stay. The value is escaped by whoever renders, so here it
+ * is only about what the name and the address can make the browser do.
  */
 export function attributeIsSafe(name: string, value: string): boolean {
   if (!ATTRIBUTE_NAME.test(name)) return false;
@@ -58,7 +58,7 @@ export function attributeIsSafe(name: string, value: string): boolean {
 }
 
 export function urlIsSafe(value: string): boolean {
-  // Nettleseren ser bort fra mellomrom og kontrolltegn i skjemaet, så «java\tscript:» er javascript:.
+  // The browser ignores whitespace and control characters in the scheme, so "java\tscript:" is javascript:.
   const compact = value.replace(/[\u0000- \u007F]/g, '');
   const scheme = /^[a-z][a-z0-9+.-]*:/i.exec(compact);
   return scheme === null || SAFE_SCHEME.test(scheme[0]);

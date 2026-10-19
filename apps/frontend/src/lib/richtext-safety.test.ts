@@ -7,9 +7,9 @@ const root = (...elements: Node[]): Node => ({ tag: '#root', elements });
 const text = (t: string): Node => ({ tag: '#text', text: t });
 const el = (tag: string, attributes: Record<string, string> = {}, ...elements: Node[]): Node => ({ tag, attributes, elements });
 
-describe('richTextToHtml med fiendtlig innhold', () => {
-  // Fixturen «fiendtlig innhold» på tt02 rendret denne og kjørte den.
-  test('script og iframe forsvinner med innholdet', () => {
+describe('richTextToHtml with hostile content', () => {
+  // The "fiendtlig innhold" fixture on tt02 rendered this and ran it.
+  test('script and iframe disappear with their content', () => {
     const html = richTextToHtml(root(
       el('p', {}, text('før')),
       el('script', {}, text("alert('x')")),
@@ -20,14 +20,14 @@ describe('richTextToHtml med fiendtlig innhold', () => {
     expect(html).toMatch(/før<\/p><p[^>]*>etter/);
   });
 
-  test('hendelsesattributter fjernes, resten står', () => {
+  test('event attributes are removed, the rest stays', () => {
     const html = richTextToHtml(root(el('img', { src: '/bilde.png', alt: 'Bilde', onerror: 'alert(1)', ONLOAD: 'x' })));
     expect(html).not.toMatch(/onerror|onload|alert/i);
     expect(html).toContain('src="/bilde.png"');
     expect(html).toContain('alt="Bilde"');
   });
 
-  test('javascript- og data-lenker mister adressen', () => {
+  test('javascript and data links lose their address', () => {
     const html = richTextToHtml(root(
       el('a', { href: 'javascript:alert(1)' }, text('a')),
       el('a', { href: ' java\tscript:alert(1)' }, text('b')),
@@ -37,13 +37,13 @@ describe('richTextToHtml med fiendtlig innhold', () => {
     expect(html).toContain('>a</a>');
   });
 
-  test('ukjente tagger pakkes ut, teksten blir stående', () => {
+  test('unknown tags are unwrapped, the text stays', () => {
     const html = richTextToHtml(root(el('p', {}, el('blink', {}, text('hei')))));
     expect(html).not.toContain('blink');
     expect(html).toMatch(/<p[^>]*>hei<\/p>/);
   });
 
-  test('vanlig innhold er uendret', () => {
+  test('regular content is unchanged', () => {
     const html = richTextToHtml(root(
       el('p', { style: 'text-align: center', class: 'x' }, text('Midt')),
       el('a', { href: 'https://ki.norge.no', target: '_blank', title: 'KI' }, text('lenke')),
@@ -58,7 +58,7 @@ describe('richTextToHtml med fiendtlig innhold', () => {
 });
 
 describe('tagVerdict', () => {
-  test('kjente, farlige og ukjente tagger', () => {
+  test('known, dangerous and unknown tags', () => {
     expect(tagVerdict('p')).toBe('keep');
     expect(tagVerdict('H2')).toBe('keep');
     expect(tagVerdict('SCRIPT')).toBe('drop');
@@ -67,14 +67,14 @@ describe('tagVerdict', () => {
   });
 });
 
-describe('attributeIsSafe og urlIsSafe', () => {
-  test('navn som ikke er rene attributtnavn avvises', () => {
+describe('attributeIsSafe and urlIsSafe', () => {
+  test('names that are not plain attribute names are rejected', () => {
     expect(attributeIsSafe('x" onmouseover="alert(1)', 'y')).toBe(false);
     expect(attributeIsSafe('srcdoc', '<p>')).toBe(false);
     expect(attributeIsSafe('data-internal-link-id', 'abc')).toBe(true);
   });
 
-  test('relative adresser og trygge skjemaer slipper gjennom', () => {
+  test('relative addresses and safe schemes pass through', () => {
     expect(urlIsSafe('/artikler/x')).toBe(true);
     expect(urlIsSafe('#seksjon')).toBe(true);
     expect(urlIsSafe('?q=1')).toBe(true);

@@ -1,15 +1,15 @@
 import { buildUrlForContent, type Kalenderhendelse } from './umbraco';
 
-// Norske maanedsnavn. Vi bruker en fast tabell (ikke toLocaleString('nb-NO'))
-// fordi ICU-locale-data ikke er garantert tilgjengelig paa Cloudflare Workers,
-// og toLocaleString da kan falle tilbake til engelske navn.
+// Norwegian month names. We use a fixed table (not toLocaleString('nb-NO'))
+// because ICU locale data is not guaranteed to be available on Cloudflare Workers,
+// and toLocaleString can then fall back to English names.
 const MANEDER = [
   'januar', 'februar', 'mars', 'april', 'mai', 'juni',
   'juli', 'august', 'september', 'oktober', 'november', 'desember',
 ];
 
-// Merkelapp (alias fortsatt "type") er en kommaseparert liste,
-// f.eks. "Frokostseminar, Offentlig". Hvert ledd blir en merkelapp paa kortet.
+// Merkelapp (alias still "type") is a comma-separated list,
+// e.g. "Frokostseminar, Offentlig". Each item becomes a label on the card.
 export function parseMerkelapp(value?: string): string[] {
   return (value || '').split(',').map(t => t.trim()).filter(Boolean);
 }
@@ -21,8 +21,8 @@ export function isFlerDager(startIso: string, endIso?: string): boolean {
   return e.getTime() > s.getTime() && e.toDateString() !== s.toDateString();
 }
 
-// Range-aware datolabel. Endags: { day: "16" }. Flerdags: { day: "16. — 17" }.
-// EventCard rendrer "{day}. {month}" + year, saa day har ikke etterstilt punktum.
+// Range-aware date label. Single day: { day: "16" }. Multi-day: { day: "16. — 17" }.
+// EventCard renders "{day}. {month}" + year, so day has no trailing period.
 export function formatHendelseDato(startIso: string, endIso?: string): { day: string; month: string; year: string } {
   if (!startIso) return { day: '', month: '', year: '' };
   const start = new Date(startIso);
@@ -36,12 +36,12 @@ export function formatHendelseDato(startIso: string, endIso?: string): { day: st
   return { day, month, year };
 }
 
-// Fremhevet hendelse trekkes ut av tidligere-lista så den ikke dubleres. Er den
-// eneste tidligere hendelsen løftet til heltboksen, står fanen tom uten at noe
-// mangler, og «Ingen tidligere arrangement» motsier boksen rett over. Da peker vi
-// oppover i stedet, slik kommende-fanen allerede gjør.
-// Er den fremhevede hendelsen kommende, er fanen tom fordi arkivet faktisk er
-// tomt, og da skal den opprinnelige teksten stå.
+// A featured event is pulled out of the past list so it isn't duplicated. If the
+// only past event is lifted into the hero box, the tab is empty without anything
+// missing, and "Ingen tidligere arrangement" contradicts the box right above. Then we point
+// upwards instead, as the upcoming tab already does.
+// If the featured event is upcoming, the tab is empty because the archive actually is
+// empty, and then the original text should stay.
 export function tidligereTomTekst(
   featured: Pick<Kalenderhendelse, 'startDato' | 'sluttDato'> | null | undefined,
   naa: Date,
@@ -65,10 +65,10 @@ export interface EventCardData {
   location: string;
 }
 
-// Felles mapping fra hendelse til EventCard-props. Brukt av forside, kalender-liste
-// og featured-boks, saa de tre ikke kan drifte fra hverandre.
-// featured-varianten viser tittel som <h2> og ingress som paragraf UTENFOR kortet,
-// derfor utelates title/description der (rendres tomme, EventCard skjuler dem).
+// Shared mapping from event to EventCard props. Used by the front page, the calendar list
+// and the featured box, so the three cannot drift apart.
+// The featured variant shows the title as <h2> and the ingress as a paragraph OUTSIDE the card,
+// which is why title/description are left out there (rendered empty, EventCard hides them).
 export function hendelseTilEventCard(
   h: Kalenderhendelse,
   opts: { variant?: 'featured' | 'kort'; clickable?: boolean } = {},

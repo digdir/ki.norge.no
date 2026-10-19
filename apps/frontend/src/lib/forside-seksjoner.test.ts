@@ -22,101 +22,101 @@ const hrefs = (kort: { href: string }[]) => kort.map((k) => k.href);
 const KILDER = { artikler: ARTIKLER };
 
 describe('velgLenke', () => {
-  it('gir lenke når både tekst og URL er satt', () => {
+  it('gives a link when both text and URL are set', () => {
     expect(velgLenke({ lenketekst: 'Se alle artikler', lenkeUrl: '/artikler' })).toEqual({
       tekst: 'Se alle artikler',
       href: '/artikler',
     });
   });
 
-  it('gir ingen lenke når URL mangler', () => {
+  it('gives no link when the URL is missing', () => {
     expect(velgLenke({ lenketekst: 'Se alle artikler', lenkeUrl: undefined })).toBeNull();
   });
 
-  it('gir ingen lenke når teksten mangler', () => {
+  it('gives no link when the text is missing', () => {
     expect(velgLenke({ lenketekst: undefined, lenkeUrl: '/artikler' })).toBeNull();
   });
 });
 
 describe('velgAktuelt', () => {
-  it('rendres ikke når alle felt er tomme', () => {
+  it('is not rendered when all fields are empty', () => {
     expect(velgAktuelt(blokk(), KILDER)).toBeNull();
   });
 
-  it('rendres ikke når lenketeksten står alene uten URL', () => {
+  it('is not rendered when the link text stands alone without a URL', () => {
     expect(velgAktuelt(blokk({ lenketekst: 'Se alle artikler' }), KILDER)).toBeNull();
   });
 
-  it('viser kun lenka når verken artikkel eller kort er valgt', () => {
+  it('shows only the link when neither article nor cards are picked', () => {
     const valg = velgAktuelt(blokk({ lenketekst: 'Se alle artikler', lenkeUrl: '/artikler' }), KILDER);
     expect(valg).toEqual({ featured: null, kort: [], lenke: { tekst: 'Se alle artikler', href: '/artikler' } });
   });
 
-  it('fyller ikke inn nyeste artikler av seg selv', () => {
+  it('does not fill in the newest articles by itself', () => {
     const valg = velgAktuelt(blokk({ fremhevetArtikkelId: 'a3' }), KILDER);
     expect(valg?.featured?.href).toBe('/artikler/artikkel-3');
     expect(valg?.kort).toEqual([]);
   });
 
-  it('dropper fremhevet artikkel som ikke finnes i kildene', () => {
+  it('drops a featured article that does not exist in the sources', () => {
     const valg = velgAktuelt(blokk({ fremhevetArtikkelId: 'slettet', kort: [{ id: 'a2' }] }), KILDER);
     expect(valg?.featured).toBeNull();
     expect(hrefs(valg!.kort)).toEqual(['/artikler/artikkel-2']);
   });
 
-  it('dropper kort som peker på noe som ikke finnes', () => {
+  it('drops cards that point to something that does not exist', () => {
     const valg = velgAktuelt(blokk({ kort: [{ id: 'a1' }, { id: 'slettet' }] }), KILDER);
     expect(hrefs(valg!.kort)).toEqual(['/artikler/artikkel-1']);
   });
 
-  it('dropper kort-blokk uten valgt artikkel', () => {
+  it('drops a card block without a picked article', () => {
     const valg = velgAktuelt(blokk({ kort: [{}, { id: 'a1' }] }), KILDER);
     expect(hrefs(valg!.kort)).toEqual(['/artikler/artikkel-1']);
   });
 
-  it('gjentar ikke den fremhevede artikkelen blant kortene', () => {
+  it('does not repeat the featured article among the cards', () => {
     const valg = velgAktuelt(blokk({ fremhevetArtikkelId: 'a1', kort: [{ id: 'a1' }, { id: 'a2' }] }), KILDER);
     expect(valg?.featured?.href).toBe('/artikler/artikkel-1');
     expect(hrefs(valg!.kort)).toEqual(['/artikler/artikkel-2']);
   });
 
-  it('gir ingen kortrad når eneste kort er den fremhevede', () => {
+  it('gives no card row when the only card is the featured one', () => {
     const valg = velgAktuelt(blokk({ fremhevetArtikkelId: 'a1', kort: [{ id: 'a1' }] }), KILDER);
     expect(valg?.featured?.href).toBe('/artikler/artikkel-1');
     expect(valg?.kort).toEqual([]);
   });
 
-  it('viser ikke flere kort enn kortraden har plass til', () => {
+  it('does not show more cards than the card row has room for', () => {
     const valg = velgAktuelt(blokk({ kort: ARTIKLER.map((a) => ({ id: a.id })) }), KILDER);
     expect(valg?.kort).toHaveLength(MAKS_AKTUELT_KORT);
   });
 
-  it('lar redaktørens ingress overstyre artikkelens egen', () => {
+  it('lets the editor\'s ingress override the article\'s own', () => {
     const valg = velgAktuelt(blokk({ kort: [{ id: 'a1', ingress: 'Egen ingress' }] }), KILDER);
     expect(valg?.kort[0].lead).toBe('Egen ingress');
   });
 
-  describe('annet enn artikler', () => {
+  describe('other than articles', () => {
     const enkel = { id: 'ev1', slug: 'eu-ki-og-konkurranse', tittel: 'EU, KI og konkurranse', ingress: 'Enkel ingress', publishedAt: '2026-08-26T00:00:00Z' };
     const guide = { id: 'v1', slug: 'kom-i-gang-med-ki', tittel: 'Kom i gang med KI', ingress: 'Guidens ingress' } as VeiledningGuide;
     const kilder = { artikler: ARTIKLER, enkleVeiledninger: [enkel], veiledninger: [guide], eksempler: EKSEMPLER };
 
-    it('viser en enkel veiledning som fremhevet, med lenke til veiledningen', () => {
+    it('shows an enkel veiledning as featured, with a link to the veiledning', () => {
       const valg = velgAktuelt(blokk({ fremhevetArtikkelId: 'ev1' }), kilder);
       expect(valg?.featured).toMatchObject({ tittel: 'EU, KI og konkurranse', href: '/veiledning/eu-ki-og-konkurranse', lead: 'Enkel ingress' });
     });
 
-    it('viser guider og eksempler som kort ved siden av artikler', () => {
+    it('shows guides and eksempler as cards next to articles', () => {
       const valg = velgAktuelt(blokk({ kort: [{ id: 'a1' }, { id: 'v1' }, { id: 'e2' }] }), kilder);
       expect(hrefs(valg!.kort)).toEqual(['/artikler/artikkel-1', '/veiledning/kom-i-gang-med-ki', '/eksempler/eksempel-2']);
     });
 
-    it('lar redaktørens ingress overstyre veiledningens egen', () => {
+    it('lets the editor\'s ingress override the veiledning\'s own', () => {
       const valg = velgAktuelt(blokk({ kort: [{ id: 'ev1', ingress: 'Egen ingress' }] }), kilder);
       expect(valg?.kort[0].lead).toBe('Egen ingress');
     });
 
-    it('gjentar ikke en fremhevet veiledning blant kortene', () => {
+    it('does not repeat a featured veiledning among the cards', () => {
       const valg = velgAktuelt(blokk({ fremhevetArtikkelId: 'ev1', kort: [{ id: 'ev1' }, { id: 'a1' }] }), kilder);
       expect(hrefs(valg!.kort)).toEqual(['/artikler/artikkel-1']);
     });
@@ -127,36 +127,36 @@ describe('velgLaerAvAndre', () => {
   const laer = (over: Partial<ForsideSeksjon> = {}) =>
     blokk({ contentType: 'forsideLaerAvAndre', overskrift: 'Lær av andre', ...over });
 
-  it('rendres ikke uten kort og uten lenke', () => {
+  it('is not rendered without cards and without a link', () => {
     expect(velgLaerAvAndre(laer(), EKSEMPLER)).toBeNull();
   });
 
-  it('viser lenka selv om ingen kort er valgt', () => {
+  it('shows the link even if no cards are picked', () => {
     const valg = velgLaerAvAndre(laer({ lenketekst: 'Se alle eksempler', lenkeUrl: '/eksempler' }), EKSEMPLER);
     expect(valg).toEqual({ kort: [], lenke: { tekst: 'Se alle eksempler', href: '/eksempler' } });
   });
 
-  it('fyller ikke inn eksempler av seg selv', () => {
+  it('does not fill in eksempler by itself', () => {
     const valg = velgLaerAvAndre(laer({ kort: [{ id: 'e2' }] }), EKSEMPLER);
     expect(valg?.kort).toEqual([{ href: '/eksempler/eksempel-2', title: 'Eksempel e2', lead: 'Ingress e2' }]);
   });
 
-  it('dropper kort som peker på noe som ikke finnes', () => {
+  it('drops cards that point to something that does not exist', () => {
     const valg = velgLaerAvAndre(laer({ kort: [{ id: 'slettet' }, { id: 'e1' }] }), EKSEMPLER);
     expect(valg?.kort.map((k) => k.href)).toEqual(['/eksempler/eksempel-1']);
   });
 
-  it('dropper kort uten id', () => {
+  it('drops cards without an id', () => {
     const valg = velgLaerAvAndre(laer({ kort: [{}, { id: 'e1' }] }), EKSEMPLER);
     expect(valg?.kort.map((k) => k.href)).toEqual(['/eksempler/eksempel-1']);
   });
 
-  it('bruker ingressen på kortet foran eksemplets egen', () => {
+  it('uses the ingress on the card before the eksempel\'s own', () => {
     const valg = velgLaerAvAndre(laer({ kort: [{ id: 'e1', ingress: 'Egen ingress' }] }), EKSEMPLER);
     expect(valg?.kort[0].lead).toBe('Egen ingress');
   });
 
-  it('gir lead undefined når verken kortet eller eksemplet har ingress', () => {
+  it('gives lead undefined when neither the card nor the eksempel has an ingress', () => {
     const valg = velgLaerAvAndre(laer({ kort: [{ id: 'e3' }] }), [{ id: 'e3', slug: 'uten', tittel: 'Uten', ingress: '' }]);
     expect(valg?.kort).toStrictEqual([{ href: '/eksempler/uten', title: 'Uten', lead: undefined }]);
   });
@@ -166,15 +166,15 @@ describe('velgVeiledning', () => {
   const GUIDER = [{ id: 'v1', slug: 'gjor-dataene-ki-klare', tittel: 'Gjør dataene KI-klare', ingress: 'Guidens ingress' }] as VeiledningGuide[];
   const veil = (over: Partial<ForsideSeksjon> = {}) => blokk({ contentType: 'forsideVeiledning', overskrift: undefined, ...over });
 
-  it('rendres ikke uten lenke og uten valgt veiledning', () => {
+  it('is not rendered without a link and without a picked veiledning', () => {
     expect(velgVeiledning(veil({ tittel: 'Gjør dataene KI-klare' }), GUIDER)).toBeNull();
   });
 
-  it('rendres ikke uten tittel', () => {
+  it('is not rendered without a title', () => {
     expect(velgVeiledning(veil({ lenkeUrl: '/veiledning' }), GUIDER)).toBeNull();
   });
 
-  it('arver tittel, ingress og lenke fra valgt veiledning', () => {
+  it('inherits title, ingress and link from the picked veiledning', () => {
     const valg = velgVeiledning(veil({ veiledningId: 'v1' }), GUIDER);
     expect(valg).toMatchObject({
       tittel: 'Gjør dataene KI-klare',
@@ -183,20 +183,20 @@ describe('velgVeiledning', () => {
     });
   });
 
-  it('lar redaktørens egne felt overstyre arven', () => {
+  it('lets the editor\'s own fields override the inherited ones', () => {
     const valg = velgVeiledning(veil({ veiledningId: 'v1', tittel: 'Egen tittel', lenkeUrl: '/egen-url' }), GUIDER);
     expect(valg).toMatchObject({ tittel: 'Egen tittel', href: '/egen-url', ingress: 'Guidens ingress' });
   });
 
-  it('dropper valgt veiledning som ikke finnes i poolen', () => {
+  it('drops a picked veiledning that does not exist in the pool', () => {
     expect(velgVeiledning(veil({ veiledningId: 'slettet' }), GUIDER)).toBeNull();
   });
 });
 
-// Bildehierarkiet etter møtet med Sara: overstyring på kortet slår lenkekortbilde,
-// som slår hovedbilde. Uten treff gir det undefined, og da rendrer kortet
-// standardbildet selv.
-describe('bildehierarki i aktuelt', () => {
+// The image hierarchy after the meeting with Sara: the override on the card beats lenkekortbilde,
+// which beats the main image. Without a match it gives undefined, and then the card renders
+// the default image itself.
+describe('image hierarchy in aktuelt', () => {
   const media = (navn: string) => ({ url: `/media/${navn}.jpg`, width: 1200, height: 800 }) as any;
 
   const medBilder = (over: Record<string, unknown>) => ({
@@ -210,17 +210,17 @@ describe('bildehierarki i aktuelt', () => {
       { artikler: [node as any] },
     )!.kort[0];
 
-  it('bruker hovedbildet når det er det eneste som er satt', () => {
+  it('uses the main image when it is the only one set', () => {
     const k = kortFor(medBilder({ artikkelBilde: media('hoved') }));
     expect(k.image?.src).toContain('hoved');
   });
 
-  it('lar lenkekortbildet slå hovedbildet', () => {
+  it('lets the lenkekort image beat the main image', () => {
     const k = kortFor(medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }));
     expect(k.image?.src).toContain('lenkekort');
   });
 
-  it('lar overstyringen på kortet slå begge', () => {
+  it('lets the override on the card beat both', () => {
     const k = kortFor(
       medBilder({ artikkelBilde: media('hoved'), lenkekortBilde: media('lenkekort') }),
       media('overstyrt'),
@@ -228,22 +228,22 @@ describe('bildehierarki i aktuelt', () => {
     expect(k.image?.src).toContain('overstyrt');
   });
 
-  it('gir undefined uten bilde, slik at standardbildet tar over', () => {
+  it('gives undefined without an image, so the default image takes over', () => {
     expect(kortFor(medBilder({})).image).toBeUndefined();
   });
 
-  // Regresjonsvakt for #738: SEO-bildet lekket inn som innhold og ga veiledninger
-  // et bilde ingen hadde valgt. Det skal aldri tilbake.
-  it('bruker ALDRI SEO-bildet', () => {
+  // Regression guard for #738: the SEO image leaked in as content and gave veiledninger
+  // an image nobody had picked. It must never come back.
+  it('NEVER uses the SEO image', () => {
     expect(kortFor(medBilder({ seoBilde: media('seo') })).image).toBeUndefined();
   });
 });
 
-// Aktuelt lar redaktøren peke på alt i innholdstreet, også steg og stegartikler
-// som ligger nestet under en guide. De er ikke med i kildelistene, så URLen
-// deres løses av kalleren og sendes inn via ekstra. Uten dette forsvant kortet
-// stille, og redaktøren fikk ingen beskjed om hvorfor.
-describe('aktuelt med nestet innhold', () => {
+// Aktuelt lets the editor point to anything in the content tree, including steps and stegartikler
+// nested under a guide. They are not in the source lists, so their URL
+// is resolved by the caller and passed in via ekstra. Without this the card disappeared
+// silently, and the editor got no message about why.
+describe('aktuelt with nested content', () => {
   const steg = {
     tittel: 'Finn ut hvilke data du trenger',
     href: '/veiledning/gjoer-dataene-ki-klare/finn-ut-hvilke-data-du-trenger',
@@ -253,18 +253,18 @@ describe('aktuelt med nestet innhold', () => {
   const kortFor = (ekstra?: Map<string, any>) =>
     velgAktuelt(blokk({ kort: [{ id: 'steg-1' }] as any }), { artikler: [], ekstra });
 
-  it('viser kortet når kalleren har løst URLen', () => {
+  it('shows the card when the caller has resolved the URL', () => {
     const r = kortFor(new Map([['steg-1', steg]]));
     expect(r!.kort).toHaveLength(1);
     expect(r!.kort[0].href).toBe(steg.href);
     expect(r!.kort[0].tittel).toBe(steg.tittel);
   });
 
-  it('dropper kortet når verken listene eller ekstra kjenner id-en', () => {
+  it('drops the card when neither the lists nor ekstra know the id', () => {
     expect(kortFor(new Map())).toBeNull();
   });
 
-  it('lar ingress-overstyring vinne også for nestet innhold', () => {
+  it('lets the ingress override win for nested content too', () => {
     const r = velgAktuelt(
       blokk({ kort: [{ id: 'steg-1', ingress: 'Overstyrt' }] as any }),
       { artikler: [], ekstra: new Map([['steg-1', steg]]) },

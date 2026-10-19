@@ -31,11 +31,11 @@ function excerptOf(body: string, max = 220): string {
   return clean.length > max ? clean.slice(0, max).replace(/\s+\S*$/, '') + ' …' : clean;
 }
 
-// Vekting nøkkelord (BM25) vs semantikk, lineært kombinert med minmax-norm.
-// Ingen reranker (holder query-stien in-EU). Høyere LEX favoriserer eksakte
-// ord/titler, høyere SEM betydningslikhet. Vektet mot nøkkelord (var 0.4/0.6)
-// så tittel-/navnesøk ikke havner under semantisk nære, ordmessig svakere
-// treff (#544). Juster ved behov.
+// Weighting keywords (BM25) vs semantics, combined linearly with minmax norm.
+// No reranker (keeps the query path in the EU). Higher LEX favours exact
+// words/titles, higher SEM similarity of meaning. Weighted towards keywords (was 0.4/0.6)
+// so title/name searches do not end up below semantically close, lexically weaker
+// hits (#544). Adjust as needed.
 const LEX_WEIGHT = 0.6;
 const SEM_WEIGHT = 0.4;
 
@@ -63,15 +63,15 @@ function retrieverBody(query: string, size: number) {
   };
 }
 
-// Relevans-gate: semantisk søk finner alltid de nærmeste dokumentene, så tull
-// ("middag") gir alltid treff. BM25 er en ren nøkkelord-match og er 0 når ingen
-// søkeord finnes i innholdet. Vi krever et minimum lexikalsk treff før vi viser
-// resultater. Rå semantisk score duger ikke som gate: E5-similariteter ligger
-// 0.90-0.96 for både relevante og irrelevante søk. Kjent begrensning: engelske
-// søk mot norsk innhold og enkeltstående vanlige ord kan bomme. Juster ved behov.
+// Relevance gate: semantic search always finds the nearest documents, so nonsense
+// ("middag") always gives hits. BM25 is a pure keyword match and is 0 when no
+// search terms exist in the content. We require a minimum lexical hit before we show
+// results. The raw semantic score does not work as a gate: E5 similarities are
+// 0.90-0.96 for both relevant and irrelevant searches. Known limitation: English
+// searches against Norwegian content and single common words can miss. Adjust as needed.
 const LEX_GATE_MIN_SCORE = 1;
 
-// Ren BM25-probe, kun for gate-scoren (size 1, ingen _source).
+// Pure BM25 probe, only for the gate score (size 1, no _source).
 function lexicalGateBody(query: string) {
   return { size: 1, _source: false, query: lexicalQuery(query) };
 }
@@ -99,7 +99,7 @@ export async function hybridSearch(query: string, size = TOP_N): Promise<SearchH
   if (!q) return [];
   if (!isConfigured) return fallbackSearch(q);
 
-  // Ett _msearch-kall: [lexikalsk gate-probe, hybrid rangering] i én rundtur.
+  // One _msearch call: [lexical gate probe, hybrid ranking] in one round trip.
   const ndjson =
     [JSON.stringify({}), JSON.stringify(lexicalGateBody(q)),
      JSON.stringify({}), JSON.stringify(retrieverBody(q, size))].join('\n') + '\n';
@@ -115,14 +115,14 @@ export async function hybridSearch(query: string, size = TOP_N): Promise<SearchH
 
   if (lexResp?.error) throw new Error(`ES msearch probe ${lexResp.status}: ${lexResp.error.type}`);
 
-  // Ingen nøkkelord-forankring i innholdet → behandle som ingen treff (#544).
+  // No keyword anchoring in the content → treat as no hits (#544).
   if ((lexResp?.hits?.max_score ?? 0) < LEX_GATE_MIN_SCORE) return [];
 
   let ranked = hybridResp;
   if (!ranked || ranked.error) {
-    // _msearch svarer 200 selv når én del feiler. Den semantiske modellen skalerer
-    // til null og kaldstarter, og da er BM25 alene bedre enn «Ingen resultater» (#822).
-    console.error('ES hybridsøk feilet, faller tilbake til BM25', {
+    // _msearch answers 200 even when one part fails. The semantic model scales
+    // to zero and cold starts, and then BM25 alone is better than "Ingen resultater" (#822).
+    console.error('ES hybrid search failed, falling back to BM25', {
       status: ranked?.status,
       type: ranked?.error?.type,
       reason: ranked?.error?.reason,
@@ -137,9 +137,9 @@ export async function hybridSearch(query: string, size = TOP_N): Promise<SearchH
 }
 
 // Graceful degradation when ES isn't configured: existing Umbraco search.
-// ES-treffene har ferdig URL fra CMS-et. Her slås stien opp i
-// shared/content-routes.json, med guiden for et steg. Treff uten egen side,
-// som faq, tas ut i stedet for å lenke til en side som ikke finnes.
+// The ES hits have a finished URL from the CMS. Here the path is looked up in
+// shared/content-routes.json, with the guide for a step. Hits without their own page,
+// like faq, are removed instead of linking to a page that does not exist.
 async function fallbackSearch(query: string): Promise<SearchHit[]> {
   const r = await searchContent(query);
   const hits = await Promise.all(

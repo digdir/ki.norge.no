@@ -1,9 +1,9 @@
 /**
- * Deler en tekst i «alt før siste ord» og «siste ord», slik at pil-ikoner
- * kan limes til siste ord med en white-space: nowrap-wrapper (.u-nowrap).
- * Uten dette brekker pilen alene ned på egen linje ved smale bredder (#464).
+ * Splits a text into "everything before the last word" and "the last word", so arrow icons
+ * can be glued to the last word with a white-space: nowrap wrapper (.u-nowrap).
+ * Without this the arrow breaks alone onto its own line at narrow widths (#464).
  *
- * `head` beholder mellomrommet på slutten, så rendering blir
+ * `head` keeps the trailing space, so rendering becomes
  * `{head}<span class="u-nowrap">{last}<ikon /></span>`.
  */
 export function splitLastWord(text: string): { head: string; last: string } {
@@ -14,10 +14,10 @@ export function splitLastWord(text: string): { head: string; last: string } {
 }
 
 /**
- * Lengden på det lengste ordet i en tittel, som CSS-variabelen --lengste-ord.
- * På mobil krymper titler med lange ord akkurat nok til at ordet får plass på
- * én linje, i stedet for å brytes midt i. Bindestrek og tankestrek er
- * bruddpunkter, så de deler ord. Hard bindestrek (U+2011) gjør det ikke.
+ * The length of the longest word in a title, as the CSS variable --lengste-ord.
+ * On mobile, titles with long words shrink just enough for the word to fit on
+ * one line, instead of breaking in the middle. Hyphens and dashes are
+ * break points, so they split words. A non-breaking hyphen (U+2011) does not.
  */
 export function ordlengde(text: string | undefined): string {
   const lengste = Math.max(0, ...(text ?? '').split(/[\s\-\u2010\u2013\u2014\/]+/).map((ord) => Array.from(ord).length));

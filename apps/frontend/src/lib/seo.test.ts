@@ -10,9 +10,9 @@ import {
   collectionPageSchema,
 } from './seo';
 
-// Regresjonsvakt. Modulen leste import.meta.env.SITE_URL, som er
-// http://localhost:4321 i dev og ble bakt inn i prod-bygget. Resultatet var at
-// all strukturert data i produksjon pekte på localhost.
+// Regression guard. The module read import.meta.env.SITE_URL, which is
+// http://localhost:4321 in dev and was baked into the prod build. The result was that
+// all structured data in production pointed to localhost.
 function urlsIn(value: unknown): string[] {
   const found: string[] = [];
   const walk = (node: unknown) => {
@@ -44,8 +44,8 @@ const schemas: Array<[string, unknown]> = [
   ],
 ];
 
-describe('strukturert data bruker det kanoniske domenet', () => {
-  test.each(schemas)('%s lekker ikke localhost', (_name, schema) => {
+describe('structured data uses the canonical domain', () => {
+  test.each(schemas)('%s does not leak localhost', (_name, schema) => {
     const urls = urlsIn(schema);
     expect(urls.length).toBeGreaterThan(0);
     for (const url of urls) {
@@ -53,7 +53,7 @@ describe('strukturert data bruker det kanoniske domenet', () => {
     }
   });
 
-  test.each(schemas)('%s bruker kun ki.norge.no eller schema.org', (_name, schema) => {
+  test.each(schemas)('%s uses only ki.norge.no or schema.org', (_name, schema) => {
     for (const url of urlsIn(schema)) {
       expect(
         url.startsWith(CANONICAL_SITE_URL) || url.startsWith('https://schema.org'),
@@ -63,7 +63,7 @@ describe('strukturert data bruker det kanoniske domenet', () => {
 });
 
 describe('collectionPageSchema', () => {
-  test('teller medlemmer og nummererer posisjoner fra 1', () => {
+  test('counts members and numbers positions from 1', () => {
     const schema = collectionPageSchema({
       name: 'Artikler',
       url: '/artikler',
@@ -79,7 +79,7 @@ describe('collectionPageSchema', () => {
     expect(schema.mainEntity.itemListElement[0].url).toBe(`${CANONICAL_SITE_URL}/artikler/a`);
   });
 
-  test('absolutte lenker beholdes som de er', () => {
+  test('absolute links are kept as they are', () => {
     const schema = collectionPageSchema({
       name: 'Artikler',
       url: '/artikler',
@@ -89,26 +89,26 @@ describe('collectionPageSchema', () => {
     expect(schema.mainEntity.itemListElement[0].url).toBe('https://example.org/a');
   });
 
-  test('beskrivelse utelates når den ikke er satt', () => {
+  test('description is left out when it is not set', () => {
     const schema = collectionPageSchema({ name: 'N', url: '/x', items: [] }) as Record<string, any>;
     expect('description' in schema).toBe(false);
     expect(schema.mainEntity.numberOfItems).toBe(0);
   });
 });
 
-// articleSchema bygde alltid /artikler/{slug}, så de enkle veiledningene og
-// stegartiklene pekte på sider som ikke finnes. Sidene sender nå sin egen sti.
-describe('Article-URL-en er sidens egen sti', () => {
+// articleSchema always built /artikler/{slug}, so the enkle veiledninger and
+// stegartikler pointed to pages that do not exist. The pages now send their own path.
+describe('the Article URL is the page\'s own path', () => {
   test.each([
     ['/artikler/min-artikkel'],
     ['/veiledning/kom-i-gang'],
     ['/veiledning/gjor-dataene-ki-klare/aggregere-data/anonymisere'],
-  ])('articleSchema med %s', (path) => {
+  ])('articleSchema with %s', (path) => {
     const schema = articleSchema({ headline: 'H', description: 'D', path, datePublished: '2026-01-01' });
     expect(schema.url).toBe(`${CANONICAL_SITE_URL}${path}`);
   });
 
-  test('eksempelSchema bruker stien den får', () => {
+  test('eksempelSchema uses the path it receives', () => {
     const schema = eksempelSchema({ headline: 'H', description: 'D', path: '/eksempler/e', datePublished: '2026-01-01' });
     expect(schema.url).toBe(`${CANONICAL_SITE_URL}/eksempler/e`);
   });
@@ -126,7 +126,7 @@ describe('Article-URL-en er sidens egen sti', () => {
     ),
   );
 
-  test('finner kallene i artikkel-, eksempel- og veiledningssidene', () => {
+  test('finds the calls in the artikkel, eksempel and veiledning pages', () => {
     const sider = kall.map(([side]) => side);
     expect(sider).toEqual(
       expect.arrayContaining([
@@ -138,7 +138,7 @@ describe('Article-URL-en er sidens egen sti', () => {
     );
   });
 
-  test.each(kall)('%s sender stien den selv har, samme som canonical', (_side, argumenter) => {
+  test.each(kall)('%s sends its own path, same as canonical', (_side, argumenter) => {
     expect(argumenter).toContain('path: Astro.url.pathname');
   });
 });

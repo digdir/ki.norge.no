@@ -3,15 +3,15 @@ import { readFileSync } from 'node:fs';
 import { sammenlignPublisertDato, velgPublisertDato } from './umbraco';
 
 /**
- * «Publisert»-datoen skal komme fra createDate, aldri fra updateDate.
+ * The "Publisert" date must come from createDate, never from updateDate.
  *
- * Med updateDate flyttet datoen seg hver gang en redaktør rettet en skrivefeil.
- * Målt i prod hadde 5 av 36 daterte noder over 30 dagers avvik, den verste 88
- * dager: en artikkel opprettet 11. juni viste 8. september.
+ * With updateDate the date moved every time an editor fixed a typo.
+ * Measured in prod, 5 of 36 dated nodes were off by more than 30 days, the worst by 88
+ * days: an article created on 11 June showed 8 September.
  *
- * Statiske sjekker framfor render-tester, samme begrunnelse som i
- * jsonld-plassering.test.ts: feilen er strukturell og synlig i kilden, og
- * forrangen i ArticleLayout kan låses uten å rendre en Astro-komponent.
+ * Static checks rather than render tests, same reasoning as in
+ * jsonld-plassering.test.ts: the bug is structural and visible in the source, and
+ * the precedence in ArticleLayout can be locked without rendering an Astro component.
  */
 
 const umbracoKilde = readFileSync(new URL('./umbraco.ts', import.meta.url).pathname, 'utf-8');
@@ -20,47 +20,47 @@ const articleLayoutKilde = readFileSync(
   'utf-8',
 );
 
-describe('publishedAt-kilden', () => {
-  test('ingen publishedAt hentes fra updateDate', () => {
+describe('the publishedAt source', () => {
+  test('no publishedAt is taken from updateDate', () => {
     const treff = umbracoKilde
       .split('\n')
       .map((linje, i) => ({ linje: linje.trim(), nr: i + 1 }))
       .filter(({ linje }) => /^publishedAt:\s*[A-Za-z_$][\w$.]*\.updateDate\b/.test(linje));
 
-    expect(treff.map((t) => `linje ${t.nr}: ${t.linje}`)).toEqual([]);
+    expect(treff.map((t) => `line ${t.nr}: ${t.linje}`)).toEqual([]);
   });
 
-  test('publishedAt tilordnes bare fra godkjente kilder', () => {
-    // Enten den rå createDate, eller den løste kjeden i velgPublisertDato, eller
-    // base.publishedAt som selv er createDate. Aldri noe annet.
+  test('publishedAt is only assigned from approved sources', () => {
+    // Either the raw createDate, or the resolved chain in velgPublisertDato, or
+    // base.publishedAt which is itself createDate. Never anything else.
     const godkjent = /(\.createDate\b|velgPublisertDato\(|base\.publishedAt\b)/;
     const linjer = umbracoKilde.split('\n').map((l) => l.trim());
 
     const tilordninger = linjer
       .map((linje, i) => {
         if (!/^publishedAt:/.test(linje)) return null;
-        // Typeerklæringer i interface-ene er ikke tilordninger.
+        // Type declarations in the interfaces are not assignments.
         if (/^publishedAt\??:\s*(string|number)\s*;?$/.test(linje)) return null;
-        // Verdien kan ligge på linja under når uttrykket er brutt.
+        // The value can be on the line below when the expression is wrapped.
         return linje === 'publishedAt:' ? `${linje} ${linjer[i + 1] ?? ''}` : linje;
       })
       .filter((l): l is string => l !== null);
 
-    // Minst mapItem, veiledningGuide, kalenderhendelse og søketreffet.
+    // At least mapItem, veiledningGuide, kalenderhendelse and the search hit.
     expect(tilordninger.length).toBeGreaterThanOrEqual(4);
     expect(tilordninger.filter((t) => !godkjent.test(t))).toEqual([]);
   });
 });
 
-describe('byline-datoen vinner over publishedAt', () => {
-  test('ArticleLayout beholder forrangen', () => {
-    // Redaktøren kan overstyre datoen i artikkelByline-blokka. Den skal vinne
-    // også etter at publishedAt byttet kilde, ellers mister redaksjonen den
-    // eneste måten å sette en dato selv.
+describe('the byline date wins over publishedAt', () => {
+  test('ArticleLayout keeps the precedence', () => {
+    // The editor can override the date in the artikkelByline block. It must win
+    // also after publishedAt changed source, otherwise the editorial team loses the
+    // only way to set a date themselves.
     expect(articleLayoutKilde).toMatch(/byline\?\.dato\s*\|\|\s*publishedAt/);
   });
 
-  test('forrangen står før datoformateringen', () => {
+  test('the precedence comes before the date formatting', () => {
     const iForrang = articleLayoutKilde.indexOf('byline?.dato');
     const iFormat = articleLayoutKilde.indexOf('toLocaleDateString');
     expect(iForrang).toBeGreaterThan(-1);
@@ -68,7 +68,7 @@ describe('byline-datoen vinner over publishedAt', () => {
   });
 });
 
-describe('velgPublisertDato: rekkefoelgen', () => {
+describe('velgPublisertDato: the order', () => {
   const OPPRETTET = '2026-06-01T10:00:00Z';
   const BYLINE = '2026-07-01T10:00:00Z';
   const OVERSTYRT = '2026-08-01T10:00:00Z';
@@ -77,7 +77,7 @@ describe('velgPublisertDato: rekkefoelgen', () => {
     { contentType: 'artikkelByline', content: { dato } },
   ];
 
-  test('publisertDato vinner over baade byline og opprettet', () => {
+  test('publisertDato wins over both byline and created', () => {
     expect(
       velgPublisertDato({
         publisertDato: OVERSTYRT,
@@ -87,28 +87,28 @@ describe('velgPublisertDato: rekkefoelgen', () => {
     ).toBe(OVERSTYRT);
   });
 
-  test('byline vinner naar publisertDato staar tom', () => {
+  test('byline wins when publisertDato is empty', () => {
     expect(
       velgPublisertDato({ publisertDato: '', publishedAt: OPPRETTET, innhold: medByline(BYLINE) }),
     ).toBe(BYLINE);
   });
 
-  test('opprettet brukes naar ingen av de to er satt', () => {
+  test('created is used when neither of the two is set', () => {
     expect(
       velgPublisertDato({ publisertDato: '', publishedAt: OPPRETTET, innhold: medByline('') }),
     ).toBe(OPPRETTET);
   });
 
-  test('tom streng og bare mellomrom teller som ikke satt', () => {
+  test('empty string and only spaces count as not set', () => {
     expect(velgPublisertDato({ publisertDato: '   ', publishedAt: OPPRETTET })).toBe(OPPRETTET);
   });
 
-  test('uten noen dato i det hele tatt gir undefined', () => {
+  test('no date at all gives undefined', () => {
     expect(velgPublisertDato({})).toBeUndefined();
     expect(velgPublisertDato(null)).toBeUndefined();
   });
 
-  test('sortering bruker samme kjede, nyeste foerst, udaterte sist', () => {
+  test('sorting uses the same chain, newest first, undated last', () => {
     const a = { publishedAt: OPPRETTET };
     const b = { publisertDato: OVERSTYRT, publishedAt: OPPRETTET };
     const c = {};

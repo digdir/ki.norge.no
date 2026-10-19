@@ -1,18 +1,18 @@
 /**
- * Stikonvertering mellom en vanlig side og markdown-varianten.
+ * Path conversion between a regular page and its markdown variant.
  *
- * Ligger i en EGEN modul, uten importer, med vilje. Funksjonene bodde tidligere
- * i html-to-markdown.ts, som importerer linkedom. Da webmcp.ts hentet
- * markdownPathFor derfra, fulgte hele linkedom med inn i klient-bundlen, og
- * hver besøkende lastet ned en DOM-implementasjon for å bruke to strengfunksjoner.
- * WebMCP er dessuten en no-op i nesten alle nettlesere, så byten ble aldri brukt.
+ * Lives in a SEPARATE module, without imports, on purpose. The functions used to live
+ * in html-to-markdown.ts, which imports linkedom. When webmcp.ts fetched
+ * markdownPathFor from there, all of linkedom came along into the client bundle, and
+ * every visitor downloaded a DOM implementation to use two string functions.
+ * WebMCP is also a no-op in almost all browsers, so the bytes were never used.
  *
- * Legg ingenting hit som trenger DOM eller andre moduler.
+ * Put nothing here that needs the DOM or other modules.
  */
 
 /**
- * Stien en agent kan hente som markdown med sin egen cache-nøkkel.
- * `/veiledning` -> `/veiledning.md`, forsiden -> `/index.md`.
+ * The path an agent can fetch as markdown with its own cache key.
+ * `/veiledning` -> `/veiledning.md`, the front page -> `/index.md`.
  */
 export function markdownPathFor(pathname: string): string {
   const clean = pathname.replace(/\/+$/, '');
@@ -20,8 +20,8 @@ export function markdownPathFor(pathname: string): string {
 }
 
 /**
- * Motsatt vei. Returnerer null når stien ikke er en markdown-variant, slik at
- * middleware kan la alt annet gå urørt.
+ * The opposite direction. Returns null when the path is not a markdown variant, so
+ * middleware can leave everything else untouched.
  */
 export function pathFromMarkdownPath(pathname: string): string | null {
   if (!pathname.endsWith('.md')) return null;

@@ -2,9 +2,9 @@ import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
 import contentRoutesConfig from '../../../../shared/content-routes.json';
 import { resolveContentUrl, fetchAllPublishedContent } from './umbraco';
 
-// resolveContentUrl og fetchAllPublishedContent kaller Delivery API via global
-// fetch. Vi mocker fetch for ancestor-oppslag og for paginering. Flate
-// content-typer slår ikke opp ancestors, så for dem trengs ingen fetch.
+// resolveContentUrl and fetchAllPublishedContent call the Delivery API via global
+// fetch. We mock fetch for ancestor lookups and for pagination. Flat
+// content types do not look up ancestors, so they need no fetch.
 
 function jsonResponse(body: unknown) {
   return { ok: true, status: 200, json: async () => body } as unknown as Response;
@@ -24,7 +24,7 @@ describe('resolveContentUrl', () => {
     global.fetch = realFetch;
   });
 
-  test('flat type resolver til {slug}-sti uten ancestor-oppslag', async () => {
+  test('a flat type resolves to a {slug} path without an ancestor lookup', async () => {
     const fetchSpy = vi.fn();
     global.fetch = fetchSpy as unknown as typeof fetch;
 
@@ -38,7 +38,7 @@ describe('resolveContentUrl', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  test('kalenderhendelse resolver til /kalender/{slug}', async () => {
+  test('kalenderhendelse resolves to /kalender/{slug}', async () => {
     const url = await resolveContentUrl({
       contentType: 'kalenderhendelse',
       id: '1',
@@ -47,12 +47,12 @@ describe('resolveContentUrl', () => {
     expect(url).toBe('/kalender/markedsdialog');
   });
 
-  test('singleton-type resolver til fast sti', async () => {
+  test('a singleton type resolves to a fixed path', async () => {
     expect(await resolveContentUrl({ contentType: 'forside', id: '1', properties: {} })).toBe('/');
     expect(await resolveContentUrl({ contentType: 'omOss', id: '2', properties: {} })).toBe('/om-oss');
   });
 
-  test('ukjent content type gir null (ingen rute)', async () => {
+  test('an unknown content type gives null (no route)', async () => {
     const url = await resolveContentUrl({
       contentType: 'globaleInnstillinger',
       id: '1',
@@ -61,7 +61,7 @@ describe('resolveContentUrl', () => {
     expect(url).toBeNull();
   });
 
-  test('nested type henter ancestors og bygger full sti', async () => {
+  test('a nested type fetches ancestors and builds the full path', async () => {
     global.fetch = vi.fn(async (input: unknown) => {
       expect(String(input)).toContain('fetch=ancestors:42');
       return jsonResponse({
@@ -81,7 +81,7 @@ describe('resolveContentUrl', () => {
     expect(url).toBe('/veiledning/guide-a/steg-1/artikkel-x');
   });
 
-  test('nested type uten ancestors gir null', async () => {
+  test('a nested type without ancestors gives null', async () => {
     global.fetch = vi.fn(async () => jsonResponse({ total: 0, items: [] })) as unknown as typeof fetch;
 
     const url = await resolveContentUrl({
@@ -92,9 +92,9 @@ describe('resolveContentUrl', () => {
     expect(url).toBeNull();
   });
 
-  describe('dekker hver rute i content-routes.json', () => {
-    // Med korrekte ancestors skal hver type i fila gi en gyldig sti, aldri null.
-    test.each(Object.keys(contentRoutesConfig.routes))('%s gir en sti (ikke null)', async (type) => {
+  describe('covers every route in content-routes.json', () => {
+    // With correct ancestors every type in the file must give a valid path, never null.
+    test.each(Object.keys(contentRoutesConfig.routes))('%s gives a path (not null)', async (type) => {
       global.fetch = vi.fn(async () =>
         jsonResponse({
           total: 2,
@@ -118,7 +118,7 @@ describe('fetchAllPublishedContent', () => {
     global.fetch = realFetch;
   });
 
-  test('paginerer til total er hentet (andre side blir ikke kuttet)', async () => {
+  test('paginates until total is fetched (the second page is not cut)', async () => {
     const total = 150;
     const fetchSpy = vi.fn(async (input: unknown) => {
       const url = new URL(String(input));
@@ -141,11 +141,11 @@ describe('fetchAllPublishedContent', () => {
 
     expect(nodes).toHaveLength(total);
     expect(nodes[0].id).toBe('id-0');
-    expect(nodes[total - 1].id).toBe('id-149'); // bevart fra andre side
+    expect(nodes[total - 1].id).toBe('id-149'); // kept from the second page
     expect(fetchSpy).toHaveBeenCalledTimes(2); // 100 + 50
   });
 
-  test('en feilende side stopper crawlen uten å kaste', async () => {
+  test('a failing page stops the crawl without throwing', async () => {
     global.fetch = vi.fn(async () => ({ ok: false, status: 500 } as unknown as Response)) as unknown as typeof fetch;
     await expect(fetchAllPublishedContent()).resolves.toEqual([]);
   });

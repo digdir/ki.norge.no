@@ -22,13 +22,13 @@ describe('pathFromMarkdownPath', () => {
   });
 
   test.each(['/veiledning', '/', '/llms.txt', '/robots.txt', '/bilde.md.png'])(
-    '%s er ikke en markdown-sti',
+    '%s is not a markdown path',
     (input) => {
       expect(pathFromMarkdownPath(input)).toBeNull();
     },
   );
 
-  test('rundtur er stabil for vanlige sider', () => {
+  test('round trip is stable for regular pages', () => {
     for (const path of ['/veiledning', '/artikler/a', '/']) {
       expect(pathFromMarkdownPath(markdownPathFor(path))).toBe(path);
     }

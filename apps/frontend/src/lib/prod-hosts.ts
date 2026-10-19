@@ -1,17 +1,17 @@
-// Kanonisk produksjons-URL for portalen. Brukes som loc-base i sitemap og
-// som canonical-pekepinn i strukturert data.
+// Canonical production URL for the portal. Used as the loc base in the sitemap and
+// as the canonical pointer in structured data.
 //
-// Hardkodet med vilje. SITE_URL fra .env settes til http://localhost:4321 i
-// dev, og blir bakt inn i prod-byggene hvis vi leser den derfra. Det
-// kanoniske domenet er ki.norge.no uansett miljø, så det hører hjemme her.
+// Hardcoded on purpose. SITE_URL from .env is set to http://localhost:4321 in
+// dev, and gets baked into the prod builds if we read it from there. The
+// canonical domain is ki.norge.no regardless of environment, so it belongs here.
 export const CANONICAL_SITE_URL = 'https://ki.norge.no';
 
-// Verter som regnes som "produksjon" når en innkommende request skal vurderes.
-// Brukes til å bestemme om responser (robots.txt, sitemap.xml) skal peke på det
-// kanoniske domenet eller på request-origin (lokal dev, tt02-preview osv.).
+// Hosts that count as "production" when an incoming request is evaluated.
+// Used to decide whether responses (robots.txt, sitemap.xml) should point to the
+// canonical domain or to the request origin (local dev, tt02 preview etc.).
 //
-// Hold denne synkronisert på tvers av endepunkter. Begge `robots.txt.ts` og
-// `sitemap.xml.ts` importerer herfra.
+// Keep this in sync across endpoints. Both `robots.txt.ts` and
+// `sitemap.xml.ts` import from here.
 export const PROD_HOSTS = new Set<string>([
   'ki.norge.no',
   'www.ki.norge.no',

@@ -1,21 +1,21 @@
 /**
- * Gjør en eksport fra KI-tiltaksregisteret om til ki-tiltak.json. Brukes av
- * scripts/klargjor-ki-tiltak.mjs. Bare rene funksjoner her, så de kan testes.
+ * Turns an export from the KI-tiltak register into ki-tiltak.json. Used by
+ * scripts/klargjor-ki-tiltak.mjs. Only pure functions here, so they can be tested.
  *
- * Importen har .ts-endelse fordi skriptet kjøres rett med node, som ikke
- * gjetter endelser.
+ * The import has a .ts extension because the script runs directly with node, which doesn't
+ * guess extensions.
  */
 import { FAGOMRADER, FASER, KI_TYPER, LEVERANSER } from './ki-tiltak-verdier.ts';
 
 export type Tiltak = Record<string, unknown> & { id: string; navn: string };
 
-/** Registerets skrivemåter som betyr det samme som våre verdier. */
+/** The register's spellings that mean the same as our values. */
 export const VARIANTER: Record<string, string> = {
   'Språkteknologi (NLP)': 'Språkteknologi',
   'Fullskala / produksjonssatt': 'Løsning i produksjon',
 };
 
-/** Feltene med faste verdier, og hvilke verdier som er gyldige. */
+/** The fields with fixed values, and which values are valid. */
 const GYLDIGE: Record<string, readonly string[]> = {
   fagomrade: FAGOMRADER,
   fase: FASER,
@@ -23,7 +23,7 @@ const GYLDIGE: Record<string, readonly string[]> = {
   leveranse: LEVERANSER,
 };
 
-/** Rekkefølgen feltene skrives i, som i eksporten. Ukjente felt kommer sist. */
+/** The order the fields are written in, as in the export. Unknown fields come last. */
 const FELTREKKEFOLGE = [
   'id',
   'navn',
@@ -42,8 +42,8 @@ const FELTREKKEFOLGE = [
 const erNA = (tekst: string) => /^n\/?a$/i.test(tekst.trim());
 
 /**
- * «NA» eller «N/A» som hele verdien blir null. Står NA som en bit i en tekst
- * skilt med «;», fjernes biten med skilletegnet, og resten står urørt.
+ * "NA" or "N/A" as the whole value becomes null. If NA is a part of a text
+ * separated by ";", the part is removed with its separator, and the rest is left untouched.
  */
 export function utenNA(verdi: string): { verdi: string | null; rettet: number } {
   if (erNA(verdi)) return { verdi: null, rettet: 1 };
@@ -68,7 +68,7 @@ export interface Bytte {
   til: string;
 }
 
-/** NA og registerets varianter, felt for felt. Endrer ikke input. */
+/** NA and the register's variants, field by field. Does not modify the input. */
 export function rensTiltak(tiltak: Tiltak): { tiltak: Tiltak; naRettet: number; byttet: Bytte[] } {
   let naRettet = 0;
   const byttet: Bytte[] = [];
@@ -98,7 +98,7 @@ export function rensTiltak(tiltak: Tiltak): { tiltak: Tiltak; naRettet: number; 
   return { tiltak: ut, naRettet, byttet };
 }
 
-/** Verdier i de faste feltene som ikke finnes i skjemaet eller begrepslista. */
+/** Values in the fixed fields that are not in the form or the term list. */
 export function ukjenteVerdier(tiltak: Tiltak): { felt: string; verdi: string }[] {
   const ukjente: { felt: string; verdi: string }[] = [];
   for (const [felt, gyldige] of Object.entries(GYLDIGE)) {
@@ -111,9 +111,9 @@ export function ukjenteVerdier(tiltak: Tiltak): { felt: string; verdi: string }[
 }
 
 /**
- * Én overstyring per id. `sett` erstatter hele felt. `erstatt` bytter en
- * tekstbit i et felt, for små rettinger som ikke skal låse resten av teksten.
- * `tiltak` og `hvorfor` er bare for den som leser fila.
+ * One override per id. `sett` replaces whole fields. `erstatt` replaces a
+ * piece of text in a field, for small fixes that should not lock the rest of the text.
+ * `tiltak` and `hvorfor` are only for whoever reads the file.
  */
 export interface Overstyring {
   tiltak?: string;
@@ -130,9 +130,9 @@ export interface Brukt {
 }
 
 /**
- * Legger overstyringene på. Felt som allerede har verdien, og tekstbiter som
- * ikke finnes lenger, havner i `uendret`, så det synes når en overstyring kan
- * fjernes.
+ * Applies the overrides. Fields that already have the value, and text pieces that
+ * no longer exist, end up in `uendret`, so it shows when an override can
+ * be removed.
  */
 export function brukOverstyringer(
   tiltak: Tiltak[],
@@ -167,7 +167,7 @@ export function brukOverstyringer(
   return { tiltak: ut, brukt, ukjenteId: Object.keys(overstyringer).filter((id) => !ider.has(id)) };
 }
 
-/** Feltene i fast rekkefølge, så fila blir lik fra gang til gang. */
+/** The fields in a fixed order, so the file is the same from run to run. */
 export function sorterFelt(tiltak: Tiltak): Tiltak {
   const kjente = FELTREKKEFOLGE.filter((f) => f in tiltak);
   const andre = Object.keys(tiltak).filter((f) => !FELTREKKEFOLGE.includes(f));
@@ -176,7 +176,7 @@ export function sorterFelt(tiltak: Tiltak): Tiltak {
 
 const somListe = (verdi: unknown): unknown[] => (Array.isArray(verdi) ? verdi : [verdi]);
 
-/** Orgnr i dataene som mangler i navnetabellen, med navnet eksporten bruker. */
+/** Orgnr in the data that are missing from the name table, with the name the export uses. */
 export function orgnrUtenNavn(
   tiltak: Tiltak[],
   navnetabell: Record<string, string>,
@@ -204,7 +204,7 @@ export interface Resultat {
   utenFagomrade: string[];
 }
 
-/** Hele løpet: rens, overstyr, sjekk og sorter felt. */
+/** The whole pipeline: clean, override, check and sort fields. */
 export function klargjor(
   eksport: Tiltak[],
   overstyringer: Record<string, Overstyring>,
@@ -231,5 +231,5 @@ export function klargjor(
   };
 }
 
-/** Formatert som ki-tiltak.json: to mellomrom og linjeskift til slutt. */
+/** Formatted like ki-tiltak.json: two spaces and a trailing line break. */
 export const tilJson = (tiltak: Tiltak[]) => `${JSON.stringify(tiltak, null, 2)}\n`;

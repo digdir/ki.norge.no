@@ -10,18 +10,18 @@ afterEach(() => {
 });
 
 describe('clientKey', () => {
-  test('bruker CF-Connecting-IP, som Cloudflare setter og klienten ikke kan overstyre', () => {
+  test('uses CF-Connecting-IP, which Cloudflare sets and the client cannot override', () => {
     const request = new Request('https://ki.norge.no/api/ki-tiltak', {
       headers: { 'CF-Connecting-IP': '203.0.113.7' },
     });
     expect(clientKey(request)).toBe('203.0.113.7');
   });
 
-  test('faller tilbake til én felles bøtte uten headeren', () => {
+  test('falls back to one shared bucket without the header', () => {
     expect(clientKey(new Request('https://ki.norge.no/api/ki-tiltak'))).toBe('ukjent');
   });
 
-  test('ignorerer X-Forwarded-For, som klienten kan finne på selv', () => {
+  test('ignores X-Forwarded-For, which the client can make up', () => {
     const request = new Request('https://ki.norge.no/api/ki-tiltak', {
       headers: { 'X-Forwarded-For': '203.0.113.9' },
     });
@@ -30,7 +30,7 @@ describe('clientKey', () => {
 });
 
 describe('withinRateLimit', () => {
-  test('slipper gjennom uten binding, slik at node-adapteren i dev og testene virker', async () => {
+  test('lets through without a binding, so the node adapter in dev and the tests work', async () => {
     const request = new Request('https://ki.norge.no/api/search', {
       headers: { 'CF-Connecting-IP': '203.0.113.7' },
     });

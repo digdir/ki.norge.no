@@ -1,42 +1,42 @@
 /**
- * Sender e-post gjennom Exchange Online via Microsoft Graph, med
- * client credentials. Appregistreringen er satt opp av drift, og
- * Mail.Send er avgrenset til én postboks med RBAC for Applications.
+ * Sends email through Exchange Online via Microsoft Graph, with
+ * client credentials. The app registration was set up by operations, and
+ * Mail.Send is restricted to one mailbox with RBAC for Applications.
  *
- * Ingen DNS-oppsett er nødvendig: vi sender gjennom postboksen, ikke på vegne
- * av domenet utenfra, så eksisterende SPF og DKIM på kin.norge.no gjelder.
+ * No DNS setup is needed: we send through the mailbox, not on behalf
+ * of the domain from outside, so the existing SPF and DKIM on kin.norge.no apply.
  */
 
-// Samme mønster som src/lib/search.ts. Tenant og klient-id er identifikatorer,
-// ikke hemmeligheter, og ligger i vars. Bare GRAPH_CLIENT_SECRET er en secret.
+// Same pattern as src/lib/search.ts. Tenant and client id are identifiers,
+// not secrets, and live in vars. Only GRAPH_CLIENT_SECRET is a secret.
 const TENANT_ID: string = process.env.GRAPH_TENANT_ID || import.meta.env.GRAPH_TENANT_ID || '';
 const CLIENT_ID: string = process.env.GRAPH_CLIENT_ID || import.meta.env.GRAPH_CLIENT_ID || '';
 const CLIENT_SECRET: string = process.env.GRAPH_CLIENT_SECRET || import.meta.env.GRAPH_CLIENT_SECRET || '';
 const MAILBOX: string = process.env.KI_TILTAK_MAILBOX || import.meta.env.KI_TILTAK_MAILBOX || '';
 /**
- * Hvem innsendingen havner hos. Skilt fra MAILBOX med vilje.
+ * Who the submission goes to. Separate from MAILBOX on purpose.
  *
- * Avsenderen er låst: RBAC-tildelingen fra drift gir appen rett til å sende
- * som nøyaktig den ene postboksen, og ingenting annet. Mottakeren er derimot
- * fri, og bør kunne endres uten kodeendring. Da kan redaksjonen bytte til en
- * distribusjonsliste, eller legge til flere, uten en ny deploy.
+ * The sender is locked: the RBAC assignment from operations gives the app the right to send
+ * as exactly that one mailbox, and nothing else. The recipient, on the other hand, is
+ * free, and should be changeable without a code change. Then the editors can switch to a
+ * distribution list, or add more, without a new deploy.
  *
- * Uten variabelen sender postboksen til seg selv, som er den opprinnelige
- * oppførselen.
+ * Without the variable the mailbox sends to itself, which is the original
+ * behaviour.
  */
 const RECIPIENTS: string =
   process.env.KI_TILTAK_RECIPIENTS || import.meta.env.KI_TILTAK_RECIPIENTS || MAILBOX;
 
 /**
- * Sann bare når alt er på plass. Logges som boolsk tilstedeværelse, aldri som
- * lengde eller innhold, siden CodeQL sporer verdier avledet av en secret til
- * loggen (cs/cleartext-logging).
+ * True only when everything is in place. Logged as boolean presence, never as
+ * length or content, since CodeQL tracks values derived from a secret to
+ * the log (cs/cleartext-logging).
  */
 export const emailIsConfigured = Boolean(TENANT_ID && CLIENT_ID && CLIENT_SECRET && MAILBOX);
 
 export const mailboxAddress = MAILBOX;
 
-/** Komma- eller semikolonseparert liste, slik at flere mottakere er mulig. */
+/** Comma- or semicolon-separated list, so that several recipients are possible. */
 function recipientList(): { emailAddress: { address: string } }[] {
   return RECIPIENTS.split(/[,;]/)
     .map((address) => address.trim())
@@ -49,9 +49,9 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Kortlevd token per innsending. Tokenet varer omtrent en time, men skjemaet
- * brukes sjelden, så en ekstra rundtur koster lite sammenlignet med å holde
- * delt, foranderlig tilstand i en Worker-isolat.
+ * Short-lived token per submission. The token lasts about an hour, but the form
+ * is rarely used, so an extra round trip costs little compared to holding
+ * shared, mutable state in a Worker isolate.
  */
 async function getToken(): Promise<string | null> {
   const response = await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`, {
@@ -68,16 +68,16 @@ async function getToken(): Promise<string | null> {
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // Bare feilkoden, ikke beskrivelsen. Koden sier hva som er galt
-    // (invalid_client betyr som regel utløpt eller feil secret) uten å ta med
-    // tekst som stammer fra forespørselen der hemmeligheten lå.
-    const code = isObject(data) && typeof data.error === 'string' ? data.error : 'ukjent';
-    console.error('[ki-tiltak] token-forespørsel feilet', { status: response.status, code });
+    // Only the error code, not the description. The code says what is wrong
+    // (invalid_client usually means an expired or wrong secret) without including
+    // text that originates from the request the secret was in.
+    const code = isObject(data) && typeof data.error === 'string' ? data.error : 'unknown';
+    console.error('[ki-tiltak] token request failed', { status: response.status, code });
     return null;
   }
 
   if (!isObject(data) || typeof data.access_token !== 'string') {
-    console.error('[ki-tiltak] token-svaret manglet access_token');
+    console.error('[ki-tiltak] token response was missing access_token');
     return null;
   }
   return data.access_token;
@@ -85,13 +85,13 @@ async function getToken(): Promise<string | null> {
 
 export interface SendResult {
   ok: boolean;
-  /** Kort maskinlesbar årsak. Sendes aldri videre til nettleseren som den er. */
+  /** Short machine-readable reason. Never passed on to the browser as is. */
   reason?: 'not-configured' | 'token' | 'graph';
 }
 
 /**
- * Sender én e-post fra postboksen til seg selv, med innsenderens adresse som
- * Reply-To. Redaktøren kan da svare direkte til den som meldte inn tiltaket.
+ * Sends one email from the mailbox to itself, with the submitter's address as
+ * Reply-To. The editor can then reply directly to whoever submitted the tiltak.
  */
 export async function sendTiltakEmail(
   subject: string,
@@ -111,8 +111,8 @@ export async function sendTiltakEmail(
       body: JSON.stringify({
         message: {
           subject: subject,
-          // Ren tekst med vilje. Da finnes det ingen vei fra innsendt tekst til
-          // markup i e-postklienten, og ingenting må escapes.
+          // Plain text on purpose. Then there is no path from submitted text to
+          // markup in the email client, and nothing has to be escaped.
           body: { contentType: 'Text', content: text },
           toRecipients: recipientList(),
           replyTo: [{ emailAddress: { address: svarTil } }],
@@ -122,9 +122,9 @@ export async function sendTiltakEmail(
     },
   );
 
-  // Graph svarer 202 Accepted når meldingen er lagt i kø.
+  // Graph answers 202 Accepted when the message has been queued.
   if (response.status !== 202) {
-    console.error('[ki-tiltak] sendMail feilet', { status: response.status });
+    console.error('[ki-tiltak] sendMail failed', { status: response.status });
     return { ok: false, reason: 'graph' };
   }
   return { ok: true };

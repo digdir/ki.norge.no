@@ -1,20 +1,20 @@
 /**
- * Hastighetsgrense for de offentlige API-rutene, bygget på Cloudflares
- * innebygde rate limiting-binding.
+ * Rate limit for the public API routes, built on Cloudflare's
+ * built-in rate limiting binding.
  *
- * Hvorfor bindingen og ikke en WAF-regel i dashbordet: rate limiting-regler
- * gjelder per sone, og workeren serveres fra workers.dev fram til DNS for
- * ki.norge.no er satt opp. Bindingen kjører inne i workeren og virker derfor
- * allerede i dag. Legg gjerne en soneregel utenpå senere, den avviser før
- * workeren i det hele tatt starter.
+ * Why the binding and not a WAF rule in the dashboard: rate limiting rules
+ * apply per zone, and the worker is served from workers.dev until DNS for
+ * ki.norge.no is set up. The binding runs inside the worker and therefore works
+ * already today. Feel free to add a zone rule in front later, it rejects before
+ * the worker even starts.
  *
- * Cloudflare beskriver bindingen som «permissive, eventually consistent», og
- * tellerne er lokale til hvert datasenter, ikke globale. Det holder her:
- * trafikken vår lander i praksis i én til to colo-er, og formålet er å bremse
- * masseinnsending, ikke å føre nøyaktig regnskap.
+ * Cloudflare describes the binding as "permissive, eventually consistent", and
+ * the counters are local to each data centre, not global. That is enough here:
+ * our traffic in practice lands in one or two colos, and the purpose is to slow down
+ * mass submission, not to keep exact accounts.
  */
 
-/** Bindingens form. Vi bruker bare limit(), så resten er utelatt. */
+/** The shape of the binding. We only use limit(), so the rest is left out. */
 export interface RateLimiter {
   limit(options: { key: string }): Promise<{ success: boolean }>;
 }
@@ -26,13 +26,13 @@ interface WorkerBindings {
 
 export type LimiterName = keyof WorkerBindings;
 
-/** undefined betyr «ikke forsøkt ennå», null betyr «finnes ikke her». */
+/** undefined means "not tried yet", null means "does not exist here". */
 let cachedBindings: WorkerBindings | null | undefined;
 
 /**
- * Bindinger finnes bare i workerd. Importen er dynamisk og pakket inn, slik at
- * node-adapteren i dev (DEV_USE_NODE=1) og unit-testene faller gjennom til null
- * i stedet for å kræsje på en modul som ikke finnes der.
+ * Bindings only exist in workerd. The import is dynamic and wrapped, so that
+ * the node adapter in dev (DEV_USE_NODE=1) and the unit tests fall through to null
+ * instead of crashing on a module that doesn't exist there.
  */
 async function loadBindings(): Promise<WorkerBindings | null> {
   if (cachedBindings !== undefined) return cachedBindings;
@@ -47,20 +47,20 @@ async function loadBindings(): Promise<WorkerBindings | null> {
 }
 
 /**
- * Nøkkelen vi teller på. CF-Connecting-IP settes av Cloudflare og kan ikke
- * overstyres av klienten. Uten header havner alle i samme bøtte, som er den
- * strenge varianten og bare gjelder utenfor Cloudflare.
+ * The key we count on. CF-Connecting-IP is set by Cloudflare and cannot be
+ * overridden by the client. Without the header everyone ends up in the same bucket, which is the
+ * strict variant and only applies outside Cloudflare.
  */
 export function clientKey(request: Request): string {
   return request.headers.get('CF-Connecting-IP') || 'ukjent';
 }
 
 /**
- * Sant når kallet skal slippe gjennom.
+ * True when the call should be let through.
  *
- * Slipper med vilje gjennom når bindingen mangler eller feiler. En manglende
- * grense skal ikke ta ned skjemaet eller søket, og alvorligheten er lav: dette
- * er en bremse, ikke en tilgangskontroll.
+ * Deliberately lets through when the binding is missing or fails. A missing
+ * limit should not take down the form or the search, and the severity is low: this
+ * is a brake, not an access control.
  */
 export async function withinRateLimit(name: LimiterName, request: Request): Promise<boolean> {
   const bindings = await loadBindings();
@@ -71,7 +71,7 @@ export async function withinRateLimit(name: LimiterName, request: Request): Prom
     const { success } = await limiter.limit({ key: clientKey(request) });
     return success;
   } catch {
-    console.error('[rate-limit] bindingen svarte ikke, slipper gjennom', { limiter: name });
+    console.error('[rate-limit] the binding did not respond, letting through', { limiter: name });
     return true;
   }
 }

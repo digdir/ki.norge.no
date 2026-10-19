@@ -2,24 +2,24 @@ import { describe, expect, test } from 'vitest';
 import { footerLenke6 } from './footer';
 
 describe('footerLenke6', () => {
-  test('tekst og URL satt gir oppføringen', () => {
+  test('text and URL set gives the entry', () => {
     expect(footerLenke6({ footerLenke6Tekst: 'Ledige stillinger', footerLenke6Url: '/ledige-stillingar' }))
       .toEqual({ text: 'Ledige stillinger', url: '/ledige-stillingar' });
   });
 
-  test('tom gir ingen oppføring, og ingen fallback', () => {
+  test('empty gives no entry, and no fallback', () => {
     expect(footerLenke6({})).toBeNull();
     expect(footerLenke6({ footerLenke6Tekst: '', footerLenke6Url: '' })).toBeNull();
     expect(footerLenke6(null)).toBeNull();
     expect(footerLenke6(undefined)).toBeNull();
   });
 
-  test('bare det ene feltet er ikke nok', () => {
+  test('only one of the fields is not enough', () => {
     expect(footerLenke6({ footerLenke6Tekst: 'Ledige stillinger' })).toBeNull();
     expect(footerLenke6({ footerLenke6Url: '/ledige-stillingar' })).toBeNull();
   });
 
-  test('bare mellomrom teller som tomt', () => {
+  test('only spaces count as empty', () => {
     expect(footerLenke6({ footerLenke6Tekst: '  ', footerLenke6Url: '  ' })).toBeNull();
     expect(footerLenke6({ footerLenke6Tekst: ' Ledige stillinger ', footerLenke6Url: ' /jobb ' }))
       .toEqual({ text: 'Ledige stillinger', url: '/jobb' });

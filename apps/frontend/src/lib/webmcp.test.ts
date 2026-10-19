@@ -3,7 +3,7 @@ import { createTools, registerWebMcpTools, type WebMcpTool } from './webmcp';
 
 function toolNamed(name: string): WebMcpTool {
   const tool = createTools().find((t) => t.name === name);
-  if (!tool) throw new Error(`fant ikke verktøyet ${name}`);
+  if (!tool) throw new Error(`could not find the tool ${name}`);
   return tool;
 }
 
@@ -19,20 +19,20 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('verktøydefinisjonene', () => {
-  test('navnene følger WebMCP-reglene for tegn og lengde', () => {
+describe('the tool definitions', () => {
+  test('the names follow the WebMCP rules for characters and length', () => {
     for (const tool of createTools()) {
       expect(tool.name).toMatch(/^[A-Za-z0-9_.-]{1,128}$/);
       expect(tool.description.length).toBeGreaterThan(20);
     }
   });
 
-  test('navnene er unike', () => {
+  test('the names are unique', () => {
     const names = createTools().map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
   });
 
-  test('lesende verktøy er merket readOnlyHint, det som endrer UI er ikke', () => {
+  test('reading tools are marked readOnlyHint, the one that changes the UI is not', () => {
     expect(toolNamed('search_ki_norge').annotations?.readOnlyHint).toBe(true);
     expect(toolNamed('get_page_content').annotations?.readOnlyHint).toBe(true);
     expect(toolNamed('open_search_dialog').annotations?.readOnlyHint).toBeUndefined();
@@ -40,7 +40,7 @@ describe('verktøydefinisjonene', () => {
 });
 
 describe('search_ki_norge', () => {
-  test('poster spørringen til /api/search og formaterer treffene', async () => {
+  test('posts the query to /api/search and formats the hits', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -60,7 +60,7 @@ describe('search_ki_norge', () => {
     expect(result.content[0].text).toContain('Om etikk.');
   });
 
-  test('tom spørring gir feil uten å kalle API-et', async () => {
+  test('an empty query gives an error without calling the API', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
 
@@ -70,13 +70,13 @@ describe('search_ki_norge', () => {
     expect(result.isError).toBe(true);
   });
 
-  test('null treff sies tydelig i stedet for å returnere tomt', async () => {
+  test('zero hits are stated clearly instead of returning empty', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results: [] }) }));
     const result = await toolNamed('search_ki_norge').execute({ query: 'xyzzy' });
     expect(result.content[0].text).toContain('No results');
   });
 
-  test('feilstatus og nettverksfeil rapporteres som isError', async () => {
+  test('error status and network errors are reported as isError', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 502 }));
     expect((await toolNamed('search_ki_norge').execute({ query: 'a' })).isError).toBe(true);
 
@@ -88,20 +88,20 @@ describe('search_ki_norge', () => {
 });
 
 describe('get_page_content', () => {
-  test('henter .md-varianten, ikke gjeldende URL med Accept-header', async () => {
+  test('fetches the .md variant, not the current URL with an Accept header', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => '# Veiledning' });
     vi.stubGlobal('fetch', fetchMock);
 
     const result = await toolNamed('get_page_content').execute({});
 
-    // Accept alene kan bli servert fra edge-cachen som HTML.
+    // Accept alone can be served from the edge cache as HTML.
     expect(String(fetchMock.mock.calls[0][0])).toBe('https://ki.norge.no/veiledning.md');
     expect(result.content[0].text).toBe('# Veiledning');
   });
 });
 
 describe('open_search_dialog', () => {
-  test('sender open-search-dialog med spørringen i detail', async () => {
+  test('sends open-search-dialog with the query in detail', async () => {
     const events: CustomEvent[] = [];
     vi.stubGlobal('window', {
       dispatchEvent: (e: CustomEvent) => {
@@ -117,7 +117,7 @@ describe('open_search_dialog', () => {
     expect(events[0].detail).toEqual({ query: 'personvern' });
   });
 
-  test('uten spørring sendes tom streng', async () => {
+  test('without a query an empty string is sent', async () => {
     const events: CustomEvent[] = [];
     vi.stubGlobal('window', { dispatchEvent: (e: CustomEvent) => events.push(e) });
 
@@ -128,7 +128,7 @@ describe('open_search_dialog', () => {
 });
 
 describe('registerWebMcpTools', () => {
-  test('bruker navigator.modelContext.provideContext når den finnes', async () => {
+  test('uses navigator.modelContext.provideContext when it exists', async () => {
     const provideContext = vi.fn();
     const registered = await registerWebMcpTools({ navigator: { modelContext: { provideContext } } });
 
@@ -137,7 +137,7 @@ describe('registerWebMcpTools', () => {
     expect(provideContext.mock.calls[0][0].tools).toHaveLength(createTools().length);
   });
 
-  test('faller tilbake på document.modelContext.registerTool', async () => {
+  test('falls back to document.modelContext.registerTool', async () => {
     const registerTool = vi.fn();
     const registered = await registerWebMcpTools({ document: { modelContext: { registerTool } } });
 
@@ -145,7 +145,7 @@ describe('registerWebMcpTools', () => {
     expect(registerTool).toHaveBeenCalledTimes(createTools().length);
   });
 
-  test('provideContext vinner over registerTool på samme objekt', async () => {
+  test('provideContext wins over registerTool on the same object', async () => {
     const provideContext = vi.fn();
     const registerTool = vi.fn();
     await registerWebMcpTools({ navigator: { modelContext: { provideContext, registerTool } } });
@@ -154,7 +154,7 @@ describe('registerWebMcpTools', () => {
     expect(registerTool).not.toHaveBeenCalled();
   });
 
-  test('gjør ingenting og kaster ikke når API-et mangler', async () => {
+  test('does nothing and does not throw when the API is missing', async () => {
     await expect(registerWebMcpTools({ navigator: {}, document: {} })).resolves.toBe(false);
     await expect(registerWebMcpTools({})).resolves.toBe(false);
   });

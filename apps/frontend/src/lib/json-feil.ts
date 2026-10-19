@@ -1,17 +1,17 @@
 /**
- * Finner den første syntaksfeilen i en JSON-tekst, med linje, kolonne og en
- * forklaring på norsk.
+ * Finds the first syntax error in a JSON text, with line, column and an
+ * explanation in Norwegian.
  *
- * JSON.parse sier hvor feilen er for de fleste feil, men ikke for den
- * vanligste: et komma etter siste element gir bare «Unexpected token ']'».
- * Denne leseren går gjennom teksten selv og vet derfor alltid hvor den er, og
- * hva den ventet å finne. Den godtar nøyaktig det JSON.parse godtar.
+ * JSON.parse says where the error is for most errors, but not for the
+ * most common one: a comma after the last element only gives "Unexpected token ']'".
+ * This reader walks through the text itself and therefore always knows where it is, and
+ * what it expected to find. It accepts exactly what JSON.parse accepts.
  */
 
 export interface JsonFeil {
-  /** 1-basert */
+  /** 1-based */
   linje: number;
-  /** 1-basert */
+  /** 1-based */
   kolonne: number;
   forklaring: string;
 }
@@ -183,7 +183,7 @@ export function finnJsonFeil(tekst: string): JsonFeil | null {
   }
 }
 
-/** Linjene rundt feilen, med pil på linja og ^ under kolonnen. */
+/** The lines around the error, with an arrow on the line and ^ under the column. */
 export function utdrag(tekst: string, feil: JsonFeil, foran = 2, etter = 1): string {
   const linjer = tekst.split('\n');
   const fra = Math.max(1, feil.linje - foran);

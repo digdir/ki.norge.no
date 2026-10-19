@@ -1,10 +1,10 @@
 /**
- * Genererer /llms.txt etter llms.txt-konvensjonen: H1, en kort blockquote som
- * sier hva nettstedet er, og deretter seksjoner med markdown-lenker.
+ * Generates /llms.txt following the llms.txt convention: H1, a short blockquote that
+ * says what the site is, and then sections with markdown links.
  *
- * Innholdet hentes fra samme crawl som sitemapet, slik at de to aldri kommer i
- * utakt. Forgjengeren var en håndskrevet engelsk tekst uten lenker, som drev fra
- * innholdet med en gang noe ble publisert.
+ * The content comes from the same crawl as the sitemap, so the two never drift
+ * apart. The predecessor was a handwritten English text without links, which drifted from
+ * the content as soon as anything was published.
  */
 import {
   fetchAllPublishedContent,
@@ -19,10 +19,10 @@ type Entry = {
   summary?: string;
 };
 
-// Seksjonsinndeling for utskriften. Rekkefølgen her er rekkefølgen i fila, og
-// den er bevisst: veiledning er det en agent oftest skal svare ut fra.
-// Innholdstyper som ikke står her havner under "Andre sider" så lenge de har en
-// rute, slik at en ny type blir synlig i stedet for å forsvinne stille.
+// Section layout for the output. The order here is the order in the file, and
+// it is deliberate: veiledning is what an agent most often answers from.
+// Content types not listed here end up under "Andre sider" as long as they have a
+// route, so a new type becomes visible instead of disappearing silently.
 const SECTIONS: Array<{ heading: string; types: readonly string[] }> = [
   {
     heading: 'Veiledning',
@@ -49,13 +49,13 @@ function firstNonEmptyString(...values: unknown[]): string | undefined {
   return undefined;
 }
 
-// Ingressene er lange nok til å drukne lenkelista. Kutt på ordgrense.
+// The ingresses are long enough to drown the link list. Cut at a word boundary.
 function truncate(text: string, max = SUMMARY_MAX_LENGTH): string {
   if (text.length <= max) return text;
   return `${text.slice(0, max).replace(/\s+\S*$/, '')}…`;
 }
 
-// Klammer og parenteser ville brutt markdown-lenka de står i.
+// Brackets and parentheses would break the markdown link they are in.
 function escapeLinkText(text: string): string {
   return text.replaceAll('[', '\\[').replaceAll(']', '\\]');
 }
@@ -65,8 +65,8 @@ function titleOf(node: RawContentNode): string {
   return firstNonEmptyString(p.tittel, p.heroTittel, node.name) ?? 'Uten tittel';
 }
 
-// Redaksjonelle rester finnes: én artikkel har en rad understreker som ingress.
-// Uten bokstaver er teksten støy i en lenkeliste, så da droppes sammendraget.
+// Editorial leftovers exist: one article has a row of underscores as its ingress.
+// Without letters the text is noise in a link list, so the summary is dropped.
 function hasLetters(text: string): boolean {
   return /\p{L}/u.test(text);
 }
@@ -81,8 +81,8 @@ function headingFor(contentType: string): string {
   return SECTIONS.find((s) => s.types.includes(contentType))?.heading ?? FALLBACK_HEADING;
 }
 
-// Ett node til én oppføring, eller null om det ikke hører hjemme i lista.
-// Samme to porter som sitemapet: ingen rute, eller ekskludert sti.
+// One node to one entry, or null if it does not belong in the list.
+// Same two gates as the sitemap: no route, or an excluded path.
 async function resolveEntry(node: RawContentNode): Promise<{ heading: string; entry: Entry } | null> {
   try {
     const path = await resolveContentUrl(node);
@@ -92,7 +92,7 @@ async function resolveEntry(node: RawContentNode): Promise<{ heading: string; en
       entry: { path, title: titleOf(node), summary: summaryOf(node) },
     };
   } catch (error) {
-    console.error(`[llms.txt] kunne ikke resolve node ${node.id}`, error);
+    console.error(`[llms.txt] could not resolve node ${node.id}`, error);
     return null;
   }
 }
@@ -104,8 +104,8 @@ function renderEntry(entry: Entry, baseUrl: string): string {
 }
 
 function renderSection(heading: string, entries: Entry[], baseUrl: string): string {
-  // Sortering på sti holder veiledningsstegene samlet under guiden sin,
-  // siden stegene arver guidens slug i URL-en.
+  // Sorting on path keeps the veiledning steps together under their guide,
+  // since the steps inherit the guide's slug in the URL.
   const sorted = [...entries].sort((a, b) => a.path.localeCompare(b.path, 'nb'));
   return [`## ${heading}`, '', ...sorted.map((e) => renderEntry(e, baseUrl)), ''].join('\n');
 }
@@ -115,7 +115,7 @@ async function generateUncached(baseUrl: string): Promise<string> {
   try {
     nodes = await fetchAllPublishedContent();
   } catch (error) {
-    console.error('[llms.txt] crawl av innhold feilet', error);
+    console.error('[llms.txt] content crawl failed', error);
   }
 
   const resolved = await Promise.all(nodes.map(resolveEntry));
@@ -124,7 +124,7 @@ async function generateUncached(baseUrl: string): Promise<string> {
   const seenPaths = new Set<string>();
   for (const item of resolved) {
     if (!item) continue;
-    // Flere noder kan resolve til samme sti (f.eks. oversikt og singleton).
+    // Several nodes can resolve to the same path (e.g. overview and singleton).
     if (seenPaths.has(item.entry.path)) continue;
     seenPaths.add(item.entry.path);
     const list = byHeading.get(item.heading);

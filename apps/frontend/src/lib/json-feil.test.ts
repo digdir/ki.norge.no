@@ -12,63 +12,63 @@ const gyldigIfølgeJsonParse = (t: string) => {
   }
 };
 
-// Feilene som faktisk skjer når fila redigeres for hånd.
+// The errors that actually happen when the file is edited by hand.
 const FEIL: Record<string, { tekst: string; linje: number; kolonne: number; forklaring: RegExp }> = {
-  'mangler { foran første felt': {
+  'missing { before the first field': {
     tekst: '[\n  \n    "id": "",\n    "navn": "x"\n  },\n  {"a": 1}\n]',
     linje: 3,
     kolonne: 5,
     forklaring: /mangler \{ foran/,
   },
-  'mangler komma mellom to tiltak': {
+  'missing comma between two tiltak': {
     tekst: '[\n  {"a": 1}\n  {"b": 2}\n]',
     linje: 2,
     kolonne: 11,
     forklaring: /komma mellom to tiltak/,
   },
-  'komma etter siste tiltak': {
+  'comma after the last tiltak': {
     tekst: '[\n  {"a": 1},\n]',
     linje: 2,
     kolonne: 11,
     forklaring: /komma for mye.*siste tiltak/,
   },
-  'komma etter siste felt': {
+  'comma after the last field': {
     tekst: '[\n  {"a": 1,\n  }\n]',
     linje: 2,
     kolonne: 10,
     forklaring: /komma for mye.*siste felt/,
   },
-  'mangler komma mellom to felt': {
+  'missing comma between two fields': {
     tekst: '[\n  {"a": "x"\n   "b": "y"}\n]',
     linje: 2,
     kolonne: 12,
     forklaring: /komma mellom to felt/,
   },
-  'anførselstegn inne i teksten': {
+  'quote mark inside the text': {
     tekst: '[\n  {"b": "se (https://x.no")[her], "c": 1}\n]',
     linje: 2,
     kolonne: 26,
     forklaring: /inne i teksten/,
   },
-  'typografiske anførselstegn rundt feltnavn': {
+  'typographic quote marks around a field name': {
     tekst: '[\n  {“a”: 1}\n]',
     linje: 2,
     kolonne: 4,
     forklaring: /ikke et JSON-anførselstegn/,
   },
-  'linjeskift inne i en tekst': {
+  'line break inside a text': {
     tekst: '[\n  {"a": "første\nandre"}\n]',
     linje: 2,
     kolonne: 16,
     forklaring: /Linjeskift inne i en tekst/,
   },
-  'fila slutter før lista er lukket': {
+  'the file ends before the list is closed': {
     tekst: '[\n  {"a": 1}',
     linje: 2,
     kolonne: 11,
     forklaring: /lukket med \]/,
   },
-  'BOM først i fila': {
+  'BOM at the start of the file': {
     tekst: '﻿[]',
     linje: 1,
     kolonne: 1,
@@ -84,7 +84,7 @@ describe('finnJsonFeil', () => {
     expect(feil!.forklaring).toMatch(forklaring);
   });
 
-  test('er enig med JSON.parse om hva som er gyldig', () => {
+  test('agrees with JSON.parse about what is valid', () => {
     const fil = readFileSync(fileURLToPath(new URL('../data/ki-tiltak.json', import.meta.url)), 'utf-8');
     const tilfeller = [
       fil,
@@ -105,7 +105,7 @@ describe('finnJsonFeil', () => {
 });
 
 describe('utdrag', () => {
-  test('peker på linja og kolonnen', () => {
+  test('points at the line and the column', () => {
     const tekst = '[\n  {"a": 1},\n]';
     expect(utdrag(tekst, finnJsonFeil(tekst)!)).toBe(
       ['  1 | [', '> 2 |   {"a": 1},', '    |           ^', '  3 | ]'].join('\n'),

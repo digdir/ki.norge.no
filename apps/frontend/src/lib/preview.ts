@@ -1,35 +1,35 @@
 /**
- * Avgjør om en forespørsel får se upublisert innhold.
+ * Decides whether a request may see unpublished content.
  *
- * CMS-et legger en hemmelighet på forhåndsvisningslenkene sine
- * (`?preview=true&secret=...`, se HeadlessPreviewUrlProvider.cs), men frontend
- * sjekket den aldri. Da holdt det å skrive `?preview=true` bak en hvilken som
- * helst adresse for å lese utkast som ikke var publisert.
+ * The CMS puts a secret on its preview links
+ * (`?preview=true&secret=...`, see HeadlessPreviewUrlProvider.cs), but the frontend
+ * never checked it. So it was enough to write `?preview=true` after any
+ * address to read drafts that were not published.
  *
- * Cookien bærer selve hemmeligheten, ikke et flagg. En cookie er
- * klient-kontrollert, så `preview=1` ville vært like lett å forfalske som
- * query-parameteren den erstattet.
+ * The cookie carries the secret itself, not a flag. A cookie is
+ * client-controlled, so `preview=1` would be as easy to forge as the
+ * query parameter it replaced.
  *
- * Uten en brukbar hemmelighet er forhåndsvisning AV. Feiler heller lukket
- * enn å la en manglende variabel åpne utkastene for alle.
+ * Without a usable secret, preview is OFF. Fails closed rather
+ * than letting a missing variable open the drafts to everyone.
  */
 
-/** cache-kinorgeportal går rett til origin når en cookie med dette navnet er med. */
+/** cache-kinorgeportal goes straight to origin when a cookie with this name is present. */
 export const PREVIEW_COOKIE = 'preview';
 
-/** Editoren rekker å klikke seg rundt, uten at en glemt cookie lever evig. */
+/** The editor has time to click around, without a forgotten cookie living forever. */
 export const PREVIEW_COOKIE_MAX_AGE = 60 * 60 * 8;
 
 /**
- * Minst 32 tegn, og bare tegn som overlever URL-en uendret. CMS-et URL-koder
- * ikke verdien, så en `+` fra base64 blir til mellomrom og treffer aldri.
- * Plassholdere som `change-me` fra et offentlig repo stopper her.
+ * At least 32 characters, and only characters that survive the URL unchanged. The CMS does not
+ * URL-encode the value, so a `+` from base64 becomes a space and never matches.
+ * Placeholders like `change-me` from a public repo stop here.
  */
 const USABLE_SECRET = /^[A-Za-z0-9_-]{32,}$/;
 
 /**
- * Sammenligner uten å avsløre hvor langt inn i strengen første avvik kom.
- * Lengden lekker, som i alle vanlige implementasjoner, og er ikke hemmelig her.
+ * Compares without revealing how far into the string the first difference came.
+ * The length leaks, as in all common implementations, and is not secret here.
  */
 export function timingSafeEqual(a: string, b: string): boolean {
   const encoder = new TextEncoder();
@@ -43,18 +43,18 @@ export function timingSafeEqual(a: string, b: string): boolean {
 }
 
 export interface PreviewRequest {
-  /** `secret`-parameteren fra URL-en, slik CMS-et sender den. */
+  /** The `secret` parameter from the URL, as the CMS sends it. */
   secretParam: string | null;
-  /** Verdien av preview-cookien, satt av oss ved forrige gyldige lenke. */
+  /** The value of the preview cookie, set by us on the previous valid link. */
   cookieValue: string | undefined;
-  /** PREVIEW_SECRET fra miljøet. Tom eller for svak betyr at preview er avslått. */
+  /** PREVIEW_SECRET from the environment. Empty or too weak means preview is turned off. */
   configuredSecret: string;
 }
 
 export interface PreviewVerdict {
-  /** Sann bare når hemmeligheten stemmer. Styrer både innhold og caching. */
+  /** True only when the secret matches. Controls both content and caching. */
   isPreview: boolean;
-  /** Sann når hemmeligheten kom i URL-en, og cookien derfor skal settes. */
+  /** True when the secret came in the URL, and the cookie should therefore be set. */
   shouldSetCookie: boolean;
 }
 
@@ -77,9 +77,9 @@ export function resolvePreview({
 }
 
 /**
- * Adressen redaktøren sendes videre til når cookien er satt. Hemmeligheten skal
- * ikke bli stående i adresselinja, i historikken, i en lenke som limes inn i
- * Teams eller i location.href som analyseskriptene leser. Cookien bærer den videre.
+ * The address the editor is sent on to once the cookie is set. The secret must
+ * not stay in the address bar, in the history, in a link pasted into
+ * Teams or in location.href that the analytics scripts read. The cookie carries it on.
  */
 export function withoutSecret(url: URL): string {
   const target = new URL(url);
@@ -88,43 +88,43 @@ export function withoutSecret(url: URL): string {
 }
 
 /**
- * Hvor «Avslutt forhåndsvisning» sender redaktøren. Bare egne sider, ellers er
- * ruta en åpen redirect fra ki.norge.no til hvor som helst.
+ * Where "Avslutt forhåndsvisning" sends the editor. Only our own pages, otherwise
+ * the route is an open redirect from ki.norge.no to anywhere.
  */
 export function exitTarget(redirectParam: string | null, url: URL): string {
   const target = new URL(redirectParam || '/', url);
   return target.origin === url.origin ? localPath(target) : '/';
 }
 
-// `//host/sti` er en adresse til en annen host, ikke en sti.
+// `//host/path` is an address to another host, not a path.
 function localPath(target: URL): string {
   return `/${target.pathname.replace(/^\/+/, '')}${target.search}`;
 }
 
 /**
- * Også forsøk som ikke slapp gjennom holdes utenfor edge-cachen. Ellers havner
- * en ekte `secret` i en offentlig cache-oppføring så lenge frontend mangler
- * hemmeligheten, og hver gjetning på den lager en ny oppføring.
+ * Attempts that did not get through are also kept out of the edge cache. Otherwise
+ * a real `secret` ends up in a public cache entry as long as the frontend lacks
+ * the secret, and every guess at it creates a new entry.
  */
 export function bypassesCache(url: URL, isPreview: boolean): boolean {
   return isPreview || url.searchParams.has('preview') || url.searchParams.has('secret');
 }
 
 /**
- * Backoffice viser frontend i en iframe, cms.ki.norge.no rundt ki.norge.no.
- * norge.no står ikke på Public Suffix List, så de to er samme site, og Lax
- * holder. Derfor peker HeadlessPreview__FrontendUrl i syncroot på ki.norge.no og
- * ki.test.norge.no. workers.dev står på lista, så fra en workers.dev-host ble
- * cookien en tredjeparts-cookie som Safari blokkerer.
- * Verdien er hemmeligheten selv, derfor HttpOnly og Secure.
+ * The backoffice shows the frontend in an iframe, cms.ki.norge.no around ki.norge.no.
+ * norge.no is not on the Public Suffix List, so the two are the same site, and Lax
+ * is enough. That is why HeadlessPreview__FrontendUrl in syncroot points to ki.norge.no and
+ * ki.test.norge.no. workers.dev is on the list, so from a workers.dev host the
+ * cookie became a third-party cookie that Safari blocks.
+ * The value is the secret itself, hence HttpOnly and Secure.
  */
 export function previewCookieOptions() {
   return { ...previewCookieDeleteOptions(), maxAge: PREVIEW_COOKIE_MAX_AGE };
 }
 
 /**
- * Samme attributter som cookien ble satt med. En Set-Cookie uten dem avvises i
- * iframen, og da sto cookien igjen i åtte timer uten vei ut.
+ * The same attributes the cookie was set with. A Set-Cookie without them is rejected in
+ * the iframe, and then the cookie stayed for eight hours with no way out.
  */
 export function previewCookieDeleteOptions() {
   return {

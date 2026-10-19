@@ -3,41 +3,41 @@ import virksomhetsnavn from '../data/ki-tiltak-virksomhetsnavn.json';
 import { FAGOMRADER, FASER, KI_TYPER, LEVERANSER } from './ki-tiltak-verdier';
 
 /**
- * `fase` kommer fra skjemaets «Hvilken fase er tiltaket i?» og finnes bare på
- * tiltak som er sendt inn eller oppdatert via skjemaet. toFase kaster på
- * ukjente verdier, så en skrivefeil i ki-tiltak.json stopper bygget i stedet
- * for å vises på nettstedet. Det gamle status-feltet er fjernet helt.
+ * `fase` comes from the form's "Hvilken fase er tiltaket i?" and only exists on
+ * tiltak that were submitted or updated via the form. toFase throws on
+ * unknown values, so a typo in ki-tiltak.json stops the build instead
+ * of showing up on the site. The old status field has been removed entirely.
  */
 export type KiTiltakFase = (typeof FASER)[number];
 
 export interface KiTiltak {
-  /** GUID fra kinorge.json */
+  /** GUID from kinorge.json */
   id: string;
   navn: string;
-  /** Visningsnavn, for eksempel "Entur AS". Hovedvirksomheten først. */
+  /** Display name, for example "Entur AS". The main organisation first. */
   virksomheter: string[];
-  /** Samme rekkefølge som virksomheter. */
+  /** Same order as virksomheter. */
   orgnr: string[];
-  /** Alltid nøyaktig ett fagområde per tiltak */
+  /** Always exactly one fagområde per tiltak */
   fagomrade: string;
   beskrivelse: string;
-  /** Fra skjemaet. Vises som «Fase». De eldre oppføringene har det ikke. */
+  /** From the form. Shown as "Fase". The older entries don't have it. */
   fase?: KiTiltakFase;
   /**
-   * Metadata fra innsendingsskjemaet. Alle er valgfrie, og gjelder bare tiltak
-   * som er sendt inn eller oppdatert via skjemaet på /ki-tiltak. De eldre
-   * oppføringene har dem ikke, og skal ikke etterfylles.
+   * Metadata from the submission form. All are optional, and only apply to tiltak
+   * that were submitted or updated via the form on /ki-tiltak. The older
+   * entries don't have them, and should not be backfilled.
    *
-   * Visningen hopper over et tomt felt helt, overskrift og alt. Et tiltak med
-   * bare beskrivelse og tema skal se ferdig ut, ikke halvt utfylt.
+   * The view skips an empty field entirely, heading and all. A tiltak with
+   * only a description and a topic should look finished, not half filled in.
    */
   leveranse?: string[];
   leveranseAnnet?: string;
   kiType?: string[];
   kiTypeAnnet?: string;
   /**
-   * E-postadresse. Feltet publiseres, og ki-tiltak.json ligger i et offentlig
-   * repo, så dette skal være en virksomhetsadresse og ikke en personlig.
+   * Email address. The field is published, and ki-tiltak.json lives in a public
+   * repo, so this should be an organisation address and not a personal one.
    */
   kontaktinfo?: string;
 }
@@ -47,9 +47,9 @@ export { FAGOMRADER, FASER, LEVERANSER, KI_TYPER, ANNET } from './ki-tiltak-verd
 const PLASSHOLDERE = new Set(['na', 'n/a', '-', '–', 'null', 'ikke oppgitt']);
 
 /**
- * Sann for alt som ikke skal vises: null, undefined, tom tekst, bare
- * mellomrom, plassholderne NA, N/A, -, –, null og «ikke oppgitt» (uten hensyn
- * til store og små bokstaver), og lister med bare slike verdier.
+ * True for everything that should not be shown: null, undefined, empty text, only
+ * whitespace, the placeholders NA, N/A, -, –, null and "ikke oppgitt" (regardless
+ * of upper and lower case), and lists with only such values.
  */
 export function utenVerdi(verdi: unknown): boolean {
   if (verdi === null || verdi === undefined) return true;
@@ -60,7 +60,7 @@ export function utenVerdi(verdi: unknown): boolean {
 
 type Tekst = string | null | undefined;
 
-/** Et tiltak slik det står i ki-tiltak.json. Virksomhet og orgnr kan være tekst eller liste, og alle felt kan være null. */
+/** A tiltak as it appears in ki-tiltak.json. Virksomhet and orgnr can be text or a list, and every field can be null. */
 export interface RawTiltak {
   id: string;
   navn: string;
@@ -87,17 +87,17 @@ function toFase(value: Tekst, navn: string): KiTiltakFase | undefined {
   const fase = tekst(value);
   if (fase === undefined) return undefined;
   const matches = FASER.find((f) => f === fase);
-  if (matches === undefined) throw new Error(`Ukjent fase på ${navn} i ki-tiltak.json: "${fase}"`);
+  if (matches === undefined) throw new Error(`Unknown fase on ${navn} in ki-tiltak.json: "${fase}"`);
   return matches;
 }
 
 export type Navnekilde = 'tabell' | 'register';
 
 /**
- * Hvor virksomhetsnavnene på sida kommer fra. «tabell» slår opp orgnr i
- * ki-tiltak-virksomhetsnavn.json, og gjør navnet i dataene om fra VERSALER
- * når orgnr mangler der. «register» viser navnene slik de står i dataene, som
- * i Brønnøysundregisteret. Bryteren finnes for å kunne bytte raskt.
+ * Where the organisation names on the page come from. "tabell" looks up orgnr in
+ * ki-tiltak-virksomhetsnavn.json, and converts the name in the data from ALL CAPS
+ * when the orgnr is missing there. "register" shows the names as they appear in the data, as
+ * in the Brønnøysund register. The switch exists to be able to change quickly.
  */
 export const VIRKSOMHETSNAVN: Navnekilde = 'tabell';
 
@@ -106,9 +106,9 @@ const navnetabell: Record<string, string> = virksomhetsnavn;
 const FORKORTELSER = new Set(['AS', 'ASA', 'HF', 'RHF', 'IKS', 'KF', 'SF', 'KS', 'NAV', 'DFØ', 'NTNU', 'NVE', 'DSS', 'SSB', 'IKT', 'KI']);
 
 /**
- * Reserve for virksomheter som ennå ikke står i navnetabellen. Et navn i bare
- * VERSALER får stor forbokstav og ellers små, men kjente forkortelser beholdes.
- * Stedsnavn blir feil («Helse bergen HF»), og derfor er tabellen førstevalget.
+ * Fallback for organisations not yet in the name table. A name in only
+ * CAPITALS gets a capital first letter and lower case otherwise, but known abbreviations are kept.
+ * Place names come out wrong ("Helse bergen HF"), which is why the table is the first choice.
  */
 export function vanligSkrift(navn: string): string {
   if (navn !== navn.toUpperCase()) return navn;
@@ -121,9 +121,9 @@ export function vanligSkrift(navn: string): string {
 }
 
 /**
- * Fra fila til modellen sida bruker. Felt uten verdi blir borte, så
- * visningen aldri viser «NA» eller en tom overskrift. Virksomhet og orgnr
- * pares på plass før tomme fjernes, så de ikke glir fra hverandre.
+ * From the file to the model the page uses. Fields without a value are dropped, so
+ * the view never shows "NA" or an empty heading. Virksomhet and orgnr
+ * are paired up before empty ones are removed, so they don't drift apart.
  */
 export function tilKiTiltak(raw: RawTiltak, navnekilde: Navnekilde = VIRKSOMHETSNAVN): KiTiltak {
   const orgnr = somListe(raw.orgnr);
@@ -154,17 +154,17 @@ export function tilKiTiltak(raw: RawTiltak, navnekilde: Navnekilde = VIRKSOMHETS
 const rawData: RawTiltak[] = data;
 
 /**
- * Sorteringen skjer her, ikke i JSON-filen.
+ * Sorting happens here, not in the JSON file.
  *
- * Tidligere måtte redaksjonen holde filen alfabetisk selv, og en test håndhevet
- * det. Da blokkerte CI enhver som ga et tiltak et nytt navn uten samtidig å
- * flytte posten. Det er en byrde uten gevinst når koden kan sortere selv.
+ * Previously the editors had to keep the file alphabetical themselves, and a test enforced
+ * it. CI then blocked anyone who renamed a tiltak without also
+ * moving the entry. That is a burden with no gain when the code can sort by itself.
  */
 export const kiTiltak: KiTiltak[] = rawData
   .map((raw) => tilKiTiltak(raw))
   .sort((a, b) => a.navn.localeCompare(b.navn, 'nb', { sensitivity: 'base', numeric: true }));
 
-/** «Entur AS, Ruter, Vy». Slik vises virksomhetene på kortet. */
+/** "Entur AS, Ruter, Vy". This is how the organisations are shown on the card. */
 export function virksomhetTekst(tiltak: KiTiltak): string {
   return tiltak.virksomheter.join(', ');
 }
@@ -177,13 +177,13 @@ export interface KiTiltakFilter {
   kiType: string[];
 }
 
-/** Kategoriene i filterpanelet, i den rekkefølgen de vises. */
+/** The categories in the filter panel, in the order they are shown. */
 export type FilterGruppe = Exclude<keyof KiTiltakFilter, 'query'>;
 export const FILTERGRUPPER: readonly FilterGruppe[] = ['fagomrade', 'fase', 'leveranse', 'kiType'];
 
 export const TOMT_FILTER: KiTiltakFilter = { query: '', fagomrade: [], fase: [], leveranse: [], kiType: [] };
 
-/** Overskriften i panelet og prefikset på chipen. */
+/** The heading in the panel and the prefix on the chip. */
 export const FILTERETIKETTER: Record<FilterGruppe, string> = {
   fagomrade: 'Fag- og temaområde',
   fase: 'Fase',
@@ -191,10 +191,10 @@ export const FILTERETIKETTER: Record<FilterGruppe, string> = {
   kiType: 'Type KI',
 };
 
-/** Filtervalget for tiltak som mangler fase, leveranse eller type KI. Det er ikke et valg i skjemaet. */
+/** The filter option for tiltak missing fase, leveranse or type KI. It is not an option in the form. */
 export const IKKE_DEFINERT = 'Ikke definert';
 
-/** Valgene i hver kategori, i skjemaets rekkefølge, med «Ikke definert» sist. */
+/** The options in each category, in the form's order, with "Ikke definert" last. */
 export const FILTERVALG: Record<FilterGruppe, readonly string[]> = {
   fagomrade: FAGOMRADER,
   fase: [...FASER, IKKE_DEFINERT],
@@ -202,7 +202,7 @@ export const FILTERVALG: Record<FilterGruppe, readonly string[]> = {
   kiType: [...KI_TYPER, IKKE_DEFINERT],
 };
 
-/** Fjerner alle kategorivalg, men lar søketeksten stå. */
+/** Removes all category selections, but leaves the search text. */
 export function utenKategorier(filter: KiTiltakFilter): KiTiltakFilter {
   return { ...TOMT_FILTER, query: filter.query };
 }
@@ -210,8 +210,8 @@ export function utenKategorier(filter: KiTiltakFilter): KiTiltakFilter {
 const ellerIkkeDefinert = (verdier?: string[]) => (verdier && verdier.length > 0 ? verdier : [IKKE_DEFINERT]);
 
 /**
- * Verdiene et tiltak har i en kategori. kiType og leveranse er lister, de andre
- * ett valg. Mangler tiltaket fase, kiType eller leveranse, er verdien «Ikke definert».
+ * The values a tiltak has in a category. kiType and leveranse are lists, the others
+ * a single choice. If the tiltak lacks fase, kiType or leveranse, the value is "Ikke definert".
  */
 export function verdierI(tiltak: KiTiltak, gruppe: FilterGruppe): string[] {
   if (gruppe === 'kiType') return ellerIkkeDefinert(tiltak.kiType);
@@ -221,8 +221,8 @@ export function verdierI(tiltak: KiTiltak, gruppe: FilterGruppe): string[] {
 }
 
 /**
- * Antall tiltak bak hvert filtervalg. Et tiltak med flere KI-typer teller én
- * gang under hver av dem.
+ * Number of tiltak behind each filter option. A tiltak with several KI types counts once
+ * under each of them.
  */
 export function tellFiltervalg(items: KiTiltak[]): Record<FilterGruppe, Map<string, number>> {
   const perGruppe = Object.fromEntries(FILTERGRUPPER.map((g) => [g, new Map<string, number>()])) as Record<
@@ -240,8 +240,8 @@ export function tellFiltervalg(items: KiTiltak[]): Record<FilterGruppe, Map<stri
 }
 
 /**
- * Teksten fritekstsøket leter i. Det samme som sida viser om tiltaket, kort og
- * detaljvisning, med virksomhetsnavnene slik de står etter navnetabellen.
+ * The text the free-text search looks in. The same as the page shows about the tiltak, card and
+ * detail view, with the organisation names as they appear after the name table.
  */
 function sokbarTekst(tiltak: KiTiltak): string {
   return [
@@ -261,10 +261,10 @@ function sokbarTekst(tiltak: KiTiltak): string {
 }
 
 /**
- * Fritekstsøk kombinert med fasettfiltre. Innen en kategori holder det at ett
- * av valgene treffer, på tvers av kategoriene må alle treffe. For lister som
- * kiType holder det at tiltaket har én av de valgte verdiene. Tom kategori
- * betyr ingen begrensning fra den.
+ * Free-text search combined with facet filters. Within a category it is enough that one
+ * of the options matches, across categories all must match. For lists like
+ * kiType it is enough that the tiltak has one of the selected values. An empty category
+ * means no restriction from it.
  */
 export function filterTiltak(items: KiTiltak[], filter: KiTiltakFilter): KiTiltak[] {
   const q = filter.query.trim().toLowerCase();
@@ -279,13 +279,13 @@ export function filterTiltak(items: KiTiltak[], filter: KiTiltakFilter): KiTilta
 }
 
 /**
- * Slår sammen et flervalg med tilhørende «Annet»-fritekst til det som skal vises.
+ * Merges a multi-select with its "Annet" free text into what should be shown.
  *
- * Skjemaet lagrer valget «Annet» og friteksten hver for seg. Å vise begge gir
- * «Annet, chatbot for innbyggere», der første ledd ikke sier leseren noe. Her
- * erstatter friteksten ordet, på plassen ordet hadde, så rekkefølgen redaktøren
- * valgte beholdes. Mangler friteksten, faller vi tilbake til «Annet», som i det
- * minste er ærlig om at det finnes noe utenfor lista.
+ * The form stores the "Annet" choice and the free text separately. Showing both gives
+ * "Annet, chatbot for innbyggere", where the first part tells the reader nothing. Here
+ * the free text replaces the word, in the position the word had, so the order the editor
+ * chose is kept. If the free text is missing, we fall back to "Annet", which at
+ * least is honest that there is something outside the list.
  */
 export function visValg(valg?: string[], annet?: string): string[] {
   if (!valg || valg.length === 0) return [];
@@ -297,7 +297,7 @@ export function visValg(valg?: string[], annet?: string): string[] {
 
 const listeformat = new Intl.ListFormat('nb', { style: 'long', type: 'conjunction' });
 
-/** «Generativ KI, Prediktiv KI og Språkteknologi». Slik vises flervalgene i detaljvisningen. */
+/** "Generativ KI, Prediktiv KI og Språkteknologi". This is how the multi-selects are shown in the detail view. */
 export function somTekst(verdier: string[]): string {
   return listeformat.format(verdier);
 }
