@@ -7,13 +7,6 @@ interface Props {
   onOpen: (tiltak: KiTiltak) => void;
 }
 
-/** Lange navn krymper i to trinn, ellers sprenger de kortet. 8 av 58 er over 62 tegn. */
-function lengthClass(navn: string): string {
-  if (navn.length > 95) return 'is-xlong';
-  if (navn.length > 62) return 'is-long';
-  return '';
-}
-
 export default function KiTiltakCard({ tiltak, query, onOpen }: Props) {
   const showsDescription = tiltak.beskrivelse.length > 0;
   const titleId = `${tiltak.id}-tittel`;
@@ -30,11 +23,14 @@ export default function KiTiltakCard({ tiltak, query, onOpen }: Props) {
       aria-describedby={showsDescription ? `${orgId} ${descId} ${topicId}` : `${orgId} ${topicId}`}
       onClick={() => onOpen(tiltak)}
     >
-      <span id={titleId} className={`tiltak-kort-tittel ${lengthClass(tiltak.navn)}`.trim()}>
-        {highlight(tiltak.navn, query)}
+      {/* Title and organisations sit closer together than the rest of the card. */}
+      <span className="tiltak-kort-hode">
+        <span id={titleId} className="tiltak-kort-tittel">
+          {highlight(tiltak.navn, query)}
+        </span>
+        {/* Alle virksomhetene etter hverandre, hovedvirksomheten først. Kuttes med … etter to linjer (#806). */}
+        <span id={orgId} className="tiltak-kort-virksomhet">{highlight(virksomhetTekst(tiltak), query)}</span>
       </span>
-      {/* Alle virksomhetene etter hverandre, hovedvirksomheten først. Kuttes med … etter to linjer (#806). */}
-      <span id={orgId} className="tiltak-kort-virksomhet">{highlight(virksomhetTekst(tiltak), query)}</span>
       {showsDescription && (
         <span id={descId} className="tiltak-kort-beskrivelse">{highlight(tiltak.beskrivelse, query)}</span>
       )}

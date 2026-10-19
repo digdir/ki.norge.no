@@ -61,10 +61,10 @@ export default function KiTiltakFilterPanel({ open, onClose, filter, setFilter }
       onClose={onClose}
       placement="right"
       closedby="any"
-      className="tiltak-panel"
+      className="tiltak-panel tiltak-filter"
       aria-labelledby="tiltak-filter-tittel"
     >
-      <Dialog.Block>
+      <Dialog.Block className="tiltak-panel-hode">
         <Heading id="tiltak-filter-tittel" level={2} data-size="sm" className="tiltak-panel-tittel">
           Filter
         </Heading>

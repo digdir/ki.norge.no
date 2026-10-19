@@ -218,7 +218,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
           <Heading
             id="tiltak-registrer-tittel"
             level={2}
-            data-size="md"
+            data-size="lg"
             className="tiltak-registrer-tittel"
           >
             Takk for at du deler!
@@ -238,7 +238,7 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
             <Heading
               id="tiltak-registrer-tittel"
               level={2}
-              data-size="md"
+              data-size="lg"
               className="tiltak-registrer-tittel"
             >
               Del KI&#8209;tiltak
@@ -318,7 +318,6 @@ export default function RegisterTiltakDialog({ open, onClose, turnstileSiteKey }
                 <Button
                   type="button"
                   variant="tertiary"
-                  data-size="sm"
                   className="tiltak-legg-til"
                   onClick={addRow}
                 >

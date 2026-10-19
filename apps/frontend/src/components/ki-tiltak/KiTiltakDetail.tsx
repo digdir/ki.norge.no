@@ -98,7 +98,6 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
           */}
           <Button
             variant="tertiary"
-            data-size="sm"
             command="close"
             commandfor={DETAIL_DIALOG_ID}
             className="tiltak-detalj-tilbake"
@@ -107,25 +106,28 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             Tilbake til oversikten
           </Button>
 
-          <Heading
-            id="tiltak-detalj-tittel"
-            level={2}
-            data-size="lg"
-            className="tiltak-detalj-tittel"
-          >
-            {tiltak.navn}
-          </Heading>
+          {/* Title and organisations are spaced tighter than the sections below. */}
+          <div className="tiltak-detalj-hode">
+            <Heading
+              id="tiltak-detalj-tittel"
+              level={2}
+              data-size="lg"
+              className="tiltak-detalj-tittel"
+            >
+              {tiltak.navn}
+            </Heading>
 
-          {tiltak.virksomheter.length > 1 ? (
-            // Én per linje, hovedvirksomheten først (#806).
-            <ul className="tiltak-detalj-virksomhet tiltak-detalj-virksomheter">
-              {tiltak.virksomheter.map((navn) => (
-                <li key={navn}>{navn}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="tiltak-detalj-virksomhet">{tiltak.virksomheter[0]}</p>
-          )}
+            {tiltak.virksomheter.length > 1 ? (
+              // Én per linje, hovedvirksomheten først (#806).
+              <ul className="tiltak-detalj-virksomhet tiltak-detalj-virksomheter">
+                {tiltak.virksomheter.map((navn) => (
+                  <li key={navn}>{navn}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="tiltak-detalj-virksomhet">{tiltak.virksomheter[0]}</p>
+            )}
+          </div>
 
           {tiltak.beskrivelse.length > 0 && (
             <section className="tiltak-detalj-felt">
