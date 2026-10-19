@@ -10,7 +10,12 @@
   /* Same wine-red wash as the prototype's --border-soft (#541321 at 12 %
      opacity), used for borders and the footer rule instead of the fixed pastel color. */
   --tiltak-kant-vask: color-mix(in oklab, var(--ds-color-accent-text-default) 12%, transparent);
-  /* The backdrop behind the dialogs. See .tiltak-registrer for why it is neutral. */
+  /* The backdrop behind the filter panel and the detail drawer. It should dim the
+     page, not tint it. The accent text tone at 32 % put a clear red cast over the
+     page. The prototype uses rgba(42,20,23,.32), which is almost without
+     saturation, and --ds-color-neutral-text-default (#292c30) has the same
+     darkness and no hue at all. Designsystemet's default rgba(0,0,0,.5) would also
+     be colorless, but noticeably darker than the design. */
   --tiltak-bakteppe: color-mix(in oklab, var(--ds-color-neutral-text-default) 32%, transparent);
 }
 
@@ -631,45 +636,39 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   }
 }
 
+/* "Del KI-tiltak" is its own page, a single centred column as wide as the
+   prototype's form (640px). The page has no dark band, so the header and footer
+   keep the site's normal colors, as on the prototype's page. */
+.tiltak-del {
+  padding-bottom: var(--ds-size-18);
+}
+
 .tiltak-registrer {
-  --dsc-dialog-max-width: 640px;
-  --dsc-dialog-max-height: 88vh;
-  /* The backdrop should dim the page, not tint it.
-     This used to be --ds-color-accent-text-default (#541321) at 32 %. Mixed with
-     transparent it is just the same wine-red tone with alpha, i.e.
-     rgba(84,19,33,.32), and it put a clear red cast over the page.
-     The prototype uses rgba(42,20,23,.32), which is darker and almost without
-     saturation. --ds-color-neutral-text-default (#292c30) has the same darkness
-     (R 41 vs 42) and no hue at all, which is exactly what the
-     editorial team asked for. Designsystemet's default rgba(0,0,0,.5) would also be
-     colorless, but noticeably darker than the design. */
-  --dsc-dialog-backdrop-background: var(--tiltak-bakteppe);
-  /* The prototype's .modal-form has 40px inset on each side (measured), vs
-     designsystemet's default --dsc-dialog-spacing of --ds-size-6 (24px).
-     --ds-size-10 is exactly 40px. This variable also controls the
-     vertical padding in each Dialog.Block, so the section spacing from
-     the top block to the first section tightens closer to the prototype's as a
-     side effect of the same change. Scoped to .tiltak-registrer, like
-     the other variables in this rule, so the filter panel (.tiltak-panel)
-     and the detail drawer (.tiltak-detalj) are unaffected. */
-  --dsc-dialog-spacing: var(--ds-size-10);
-  /* The radius scale only goes up to --ds-border-radius-xl (12px), half of
-     the prototype's measured 24px corner radius. No radius token matches 24px,
-     so --ds-size-6 (also 24px) is used as the value instead, the same trick as
-     --ds-size-11 for the success icon's font-size where no font-size
-     token matched. dialog.css exposes no --dsc-dialog-border-radius to
-     style over, so border-radius is set directly here (same specificity
-     as .ds-dialog's own rule, decided by load order). Keeps
-     the same clamp expression as the library, just with --ds-size-6 as the max value
-     instead of --ds-border-radius-lg, so the corners still flatten
-     to 0 when the dialog goes edge to edge on narrow screens (otherwise the
-     backdrop would leak through in the rounded corners). */
-  border-radius: clamp(0px, ((100vw - 4px) - 100%) * 100000, var(--ds-size-6));
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+/* The prototype's back link: an arrow and plain text, underlined on hover only.
+   44px tall so it is easy to hit. */
+.tiltak-tilbake {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  min-height: var(--ds-size-11);
+  margin-bottom: var(--ds-size-4);
+  color: var(--ds-color-accent-text-default);
+  font-size: var(--ds-body-sm-font-size);
+  text-decoration: none;
+}
+
+.tiltak-tilbake:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--ds-size-1);
 }
 
 /* The input theme below is measured against the prototype (KI_tiltak_klart.html) with
    getComputedStyle, not assumed. Applies to Textfield (incl. multiline and
-   type=date), Select and all other .ds-input elements in the dialog, since they
+   type=date), Select and all other .ds-input elements in the form, since they
    all read the same three input.css variables.
    Set on .ds-input itself, not on .tiltak-registrer: input.css's own
    .ds-input rule sets these three variables directly on the input, and a
@@ -703,7 +702,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 }
 
 /* Textfield wraps each input in its own .ds-field-affixes wrapper (for
-   prefix/suffix use). No field in this dialog uses prefix/suffix,
+   prefix/suffix use). No field in this form uses prefix/suffix,
    but the wrapper sets a gray background anyway
    (--dsc-field-affix-background, --ds-color-neutral-surface-tinted,
    #e8e8e9) and a fixed 4px radius (border-radius is a direct declaration in
@@ -800,43 +799,27 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   justify-content: flex-end;
 }
 
+/* Flush with the fields above, as in the prototype, so no inline padding. */
 .tiltak-legg-til {
   align-self: flex-start;
+  --dsc-button-padding: var(--ds-size-2) 0;
   --dsc-button-background: transparent;
   --dsc-button-color: var(--ds-color-accent-text-default);
   text-decoration: underline;
   text-underline-offset: var(--ds-size-1);
 }
 
-.tiltak-registrer > button[command="close"] {
-  --dsc-button-background: var(--ds-color-brand2-background-default);
-  --dsc-button-border-radius: var(--ds-border-radius-full);
-}
-
-
 .tiltak-registrer-tittel {
   font-family: var(--ki-heading-font);
-  margin: 0 0 var(--ds-size-3);
+  font-weight: var(--ds-font-weight-regular);
+  margin: 0 0 var(--ds-size-4);
   color: var(--ds-color-accent-text-default);
 }
 
-.tiltak-registrer .ds-paragraph + .ds-paragraph {
-  margin-top: var(--ds-size-3);
-}
-
-.tiltak-registrer .ds-dialog__block + .ds-dialog__block {
-  --dsc-dialog-divider-border-width: 0;
-}
-
-.tiltak-registrer > .ds-dialog__block:first-of-type {
-  padding-top: calc(var(--dsc-dialog-spacing) + var(--ds-size-1));
-}
-
-.tiltak-registrer-kropp {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-8);
-  padding-block: 0;
+/* The first intro paragraph sits above the form, the second is the form's first
+   child and gets the form's own spacing down to the first field. */
+.tiltak-registrer > .tiltak-registrer-ingress {
+  margin-bottom: var(--ds-size-8);
 }
 
 .tiltak-seksjon {
@@ -879,16 +862,24 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
 
 .tiltak-registrer-fot {
   display: flex;
-  gap: var(--ds-size-3);
+  flex-wrap: wrap;
+  gap: var(--ds-size-4);
   justify-content: flex-start;
+}
+
+/* "Avbryt" is an outlined pill, as in the prototype: the text color and a 1px
+   border in the same tone, on no background. */
+.tiltak-avbryt {
+  --dsc-button-color: var(--ds-color-accent-text-default);
+  --dsc-button-border-color: var(--ds-color-accent-text-default);
 }
 
 /* --ds-color-accent-base-default (#b42946), the button's default, is lighter than
    the prototype's measured rgb(84,19,33). That is not a darker "base" tone (the
    darkest, base-active, is #701a2c and still too light), but an exact
    match for --ds-color-accent-text-default. Only the submit button, not
-   Avbryt (tertiary, unchanged color and placement at the user's request). */
-/* The prototype's buttons are fully rounded. Applies to all buttons in the dialog,
+   Avbryt. */
+/* The prototype's buttons are fully rounded. Applies to all buttons on the page,
    not just the submit button, so "Avbryt" and "Tilbake til oversikten" follow along. */
 .tiltak-registrer .ds-button {
   --dsc-button-border-radius: var(--ds-border-radius-full);
@@ -905,8 +896,7 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   --dsc-button-color: var(--ds-color-brand1-background-default);
 }
 
-/* The form element is the only child of .tiltak-registrer-kropp, and therefore owns
-   the column and the spacing between sections itself. The dividers are gone in the
+/* The form owns the column and the spacing between sections itself. The dividers are gone in the
    new design, and the prototype uses the same spacing between sections as
    between fields (.form-section margin-top 38px == .field margin-bottom 38px).
    Hence the same token as .tiltak-seksjon, not a separate, larger value. */

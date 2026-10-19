@@ -1,0 +1,17 @@
+---
+import Layout from '../../components/layout/Layout.astro';
+import RegisterTiltakForm from '../../components/ki-tiltak/RegisterTiltakForm';
+import { turnstileSiteKey } from '../../lib/turnstile';
+import '../../styles/ki-tiltak.css';
+---
+
+<Layout
+  title="Del KI-tiltak"
+  description="Del hvordan virksomheten din utforsker eller bruker kunstig intelligens, så legger vi tiltaket inn i oversikten over offentlige KI-tiltak."
+>
+  <section data-layout-block="edge" class="tiltak-del">
+    <div data-layout-block="content">
+      <RegisterTiltakForm client:load turnstileSiteKey={turnstileSiteKey} />
+    </div>
+  </section>
+</Layout>

@@ -2,7 +2,6 @@
 import Layout from '../components/layout/Layout.astro';
 import KiTiltakOverview from '../components/ki-tiltak/KiTiltakOverview';
 import { kiTiltak } from '../lib/ki-tiltak';
-import { turnstileSiteKey } from '../lib/turnstile';
 import '../styles/ki-tiltak.css';
 
 const seoTitle = 'Offentlige KI-tiltak';
@@ -23,7 +22,7 @@ const seoDesc = `Oversikt over ${kiTiltak.length} KI-tiltak i norsk offentlig se
 
   <section data-layout-block="edge" class="tiltak-innhold">
     <div data-layout-block="content">
-      <KiTiltakOverview client:load turnstileSiteKey={turnstileSiteKey} />
+      <KiTiltakOverview client:load />
     </div>
   </section>
 </Layout>

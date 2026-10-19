@@ -22,10 +22,10 @@ export const EXCLUDED_PATH_PREFIXES = [
 ] as const;
 
 // Pure .astro pages without a CMS node behind them. /ki-tiltak is code-driven with a
-// static dataset, so it has no singleton content type to be picked up
-// by. sitemap-pages.test.ts guards that a new code-only page gets a deliberate
-// sitemap decision instead of silently dropping out.
-export const STATIC_ROUTES: string[] = ['/ki-tiltak'];
+// static dataset, and /ki-tiltak/del is its submission form, so neither has a
+// singleton content type to be picked up by. sitemap-pages.test.ts guards that a
+// new code-only page gets a deliberate sitemap decision instead of silently dropping out.
+export const STATIC_ROUTES: string[] = ['/ki-tiltak', '/ki-tiltak/del'];
 
 type SitemapUrl = {
   loc: string;

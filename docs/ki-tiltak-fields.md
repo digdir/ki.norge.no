@@ -84,7 +84,7 @@ node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<export>.json
 
 **Optional really means optional.** Leave the field out, leave it empty, or set it to `null`, it makes no difference. `NA`, `N/A`, `-`, `–`, `null` and "ikke oppgitt" also count as empty, regardless of upper and lower case, and so does a list with only such values. An empty field is not shown at all, not even the heading. An initiative with only a description and a theme should look finished, not half filled in.
 
-**Do not backfill the old ones.** The new fields apply only to initiatives submitted or updated via the form on /ki-tiltak. Nobody should guess which AI type an organisation uses.
+**Do not backfill the old ones.** The new fields apply only to initiatives submitted or updated via the form on /ki-tiltak/del. Nobody should guess which AI type an organisation uses.
 
 **"Annet" is replaced by the free text.** If you write `"leveranse": ["Pilot", "Annet"]` and `"leveranseAnnet": "Intern verktøykasse"`, the page shows "Pilot" and "Intern verktøykasse". The word "Annet" is not shown. If the free text is there without `Annet` being in the list, the text is never shown, and a test stops it.
 

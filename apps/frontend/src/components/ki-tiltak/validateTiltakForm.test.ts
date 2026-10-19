@@ -86,9 +86,9 @@ describe('validateTiltakForm', () => {
         'navn',
         'beskrivelse',
         'fagomrade',
-        'kontaktinfo',
         'fase',
         'leveranse',
+        'kontaktinfo',
       ]);
     });
   });
@@ -213,9 +213,9 @@ describe('validateTiltakForm', () => {
       'navn',
       'beskrivelse',
       'fagomrade',
-      'kontaktinfo',
       'fase',
       'leveranse',
+      'kontaktinfo',
     ]);
   });
 });

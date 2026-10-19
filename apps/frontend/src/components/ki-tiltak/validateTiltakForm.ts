@@ -133,15 +133,6 @@ export function validateTiltakForm(form: TiltakForm): ValidationError[] {
 
   if (!inList(form.fagomrade, FAGOMRADER)) add('fagomrade', ERROR_MESSAGE.fagomrade);
 
-  const kontaktinfo = form.kontaktinfo.trim();
-  if (kontaktinfo.length === 0) {
-    add('kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty);
-  } else if (!EMAIL.test(kontaktinfo)) {
-    add('kontaktinfo', ERROR_MESSAGE.kontaktinfoFormat);
-  } else {
-    add('kontaktinfo', tooLong(kontaktinfo, MAX_LENGTH.kort));
-  }
-
   if (!inList(form.fase, FASER)) add('fase', ERROR_MESSAGE.fase);
 
   if (!inList(form.leveranse, LEVERANSER)) {
@@ -153,6 +144,15 @@ export function validateTiltakForm(form: TiltakForm): ValidationError[] {
   }
 
   add('kiTypeAnnet', tooLong(form.kiTypeAnnet, MAX_LENGTH.kort));
+
+  const kontaktinfo = form.kontaktinfo.trim();
+  if (kontaktinfo.length === 0) {
+    add('kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty);
+  } else if (!EMAIL.test(kontaktinfo)) {
+    add('kontaktinfo', ERROR_MESSAGE.kontaktinfoFormat);
+  } else {
+    add('kontaktinfo', tooLong(kontaktinfo, MAX_LENGTH.kort));
+  }
 
   // kiType is optional, and therefore has no rule at all. That also applies
   // to the free text field: if someone ticks "Annet" without writing anything, the
