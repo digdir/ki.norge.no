@@ -47,6 +47,20 @@ The top six are required and exist on all entries. The bottom six are optional a
 
 **Lists, not sentences.** `kiType` and `leveranse` are lists with the words from the table, spelled the same. Write `["MVP", "Pilot"]`, not `"MVP og pilot."`. The page shows them as plain text, for example "MVP, Pilot og Løsning i produksjon".
 
+## Consent for the email address
+
+The form on /ki-tiltak/del requires the submitter to tick a consent box before the email address can be stored and shown on ki.norge.no. The server rejects a submission without it.
+
+- **The proof is the email.** The block **SAMTYKKE** in the email to `ki-tiltak@kin.norge.no` says when consent was given and quotes the text that was ticked. Keep the email for as long as the address is shown on the site.
+- **Nothing about consent goes in `ki-tiltak.json`.** The entry only holds the address, as before.
+- **Withdrawal.** The form says consent is withdrawn by emailing `ki-tiltak@kin.norge.no`, and that the address is then deleted.
+  1. Add an override under the initiative's id in `ki-tiltak-overstyringer.json`, with `"sett": { "kontaktinfo": null }` and a `hvorfor`. Removing the field from `ki-tiltak.json` alone is not enough, since the next export from the register brings it back.
+  2. Remove `kontaktinfo` from the entry in `ki-tiltak.json` as well, and deploy.
+  3. Ask the register owner to remove the address from the register.
+  4. Delete the submission email.
+
+  This removes the address from the site, but not from the git history.
+
 ## Several organisations
 
 `virksomhet` and `orgnr` can be lists in the same order, with the main organisation first:
@@ -84,7 +98,7 @@ node apps/frontend/scripts/klargjor-ki-tiltak.mjs ~/Downloads/<export>.json
 
 **Optional really means optional.** Leave the field out, leave it empty, or set it to `null`, it makes no difference. `NA`, `N/A`, `-`, `–`, `null` and "ikke oppgitt" also count as empty, regardless of upper and lower case, and so does a list with only such values. An empty field is not shown at all, not even the heading. An initiative with only a description and a theme should look finished, not half filled in.
 
-**Do not backfill the old ones.** The new fields apply only to initiatives submitted or updated via the form on /ki-tiltak. Nobody should guess which AI type an organisation uses.
+**Do not backfill the old ones.** The new fields apply only to initiatives submitted or updated via the form on /ki-tiltak/del. Nobody should guess which AI type an organisation uses.
 
 **"Annet" is replaced by the free text.** If you write `"leveranse": ["Pilot", "Annet"]` and `"leveranseAnnet": "Intern verktøykasse"`, the page shows "Pilot" and "Intern verktøykasse". The word "Annet" is not shown. If the free text is there without `Annet` being in the list, the text is never shown, and a test stops it.
 

@@ -37,7 +37,8 @@ export interface KiTiltak {
   kiTypeAnnet?: string;
   /**
    * Email address. The field is published, and ki-tiltak.json lives in a public
-   * repo, so this should be an organisation address and not a personal one.
+   * repo. It can be a person's work address when the submitter has consented,
+   * see "Consent for the email address" in docs/ki-tiltak-fields.md.
    */
   kontaktinfo?: string;
 }

@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
  * The Turnstile widget in "Del KI-tiltak".
  *
  * Rendered explicitly instead of with the implicit cf-turnstile class,
- * because the form sits in a dialog that is mounted and unmounted. Implicit
- * rendering only finds elements that existed when the script loaded.
+ * because React renders the form and can mount it after the script has loaded.
+ * Implicit rendering only finds elements that existed when the script loaded.
  */
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';

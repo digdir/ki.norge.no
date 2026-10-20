@@ -35,7 +35,16 @@ export interface TiltakForm {
   kiType: string[];
   /** Free text, optional even when kiType contains "Annet". */
   kiTypeAnnet: string;
+  /** The "Samtykke" checkbox. Required, so a submission without it is rejected. */
+  consent: boolean;
 }
+
+/**
+ * The consent the submitter ticks. The form shows it and the email to the editors
+ * quotes it, so both read it from here and cannot drift apart.
+ */
+export const CONSENT_TEXT =
+  'Jeg samtykker til at Digdir kan lagre e-postadressen jeg har oppgitt og vise den på ki.norge.no.';
 
 /** The limit the design sets on the description. Only applies to new submissions. */
 export const DESCRIPTION_MAX = 800;
@@ -66,5 +75,6 @@ export function emptyForm(): TiltakForm {
     leveranseAnnet: '',
     kiType: [],
     kiTypeAnnet: '',
+    consent: false,
   };
 }

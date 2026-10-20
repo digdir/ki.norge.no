@@ -1,10 +1,6 @@
 import { Button, Heading, Paragraph } from '@digdir/designsystemet-react';
 
-interface Props {
-  onRegistrer: () => void;
-}
-
-export default function PromoBanner({ onRegistrer }: Props) {
+export default function PromoBanner() {
   return (
     <div className="tiltak-promo">
       <div className="tiltak-promo-tekst">
@@ -16,8 +12,8 @@ export default function PromoBanner({ onRegistrer }: Props) {
         </Paragraph>
       </div>
 
-      <Button onClick={onRegistrer} aria-haspopup="dialog" className="tiltak-promo-knapp">
-        Del KI-tiltak
+      <Button asChild className="tiltak-promo-knapp">
+        <a href="/ki-tiltak/del">Del KI-tiltak</a>
       </Button>
     </div>
   );
