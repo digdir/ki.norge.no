@@ -47,6 +47,14 @@ The top six are required and exist on all entries. The bottom six are optional a
 
 **Lists, not sentences.** `kiType` and `leveranse` are lists with the words from the table, spelled the same. Write `["MVP", "Pilot"]`, not `"MVP og pilot."`. The page shows them as plain text, for example "MVP, Pilot og Løsning i produksjon".
 
+## Consent for the email address
+
+The form on /ki-tiltak/del requires the submitter to tick a consent box before the email address can be stored and shown on ki.norge.no. The server rejects a submission without it.
+
+- **The proof is the email.** The block **SAMTYKKE** in the email to `ki-tiltak@kin.norge.no` says when consent was given and quotes the text that was ticked. Keep the email for as long as the address is shown on the site.
+- **Nothing about consent goes in `ki-tiltak.json`.** The entry only holds the address, as before.
+- **Withdrawal.** The form says consent is withdrawn by emailing `ki-tiltak@kin.norge.no`. Remove `kontaktinfo` from the entry and deploy. This removes the address from the file and the site, but not from the git history.
+
 ## Several organisations
 
 `virksomhet` and `orgnr` can be lists in the same order, with the main organisation first:

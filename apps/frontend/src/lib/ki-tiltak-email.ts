@@ -1,5 +1,6 @@
 import { ANNET, KI_TYPER, LEVERANSER } from './ki-tiltak';
 import {
+  CONSENT_TEXT,
   emptyForm,
   type PartnerOrg,
   type TiltakForm,
@@ -115,6 +116,8 @@ export function parseTiltakForm(body: unknown): TiltakForm | null {
     leveranseAnnet: readLine(body, 'leveranseAnnet'),
     kiType: readStringArray(body, 'kiType', KI_TYPER),
     kiTypeAnnet: readLine(body, 'kiTypeAnnet'),
+    // Only a real true counts. "true", 1 and a missing field are not consent.
+    consent: body.consent === true,
   };
 }
 
@@ -127,6 +130,40 @@ function valgt(valgte: string[], annet: string): string {
   return valgte
     .map((v) => (v === ANNET && tekst.length > 0 ? `${v} (${tekst})` : v))
     .join(', ');
+}
+
+/** "20.10.2026 kl. 14.03" in Norwegian time, whatever time zone the server runs in. */
+function osloTime(date: Date): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('nb-NO', {
+      timeZone: 'Europe/Oslo',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(date)
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.day}.${parts.month}.${parts.year} kl. ${parts.hour}.${parts.minute}`;
+}
+
+/**
+ * The proof of consent: when it was given and the exact text. It lives in this
+ * email and nowhere else, so the editors keep the email for as long as the address
+ * is published.
+ */
+function consentBlock(form: TiltakForm, now: Date): string[] {
+  if (!form.consent) return ['Innsenderen har ikke krysset av for samtykke.'];
+  return [
+    `Innsenderen krysset av for dette ${osloTime(now)}:`,
+    `«${CONSENT_TEXT}»`,
+    '',
+    'Ta vare på denne e-posten så lenge e-postadressen vises på ki.norge.no. Den viser at samtykket er gitt.',
+    'Trekker innsenderen samtykket, fjern kontaktinfo fra tiltaket i ki-tiltak.json.',
+  ];
 }
 
 function line(label: string, value: string): string {
@@ -183,7 +220,11 @@ export function tiltakJson(form: TiltakForm, id: string): string {
   return `${JSON.stringify(post, null, 2).replace(/^/gm, '  ')},`;
 }
 
-export function buildEmail(form: TiltakForm, nyId: () => string = () => crypto.randomUUID()): Email {
+export function buildEmail(
+  form: TiltakForm,
+  nyId: () => string = () => crypto.randomUUID(),
+  now: Date = new Date(),
+): Email {
   const navn = form.navn.trim();
   const virksomhet = form.ansvarligNavn.trim();
 
@@ -216,6 +257,9 @@ export function buildEmail(form: TiltakForm, nyId: () => string = () => crypto.r
     '',
     'KONTAKT',
     line('E-post', form.kontaktinfo),
+    '',
+    'SAMTYKKE',
+    ...consentBlock(form, now),
     '',
     'TIL KI-TILTAK.JSON',
     'Lim inn rett etter [ på første linje i apps/frontend/src/data/ki-tiltak.json:',

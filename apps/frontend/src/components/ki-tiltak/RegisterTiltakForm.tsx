@@ -8,6 +8,7 @@ import {
   Fieldset,
   Heading,
   Label,
+  Link,
   Paragraph,
   Radio,
   Select,
@@ -20,6 +21,7 @@ import { ANNET, FAGOMRADER, FASER, KI_TYPER, LEVERANSER } from '../../lib/ki-til
 import { ORGNR_LENGTH } from './organisationNumber';
 import TurnstileWidget from './TurnstileWidget';
 import {
+  CONSENT_TEXT,
   DESCRIPTION_MAX,
   newPartnerRow,
   emptyForm,
@@ -40,6 +42,8 @@ interface Props {
    * the submission through in that case, but logs it.
    */
   turnstileSiteKey: string;
+  /** The privacy notice, the same page as in the footer. */
+  privacyNoticeUrl: string;
 }
 
 /** Back link, "Avbryt" and the receipt button all lead back to the overview. */
@@ -92,7 +96,7 @@ function labelWithBadge(text: string, required: boolean) {
   );
 }
 
-export default function RegisterTiltakForm({ turnstileSiteKey }: Props) {
+export default function RegisterTiltakForm({ turnstileSiteKey, privacyNoticeUrl }: Props) {
   const [form, setForm] = useState<TiltakForm>(emptyForm);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [sent, setSent] = useState(false);
@@ -468,6 +472,28 @@ export default function RegisterTiltakForm({ turnstileSiteKey }: Props) {
             onChange={(event) => update('kontaktinfo')(event.target.value)}
           />
         </div>
+
+        <Fieldset className="tiltak-valg-felt">
+          <Fieldset.Legend>{labelWithBadge('Samtykke', true)}</Fieldset.Legend>
+          <Fieldset.Description>
+            Er e-postadressen til en person, må det være din egen. Du kan trekke samtykket når som
+            helst ved å sende en e-post til{' '}
+            <Link href="mailto:ki-tiltak@kin.norge.no">ki-tiltak@kin.norge.no</Link>. Les mer i{' '}
+            <Link href={privacyNoticeUrl}>personvernerklæringen</Link>.
+          </Fieldset.Description>
+          <Checkbox
+            id={fieldId('consent')}
+            label={CONSENT_TEXT}
+            checked={form.consent}
+            aria-invalid={message('consent') !== undefined || undefined}
+            onChange={(event) =>
+              setForm((previous) => ({ ...previous, consent: event.target.checked }))
+            }
+          />
+          {message('consent') !== undefined && (
+            <ValidationMessage>{message('consent')}</ValidationMessage>
+          )}
+        </Fieldset>
 
         {sendFailed && (
           <Alert data-color="danger" className="tiltak-sendefeil">

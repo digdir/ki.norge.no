@@ -20,14 +20,15 @@ function validForm(): TiltakForm {
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
     leveranse: 'Pilot',
+    consent: true,
   };
 }
 
-async function submit(hostname: string) {
+async function submit(hostname: string, overstyr: Partial<TiltakForm> = {}) {
   const request = new Request(`https://${hostname}/api/ki-tiltak`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...validForm(), turnstileToken: 'token' }),
+    body: JSON.stringify({ ...validForm(), ...overstyr, turnstileToken: 'token' }),
   });
   const response = await (POST as any)({ request });
   return { status: response.status as number, body: await response.json() };
@@ -63,6 +64,15 @@ describe('POST /api/ki-tiltak', () => {
   test('responds 403 as before when the token is rejected', async () => {
     verifyTurnstile.mockResolvedValue('rejected');
     expect(await submit('ki.norge.no')).toEqual({ status: 403, body: { error: 'turnstile_failed' } });
+    expect(sendTiltakEmail).not.toHaveBeenCalled();
+  });
+
+  test('responds 400 and sends nothing without consent', async () => {
+    verifyTurnstile.mockResolvedValue('ok');
+    expect(await submit('ki.norge.no', { consent: false })).toEqual({
+      status: 400,
+      body: { error: 'validation', fields: ['consent'] },
+    });
     expect(sendTiltakEmail).not.toHaveBeenCalled();
   });
 

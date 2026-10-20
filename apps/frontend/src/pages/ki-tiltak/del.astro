@@ -1,8 +1,16 @@
 ---
 import Layout from '../../components/layout/Layout.astro';
 import RegisterTiltakForm from '../../components/ki-tiltak/RegisterTiltakForm';
+import { privacyNoticeUrl } from '../../lib/footer';
 import { turnstileSiteKey } from '../../lib/turnstile';
+import { getGlobaleInnstillinger } from '../../lib/umbraco';
 import '../../styles/ki-tiltak.css';
+
+// Same settings as the footer, which falls back the same way when the CMS is down.
+let global = null;
+try {
+  global = await getGlobaleInnstillinger();
+} catch {}
 ---
 
 <Layout
@@ -11,7 +19,11 @@ import '../../styles/ki-tiltak.css';
 >
   <section data-layout-block="edge" class="tiltak-del">
     <div data-layout-block="content">
-      <RegisterTiltakForm client:load turnstileSiteKey={turnstileSiteKey} />
+      <RegisterTiltakForm
+        client:load
+        turnstileSiteKey={turnstileSiteKey}
+        privacyNoticeUrl={privacyNoticeUrl(global)}
+      />
     </div>
   </section>
 </Layout>

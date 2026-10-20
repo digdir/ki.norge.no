@@ -17,6 +17,7 @@ export type FieldKey =
   | 'leveranse'
   | 'leveranseAnnet'
   | 'kiTypeAnnet'
+  | 'consent'
   | `samarbeid:${string}:navn`
   | `samarbeid:${string}:orgnr`;
 
@@ -43,6 +44,7 @@ export const ERROR_MESSAGE = {
   fase: 'Velg fase for tiltaket',
   leveranse: 'Velg hva tiltaket skal levere',
   leveranseAnnet: 'Skriv hva du mener med «Annet»',
+  consent: 'Kryss av for at du samtykker',
   forLangt: 'Teksten er for lang',
 } as const;
 
@@ -153,6 +155,8 @@ export function validateTiltakForm(form: TiltakForm): ValidationError[] {
   } else {
     add('kontaktinfo', tooLong(kontaktinfo, MAX_LENGTH.kort));
   }
+
+  if (!form.consent) add('consent', ERROR_MESSAGE.consent);
 
   // kiType is optional, and therefore has no rule at all. That also applies
   // to the free text field: if someone ticks "Annet" without writing anything, the

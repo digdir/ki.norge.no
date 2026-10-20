@@ -4,6 +4,16 @@ export interface FooterLenke {
 }
 
 /**
+ * The privacy notice is link 2 in the footer. The consent in "Del KI-tiltak" links to
+ * it too, and reads it from here so the two cannot point to different pages.
+ */
+export function privacyNoticeUrl(
+  global: { footerLenke2Url?: string | null } | null | undefined,
+): string {
+  return global?.footerLenke2Url || '/personvernerklaering';
+}
+
+/**
  * Slot 6 in the footer is pure opt-in. Links 1 to 5 have hardcoded default values
  * in Footer.astro, this one has none: if the fields are empty, the entry does not exist.
  *
