@@ -162,7 +162,7 @@ function consentBlock(form: TiltakForm, now: Date): string[] {
     `«${CONSENT_TEXT}»`,
     '',
     'Ta vare på denne e-posten så lenge e-postadressen vises på ki.norge.no. Den viser at samtykket er gitt.',
-    'Trekker innsenderen samtykket, fjern kontaktinfo fra tiltaket i ki-tiltak.json og slett denne e-posten.',
+    'Trekker innsenderen samtykket, skal adressen bort fra ki.norge.no og denne e-posten slettes. Fremgangsmåten står i docs/ki-tiltak-fields.md.',
   ];
 }
 

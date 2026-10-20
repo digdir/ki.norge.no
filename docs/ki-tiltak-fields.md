@@ -53,7 +53,13 @@ The form on /ki-tiltak/del requires the submitter to tick a consent box before t
 
 - **The proof is the email.** The block **SAMTYKKE** in the email to `ki-tiltak@kin.norge.no` says when consent was given and quotes the text that was ticked. Keep the email for as long as the address is shown on the site.
 - **Nothing about consent goes in `ki-tiltak.json`.** The entry only holds the address, as before.
-- **Withdrawal.** The form says consent is withdrawn by emailing `ki-tiltak@kin.norge.no`, and that the address is then deleted. Remove `kontaktinfo` from the entry, deploy, and delete the submission email. This removes the address from the file and the site, but not from the git history.
+- **Withdrawal.** The form says consent is withdrawn by emailing `ki-tiltak@kin.norge.no`, and that the address is then deleted.
+  1. Add an override under the initiative's id in `ki-tiltak-overstyringer.json`, with `"sett": { "kontaktinfo": null }` and a `hvorfor`. Removing the field from `ki-tiltak.json` alone is not enough, since the next export from the register brings it back.
+  2. Remove `kontaktinfo` from the entry in `ki-tiltak.json` as well, and deploy.
+  3. Ask the register owner to remove the address from the register.
+  4. Delete the submission email.
+
+  This removes the address from the site, but not from the git history.
 
 ## Several organisations
 
