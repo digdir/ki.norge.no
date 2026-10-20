@@ -453,16 +453,16 @@ export default function RegisterTiltakForm({ turnstileSiteKey }: Props) {
         </div>
 
         {/*
-          Last, on its own, as in the prototype. The help text is ours and not the
-          prototype's: the address is published, so it should be the organisation's
-          and not a person's.
+          Last, on its own, as in the prototype. The help text allows either the
+          initiative's contact point, as in the prototype, or the organisation's own
+          address, as before.
         */}
         <div className="tiltak-seksjon">
           <Textfield
             id={fieldId('kontaktinfo')}
             type="email"
             label={labelWithBadge('Kontaktinformasjon', true)}
-            description="En e-postadresse folk kan bruke for å kontakte virksomheten din om tiltaket, for eksempel postmottak."
+            description="E-postadressen til kontaktpunktet for tiltaket, eller til virksomheten, for eksempel postmottak. Hvis prosjektet har en egen e-postadresse, anbefaler vi at du oppgir den."
             value={form.kontaktinfo}
             error={message('kontaktinfo')}
             onChange={(event) => update('kontaktinfo')(event.target.value)}
