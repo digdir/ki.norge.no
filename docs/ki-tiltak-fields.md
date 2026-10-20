@@ -53,7 +53,7 @@ The form on /ki-tiltak/del requires the submitter to tick a consent box before t
 
 - **The proof is the email.** The block **SAMTYKKE** in the email to `ki-tiltak@kin.norge.no` says when consent was given and quotes the text that was ticked. Keep the email for as long as the address is shown on the site.
 - **Nothing about consent goes in `ki-tiltak.json`.** The entry only holds the address, as before.
-- **Withdrawal.** The form says consent is withdrawn by emailing `ki-tiltak@kin.norge.no`. Remove `kontaktinfo` from the entry and deploy. This removes the address from the file and the site, but not from the git history.
+- **Withdrawal.** The form says consent is withdrawn by emailing `ki-tiltak@kin.norge.no`, and that the address is then deleted. Remove `kontaktinfo` from the entry, deploy, and delete the submission email. This removes the address from the file and the site, but not from the git history.
 
 ## Several organisations
 
