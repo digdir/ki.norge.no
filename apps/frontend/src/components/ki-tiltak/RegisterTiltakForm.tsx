@@ -476,9 +476,10 @@ export default function RegisterTiltakForm({ turnstileSiteKey, privacyNoticeUrl 
         <Fieldset className="tiltak-valg-felt">
           <Fieldset.Legend>{labelWithBadge('Samtykke', true)}</Fieldset.Legend>
           <Fieldset.Description>
-            Er e-postadressen til en person, må det være din egen. Du kan trekke samtykket når som
-            helst ved å sende en e-post til{' '}
-            <Link href="mailto:ki-tiltak@kin.norge.no">ki-tiltak@kin.norge.no</Link>. Les mer i{' '}
+            Er e-postadressen til en person, må det være din egen. Du kan når som helst trekke
+            samtykket ved å sende en e-post til{' '}
+            <Link href="mailto:ki-tiltak@kin.norge.no">ki-tiltak@kin.norge.no</Link>, så sletter vi
+            adressen. Les mer i{' '}
             <Link href={privacyNoticeUrl}>personvernerklæringen</Link>.
           </Fieldset.Description>
           <Checkbox
