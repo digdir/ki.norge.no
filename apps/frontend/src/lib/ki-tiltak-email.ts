@@ -60,6 +60,7 @@ function readChoice(kilde: Record<string, unknown>, navn: string, tillatte: read
 }
 
 /** Control characters, line breaks included. */
+// oxlint-disable-next-line no-control-regex -- matching control characters is the point
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g;
 
 /**

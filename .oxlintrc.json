@@ -1,0 +1,7 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    // An unused catch parameter is harmless, and cookie-notice.inline.js stays ES5.
+    "no-unused-vars": ["warn", { "caughtErrors": "none", "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }]
+  }
+}

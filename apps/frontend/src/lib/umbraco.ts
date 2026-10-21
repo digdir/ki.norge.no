@@ -12,7 +12,7 @@ export interface FetchOptions {
 }
 
 // Umbraco Content Delivery API response format
-interface UmbracoResponse<T> {
+interface UmbracoResponse {
   total: number;
   items: UmbracoItem[];
 }
@@ -27,8 +27,6 @@ interface UmbracoItem {
   properties: Record<string, unknown>;
   cultures: Record<string, { path: string; startItem: { id: string; path: string } }>;
 }
-
-interface UmbracoSingleItem extends UmbracoItem {}
 
 // Block List item from Umbraco Delivery API
 export interface UmbracoBlock {
@@ -743,7 +741,7 @@ async function fetchCollection<T>(
       throw new Error(`Umbraco API error: ${res.status} ${res.statusText}`);
     }
 
-    const data: UmbracoResponse<T> = await res.json();
+    const data: UmbracoResponse = await res.json();
 
     return {
       data: data.items.map((item) => mapItem<T>(item, contentType)),
@@ -847,7 +845,7 @@ export async function hentKortKandidat(
 
 export async function fetchContentAncestorsById(id: string, options: FetchOptions = {}): Promise<ResolvedContentItem[]> {
   const previewSuffix = options.preview ? '&preview=true' : '';
-  const data = await deliveryApiFetch<UmbracoResponse<ResolvedContentItem>>(
+  const data = await deliveryApiFetch<UmbracoResponse>(
     `?fetch=ancestors:${id}${previewSuffix}`,
     options,
   );
@@ -857,7 +855,6 @@ export async function fetchContentAncestorsById(id: string, options: FetchOption
 // Route patterns loaded from /shared/content-routes.json — single source of truth
 // shared with the CMS preview-URL provider. See HeadlessPreviewUrlProvider.cs.
 const CONTENT_ROUTES: Record<string, string> = contentRoutesConfig.routes;
-const ANCESTOR_TOKEN_RE = /\{([a-zA-Z][a-zA-Z0-9]*)\.slug\}/g;
 
 // Content types whose pattern references an ancestor's slug — i.e. resolver must
 // fetch ancestors before building the URL. Derived from the patterns themselves
@@ -960,7 +957,7 @@ export async function fetchAllPublishedContent(options: FetchOptions = {}): Prom
 
   while (skip < total) {
     const params = new URLSearchParams({ take: String(PAGE_SIZE), skip: String(skip) });
-    const data = await deliveryApiFetch<UmbracoResponse<unknown>>(`?${params.toString()}`, options);
+    const data = await deliveryApiFetch<UmbracoResponse>(`?${params.toString()}`, options);
     if (!data) break;
     const items = data.items ?? [];
     for (const item of items) {
@@ -1576,48 +1573,6 @@ function mapRichText(value: unknown): UmbracoBlock[] | undefined {
   return undefined;
 }
 
-function mapAccordionSections(value: unknown): AccordionSection[] {
-  const items = Array.isArray(value) ? value : (value as any)?.items;
-  if (!Array.isArray(items)) return [];
-  return items.map((block: any) => {
-    const content = block.content || block;
-    const props = content.properties || content;
-    return {
-      title: (props.title as string) || '',
-      body: mapRichText(props.body) || [],
-    };
-  });
-}
-
-function mapTipItems(value: unknown): TipItem[] {
-  const items = Array.isArray(value) ? value : (value as any)?.items;
-  if (!Array.isArray(items)) return [];
-  return items.map((block: any) => {
-    const content = block.content || block;
-    const props = content.properties || content;
-    return {
-      tipsTitle: (props.tipsTitle as string) || '',
-      tipsTekst: mapRichText(props.tipsTekst) || [],
-      tipsBilde: mapMedia(props.tipsBilde),
-    };
-  });
-}
-
-function mapEventItems(value: unknown): EventItem[] {
-  const items = Array.isArray(value) ? value : (value as any)?.items;
-  if (!Array.isArray(items)) return [];
-  return items.map((block: any) => {
-    const content = block.content || block;
-    const props = content.properties || content;
-    return {
-      eventTittel: (props.eventTittel as string) || '',
-      eventDato: (props.eventDato as string) || undefined,
-      eventSted: (props.eventSted as string) || undefined,
-      eventUrl: (props.eventUrl as string) || undefined,
-    };
-  });
-}
-
 function mapVeiledningKort(value: unknown): VeiledningKort[] {
   const items = Array.isArray(value) ? value : (value as any)?.items;
   if (!Array.isArray(items)) return [];
@@ -1664,12 +1619,6 @@ function pickerId(value: unknown): string | undefined {
   if (!value) return undefined;
   const item = Array.isArray(value) ? value[0] : value;
   return (item as any)?.id || undefined;
-}
-
-function pickerIds(value: unknown): string[] {
-  if (!value) return [];
-  const arr = Array.isArray(value) ? value : [value];
-  return arr.map((item: any) => item?.id).filter((id): id is string => !!id);
 }
 
 function mapForsideSeksjoner(value: unknown): ForsideSeksjon[] | undefined {
@@ -1859,16 +1808,6 @@ function mapFeaturedHendelse(value: unknown): Kalenderhendelse | null {
     publishedAt: node.createDate || '',
     locale: 'nb-NO',
   };
-}
-
-function parseJsonArray(value: string | undefined): string[] {
-  if (!value) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
 }
 
 // Standard widths for delivery resizing (ImageSharp width param). The original
@@ -2276,7 +2215,7 @@ export async function searchContent(query: string, options: FetchOptions = {}): 
       throw new Error(`Umbraco search error: ${res.status} ${res.statusText}`);
     }
 
-    const data: UmbracoResponse<SearchResult> = await res.json();
+    const data: UmbracoResponse = await res.json();
 
     const results: SearchResult[] = data.items
       .filter(item => ['artikkel', 'eksempel', 'veiledningGuide', 'veiledningSteg', 'side', 'faq'].includes(item.contentType))

@@ -38,7 +38,7 @@ describe('the publishedAt source', () => {
 
     const tilordninger = linjer
       .map((linje, i) => {
-        if (!/^publishedAt:/.test(linje)) return null;
+        if (!linje.startsWith('publishedAt:')) return null;
         // Type declarations in the interfaces are not assignments.
         if (/^publishedAt\??:\s*(string|number)\s*;?$/.test(linje)) return null;
         // The value can be on the line below when the expression is wrapped.

@@ -59,6 +59,7 @@ export function attributeIsSafe(name: string, value: string): boolean {
 
 export function urlIsSafe(value: string): boolean {
   // The browser ignores whitespace and control characters in the scheme, so "java\tscript:" is javascript:.
+  // oxlint-disable-next-line no-control-regex -- matching control characters is the point
   const compact = value.replace(/[\u0000- \u007F]/g, '');
   const scheme = /^[a-z][a-z0-9+.-]*:/i.exec(compact);
   return scheme === null || SAFE_SCHEME.test(scheme[0]);
