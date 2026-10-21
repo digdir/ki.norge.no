@@ -2,6 +2,10 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-10-21
+
+- **Oxlint is the linter.** `pnpm run lint` checks the whole repo, and CI fails on any warning. Oxlint was chosen over ESLint because it checks the repo in milliseconds and its default rules are useful without a plugin setup. See [#918](https://github.com/digdir/ki.norge.no/pull/918).
+
 ## 2026-10-07
 
 - **The CMS pod is pinned to the digest of the image tag.** "Publish Syncroot artifacts" looks up the digest the tag points to, and the pod is pulled by digest with the tag as a label. A tag that moves does not change what runs, and a tag that does not exist stops the publish before anything is pushed. `deploy-cms.sh` and `backup-prod.sh` read the reference in the form `umbraco:<tag>@sha256:…`. See [#861](https://github.com/digdir/ki.norge.no/pull/861) and [#844](https://github.com/digdir/ki.norge.no/issues/844).
