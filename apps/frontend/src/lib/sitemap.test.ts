@@ -51,10 +51,8 @@ describe('isExcludedPath (gate 2: path prefix that mirrors robots.txt)', () => {
 });
 
 describe('collectSitemapUrls via generateSitemapXml', () => {
-  let debugSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
-    debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    vi.spyOn(console, 'debug').mockImplementation(() => {});
   });
 
   afterEach(() => {

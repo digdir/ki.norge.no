@@ -31,7 +31,7 @@ const SVG_CSP = "default-src 'none'; img-src data:; style-src 'unsafe-inline'; s
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env) {
     const targetBase = env.ORIGIN;
     const url = new URL(request.url);
 

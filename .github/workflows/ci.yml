@@ -30,6 +30,10 @@ jobs:
         working-directory: apps/frontend
         run: pnpm install --frozen-lockfile
 
+      # Oxlint over the whole repo. A warning fails the build.
+      - name: Lint
+        run: pnpm run lint
+
       # Runs before build, so that an editorial data error in
       # src/data/ki-tiltak.json stops here with a clear message instead of
       # slipping through. Build alone does not catch it, because the page is

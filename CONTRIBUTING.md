@@ -40,7 +40,7 @@ The documentation starts in [docs/README.md](docs/README.md). Agents start in `C
 
 1. Branch off `main`
 2. Make changes — keep commits small and focused
-3. Run `dotnet build` (CMS) and `npx astro build` (frontend) locally
+3. Run `pnpm run lint`, `dotnet build` (CMS) and `npx astro build` (frontend) locally
 4. Run `bash scripts/smoke-test.sh` against prod after a deploy. See [docs/smoke-tests.md](docs/smoke-tests.md)
 5. Open a PR — fill in the template
 

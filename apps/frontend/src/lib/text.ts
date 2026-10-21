@@ -20,7 +20,7 @@ export function splitLastWord(text: string): { head: string; last: string } {
  * break points, so they split words. A non-breaking hyphen (U+2011) does not.
  */
 export function ordlengde(text: string | undefined): string {
-  const lengste = Math.max(0, ...(text ?? '').split(/[\s\-\u2010\u2013\u2014\/]+/).map((ord) => Array.from(ord).length));
+  const lengste = Math.max(0, ...(text ?? '').split(/[\s\-\u2010\u2013\u2014/]+/).map((ord) => Array.from(ord).length));
   return `--lengste-ord: ${lengste}`;
 }
 

@@ -13,10 +13,8 @@ function jsonResponse(body: unknown) {
 const realFetch = global.fetch;
 
 describe('resolveContentUrl', () => {
-  let warnSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
-    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {

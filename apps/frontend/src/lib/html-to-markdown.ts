@@ -118,7 +118,7 @@ function renderList(el: Element, ctx: Ctx, depth: number): string {
   const lines: string[] = [];
   let index = 1;
 
-  for (const child of [...el.children]) {
+  for (const child of el.children) {
     if (child.tagName !== 'LI') continue;
 
     // Nested lists are rendered separately and pulled out of the item's own text.
@@ -231,7 +231,7 @@ function renderChildren(el: Element, ctx: Ctx): string {
     inlineRun = '';
   };
 
-  for (const child of [...el.childNodes]) {
+  for (const child of el.childNodes) {
     if (child.nodeType === 3) {
       inlineRun += collapse(child.textContent ?? '');
       continue;
@@ -286,8 +286,9 @@ function parseAccept(header: string): MediaRange[] {
 /**
  * True only when the client explicitly asks for markdown and does not prefer HTML.
  *
- * Browsers send `text/html,...,*​/*;q=0.8`. The wildcard therefore does not count as
- * a wish for markdown, otherwise every single browser would get markdown.
+ * Browsers send `text/html` first and accept any other type through a wildcard
+ * at q=0.8. The wildcard therefore does not count as a wish for markdown,
+ * otherwise every single browser would get markdown.
  */
 export function prefersMarkdown(acceptHeader: string | null): boolean {
   if (!acceptHeader) return false;
