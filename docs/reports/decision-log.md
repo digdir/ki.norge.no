@@ -2,6 +2,10 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-10-22
+
+- **Link use is counted on the server, without consent.** Links in the menu, the mobile menu, the logo and the footer carry a fixed label (`?fra=meny`), and the cache worker removes it and adds 1 to a count per day, label and page. Nothing about the visitor is read or stored, so it is outside ekomloven § 3-15 and the GDPR as the product owner reads them. The interpretation, the strongest objection and how to switch it off are in the [ADR](../adr/2026-10-22-link-statistics.md).
+
 ## 2026-10-07
 
 - **The CMS pod is pinned to the digest of the image tag.** "Publish Syncroot artifacts" looks up the digest the tag points to, and the pod is pulled by digest with the tag as a label. A tag that moves does not change what runs, and a tag that does not exist stops the publish before anything is pushed. `deploy-cms.sh` and `backup-prod.sh` read the reference in the form `umbraco:<tag>@sha256:…`. See [#861](https://github.com/digdir/ki.norge.no/pull/861) and [#844](https://github.com/digdir/ki.norge.no/issues/844).

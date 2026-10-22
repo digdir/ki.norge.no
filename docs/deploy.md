@@ -113,6 +113,8 @@ pnpm run cache-kinorgeportal:deploy:prod
 
 Manually remove pages that should no longer be cached from Cloudflare afterwards.
 
+The link counter needs a D1 database per environment, created once. See [link-statistics.md](link-statistics.md#setting-it-up).
+
 Avoid purging the whole cache for ki.norge.no during the day.
 
 ## CMS worker (cms-kinorgeportal)

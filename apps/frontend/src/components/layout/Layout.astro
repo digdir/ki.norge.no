@@ -132,6 +132,17 @@ const ogImageUrl = resolvedOg
       });
     </script>
     <script>
+      // Removes the link label (?fra=) from the address bar, so a copied or bookmarked
+      // address is clean and is not counted again. It reads the page's own address and
+      // sends nothing. See docs/adr/2026-10-22-link-statistics.md.
+      import { ORIGIN_PARAM } from '../../lib/link-origin';
+      const url = new URL(window.location.href);
+      if (url.searchParams.has(ORIGIN_PARAM)) {
+        url.searchParams.delete(ORIGIN_PARAM);
+        history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+      }
+    </script>
+    <script>
       // WebMCP. No-op in browsers without modelContext, which is the vast majority.
       import { registerWebMcpTools } from '../../lib/webmcp';
       void registerWebMcpTools();
