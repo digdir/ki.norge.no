@@ -3,6 +3,7 @@
 import { getGlobaleInnstillinger } from "../../lib/umbraco";
 import Logo from "./Logo";
 import { footerLenke6 } from "../../lib/footer";
+import { withOrigin } from "../../lib/link-origin";
 let global = null;
 try {
     global = await getGlobaleInnstillinger();
@@ -71,7 +72,7 @@ const navCol2 = [
         {
             navCol2.map((link) =>
                 link.url ? (
-                    <a href={link.url} class="ds-link">
+                    <a href={withOrigin(link.url, "bunntekst")} class="ds-link">
                         {link.text}
                     </a>
                 ) : (

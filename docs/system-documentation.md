@@ -76,6 +76,8 @@ Assets (CSS, JS, images) are uploaded to Cloudflare on deploy. Cloudflare also a
 
 For caching whole pages, a separate small worker runs in front of the page engine, `cache-kinorgeportal`. It has a service binding `FRONTEND` to `ki-norge-frontend-<environment>`, looks up the address in the cache, and calls the page engine only when the page is not there. A new page is put in the cache before it is delivered.
 
+The worker also removes the link label `?fra=` from the address before the cache lookup, and counts it. See [link-statistics.md](link-statistics.md).
+
 Code: `apps/cache-kinorgeportal`. Workers: `cache-kinorgeportal-prod` and `cache-kinorgeportal-tt02`.
 
 The cache is purged in two places:
