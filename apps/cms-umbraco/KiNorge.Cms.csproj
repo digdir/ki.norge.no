@@ -13,25 +13,25 @@
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="9.5.3" />
     <PackageReference Include="Kjac.HeadlessPreview" Version="3.0.1" />
     <PackageReference Include="MailKit" Version="4.18.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.13" />
     <!-- Transitive via Umbraco. Pinned above vulnerable 2.4.1 (GHSA-v5pm-xwqc-g5wc);
          remove when Umbraco itself pulls >= 2.7.5. -->
-    <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.13.0" />
     <!-- OTLP export to otel-collector. Traces are wired up in Program.cs, logs
          via the Serilog sink (appsettings.Production.json), not builder.Logging. -->
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.19.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.20.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.20.1" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
     <!-- Transitive via Umbraco -> Microsoft.Data.Sqlite. 2.1.11 bundles a vulnerable
          SQLite binary (GHSA-2m69-gcr7-jv3q, HIGH). The whole family is pinned together so
          core/provider/lib do not get out of step. Remove when Umbraco pulls 2.1.12
          itself. Only affects local dev, prod runs Azure SQL. -->
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
-    <PackageReference Include="SQLitePCLRaw.core" Version="2.1.13" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.13" />
-    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.13" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" />
+    <PackageReference Include="SQLitePCLRaw.core" Version="2.1.14" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
+    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.14" />
     <PackageReference Include="Umbraco.Cms" Version="17.7.1" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.7.1" />
     <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="17.1.0" />
