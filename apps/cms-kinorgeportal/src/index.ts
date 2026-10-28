@@ -33,6 +33,8 @@ const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 export default {
   async fetch(request, env, ctx) {
     const targetBase = env.ORIGIN;
+    const blockContentDeliveryAPI = env.BLOCK_API;
+
     const url = new URL(request.url);
 
     if (url.protocol === "http:" && !LOCAL_HOSTS.has(url.hostname)) {
@@ -45,6 +47,10 @@ export default {
       return Response.redirect(`${url.origin}/umbraco`, 302);
     }
 
+    if (blockContentDeliveryAPI !== "false" && url.pathname.toLowerCase().startsWith("/umbraco/delivery/api/")) {
+      return new Response(null, { status: 404 });
+    }
+
     const targetUrl = targetBase + url.pathname + url.search;
     const incomingUrl = new URL(request.url);
 
@@ -52,6 +58,7 @@ export default {
     headers.set("Host", incomingUrl.host);
     headers.set("X-Forwarded-Host", incomingUrl.host);
     headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
+
 
     const proxyRequest = new Request(targetUrl.toString(), {
       method: request.method,
