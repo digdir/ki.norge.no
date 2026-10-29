@@ -569,6 +569,11 @@ body:has(.tiltak-hero) .header .header-container .ds-button:hover {
   color: var(--tiltak-tekst-myk);
 }
 
+.tiltak-registered {
+  margin: var(--ds-size-5) 0 0;
+  color: var(--tiltak-tekst-myk);
+}
+
 /* Call-to-action band above the toolbar */
 .tiltak-promo {
   display: grid;

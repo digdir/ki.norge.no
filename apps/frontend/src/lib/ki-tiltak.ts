@@ -40,6 +40,8 @@ export interface KiTiltak {
    * repo, so this should be an organisation address and not a personal one.
    */
   kontaktinfo?: string;
+  /** When the tiltak was created in the register, as YYYY-MM-DD in Oslo time. Shown as "Registrert". */
+  registered?: string;
 }
 
 export { FAGOMRADER, FASER, LEVERANSER, KI_TYPER, ANNET } from './ki-tiltak-verdier';
@@ -74,6 +76,8 @@ export interface RawTiltak {
   leveranse?: Tekst | Tekst[];
   leveranseAnnet?: Tekst;
   kontaktinfo?: Tekst;
+  /** The register's creation date. Its format is not settled yet, see toRegistered. */
+  opprettet?: Tekst;
 }
 
 const somListe = (verdi: Tekst | Tekst[]): Tekst[] => (Array.isArray(verdi) ? verdi : [verdi]);
@@ -89,6 +93,44 @@ function toFase(value: Tekst, navn: string): KiTiltakFase | undefined {
   const matches = FASER.find((f) => f === fase);
   if (matches === undefined) throw new Error(`Unknown fase on ${navn} in ki-tiltak.json: "${fase}"`);
   return matches;
+}
+
+const OSLO_DATE = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Oslo' });
+
+function isRealDate(year: number, month: number, day: number): boolean {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+/**
+ * The register had no creation date when this was written, so the format is a guess. Takes
+ * 2025-12-13, 13.12.2025 and a full timestamp, which becomes the date in Oslo. Anything else
+ * gives no date, and a test on the data catches it before it reaches the site.
+ */
+export function toRegistered(value: Tekst): string | undefined {
+  const text = tekst(value);
+  if (text === undefined) return undefined;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if (iso) return isRealDate(+iso[1], +iso[2], +iso[3]) ? text : undefined;
+  const norwegian = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(text);
+  if (norwegian) {
+    const [day, month, year] = [+norwegian[1], +norwegian[2], +norwegian[3]];
+    if (!isRealDate(year, month, day)) return undefined;
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(text)) return undefined;
+  const time = Date.parse(text);
+  return Number.isNaN(time) ? undefined : OSLO_DATE.format(time);
+}
+
+/** "13. desember 2025" */
+export function formatRegistered(date: string): string {
+  return new Date(`${date}T12:00:00Z`).toLocaleDateString('nb-NO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Europe/Oslo',
+  });
 }
 
 export type Navnekilde = 'tabell' | 'register';
@@ -144,6 +186,7 @@ export function tilKiTiltak(raw: RawTiltak, navnekilde: Navnekilde = VIRKSOMHETS
     kiType: liste(raw.kiType),
     kiTypeAnnet: tekst(raw.kiTypeAnnet),
     kontaktinfo: tekst(raw.kontaktinfo),
+    registered: toRegistered(raw.opprettet),
   };
   for (const felt of Object.keys(tiltak) as (keyof KiTiltak)[]) {
     if (tiltak[felt] === undefined) delete tiltak[felt];
