@@ -4,6 +4,7 @@ import {
   FILTERETIKETTER,
   FILTERVALG,
   filterTiltak,
+  formatRegistered,
   IKKE_DEFINERT,
   kiTiltak,
   type KiTiltak,
@@ -16,6 +17,7 @@ import {
   somTekst,
   tellFiltervalg,
   tilKiTiltak,
+  toRegistered,
   TOMT_FILTER,
   utenKategorier,
   utenVerdi,
@@ -23,6 +25,7 @@ import {
   virksomhetTekst,
   VIRKSOMHETSNAVN,
 } from './ki-tiltak';
+import data from '../data/ki-tiltak.json';
 import virksomhetsnavn from '../data/ki-tiltak-virksomhetsnavn.json';
 
 const EMPTY: KiTiltakFilter = TOMT_FILTER;
@@ -142,6 +145,13 @@ describe('ki-tiltak dataset', () => {
       if (t.leveranseAnnet?.trim()) {
         expect(t.leveranse ?? [], `leveranseAnnet without "Annet" on ${t.navn}`).toContain('Annet');
       }
+    }
+  });
+
+  test('opprettet is a date the page can show', () => {
+    for (const raw of data as { navn: string; opprettet?: string | null }[]) {
+      if (utenVerdi(raw.opprettet)) continue;
+      expect(toRegistered(raw.opprettet), `opprettet "${raw.opprettet}" on ${raw.navn}`).toBeDefined();
     }
   });
 
@@ -531,5 +541,36 @@ describe('tilKiTiltak', () => {
   test('fase as a placeholder is no fase, but an unknown fase still throws', () => {
     expect(tilKiTiltak({ id: 'a', navn: 'X', fase: 'NA' }).fase).toBeUndefined();
     expect(() => tilKiTiltak({ id: 'a', navn: 'X', fase: 'Ferdig' })).toThrow(/Unknown fase on X/);
+  });
+});
+
+describe('registered date', () => {
+  test.each([
+    ['2025-12-13', '2025-12-13'],
+    ['13.12.2025', '2025-12-13'],
+    ['1.2.2026', '2026-02-01'],
+    ['2025-12-13T10:00:00Z', '2025-12-13'],
+    ['2025-12-13T23:30:00Z', '2025-12-14'],
+    ['2025-12-13T10:00:00.123+01:00', '2025-12-13'],
+  ])('%s gives %s', (input, expected) => {
+    expect(toRegistered(input)).toBe(expected);
+  });
+
+  test.each([null, undefined, '', ' ', 'NA', 'snart', '2025-02-30', '31.04.2025', '12/13/2025', '2025-13-01T10:00:00Z'])(
+    '%s gives no date',
+    (input) => {
+      expect(toRegistered(input)).toBeUndefined();
+    },
+  );
+
+  test('is shown as day, month in words and year', () => {
+    expect(formatRegistered('2025-12-13')).toBe('13. desember 2025');
+    expect(formatRegistered('2026-01-01')).toBe('1. januar 2026');
+  });
+
+  test('comes from opprettet, and a tiltak without it has no date', () => {
+    expect(tilKiTiltak({ id: 'a', navn: 'X', opprettet: '2025-12-13' }).registered).toBe('2025-12-13');
+    expect(tilKiTiltak({ id: 'a', navn: 'X' })).not.toHaveProperty('registered');
+    expect(tilKiTiltak({ id: 'a', navn: 'X', opprettet: 'NA' })).not.toHaveProperty('registered');
   });
 });

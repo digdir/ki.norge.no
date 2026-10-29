@@ -1,6 +1,6 @@
 import { Button, Dialog, Heading, Paragraph, Tag } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
-import { somTekst, visValg, type KiTiltak } from '../../lib/ki-tiltak';
+import { formatRegistered, somTekst, visValg, type KiTiltak } from '../../lib/ki-tiltak';
 import { toTextBlocks, toInline } from './textBlocks';
 
 interface Props {
@@ -169,6 +169,12 @@ export default function KiTiltakDetail({ tiltak, onClose }: Props) {
             Vil du oppdatere beskrivelsen av eller fasen til tiltaket? Ta kontakt på{' '}
             <a href="mailto:ki-tiltak@kin.norge.no" className="ds-link">ki-tiltak@kin.norge.no</a>.
           </Paragraph>
+
+          {tiltak.registered && (
+            <Paragraph className="tiltak-registered">
+              Registrert <time dateTime={tiltak.registered}>{formatRegistered(tiltak.registered)}</time>
+            </Paragraph>
+          )}
         </Dialog.Block>
       )}
     </Dialog>

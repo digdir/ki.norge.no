@@ -40,6 +40,9 @@ The top six are required and exist on all entries. The bottom six are optional a
 | `leveranse` | list | `PoC`, `MVP`, `Pilot`, `Løsning i produksjon`, `Annet` |
 | `leveranseAnnet` | text | Free text. Only when `leveranse` contains `Annet` |
 | `kontaktinfo` | text | Email address |
+| `opprettet` | date | When the initiative was created in the register. `2025-12-13`, `13.12.2025` or a full timestamp. Shown as **Registrert 13. desember 2025** at the bottom of the details |
+
+**`opprettet` comes from the register only.** The register's export did not include it when the field was added, so the accepted formats are a guess. A date in another format fails the tests instead of disappearing from the page.
 
 **There is no status field.** It was removed because the category is not to be used. `fase` is the answer to the form's "Hvilken fase er tiltaket i?", and is shown as **Fase**.
 
@@ -114,6 +117,7 @@ End the description with a full stop. 52 of the 58 existing ones already do. Thi
 - duplicates or empty strings in the two lists
 - `Annet` free text without `Annet` being selected
 - `kontaktinfo` that does not look like an email address
+- `opprettet` that is not a date in one of the accepted formats
 - a link in the description that is not `http` or `https`
 - unknown phase or subject area, and duplicate ids
 - org numbers missing a name in `ki-tiltak-virksomhetsnavn.json`
