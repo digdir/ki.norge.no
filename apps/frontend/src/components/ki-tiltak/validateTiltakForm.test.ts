@@ -18,6 +18,7 @@ function validForm(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
     leveranse: 'Pilot',
+    consent: true,
     ...overstyr,
   };
 }
@@ -64,6 +65,7 @@ describe('validateTiltakForm', () => {
       ['contact info', { kontaktinfo: '  ' }, 'kontaktinfo', ERROR_MESSAGE.kontaktinfoEmpty],
       ['phase', { fase: '' }, 'fase', ERROR_MESSAGE.fase],
       ['deliverable', { leveranse: '' }, 'leveranse', ERROR_MESSAGE.leveranse],
+      ['consent', { consent: false }, 'consent', ERROR_MESSAGE.consent],
       ['unknown deliverable', { leveranse: 'Noe oppdiktet' }, 'leveranse', ERROR_MESSAGE.leveranse],
       [
         'free text when "Annet" is ticked',
@@ -77,18 +79,19 @@ describe('validateTiltakForm', () => {
       expect(message(validForm(overstyr), field as never)).toBe(forventet);
     });
 
-    test('all eight can be missing at once', () => {
+    test('all nine can be missing at once', () => {
       const errors = validateTiltakForm(emptyForm());
-      expect(errors).toHaveLength(8);
+      expect(errors).toHaveLength(9);
       expect(errors.map((item) => item.field)).toEqual([
         'ansvarligNavn',
         'ansvarligOrgnr',
         'navn',
         'beskrivelse',
         'fagomrade',
-        'kontaktinfo',
         'fase',
         'leveranse',
+        'kontaktinfo',
+        'consent',
       ]);
     });
   });
@@ -213,9 +216,10 @@ describe('validateTiltakForm', () => {
       'navn',
       'beskrivelse',
       'fagomrade',
-      'kontaktinfo',
       'fase',
       'leveranse',
+      'kontaktinfo',
+      'consent',
     ]);
   });
 });

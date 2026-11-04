@@ -1,0 +1,29 @@
+---
+import Layout from '../../components/layout/Layout.astro';
+import RegisterTiltakForm from '../../components/ki-tiltak/RegisterTiltakForm';
+import { privacyNoticeUrl } from '../../lib/footer';
+import { turnstileSiteKey } from '../../lib/turnstile';
+import { getGlobaleInnstillinger } from '../../lib/umbraco';
+import '../../styles/ki-tiltak.css';
+
+// Same settings as the footer, which falls back the same way when the CMS is down.
+let global = null;
+try {
+  global = await getGlobaleInnstillinger();
+} catch {}
+---
+
+<Layout
+  title="Del KI-tiltak"
+  description="Del hvordan virksomheten din utforsker eller bruker kunstig intelligens, så legger vi tiltaket inn i oversikten over offentlige KI-tiltak."
+>
+  <section data-layout-block="edge" class="tiltak-del">
+    <div data-layout-block="content">
+      <RegisterTiltakForm
+        client:load
+        turnstileSiteKey={turnstileSiteKey}
+        privacyNoticeUrl={privacyNoticeUrl(global)}
+      />
+    </div>
+  </section>
+</Layout>

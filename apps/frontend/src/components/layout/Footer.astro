@@ -2,7 +2,7 @@
 // Footer, editable in the CMS via globaleInnstillinger. Falls back to a hardcoded default.
 import { getGlobaleInnstillinger } from "../../lib/umbraco";
 import Logo from "./Logo";
-import { footerLenke6 } from "../../lib/footer";
+import { footerLenke6, privacyNoticeUrl } from "../../lib/footer";
 let global = null;
 try {
     global = await getGlobaleInnstillinger();
@@ -25,7 +25,7 @@ const navCol2 = [
     ...(lenke6 ? [lenke6] : []),
     {
         text: global?.footerLenke2Tekst || "Personvernerklæring",
-        url: global?.footerLenke2Url || "/personvernerklaering",
+        url: privacyNoticeUrl(global),
     },
     {
         text: global?.footerLenke3Tekst || "Informasjonskapsler",

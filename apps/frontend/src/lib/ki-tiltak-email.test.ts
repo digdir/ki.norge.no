@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { newPartnerRow, emptyForm, type TiltakForm } from '../components/ki-tiltak/tiltakForm';
+import { CONSENT_TEXT, newPartnerRow, emptyForm, type TiltakForm } from '../components/ki-tiltak/tiltakForm';
 import { buildEmail, parseTiltakForm, tiltakJson } from './ki-tiltak-email';
 import { tilKiTiltak } from './ki-tiltak';
 
@@ -14,6 +14,7 @@ function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
     leveranse: 'Pilot',
+    consent: true,
     ...overstyr,
   };
 }
@@ -94,6 +95,13 @@ describe('parseTiltakForm', () => {
     expect(parseTiltakForm({ samarbeid: 'nei' })?.samarbeid).toEqual([]);
     expect(parseTiltakForm({ samarbeid: [1, 'to', null] })?.samarbeid).toEqual([]);
   });
+
+  test('only a real true counts as consent', () => {
+    expect(parseTiltakForm({ consent: true })?.consent).toBe(true);
+    for (const consent of ['true', 1, 'ja', null, undefined]) {
+      expect(parseTiltakForm({ consent })?.consent).toBe(false);
+    }
+  });
 });
 
 describe('buildEmail', () => {
@@ -145,6 +153,34 @@ describe('buildEmail', () => {
     // become markup. We neither escape nor remove them.
     expect(subject).toContain('<script>alert(1)</script>');
     expect(text).toContain('<b>hei</b>');
+  });
+});
+
+describe('consent in the email', () => {
+  // 12.03 UTC is 14.03 in Oslo, summer time until 25 October 2026.
+  const when = new Date('2026-10-20T12:03:00Z');
+
+  test('records when consent was given and the exact text', () => {
+    const { text } = buildEmail(form(), () => 'x', when);
+    expect(text).toContain('SAMTYKKE');
+    expect(text).toContain('Innsenderen krysset av for dette 20.10.2026 kl. 14.03:');
+    expect(text).toContain(`«${CONSENT_TEXT}»`);
+    expect(text).toContain('Ta vare på denne e-posten');
+  });
+
+  test('uses Norwegian winter time after the clocks change', () => {
+    const { text } = buildEmail(form(), () => 'x', new Date('2026-11-02T08:30:00Z'));
+    expect(text).toContain('02.11.2026 kl. 09.30');
+  });
+
+  test('says so plainly if consent is missing', () => {
+    const { text } = buildEmail(form({ consent: false }), () => 'x', when);
+    expect(text).toContain('Innsenderen har ikke krysset av for samtykke.');
+    expect(text).not.toContain(CONSENT_TEXT);
+  });
+
+  test('consent is not part of the published entry', () => {
+    expect(tiltakJson(form(), 'x')).not.toMatch(/consent|samtykke/i);
   });
 });
 
