@@ -5,5 +5,8 @@
 ## All code
 * @alvlia @richardrormark
 
+## Frontend
+/apps/frontend @alvlia @richardrormark @Barsnes
+
 # Other teams do this to adhere to Team Sikkerhet's filtrering,
 /.github/CODEOWNERS @digdir/team-ki-norge
