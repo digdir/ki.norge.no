@@ -129,7 +129,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
 
           {/* Hamburger toggle — always in DOM, CSS hides on desktop */}
           <button
-            className={cl('hamburger-toggle', 'ds-focus', !isHamburger && 'hamburger-toggle--js-hidden')}
+            className={cl('hamburger-toggle', 'ds-focus', 'ds-button', !isHamburger && 'hamburger-toggle--js-hidden')}
             aria-label="Åpne meny"
             popoverTarget="header-mobile-menu"
             popoverTargetAction="show"
