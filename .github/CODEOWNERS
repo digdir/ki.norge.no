@@ -3,11 +3,7 @@
 ### For developers - but other team members can add themselves if wanted
 
 ## All code
-* @larsekhansen @pooriamehregan
-
-## Specific parts of the repo
-# Prods Umbraco uSync schema. See apps/cms-umbraco/uSync/README.md
-/apps/cms-umbraco/uSync/ @larsekhansen
+* @pooriamehregan @alvlia @richardrormark
 
 # Other teams do this to adhere to Team Sikkerhet's filtrering,
 /.github/CODEOWNERS @digdir/team-ki-norge
