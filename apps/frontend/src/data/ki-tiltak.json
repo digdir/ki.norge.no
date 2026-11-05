@@ -9,7 +9,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:01:52.067000"
   },
   {
     "id": "1184d9ae-4d94-4465-9472-0934062346dd",
@@ -21,7 +22,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:01:54.647000"
   },
   {
     "id": "005792aa-0eea-437d-ac27-30f7201ee081",
@@ -33,7 +35,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:01:55.207000"
   },
   {
     "id": "a68c82ca-ff11-40ee-84a5-c35d2b22f377",
@@ -45,7 +48,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:01:58.497000"
   },
   {
     "id": "19b0ed65-0d40-4d54-b3a0-2774737245b0",
@@ -57,7 +61,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:01:58.673000"
   },
   {
     "id": "9a15d537-617e-478f-a8e5-64e243387fb2",
@@ -69,7 +74,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:01:58.857000"
   },
   {
     "id": "86916c15-201b-4806-b942-4bd56ed26c39",
@@ -81,7 +87,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:01:59.053000"
   },
   {
     "id": "69a4b68b-f159-42b2-a5a7-dfdc00eae1a9",
@@ -93,7 +100,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:01:59.223000"
   },
   {
     "id": "6d51bace-ab88-4076-a8b5-0547e6a1ea1a",
@@ -105,7 +113,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:01:59.773000"
   },
   {
     "id": "0187a04b-4d17-4de6-8123-4b860977241c",
@@ -117,7 +126,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:00.860000"
   },
   {
     "id": "bf880163-27da-4ef8-947c-8b5e4ab6b586",
@@ -129,7 +139,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:02:01.197000"
   },
   {
     "id": "e49986aa-66de-45fe-9bcf-7dd377c3408a",
@@ -141,7 +152,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:02:01.373000"
   },
   {
     "id": "b28ad059-a9b5-477b-ab5b-b6e56f309910",
@@ -161,7 +173,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:02:01.737000"
   },
   {
     "id": "9946d0f2-5801-42b2-9967-227de574c559",
@@ -215,7 +228,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:02:01.910000"
   },
   {
     "id": "bd4a03d0-6bbc-4d80-9e73-35ab5f0283be",
@@ -243,7 +257,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:02.083000"
   },
   {
     "id": "efadd6f7-eeb8-4fc3-b3f6-65e60cea77be",
@@ -265,7 +280,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:02.267000"
   },
   {
     "id": "0bb7bc93-8e60-486e-891c-a0e2e1d51886",
@@ -277,7 +293,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:02:02.433000"
   },
   {
     "id": "c26ab39e-c525-4efe-b9c2-3245d38564ca",
@@ -289,7 +306,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:02:02.607000"
   },
   {
     "id": "5eb9dff0-fb16-42d7-be40-5677ea776528",
@@ -301,7 +319,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:02.787000"
   },
   {
     "id": "fc58d480-4eaf-45a4-8c30-f9443ba52996",
@@ -313,7 +332,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:03.110000"
   },
   {
     "id": "a8756452-a249-49d8-9b0d-c1b122d08410",
@@ -325,7 +345,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:03.277000"
   },
   {
     "id": "ec1b70c8-ae7c-4d44-89d9-7967b36d3613",
@@ -337,7 +358,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:03.447000"
   },
   {
     "id": "c7002b05-7411-4030-a72c-7e992cf8be85",
@@ -349,7 +371,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:04.127000"
   },
   {
     "id": "744974c7-8220-4cd1-92dd-7e051165b597",
@@ -361,7 +384,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:02:04.453000"
   },
   {
     "id": "1bf41a8d-afd3-4749-8499-47a4ddb0041c",
@@ -373,7 +397,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:04.627000"
   },
   {
     "id": "7735e4cf-55fd-4dfd-880b-6a43fc044921",
@@ -385,7 +410,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:04.810000"
   },
   {
     "id": "f8e42ce2-2e18-40c9-a56e-bd99d5d35699",
@@ -397,7 +423,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:04.973000"
   },
   {
     "id": "eee9a201-04ee-4326-afd3-6d124fd87f92",
@@ -417,7 +444,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:05.137000"
   },
   {
     "id": "27828644-4b6f-4d55-a4d9-28ff4c0716c1",
@@ -437,7 +465,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:05.313000"
   },
   {
     "id": "789318d5-4a27-4a8f-a673-6027256cdd21",
@@ -455,7 +484,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:06.277000"
   },
   {
     "id": "7a02f1d5-e54a-4901-b167-d91d4929f51a",
@@ -467,7 +497,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:06.633000"
   },
   {
     "id": "b8f36bd8-5b57-46d9-8955-5bc42f36264e",
@@ -479,7 +510,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:06.810000"
   },
   {
     "id": "406dcdde-e48b-4786-a4e3-6ca029817c51",
@@ -491,7 +523,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:07.843000"
   },
   {
     "id": "b5ab60bd-b9fa-4c42-9984-061762b748c4",
@@ -503,7 +536,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:08.530000"
   },
   {
     "id": "8821cc63-c2ab-4180-b4d6-7ba6a8894216",
@@ -515,7 +549,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:09.053000"
   },
   {
     "id": "e1b95423-b2ae-47e3-889b-0250a42d22d7",
@@ -527,7 +562,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:14.753000"
   },
   {
     "id": "867c08d7-8aca-4859-9130-c93381f4ecd9",
@@ -539,7 +575,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:15.120000"
   },
   {
     "id": "9c62128e-4aa8-4fca-ab9d-b1d02fddaa75",
@@ -561,7 +598,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:21.397000"
   },
   {
     "id": "31c6f91c-d1b4-4fd8-94ab-0d363765614f",
@@ -573,7 +611,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:02:22.527000"
   },
   {
     "id": "cc8e00c8-5cb5-49c0-bd97-887cb97ca650",
@@ -591,7 +630,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:22.713000"
   },
   {
     "id": "b7eb397c-fb0f-40da-a56d-e8492cee63d2",
@@ -603,7 +643,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:22.887000"
   },
   {
     "id": "3404b846-5dd7-4ff1-94cf-4df89ee0cfa4",
@@ -615,7 +656,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:23.807000"
   },
   {
     "id": "a5e4d369-b83e-4e6d-99a6-f33e0d1885d1",
@@ -627,7 +669,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:24.177000"
   },
   {
     "id": "ecfe2ed1-b28f-4b42-9bb4-78ee7e95e9d2",
@@ -639,7 +682,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:28.460000"
   },
   {
     "id": "1bb1e3a3-d8dd-4eeb-a166-cc4061e90167",
@@ -661,7 +705,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:29.153000"
   },
   {
     "id": "fa7e8763-174e-489a-86be-3177dab0b26c",
@@ -673,7 +718,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:31.637000"
   },
   {
     "id": "cbd78aeb-0ee2-4c24-a834-9c2e89be4999",
@@ -690,7 +736,8 @@
       "Generativ KI",
       "Agentisk KI"
     ],
-    "kontaktinfo": "frank.robert.sveinsbo@digdir.no"
+    "kontaktinfo": "frank.robert.sveinsbo@digdir.no",
+    "opprettet": "2026-10-02T09:02:31.797000"
   },
   {
     "id": "1a77957c-1f5c-4a17-a873-fe2428baced1",
@@ -702,7 +749,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:33.007000"
   },
   {
     "id": "85fb76bc-2b1d-4f65-95ec-36e2df4c948c",
@@ -714,7 +762,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:34.223000"
   },
   {
     "id": "a9fd7183-d8fa-4305-b746-dd8d1dab7e7d",
@@ -726,7 +775,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:34.733000"
   },
   {
     "id": "951eb357-4d26-4672-b7d4-c0d4ae6c24fb",
@@ -738,7 +788,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:39.310000"
   },
   {
     "id": "f53be2b7-0eb2-4492-9f01-9e4e0add0bd0",
@@ -750,7 +801,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:02:39.477000"
   },
   {
     "id": "75c15812-33c0-4f32-a523-372ae655dab5",
@@ -762,7 +814,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:39.643000"
   },
   {
     "id": "dfd317e5-65bf-4432-acce-71a8802a5edc",
@@ -774,7 +827,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:39.950000"
   },
   {
     "id": "7ff42451-9a52-47a3-a494-1dd34e804340",
@@ -786,7 +840,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:02:41.080000"
   },
   {
     "id": "6966e163-c8e7-40bb-ba1f-239e4b79d346",
@@ -798,7 +853,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:42.207000"
   },
   {
     "id": "a51fcd81-ea8f-4d31-ba92-d6a5edc05a51",
@@ -818,7 +874,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:02:42.543000"
   },
   {
     "id": "82ffa5b4-524f-4d95-8bf4-10ee6a202b63",
@@ -835,7 +892,8 @@
       "Agentisk KI",
       "Språkteknologi"
     ],
-    "kontaktinfo": "farid.ghiami@holmestrand.kommune.no"
+    "kontaktinfo": "farid.ghiami@holmestrand.kommune.no",
+    "opprettet": "2026-10-15T08:44:44.340000"
   },
   {
     "id": "17c18fcb-4265-4da4-bf36-b396f2a87419",
@@ -847,7 +905,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:43.047000"
   },
   {
     "id": "c2b07c76-afd4-4338-add7-3d2cc9aeae63",
@@ -859,7 +918,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:44.420000"
   },
   {
     "id": "2dce7446-4eeb-41f9-8aff-381d01b7684f",
@@ -871,7 +931,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:45.090000"
   },
   {
     "id": "598e498e-7ba9-43b6-b53d-a0b01ba212b1",
@@ -883,7 +944,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:45.247000"
   },
   {
     "id": "2072f9c8-2364-40be-bd1e-9a05b32f1d1a",
@@ -899,7 +961,8 @@
     "kiType": [
       "Generativ KI"
     ],
-    "kontaktinfo": "eilin.mork@ahus.no"
+    "kontaktinfo": "eilin.mork@ahus.no",
+    "opprettet": "2026-10-15T04:44:00.353000"
   },
   {
     "id": "ee046e19-3361-4ec1-88d3-8d8b67bd7f59",
@@ -920,7 +983,8 @@
       "Prediktiv KI",
       "Agentisk KI"
     ],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:47.483000"
   },
   {
     "id": "647d928c-0302-4235-af25-98d46f377462",
@@ -932,7 +996,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:47.643000"
   },
   {
     "id": "3ffa6697-379f-4ded-8161-efcf67a515f2",
@@ -944,7 +1009,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:47.990000"
   },
   {
     "id": "7fe1364a-d008-4f3e-9165-2d83a3dc2280",
@@ -960,7 +1026,8 @@
     "kiType": [
       "Generativ KI"
     ],
-    "kontaktinfo": "nasjonalarkitektur@digdir.no"
+    "kontaktinfo": "nasjonalarkitektur@digdir.no",
+    "opprettet": "2026-10-02T09:02:48.153000"
   },
   {
     "id": "0a31860a-b9ce-4c14-9d0b-52d129f3db2a",
@@ -972,7 +1039,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:48.310000"
   },
   {
     "id": "0b3887bc-84a6-42b3-a13c-f06e519cb127",
@@ -984,7 +1052,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:48.483000"
   },
   {
     "id": "2e9baf99-0b7a-4259-8474-16c14486fcb4",
@@ -996,7 +1065,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:48.647000"
   },
   {
     "id": "35f5ebc7-7349-4de0-8905-f6a0be0cd9bb",
@@ -1018,7 +1088,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:48.800000"
   },
   {
     "id": "08551dd6-0742-40d8-8fc8-4992cd7d60e8",
@@ -1030,7 +1101,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:48.963000"
   },
   {
     "id": "c28c7633-a13f-485c-a974-3ebb4e1ca82f",
@@ -1042,7 +1114,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:49.613000"
   },
   {
     "id": "36b9232c-fbfc-400e-8899-51a494d126a9",
@@ -1054,7 +1127,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:49.137000"
   },
   {
     "id": "cd6daef2-05bc-4f88-896f-ccdd8d717774",
@@ -1066,7 +1140,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:49.290000"
   },
   {
     "id": "96c88662-0e87-41ba-afc8-c5e38fe204d4",
@@ -1083,7 +1158,8 @@
       "Generativ KI",
       "Agentisk KI"
     ],
-    "kontaktinfo": "tmt@patentstyret.no"
+    "kontaktinfo": "tmt@patentstyret.no",
+    "opprettet": "2026-10-07T11:53:27.923000"
   },
   {
     "id": "abc374f6-396c-4edc-ad9b-362dd41e4f6f",
@@ -1101,7 +1177,8 @@
       "Agentisk KI",
       "Språkteknologi"
     ],
-    "kontaktinfo": "tmt@patentstyret.no"
+    "kontaktinfo": "tmt@patentstyret.no",
+    "opprettet": "2026-10-07T11:57:15.997000"
   },
   {
     "id": "a2e6e5f2-77b6-451b-be2a-02142f85896e",
@@ -1122,7 +1199,8 @@
       "Språkteknologi",
       "Anbefalingssystemer"
     ],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:49.457000"
   },
   {
     "id": "390a354a-d8c2-4ada-8a76-5aaf8541a1f6",
@@ -1134,7 +1212,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:02:49.783000"
   },
   {
     "id": "529afae1-cd10-4614-b21b-9a12a94d45c3",
@@ -1146,7 +1225,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:50.307000"
   },
   {
     "id": "01270022-39b7-4df6-bfbc-7c607807d191",
@@ -1158,7 +1238,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:51.783000"
   },
   {
     "id": "a8e2b3cd-cb80-4685-beba-c33e7ed40d5a",
@@ -1170,7 +1251,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:52.127000"
   },
   {
     "id": "6f0b50eb-fded-4fd6-b590-1bc257aa21b3",
@@ -1182,7 +1264,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:53.593000"
   },
   {
     "id": "a82d50c8-197f-4d92-96df-1bd78db2f7c4",
@@ -1194,7 +1277,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:53.770000"
   },
   {
     "id": "defcd735-039c-409e-899b-aa4911c40bea",
@@ -1206,7 +1290,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:53.947000"
   },
   {
     "id": "26e0cc34-79bb-42c8-9f7f-2296b8cd94dc",
@@ -1218,7 +1303,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:54.493000"
   },
   {
     "id": "1d70515e-00eb-4c24-91ad-16c9def49167",
@@ -1230,7 +1316,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:02:54.677000"
   },
   {
     "id": "0e71900f-4af6-4ecb-aa73-80ed3386b5cb",
@@ -1242,7 +1329,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:02:54.853000"
   },
   {
     "id": "e2e0b027-4220-4eb6-a50d-980d650658fe",
@@ -1260,7 +1348,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:55.370000"
   },
   {
     "id": "9af272a4-3a6b-424e-aac0-9b3e5322f107",
@@ -1272,7 +1361,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:02:55.920000"
   },
   {
     "id": "c70f520f-a202-4602-85f3-0756326253ae",
@@ -1284,7 +1374,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:56.270000"
   },
   {
     "id": "89a61dcb-82b3-4681-86c4-d516faf4edf1",
@@ -1306,7 +1397,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:02:57.497000"
   },
   {
     "id": "7df4055e-d122-46b2-b3bb-e6b4e254964b",
@@ -1323,7 +1415,8 @@
       "Generativ KI",
       "Agentisk KI"
     ],
-    "kontaktinfo": "Teknologiutvikling@vlfk.no"
+    "kontaktinfo": "Teknologiutvikling@vlfk.no",
+    "opprettet": "2026-10-02T09:02:59.077000"
   },
   {
     "id": "fa4a1292-1b41-49d1-928b-23b6a3ec0ef9",
@@ -1335,7 +1428,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:01.687000"
   },
   {
     "id": "8bba921f-8397-4e12-ab9f-0b6dd0172d62",
@@ -1347,7 +1441,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:05.227000"
   },
   {
     "id": "ca53c534-b8cf-4c7f-b1ef-a96b09fe3f32",
@@ -1359,7 +1454,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:05.587000"
   },
   {
     "id": "033c455b-7589-45aa-b65f-abd055473ae7",
@@ -1371,7 +1467,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:05.950000"
   },
   {
     "id": "22205581-0006-4b7e-a8b1-a1c5f01a600a",
@@ -1383,7 +1480,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:06.453000"
   },
   {
     "id": "68f81acd-434f-4a9f-b722-6fd37ddfa911",
@@ -1401,7 +1499,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:06.627000"
   },
   {
     "id": "d1c54870-c5b0-4376-9195-19fb47e285b5",
@@ -1413,7 +1512,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:11.107000"
   },
   {
     "id": "8fb7bef8-c200-4412-9785-cf2b88ae76ea",
@@ -1425,7 +1525,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:11.470000"
   },
   {
     "id": "7fc05f5a-3f10-42eb-abfd-18a819aac2dd",
@@ -1437,7 +1538,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:03:11.633000"
   },
   {
     "id": "f30ab6a1-a239-4bcd-a344-d8dd7b968981",
@@ -1449,7 +1551,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:11.807000"
   },
   {
     "id": "3a45d0d0-79d4-461e-b903-55c21d2ae347",
@@ -1471,7 +1574,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:03:11.973000"
   },
   {
     "id": "cc7cb72e-9a86-49da-a92b-cba841f47c1d",
@@ -1483,7 +1587,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:12.157000"
   },
   {
     "id": "ddab5028-8e72-4c34-80b8-327628b5f398",
@@ -1505,7 +1610,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:03:13.067000"
   },
   {
     "id": "ffb1a6ed-8c89-4631-81f4-31f62dd67660",
@@ -1517,7 +1623,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:13.243000"
   },
   {
     "id": "a8febddf-a41a-48e1-b390-94140562d8aa",
@@ -1529,7 +1636,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:20.140000"
   },
   {
     "id": "11a9151a-6fc6-463f-850f-b9a1bd83135f",
@@ -1541,7 +1649,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:20.750000"
   },
   {
     "id": "75c91dc8-8c9a-45a4-966e-2038f1ec6078",
@@ -1553,7 +1662,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:03:21.277000"
   },
   {
     "id": "3fa9ca41-73a0-4306-86ca-60ef43422127",
@@ -1565,7 +1675,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:21.440000"
   },
   {
     "id": "17640f86-04fe-4263-b252-40ba97ae81ff",
@@ -1583,7 +1694,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:21.607000"
   },
   {
     "id": "2e01fb45-65c3-40c8-9efe-1eb8047d0122",
@@ -1595,7 +1707,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:03:21.820000"
   },
   {
     "id": "bfe18178-a308-4b0a-ae48-60eab0f7d1f8",
@@ -1607,7 +1720,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:25.143000"
   },
   {
     "id": "4cb37e41-ac90-47cb-afff-ba25f4ff2a8c",
@@ -1619,7 +1733,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:25.330000"
   },
   {
     "id": "3e4e24c6-7951-41dc-9564-c88a6b134358",
@@ -1637,7 +1752,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:03:25.690000"
   },
   {
     "id": "e7b65c6d-5a00-4dd7-b031-bee58e9cf2de",
@@ -1649,7 +1765,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:03:25.853000"
   },
   {
     "id": "0d3e5858-5ef7-4a99-a237-a0c43ab7352b",
@@ -1661,7 +1778,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:26.027000"
   },
   {
     "id": "2c9427ac-fc2c-443d-bed0-aa4bec4fb810",
@@ -1680,7 +1798,8 @@
       "Computer Vision",
       "Anbefalingssystemer"
     ],
-    "kontaktinfo": "sandkasse@datatilsynet.no"
+    "kontaktinfo": "sandkasse@datatilsynet.no",
+    "opprettet": "2026-10-02T09:03:26.893000"
   },
   {
     "id": "6f0318e0-de6f-4d43-b659-bc9d4123b66f",
@@ -1692,7 +1811,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:27.077000"
   },
   {
     "id": "45094634-a800-44c8-82f9-574c65e7560f",
@@ -1704,7 +1824,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:03:27.263000"
   },
   {
     "id": "6234f869-8d8e-412f-bf23-cd7647ad5622",
@@ -1716,7 +1837,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:29.143000"
   },
   {
     "id": "714bef1a-64ec-4425-8832-306ef794d55a",
@@ -1728,7 +1850,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:29.310000"
   },
   {
     "id": "ac668966-0bf2-4bc5-a5f6-912cdc8deb90",
@@ -1740,7 +1863,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:30.230000"
   },
   {
     "id": "4cccccac-e7ef-45af-bd16-98ead2caee76",
@@ -1752,7 +1876,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:31.507000"
   },
   {
     "id": "a7348c16-ba08-4f4c-a57c-eec8b927753e",
@@ -1764,7 +1889,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:32.910000"
   },
   {
     "id": "ead46d6e-1d10-4372-851b-6993d86c39e7",
@@ -1782,7 +1908,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:35.260000"
   },
   {
     "id": "4b854d4c-d802-4892-aad3-2286aa58bc73",
@@ -1800,7 +1927,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:35.467000"
   },
   {
     "id": "a7a0c214-63d2-443a-a431-f2a6edc7f82a",
@@ -1812,7 +1940,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:03:36.007000"
   },
   {
     "id": "7800c812-d1f9-415f-a483-2d6a67b7c4cd",
@@ -1824,7 +1953,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:36.360000"
   },
   {
     "id": "567aa51b-cc67-4561-a52a-3e3f0003a7b0",
@@ -1836,7 +1966,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:37.603000"
   },
   {
     "id": "f23ae758-bc74-40c9-a752-17e86dccb0bb",
@@ -1848,7 +1979,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:03:38.303000"
   },
   {
     "id": "4075c439-a546-4965-a19e-11198b681407",
@@ -1860,7 +1992,8 @@
     "fase": "I drift",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:03:39.027000"
   },
   {
     "id": "7872ac34-0969-4199-85d7-2a2f1ccd68f0",
@@ -1872,7 +2005,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:39.217000"
   },
   {
     "id": "fe6c85b3-b133-4eed-95f4-90b314d21e99",
@@ -1884,7 +2018,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:03:39.400000"
   },
   {
     "id": "722af4fc-2733-4563-b4d5-4e6345564f6a",
@@ -1896,7 +2031,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:39.570000"
   },
   {
     "id": "3f8ba544-a35f-45b0-a627-0170ecf932b1",
@@ -1914,7 +2050,8 @@
     "fase": "Innsikt og planlegging",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:41.027000"
   },
   {
     "id": "d153cb84-6b76-4cfc-8af4-2665d82e6b48",
@@ -1926,7 +2063,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:41.510000"
   },
   {
     "id": "34f626f4-9ffb-4ffc-8772-ee5d99808631",
@@ -1938,7 +2076,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:43.293000"
   },
   {
     "id": "6cfe71d0-f59d-414e-ad2c-1cc60ff884bb",
@@ -1950,7 +2089,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:03:43.467000"
   },
   {
     "id": "24e51a08-0469-4dbd-823d-9a80caf142c4",
@@ -1968,7 +2108,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no"
+    "kontaktinfo": "Line.Horn.Sivertsen@helse-nord.no",
+    "opprettet": "2026-10-02T09:03:43.650000"
   },
   {
     "id": "2fea870f-91ae-40ca-a88f-410cf6d1a927",
@@ -1980,7 +2121,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "christian.autenried@helse-vest-ikt.no"
+    "kontaktinfo": "christian.autenried@helse-vest-ikt.no",
+    "opprettet": "2026-10-02T09:03:43.830000"
   },
   {
     "id": "afdd99f5-347f-452b-b8d0-df4ac92094f6",
@@ -1998,7 +2140,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Ketil.Thorvik@hemit.no"
+    "kontaktinfo": "Ketil.Thorvik@hemit.no",
+    "opprettet": "2026-10-02T09:03:44.387000"
   },
   {
     "id": "30424074-bbe6-42d0-9e01-1bad4f770d8f",
@@ -2010,7 +2153,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:45.507000"
   },
   {
     "id": "36a63c07-d016-44f0-8d09-2079adbadc9a",
@@ -2022,7 +2166,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:45.873000"
   },
   {
     "id": "9d73a848-089b-447f-a1b4-795b2f833880",
@@ -2034,7 +2179,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:47.847000"
   },
   {
     "id": "7a36dfad-ed88-4923-880e-a12c442f448c",
@@ -2046,7 +2192,8 @@
     "fase": null,
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": null
+    "kontaktinfo": null,
+    "opprettet": "2026-10-02T09:03:48.547000"
   },
   {
     "id": "d6f74f66-8bbb-4617-8d41-65d6a4b952bd",
@@ -2064,7 +2211,8 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:48.887000"
   },
   {
     "id": "60319a55-9574-450a-855f-68e577efe31a",
@@ -2076,6 +2224,7 @@
     "fase": "Gjennomføring",
     "leveranse": [],
     "kiType": [],
-    "kontaktinfo": "Lene.Mosberg@helse-sorost.no"
+    "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
+    "opprettet": "2026-10-02T09:03:51.557000"
   }
 ]
