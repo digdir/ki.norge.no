@@ -4,7 +4,7 @@ import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
 
-import { getArtikkel, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_WIDTH, bakgrunnSurface } from '../../lib/umbraco';
+import { getArtikkel, getArtikler, getPlainText, getMediaUrl, velgKortbilde, MEDIA_WIDTH, bakgrunnSurface } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
 import { flereNyeste } from '../../lib/flere-innhold';
@@ -84,7 +84,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={a.tittel}
             date={a.publishedAt}
             lead={getPlainText(a.innhold, 80)}
-            image={getCardImage(a.artikkelBilde)}
+            image={velgKortbilde(a)}
             variant="image"
           />
         ))}

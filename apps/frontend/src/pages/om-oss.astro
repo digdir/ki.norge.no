@@ -3,7 +3,7 @@ import Layout from '../components/layout/Layout.astro';
 import ArticleLayout from '../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../components/shared/NewsCard.astro';
-import { getOmOss, getArtikler, getPlainText, getMediaUrl, getCardImage, MEDIA_WIDTH, bakgrunnSurface } from '../lib/umbraco';
+import { getOmOss, getArtikler, getPlainText, getMediaUrl, velgKortbilde, MEDIA_WIDTH, bakgrunnSurface } from '../lib/umbraco';
 import { breadcrumbSchema } from '../lib/seo';
 import { ordlengde } from '../lib/text';
 
@@ -74,7 +74,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
             title={article.tittel}
             date={article.publishedAt}
             lead={getPlainText(article.innhold, 80)}
-            image={getCardImage(article.artikkelBilde)}
+            image={velgKortbilde(article)}
             variant="image"
           />
         ))}
