@@ -55,33 +55,35 @@ const lenke = (side: number) => {
 
     {antallSider > 1 && (
       <nav class="ds-pagination alle-eksempler-paginering" aria-label="Sider med eksempler">
-        <ul>
-          <li>
-            {gjeldende > 1
-              ? <a class="ds-button" data-variant="tertiary" href={lenke(gjeldende - 1)} aria-label="Forrige side">Forrige</a>
-              : <span class="ds-button" data-variant="tertiary" aria-hidden="true">Forrige</span>}
-          </li>
-          {sideUtvalg(gjeldende, antallSider).map((side) =>
-            side === null ? (
-              <li />
-            ) : (
-              <li>
-                <a
-                  class="ds-button"
-                  data-variant="tertiary"
-                  href={lenke(side)}
-                  aria-label={`Side ${side}`}
-                  aria-current={side === gjeldende ? 'true' : undefined}
-                >{side}</a>
-              </li>
-            ),
-          )}
-          <li>
-            {gjeldende < antallSider
-              ? <a class="ds-button" data-variant="tertiary" href={lenke(gjeldende + 1)} aria-label="Neste side">Neste</a>
-              : <span class="ds-button" data-variant="tertiary" aria-hidden="true">Neste</span>}
-          </li>
-        </ul>
+        {([['bred', 7], ['smal', 5]] as const).map(([variant, antall]) => (
+          <ul class={`alle-eksempler-sider-${variant}`}>
+            <li>
+              {gjeldende > 1
+                ? <a class="ds-button" data-variant="tertiary" href={lenke(gjeldende - 1)} aria-label="Forrige side"><span class="ds-pagination-tekst">Forrige</span></a>
+                : <span class="ds-button" data-variant="tertiary" aria-hidden="true"><span class="ds-pagination-tekst">Forrige</span></span>}
+            </li>
+            {sideUtvalg(gjeldende, antallSider, antall).map((side) =>
+              side === null ? (
+                <li />
+              ) : (
+                <li>
+                  <a
+                    class="ds-button"
+                    data-variant="tertiary"
+                    href={lenke(side)}
+                    aria-label={`Side ${side}`}
+                    aria-current={side === gjeldende ? 'true' : undefined}
+                  >{side}</a>
+                </li>
+              ),
+            )}
+            <li>
+              {gjeldende < antallSider
+                ? <a class="ds-button" data-variant="tertiary" href={lenke(gjeldende + 1)} aria-label="Neste side"><span class="ds-pagination-tekst">Neste</span></a>
+                : <span class="ds-button" data-variant="tertiary" aria-hidden="true"><span class="ds-pagination-tekst">Neste</span></span>}
+            </li>
+          </ul>
+        ))}
       </nav>
     )}
   </div>
@@ -182,6 +184,21 @@ const lenke = (side: number) => {
 
   .alle-eksempler-paginering {
     margin-top: var(--ds-size-4);
+  }
+
+  /* Higher specificity than designsystemet's display: flex on the list. */
+  .alle-eksempler-paginering .alle-eksempler-sider-smal {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .alle-eksempler-paginering .alle-eksempler-sider-bred {
+      display: none;
+    }
+
+    .alle-eksempler-paginering .alle-eksempler-sider-smal {
+      display: flex;
+    }
   }
 
   @media (max-width: 767px) {
