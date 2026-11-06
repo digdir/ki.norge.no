@@ -4,8 +4,8 @@ import ArticleCardFeatured from '../../components/shared/ArticleCardFeatured.ast
 import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
-import KiTiltakEntryCard from '../../components/shared/KiTiltakEntryCard.astro';
-import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getCardImage, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
+import AlleEksemplerListe from '../../components/shared/AlleEksemplerListe.astro';
+import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getCardImage, sammenlignPublisertDato, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 import { eksempelMerkelapper } from '../../lib/eksempel-merkelapper';
 import { ordlengde } from '../../lib/text';
@@ -19,7 +19,7 @@ let guider: VeiledningGuide[] = [];
 try {
   const [oversiktData, eksemplerRes, artiklerRes, guiderRes] = await Promise.all([
     getEksemplerOversikt({ preview: isPreview }),
-    getEksempler({ preview: isPreview }),
+    getEksempler({ preview: isPreview, take: 500 }),
     getArtikler(undefined, { preview: isPreview }),
     getVeiledningGuider({ preview: isPreview }),
   ]);
@@ -53,10 +53,21 @@ const fraCms = oversikt?.seksjoner ?? [];
 // alone, which is correct: it is always valid, unlike the CMS content.
 const kiTiltakKort: EksemplerSeksjon = { contentType: 'eksempelKiTiltak', id: 'ki-tiltak-inngang' };
 const forsteGruppe = fraCms.findIndex((s) => s.contentType === 'eksempelGruppe');
-const seksjoner =
+const medKiTiltak =
   forsteGruppe === -1
     ? [...fraCms, kiTiltakKort]
     : [...fraCms.slice(0, forsteGruppe + 1), kiTiltakKort, ...fraCms.slice(forsteGruppe + 1)];
+
+type Seksjon = EksemplerSeksjon | { contentType: 'eksempelAlle'; id: string };
+const alleEksemplerSeksjon: Seksjon = { contentType: 'eksempelAlle', id: 'alle-eksempler' };
+const kortTyper = new Set(['eksempelFeatured', 'eksempelGruppe', 'eksempelKiTiltak']);
+const sisteKort = medKiTiltak.findLastIndex((s) => kortTyper.has(s.contentType));
+const seksjoner: Seksjon[] = [
+  ...medKiTiltak.slice(0, sisteKort + 1),
+  alleEksemplerSeksjon,
+  ...medKiTiltak.slice(sisteKort + 1),
+];
+const alleEksempler = [...eksempler].sort(sammenlignPublisertDato);
 
 const collectionJsonLd = collectionPageSchema({
   name: heroTittel || seoTitle || 'Eksempler',
@@ -152,11 +163,11 @@ const breadcrumbJsonLd = breadcrumbSchema([
         );
       }
 
-      if (s.contentType === 'eksempelKiTiltak') {
+      if (s.contentType === 'eksempelAlle') {
         return (
           <section data-layout-block="edge" class="eksempler-section">
             <div data-layout-block="content">
-              <KiTiltakEntryCard />
+              <AlleEksemplerListe eksempler={alleEksempler} />
             </div>
           </section>
         );

@@ -51,6 +51,7 @@
 
   @media (max-width: 1024px) {
     --layout-content-padding: 0;
+    --layout-edge-padding: var(--ds-size-4);
   }
 }
 
