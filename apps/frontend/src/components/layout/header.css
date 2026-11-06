@@ -130,7 +130,7 @@
   cursor: pointer;
   padding: var(--ds-size-2);
   border-radius: var(--ds-border-radius-md);
-  color: var(--ds-color-text-default);
+  color: inherit;
 
   /* Desktop: hidden by default, shown only when JS detects wrap */
   @media (min-width: 769px) {

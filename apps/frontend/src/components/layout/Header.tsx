@@ -18,7 +18,7 @@ const defaultNavItems: NavItem[] = [
   { href: '/veiledning', label: 'Veiledning og guider' },
   { href: '/artikler', label: 'Aktuelt' },
   { href: '/eksempler', label: 'Eksempler' },
-  { href: '/om-oss', label: 'Om oss' },
+  { href: '/ki-tiltak', label: 'Offentlige KI-tiltak' },
 ];
 
 /**
@@ -129,7 +129,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
 
           {/* Hamburger toggle — always in DOM, CSS hides on desktop */}
           <button
-            className={cl('hamburger-toggle', 'ds-focus', !isHamburger && 'hamburger-toggle--js-hidden')}
+            className={cl('hamburger-toggle', 'ds-focus', 'ds-button', !isHamburger && 'hamburger-toggle--js-hidden')}
             aria-label="Åpne meny"
             popoverTarget="header-mobile-menu"
             popoverTargetAction="show"
