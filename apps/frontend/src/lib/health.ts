@@ -154,7 +154,9 @@ export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): P
   const t0 = deps.now();
   const [umbraco, media, backoffice, elasticsearch] = await Promise.all([
     checkUmbraco(config, deps),
-    checkBackoffice(config.umbracoPublicUrl, deps),
+    // media: the status endpoint through the public address the browser fetches images from.
+    // Empty means umbracoUrl, as documented on HealthConfig.
+    checkBackoffice(config.umbracoPublicUrl || config.umbracoUrl, deps),
     checkBackoffice(config.umbracoUrl, deps),
     checkElasticsearch(config, deps),
   ]);
