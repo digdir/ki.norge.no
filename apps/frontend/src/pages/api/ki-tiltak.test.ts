@@ -20,6 +20,7 @@ function validForm(): TiltakForm {
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
     leveranse: 'Pilot',
+    samtykke: true,
   };
 }
 

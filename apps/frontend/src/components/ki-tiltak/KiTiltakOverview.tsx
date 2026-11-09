@@ -18,17 +18,10 @@ import KiTiltakCard from './KiTiltakCard';
 import { PAGE_SIZE } from './paging';
 import { lesUrlTilstand, skrivUrlTilstand } from './urlState';
 import PromoBanner from './PromoBanner';
-import RegisterTiltakDialog from './RegisterTiltakDialog';
 
-interface Props {
-  /** Public Turnstile key, passed on to the submission form. */
-  turnstileSiteKey?: string;
-}
-
-export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
+export default function KiTiltakOverview() {
   const [filter, setFilterState] = useState<KiTiltakFilter>(TOMT_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
   const [selected, setSelected] = useState<KiTiltak | null>(null);
   const [page, setPage] = useState(1);
   const countRef = useRef<HTMLParagraphElement>(null);
@@ -176,7 +169,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
 
   return (
     <>
-      <PromoBanner onRegistrer={() => setRegisterOpen(true)} />
+      <PromoBanner />
 
       {/*
         Search field and filter button share a row, and the button wraps below the field when
@@ -298,12 +291,6 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
       />
 
       <KiTiltakDetail tiltak={selected} onClose={closeTiltak} />
-
-      <RegisterTiltakDialog
-        open={registerOpen}
-        onClose={() => setRegisterOpen(false)}
-        turnstileSiteKey={turnstileSiteKey}
-      />
     </>
   );
 }

@@ -23,7 +23,7 @@ const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
  */
 export const turnstileIsConfigured = Boolean(SITE_KEY && SECRET_KEY);
 
-/** The site key is public and is sent to the browser by ki-tiltak.astro. */
+/** The site key is public and is sent to the browser by ki-tiltak/del.astro. */
 export const turnstileSiteKey = SITE_KEY;
 
 /**

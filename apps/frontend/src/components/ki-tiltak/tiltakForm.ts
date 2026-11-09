@@ -35,6 +35,8 @@ export interface TiltakForm {
   kiType: string[];
   /** Free text, optional even when kiType contains "Annet". */
   kiTypeAnnet: string;
+  /** Consent to store and show the email address on ki.norge.no. Required. */
+  samtykke: boolean;
 }
 
 /** The limit the design sets on the description. Only applies to new submissions. */
@@ -66,5 +68,6 @@ export function emptyForm(): TiltakForm {
     leveranseAnnet: '',
     kiType: [],
     kiTypeAnnet: '',
+    samtykke: false,
   };
 }

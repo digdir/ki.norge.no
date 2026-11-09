@@ -1,0 +1,16 @@
+---
+import Layout from '../../components/layout/Layout.astro';
+import RegisterTiltakForm from '../../components/ki-tiltak/RegisterTiltakForm';
+import { turnstileSiteKey } from '../../lib/turnstile';
+import '../../styles/ki-tiltak.css';
+
+const seoTitle = 'Del KI-tiltak';
+const seoDesc =
+  'Del hvordan din offentlige virksomhet utforsker eller bruker kunstig intelligens. Tiltaket vises i oversikten over offentlige KI-tiltak.';
+---
+
+<Layout title={seoTitle} description={seoDesc}>
+  <section data-layout-block="content" class="tiltak-registrer-side">
+    <RegisterTiltakForm client:load turnstileSiteKey={turnstileSiteKey} />
+  </section>
+</Layout>

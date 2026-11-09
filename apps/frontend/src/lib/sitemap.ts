@@ -25,7 +25,7 @@ export const EXCLUDED_PATH_PREFIXES = [
 // static dataset, so it has no singleton content type to be picked up
 // by. sitemap-pages.test.ts guards that a new code-only page gets a deliberate
 // sitemap decision instead of silently dropping out.
-export const STATIC_ROUTES: string[] = ['/ki-tiltak'];
+export const STATIC_ROUTES: string[] = ['/ki-tiltak', '/ki-tiltak/del'];
 
 type SitemapUrl = {
   loc: string;

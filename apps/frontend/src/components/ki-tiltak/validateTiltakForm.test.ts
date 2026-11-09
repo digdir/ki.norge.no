@@ -18,6 +18,7 @@ function validForm(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
     leveranse: 'Pilot',
+    samtykke: true,
     ...overstyr,
   };
 }
@@ -77,9 +78,9 @@ describe('validateTiltakForm', () => {
       expect(message(validForm(overstyr), field as never)).toBe(forventet);
     });
 
-    test('all eight can be missing at once', () => {
+    test('all nine can be missing at once', () => {
       const errors = validateTiltakForm(emptyForm());
-      expect(errors).toHaveLength(8);
+      expect(errors).toHaveLength(9);
       expect(errors.map((item) => item.field)).toEqual([
         'ansvarligNavn',
         'ansvarligOrgnr',
@@ -89,6 +90,7 @@ describe('validateTiltakForm', () => {
         'kontaktinfo',
         'fase',
         'leveranse',
+        'samtykke',
       ]);
     });
   });
@@ -216,6 +218,7 @@ describe('validateTiltakForm', () => {
       'kontaktinfo',
       'fase',
       'leveranse',
+      'samtykke',
     ]);
   });
 });
