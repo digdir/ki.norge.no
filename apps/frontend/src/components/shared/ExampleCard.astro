@@ -35,7 +35,6 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
       {title}<span class="example-card-arrow" aria-hidden="true"><AkselIcon name="ArrowRight" size={20} /></span>
     </a>
   </h3>
-  {virksomhet && <p class="example-card-virksomhet">{virksomhet}</p>}
   {merkelapper.length > 0 && (
     <ul class="example-card-tags">
       {merkelapper.map((t) => <li><span class="ds-tag" data-size="md">{t}</span></li>)}
@@ -47,7 +46,8 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
   .example-card {
     display: flex;
     flex-direction: column;
-    padding: var(--ds-size-6);
+    gap: var(--ds-size-4);
+    padding: var(--ds-size-8);
     cursor: pointer;
     position: relative;
     min-height: 300px;
@@ -75,13 +75,12 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
   }
 
   .example-card-tags {
-    order: -1;
     display: flex;
     flex-wrap: wrap;
     gap: var(--ds-size-3);
-    margin: 0 0 var(--ds-size-3);
     padding: 0;
     list-style: none;
+    margin: 0;
   }
 
   .ds-tag {
@@ -145,6 +144,10 @@ const id = `example-card-${crypto.randomUUID().slice(0, 8)}`;
   }
 
   @media (max-width: 767px) {
+    .example-card {
+      padding: var(--ds-size-6);
+    }
+
     .example-card[data-variant-mobile='dark'] {
       background-color: var(--ds-color-base-default);
       color: var(--ds-color-base-contrast-default);

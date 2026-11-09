@@ -3,7 +3,7 @@
 *
 * 6-column grid:
 *   | gutter  | sidebar | gap   | content       | rest  | gutter  |
-*   | dynamic | 200px   | ds-30 | min(0, 680px) | 0.5fr | dynamic |
+*   | dynamic | 200px   | ds-30 | min(0, 680px) | 1fr   | dynamic |
 *
 * The sidebar track is fixed. It was 1fr, where the content set the minimum width, and a
 * long address in the calendar sidebar pushed the text column down to 330px (#722). A
@@ -33,7 +33,7 @@
   var(--article-layout-sidebar-width)
   var(--article-layout-gap)
   minmax(0, var(--article-layout-content-max-width))
-  0.5fr
+  1fr
   var(--article-layout-gutter);
 }
 @layer article-layout {

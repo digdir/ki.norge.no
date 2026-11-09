@@ -1,0 +1,218 @@
+---
+import { eksempelMerkelapper } from '../../lib/eksempel-merkelapper';
+import { sideNummer, sideUtvalg } from '../../lib/paginering';
+import type { Eksempel } from '../../lib/umbraco';
+
+interface Props {
+  eksempler: Eksempel[];
+  /** Rows per page. */
+  perSide?: number;
+}
+
+const { eksempler, perSide = 10 } = Astro.props;
+
+// Server-side pagination with plain links, so every page works without JS and can
+// be shared. The cache worker keys on the full URL, so each page is cached on its own.
+const ANKER = 'alle-eksempler';
+const PARAM = 'side';
+const antallSider = Math.max(1, Math.ceil(eksempler.length / perSide));
+const gjeldende = sideNummer(Astro.url.searchParams.get(PARAM), antallSider);
+const synlige = eksempler.slice((gjeldende - 1) * perSide, gjeldende * perSide);
+
+const lenke = (side: number) => {
+  const url = new URL(Astro.url);
+  if (side === 1) url.searchParams.delete(PARAM);
+  else url.searchParams.set(PARAM, String(side));
+  return `${url.pathname}${url.search}#${ANKER}`;
+};
+---
+
+{eksempler.length > 0 && (
+  <div class="alle-eksempler" id={ANKER}>
+    <h2 class="ds-heading alle-eksempler-tittel" data-size="lg">Alle eksempler</h2>
+    <ul class="alle-eksempler-liste">
+      {synlige.map((e) => {
+        const lenkeId = `${ANKER}-${e.id}`;
+        const merkelapper = eksempelMerkelapper(e);
+        return (
+          <li class="alle-eksempler-rad" data-clickdelegatefor={lenkeId}>
+            <div class="alle-eksempler-tekst">
+              <h3 class="ds-heading alle-eksempler-radtittel" data-size="xs">
+                <a id={lenkeId} href={`/eksempler/${e.slug}`}>{e.tittel}</a>
+              </h3>
+              {merkelapper.length > 0 && (
+                <ul class="alle-eksempler-tags">
+                  {merkelapper.map((t) => <li><span class="ds-tag" data-size="sm">{t}</span></li>)}
+                </ul>
+              )}
+            </div>
+            {/* We'll add logo here later on: */}
+            {/* {e.virksomhet && <p class="alle-eksempler-virksomhet">{e.virksomhet}</p>} */}
+          </li>
+        );
+      })}
+    </ul>
+
+    {antallSider > 1 && (
+      <nav class="ds-pagination alle-eksempler-paginering" aria-label="Sider med eksempler">
+        {([['bred', 7], ['smal', 5]] as const).map(([variant, antall]) => (
+          <ul class={`alle-eksempler-sider-${variant}`}>
+            <li>
+              {gjeldende > 1
+                ? <a class="ds-button" data-variant="tertiary" href={lenke(gjeldende - 1)} aria-label="Forrige side"><span class="ds-pagination-tekst">Forrige</span></a>
+                : <span class="ds-button" data-variant="tertiary" aria-hidden="true"><span class="ds-pagination-tekst">Forrige</span></span>}
+            </li>
+            {sideUtvalg(gjeldende, antallSider, antall).map((side) =>
+              side === null ? (
+                <li />
+              ) : (
+                <li>
+                  <a
+                    class="ds-button"
+                    data-variant="tertiary"
+                    href={lenke(side)}
+                    aria-label={`Side ${side}`}
+                    aria-current={side === gjeldende ? 'true' : undefined}
+                  >{side}</a>
+                </li>
+              ),
+            )}
+            <li>
+              {gjeldende < antallSider
+                ? <a class="ds-button" data-variant="tertiary" href={lenke(gjeldende + 1)} aria-label="Neste side"><span class="ds-pagination-tekst">Neste</span></a>
+                : <span class="ds-button" data-variant="tertiary" aria-hidden="true"><span class="ds-pagination-tekst">Neste</span></span>}
+            </li>
+          </ul>
+        ))}
+      </nav>
+    )}
+  </div>
+)}
+
+<style>
+  .alle-eksempler {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-size-6);
+    scroll-margin-top: var(--ds-size-6);
+  }
+
+  .alle-eksempler-tittel {
+    align-self: stretch;
+    margin: 0;
+  }
+
+  .alle-eksempler-liste {
+    align-self: stretch;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--ds-color-accent-border-subtle);
+  }
+
+  .alle-eksempler-rad {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-size-6);
+    padding-inline: var(--ds-size-8);
+    padding-block: var(--ds-size-6);
+    border-bottom: 1px solid var(--ds-color-accent-border-subtle);
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--ds-color-accent-surface-active);
+    }
+
+    &:focus-within {
+      box-shadow: var(--dsc-focus-boxShadow);
+      outline: var(--dsc-focus-outline);
+      outline-offset: var(--ds-border-width-focus);
+      position: relative;
+      z-index: 1;
+    }
+
+    & a {
+      color: var(--ds-color-text-default);
+      text-decoration: none;
+
+      &.\:click-delegate-hover {
+        text-decoration: underline;
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  .alle-eksempler-tekst {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    min-width: 0;
+  }
+
+  .alle-eksempler-radtittel {
+    margin: 0;
+    font-family: var(--ds-font-family);
+    font-weight: var(--ds-font-weight-medium);
+  }
+
+  .alle-eksempler-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ds-tag {
+    border-radius: var(--ds-border-radius-md);
+  }
+
+  .alle-eksempler-virksomhet {
+    flex-shrink: 0;
+    max-width: 30%;
+    margin: 0;
+    text-align: end;
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-text-subtle);
+  }
+
+  .alle-eksempler-paginering {
+    margin-top: var(--ds-size-4);
+  }
+
+  /* Higher specificity than designsystemet's display: flex on the list. */
+  .alle-eksempler-paginering .alle-eksempler-sider-smal {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .alle-eksempler-paginering .alle-eksempler-sider-bred {
+      display: none;
+    }
+
+    .alle-eksempler-paginering .alle-eksempler-sider-smal {
+      display: flex;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .alle-eksempler-rad {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--ds-size-3);
+      padding-inline: var(--ds-size-2);
+    }
+
+    .alle-eksempler-virksomhet {
+      max-width: none;
+      text-align: start;
+    }
+  }
+</style>

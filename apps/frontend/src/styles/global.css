@@ -110,6 +110,25 @@ main a:has(> img)::after {
   --dsc-details-background: var(--ds-color-background-default);
 }
 
+@media (max-width: 767px) {
+  .ds-pagination-tekst {
+    display: none;
+  }
+
+  .ds-pagination {
+    --dsc-pagination-gap: var(--ds-size-1);
+
+    & .ds-button {
+      --dsc-button-size: var(--ds-size-9);
+      --dsc-button-padding: var(--ds-size-1);
+    }
+
+    & li:empty::before {
+      min-width: var(--ds-size-6);
+    }
+  }
+}
+
 /* ── Reduce motion respect (accessibility requirement) ──────────────────
  * For users who set prefers-reduced-motion, disable transitions and animations.
  */

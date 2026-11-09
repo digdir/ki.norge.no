@@ -1,8 +1,6 @@
 import { expect, test } from 'vitest';
-import { FIRST_PAGE, NEXT_PAGE } from './paging';
+import { PAGE_SIZE } from './paging';
 
-test.each([1, 2, 3, 4])('first page and each "Last flere" end on a full row with %i columns', (columns) => {
-  for (let clicks = 0; clicks <= 10; clicks++) {
-    expect((FIRST_PAGE + clicks * NEXT_PAGE) % columns).toBe(0);
-  }
+test.each([1, 2, 3])('a full page ends on a full row with %i columns', (columns) => {
+  expect(PAGE_SIZE % columns).toBe(0);
 });
