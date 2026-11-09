@@ -179,13 +179,13 @@ wrangler secret put ES_API_KEY --env prod
 | `status` | HTTP | Means |
 | --- | --- | --- |
 | `Healthy` | 200 | Everything up |
-| `Degraded` | 200 | Search, the CMS proxy or the backoffice is down, pages still render |
+| `Degraded` | 200 | Search, the media proxy or the backoffice is down, pages still render |
 | `Unhealthy` | 503 | The CMS does not respond, or responds without content |
 
 Four checks sit behind it, the same in prod and tt02, so one rule in the watch covers both environments:
 
 - **`umbraco`** calls the Delivery API the way the pages do. It is also counted as down when the API responds 200 with an empty list, because that is what it looks like when an upgrade skips the migrations. It is the only one that gives `Unhealthy`.
-- **`cms-proxy`** calls the Delivery API through the public CMS address the browser fetches images from, in prod a proxy worker. It catches the proxy being down, as in #600, where the site was without images while everything else responded. It does not fetch any image file, so it does not see a fault in the image storage itself. On tt02 the public address is the same as the internal one, and the check then goes the same way as the browser there.
+- **`media`** calls `/umbraco/management/api/v1/server/status` through the public CMS address the browser fetches images from, in prod a proxy worker. (The Delivery API is deliberately blocked on the public address, see #948.) It catches the proxy being down, as in #600, where the site was without images while everything else responded. It does not fetch any image file, so it does not see a fault in the image storage itself. On tt02 the public address is the same as the internal one, and the check then goes the same way as the browser there.
 - **`backoffice`** calls `/umbraco/management/api/v1/server/status`, which is open without login. It is green only when Umbraco responds `Run`, meaning it is not waiting for install or upgrade. The site works without the backoffice, so a fault here gives `Degraded`.
 - **`elasticsearch`** runs an empty search with the same key search uses. If the key is missing, it gives `Degraded` without calling anything, because search then falls back to Umbraco's simple search.
 

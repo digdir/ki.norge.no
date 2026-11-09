@@ -10,7 +10,7 @@ overrides:
   esbuild: "^0.28.1" # GHSA-gv7w-rqvm-qjhr
   ws: "^8.21.0" # CVE-2026-48779
   sharp: "^0.35.5" # GHSA-f88m-g3jw-g9cj and GHSA-wq5f-xc86-pv6w, astro 7.2.8+ requires ^0.35.4
-  undici: "^7.29.0" # CVE-2026-13697, transitive via miniflare/wrangler
+  undici: "^7.30.1" # CVE-2026-13697, CVE-2026-109383/-109829/-109869/-87018 (#949), transitive via miniflare/wrangler/unifont
   svgo: "^4.1.0" # GHSA-2p49-hgcm-8545 and CVE-2026-84370 (removeScripts let links through)
   # vite override removed: astro 6.4's ^7.3.2 now pulls in a fixed 7.x itself
   # (CVE-2026-53571 fixed in 7.3.5), so the pin was redundant and stopped

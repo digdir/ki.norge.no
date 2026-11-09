@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Chip, Heading, Label, Paragraph, Search } from '@digdir/designsystemet-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Badge, Button, Chip, Heading, Label, Pagination, Paragraph, Search, usePagination } from '@digdir/designsystemet-react';
 import { FunnelIcon } from '@navikt/aksel-icons';
 import {
   FILTERETIKETTER,
@@ -15,26 +15,42 @@ import {
 import KiTiltakDetail, { DETAIL_DIALOG_ID } from './KiTiltakDetail';
 import KiTiltakFilterPanel from './KiTiltakFilterPanel';
 import KiTiltakCard from './KiTiltakCard';
-import { FIRST_PAGE, NEXT_PAGE } from './paging';
+import { PAGE_SIZE } from './paging';
+import { lesUrlTilstand, skrivUrlTilstand } from './urlState';
 import PromoBanner from './PromoBanner';
-import RegisterTiltakDialog from './RegisterTiltakDialog';
 
-interface Props {
-  /** Public Turnstile key, passed on to the submission form. */
-  turnstileSiteKey?: string;
-}
-
-export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
-  const [filter, setFilter] = useState<KiTiltakFilter>(TOMT_FILTER);
+export default function KiTiltakOverview() {
+  const [filter, setFilterState] = useState<KiTiltakFilter>(TOMT_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
   const [selected, setSelected] = useState<KiTiltak | null>(null);
-  const [visibleCount, setVisibleCount] = useState(FIRST_PAGE);
+  const [page, setPage] = useState(1);
+  const countRef = useRef<HTMLParagraphElement>(null);
+
+  // A new search or filter starts over on the first page, and does not inherit
+  // the page the user was on in the previous result. Done here rather than in an
+  // effect on filter, which would also reset a ?side= read from the url on load.
+  const setFilter: React.Dispatch<React.SetStateAction<KiTiltakFilter>> = (next) => {
+    setFilterState(next);
+    setPage(1);
+  };
+
+  // Search, filters and page are kept in the url (see urlState.ts). The server
+  // renders the unfiltered list, so the url is read after mount, and nothing is
+  // written back until it has been read. Otherwise the first write would wipe a shared link.
+  const urlRead = useRef(false);
+  // A page change gets its own history entry, so back goes to the previous page.
+  // Typing and filtering replace the entry, so back does not step through every keystroke.
+  const pushNextUrl = useRef(false);
 
   // Open the drawer from ?tiltak=<id> on load, and follow the browser's back button.
   useEffect(() => {
     const syncFromUrl = () => {
       const url = new URL(window.location.href);
+      const fromUrl = lesUrlTilstand(url.searchParams);
+      setFilterState(fromUrl.filter);
+      setPage(fromUrl.page);
+      urlRead.current = true;
+
       const id = url.searchParams.get('tiltak');
       const found = id === null ? null : (kiTiltak.find((t) => t.id === id) ?? null);
 
@@ -69,13 +85,49 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
 
   const matches = useMemo(() => filterTiltak(kiTiltak, filter), [filter]);
 
-  // A new search or filter starts over at the top of the list, and does not inherit
-  // how far the user had loaded in the previous result.
-  useEffect(() => {
-    setVisibleCount(FIRST_PAGE);
-  }, [filter]);
+  const totalPages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+  // A ?side= beyond the last page (old link, fewer hits now) shows the last page.
+  const currentPage = Math.min(page, totalPages);
+  const visible = useMemo(
+    () => matches.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [matches, currentPage],
+  );
 
-  const visible = useMemo(() => matches.slice(0, visibleCount), [matches, visibleCount]);
+  useEffect(() => {
+    if (!urlRead.current) return;
+    const current = new URL(window.location.href);
+    const next = skrivUrlTilstand(current, { filter, page: currentPage });
+    const push = pushNextUrl.current;
+    pushNextUrl.current = false;
+    if (next.href === current.href) return;
+    if (push) window.history.pushState({}, '', next);
+    else window.history.replaceState(window.history.state, '', next);
+  }, [filter, currentPage]);
+
+  const goToPage = (next: number) => {
+    if (next === currentPage) return;
+    pushNextUrl.current = true;
+    setPage(next);
+    countRef.current?.scrollIntoView({ block: 'start' });
+    countRef.current?.focus({ preventScroll: true });
+  };
+
+  // Fewer page buttons on small screens, at the same breakpoint as the rest of the site.
+  const [smallScreen, setSmallScreen] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const update = () => setSmallScreen(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
+  const { pages, prevButtonProps, nextButtonProps } = usePagination({
+    currentPage,
+    totalPages,
+    showPages: smallScreen ? 5 : 7,
+    setCurrentPage: goToPage,
+  });
 
   const activeChips = FILTERGRUPPER.flatMap((group) => filter[group].map((value) => ({ group, value })));
 
@@ -117,7 +169,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
 
   return (
     <>
-      <PromoBanner onRegistrer={() => setRegisterOpen(true)} />
+      <PromoBanner />
 
       {/*
         Search field and filter button share a row, and the button wraps below the field when
@@ -151,7 +203,7 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
       </div>
 
       <div className="tiltak-filterrad">
-        <p className="tiltak-antall" aria-live="polite">
+        <p className="tiltak-antall" aria-live="polite" ref={countRef} tabIndex={-1}>
           {countText}
         </p>
 
@@ -196,16 +248,30 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
             ))}
           </div>
 
-          {visible.length < matches.length && (
-            <div className="tiltak-lastflere-rad">
-              <Button
-                variant="secondary"
-                className="tiltak-lastflere"
-                onClick={() => setVisibleCount((previous) => previous + NEXT_PAGE)}
-              >
-                {`Last flere tiltak (${visible.length}/${matches.length})`}
-              </Button>
-            </div>
+          {totalPages > 1 && (
+            <Pagination className="tiltak-paginering" aria-label="Sider med tiltak">
+              <Pagination.List>
+                <Pagination.Item>
+                  <Pagination.Button {...prevButtonProps} aria-label="Forrige side">
+                    <span className="ds-pagination-tekst">Forrige</span>
+                  </Pagination.Button>
+                </Pagination.Item>
+                {pages.map(({ page: pageNumber, itemKey, buttonProps }) => (
+                  <Pagination.Item key={itemKey}>
+                    {typeof pageNumber === 'number' && (
+                      <Pagination.Button {...buttonProps} aria-label={`Side ${pageNumber}`}>
+                        {pageNumber}
+                      </Pagination.Button>
+                    )}
+                  </Pagination.Item>
+                ))}
+                <Pagination.Item>
+                  <Pagination.Button {...nextButtonProps} aria-label="Neste side">
+                    <span className="ds-pagination-tekst">Neste</span>
+                  </Pagination.Button>
+                </Pagination.Item>
+              </Pagination.List>
+            </Pagination>
           )}
         </>
       ) : (
@@ -225,12 +291,6 @@ export default function KiTiltakOverview({ turnstileSiteKey = '' }: Props) {
       />
 
       <KiTiltakDetail tiltak={selected} onClose={closeTiltak} />
-
-      <RegisterTiltakDialog
-        open={registerOpen}
-        onClose={() => setRegisterOpen(false)}
-        turnstileSiteKey={turnstileSiteKey}
-      />
     </>
   );
 }

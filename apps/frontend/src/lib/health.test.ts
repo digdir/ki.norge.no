@@ -22,16 +22,20 @@ type Handler = (url: string, init?: RequestInit) => Promise<Response>;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-type Handlers = { umbraco?: Handler; proxy?: Handler; backoffice?: Handler; es?: Handler };
+type Handlers = { umbraco?: Handler; media?: Handler; backoffice?: Handler; es?: Handler };
+
+const STATUS_PATH = '/umbraco/management/api/v1/server/status';
+const statusRun: Handler = async () => json({ serverStatus: 'Run' });
 
 function fakeFetch(handlers: Handlers): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.endsWith('/umbraco/management/api/v1/server/status')) {
-      return (handlers.backoffice ?? (async () => json({ serverStatus: 'Run' })))(url, init);
+    if (url.endsWith(STATUS_PATH)) {
+      // media checks the status endpoint through the public address, backoffice through the internal one.
+      if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.media ?? statusRun)(url, init);
+      return (handlers.backoffice ?? statusRun)(url, init);
     }
     if (url.startsWith(CONFIG.umbracoUrl)) return (handlers.umbraco ?? (async () => json({ total: 3 })))(url, init);
-    if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.proxy ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.esEndpoint)) return (handlers.es ?? (async () => json({ hits: {} })))(url, init);
     throw new Error(`unexpected url ${url}`);
   }) as typeof fetch;
@@ -63,7 +67,7 @@ describe('runHealthChecks', () => {
     const r = await run({});
     expect(r.status).toBe('Healthy');
     expect(r.entries.umbraco.status).toBe('Healthy');
-    expect(r.entries['cms-proxy'].status).toBe('Healthy');
+    expect(r.entries.media.status).toBe('Healthy');
     expect(r.entries.backoffice.status).toBe('Healthy');
     expect(r.entries.elasticsearch.status).toBe('Healthy');
     expect(httpStatusFor(r.status)).toBe(200);
@@ -79,21 +83,30 @@ describe('runHealthChecks', () => {
     expect(Object.keys(r.entries)).toEqual([...HEALTH_ENTRIES]);
   });
 
-  test('cms-proxy checks the public address also when it equals the internal one', async () => {
+  test('media checks the status endpoint on the public address', async () => {
     const kalt: string[] = [];
-    await run({ umbraco: async (url) => { kalt.push(url); return json({ total: 3 }); } }, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
-    expect(kalt.filter((u) => u.includes('/delivery/api/'))).toHaveLength(2);
+    await run({ media: async (url) => { kalt.push(url); return json({ serverStatus: 'Run' }); } });
+    expect(kalt).toEqual([`${CONFIG.umbracoPublicUrl}${STATUS_PATH}`]);
   });
 
-  test('cms-proxy uses the internal address when the public one is missing, like umbraco.ts', async () => {
-    const r = await run({ umbraco: async () => json({}, 502) }, { ...CONFIG, umbracoPublicUrl: '' });
-    expect(r.entries['cms-proxy'].status).toBe('Degraded');
+  test('media checks the public address also when it equals the internal one', async () => {
+    const kalt: string[] = [];
+    await run({ backoffice: async (url) => { kalt.push(url); return json({ serverStatus: 'Run' }); } }, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
+    expect(kalt).toEqual([`${CONFIG.umbracoUrl}${STATUS_PATH}`, `${CONFIG.umbracoUrl}${STATUS_PATH}`]);
+  });
+
+  test('media uses the internal address when the public one is missing, like umbraco.ts', async () => {
+    const kalt: string[] = [];
+    const r = await run({ backoffice: async (url) => { kalt.push(url); return json({}, 502); } }, { ...CONFIG, umbracoPublicUrl: '' });
+    expect(kalt).toEqual([`${CONFIG.umbracoUrl}${STATUS_PATH}`, `${CONFIG.umbracoUrl}${STATUS_PATH}`]);
+    expect(r.entries.media.status).toBe('Degraded');
   });
 
   // #600: the proxy was off, the site was without images, and everything else responded.
   test('public CMS address down gives Degraded, since the pages still render', async () => {
-    const r = await run({ proxy: async () => { throw new Error('ENOTFOUND cms-offentlig.example'); } });
-    expect(r.entries['cms-proxy'].status).toBe('Degraded');
+    const r = await run({ media: async () => { throw new Error('ENOTFOUND cms-offentlig.example'); } });
+    expect(r.entries.media.status).toBe('Degraded');
+    expect(r.entries.backoffice.status).toBe('Healthy');
     expect(r.entries.umbraco.status).toBe('Healthy');
     expect(r.status).toBe('Degraded');
     expect(httpStatusFor(r.status)).toBe(200);

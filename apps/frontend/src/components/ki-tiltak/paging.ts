@@ -1,6 +1,5 @@
 /**
- * The grid has 1, 2 or 3 columns. 36 and 24 divide evenly by all of them, and by 4 if the grid
- * ever gets wider, so the first page and each "Last flere" end on a full row.
+ * The grid has 1, 2 or 3 columns. 18 divides evenly by all of them, so every full
+ * page ends on a full row. A 4-column grid would need a multiple of 12 (for example 24 or 36).
  */
-export const FIRST_PAGE = 36;
-export const NEXT_PAGE = 24;
+export const PAGE_SIZE = 18;
