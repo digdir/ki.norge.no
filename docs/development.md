@@ -48,6 +48,7 @@ Umbraco 17 on .NET 10. Azure SQL in production, SQLite locally.
 
 - artikkelTekst, artikkelBildeSeksjon, artikkelTrekkspill, artikkelFremheving
 - artikkelProsessteg, artikkelByline, artikkelInnholdFra, artikkelKontaktkort
+- artikkelVideo, see [digital-events.md](digital-events.md). Must be added to the Block List in prod by hand.
 
 **The RichText toolbar** is set in `ContentTypeComposer` (`EnsureRichTextDataTypes`), and in production in `uSync/v17/DataTypes/RichtextEditor.config`. It has H2, H3 and H4.
 

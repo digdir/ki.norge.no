@@ -1,0 +1,176 @@
+---
+/**
+ * Live stream and interaction at the top of a digital event page (#926).
+ * Video to the left, Slido or Vimeo chat to the right, stacked on small screens.
+ *
+ * The page decides with direktesendingStatus() whether to render this at all.
+ * In the "snart" state it is rendered hidden, and the script below reveals it at
+ * start and removes it at the end, also on a page that has been open for a while
+ * or served from the edge cache. See lib/digitalt-arrangement.ts.
+ */
+import { providerNavn } from '../../lib/video-embed';
+import type { Direktesending } from '../../lib/digitalt-arrangement';
+
+interface Props {
+  direktesending: Direktesending;
+  tittel: string;
+  skjult: boolean;
+  harOpptak: boolean;
+}
+
+const { direktesending: d, tittel, skjult, harOpptak } = Astro.props;
+const interaksjonNavn = d.interaksjon ? providerNavn(d.interaksjon.provider) : '';
+---
+
+<section
+  class="direktesending"
+  data-layout-block="content"
+  aria-labelledby="direktesending-tittel"
+  data-direktesending
+  data-start={d.start.toISOString()}
+  data-slutt={d.slutt.toISOString()}
+  hidden={skjult}
+>
+  <h2 id="direktesending-tittel" class="ds-heading" data-size="sm">
+    <span class="direktesending__live" aria-hidden="true"></span>
+    Direktesending
+  </h2>
+  <div class:list={['direktesending__grid', { 'direktesending__grid--med-interaksjon': d.interaksjon }]}>
+    <div class="direktesending__video">
+      <iframe
+        src={d.video.embedUrl}
+        title={`Direktesending: ${tittel}`}
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+    </div>
+    {d.interaksjon && (
+      <div class="direktesending__interaksjon">
+        <iframe
+          src={d.interaksjon.embedUrl}
+          title={`${interaksjonNavn}: chat, spørsmål og avstemninger`}
+          allow="clipboard-write"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+    )}
+  </div>
+  <p class="direktesending__lenker ds-paragraph" data-size="sm">
+    <a class="ds-link" href={d.video.watchUrl}>Åpne sendingen på {providerNavn(d.video.provider)}</a>
+    {d.interaksjon && (
+      <a class="ds-link" href={d.interaksjon.openUrl} target="_blank" rel="noopener">
+        Åpne {interaksjonNavn} i ny fane
+      </a>
+    )}
+  </p>
+</section>
+
+<p class="direktesending-avsluttet ds-paragraph" data-layout-block="content" role="status" data-direktesending-avsluttet hidden>
+  {harOpptak
+    ? 'Direktesendingen er avsluttet. Last inn siden på nytt for å se opptaket.'
+    : 'Direktesendingen er avsluttet. Opptaket blir lagt ut på denne siden.'}
+</p>
+
+<script>
+  // Reveals the stream at start and removes it at the end. Removing the element
+  // stops the players. Checks at least once a minute, because timers are delayed
+  // while a tab is in the background or the machine sleeps.
+  const el = document.querySelector<HTMLElement>('[data-direktesending]');
+  if (el) {
+    const start = Date.parse(el.dataset.start ?? '');
+    const slutt = Date.parse(el.dataset.slutt ?? '');
+    const tick = () => {
+      const naa = Date.now();
+      if (naa >= slutt) {
+        el.remove();
+        document.querySelector<HTMLElement>('[data-direktesending-avsluttet]')?.removeAttribute('hidden');
+        return;
+      }
+      if (naa >= start) el.hidden = false;
+      window.setTimeout(tick, Math.min((naa < start ? start : slutt) - naa, 60_000));
+    };
+    if (!Number.isNaN(start) && !Number.isNaN(slutt)) tick();
+  }
+</script>
+
+<style>
+  .direktesending {
+    width: 100%;
+    padding-block: var(--ds-size-6) var(--ds-size-10);
+    display: grid;
+    gap: var(--ds-size-4);
+  }
+
+  .direktesending[hidden] {
+    display: none;
+  }
+
+  .direktesending h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    margin: 0;
+  }
+
+  .direktesending__live {
+    width: var(--ds-size-3);
+    height: var(--ds-size-3);
+    border-radius: 50%;
+    background-color: var(--ds-color-danger-base-default);
+  }
+
+  .direktesending__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-size-4);
+  }
+
+  .direktesending__video {
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--ds-color-neutral-background-tinted);
+  }
+
+  .direktesending__interaksjon {
+    height: 600px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--ds-color-neutral-border-subtle);
+  }
+
+  .direktesending iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .direktesending__lenker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-2) var(--ds-size-5);
+    margin: 0;
+  }
+
+  /* Interaction to the right of the video. Its height follows the video row. */
+  @media (min-width: 1025px) {
+    .direktesending__grid--med-interaksjon {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+
+    .direktesending__grid--med-interaksjon .direktesending__interaksjon {
+      height: auto;
+      min-height: 400px;
+    }
+  }
+
+  .direktesending-avsluttet {
+    padding-block: var(--ds-size-6) 0;
+  }
+
+  .direktesending-avsluttet[hidden] {
+    display: none;
+  }
+</style>

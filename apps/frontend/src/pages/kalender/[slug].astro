@@ -4,6 +4,10 @@ import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
+import VideoEmbed from '../../components/shared/VideoEmbed.astro';
+import DirektesendingHero from '../../components/kalender/DirektesendingHero.astro';
+import { direktesending as finnDirektesending, direktesendingStatus } from '../../lib/digitalt-arrangement';
+import { parseVideoUrl } from '../../lib/video-embed';
 import { getKalenderhendelser, getArtikler, getPlainText, getCardImage, type Kalenderhendelse } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
@@ -49,6 +53,15 @@ const påmeldingUrl = hendelse.lenke || '';
 // The event is over: registration no longer makes sense, but the page should still
 // be readable for recordings and presentations.
 const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Date();
+
+// Digital event (#926). The live stream sits at the top while the window is open, and
+// the recording takes its place in the main content afterwards. See lib/digitalt-arrangement.ts.
+const direktesending = finnDirektesending(hendelse);
+const sendingStatus = direktesending ? direktesendingStatus(direktesending, new Date()) : null;
+const visSending = sendingStatus === 'snart' || sendingStatus === 'aktiv';
+const harOpptak = parseVideoUrl(hendelse.opptakUrl) !== null;
+// Never two players at once: the recording waits until the stream is gone.
+const visOpptak = harOpptak && !visSending;
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
@@ -59,7 +72,18 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
       <time datetime={hendelse.startDato}><strong>{dateDisplay}</strong></time>
       {timeDisplay && <span class="event-time">{timeDisplay}</span>}
     </p>
+    {sendingStatus === 'senere' && (
+      <p class="event-direktesending-varsel ds-paragraph">Direktesendingen vises her på siden når arrangementet starter.</p>
+    )}
   </section>
+  {direktesending && visSending && (
+    <DirektesendingHero
+      direktesending={direktesending}
+      tittel={hendelse.tittel}
+      skjult={sendingStatus === 'snart'}
+      harOpptak={harOpptak}
+    />
+  )}
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   </Fragment>
@@ -94,6 +118,13 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
 
     {hendelse.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{hendelse.ingress}</p>
+    )}
+
+    {visOpptak && (
+      <section class="event-opptak" aria-labelledby="event-opptak-tittel">
+        <h2 id="event-opptak-tittel" class="ds-heading" data-size="sm">Opptak</h2>
+        <VideoEmbed url={hendelse.opptakUrl} tittel={`Opptak: ${hendelse.tittel}`} synstolketUrl={hendelse.opptakSynstolketUrl} />
+      </section>
     )}
 
     <ArticleBlocksRenderer blocks={hendelse.detaljertBeskrivelse} />
@@ -132,11 +163,26 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
     margin-block-start: var(--ds-size-6);
   }
 
+  .event-direktesending-varsel {
+    grid-column: 2 / -1;
+    margin-block: var(--ds-size-4) 0;
+  }
+
+  .event-opptak {
+    display: grid;
+    gap: var(--ds-size-4);
+  }
+
+  .event-opptak h2 {
+    margin: 0;
+  }
+
   @media (max-width: 1024px) {
     .article-hero :global(.article-title) {
       grid-column: 1;
     }
-    .event-datetime {
+    .event-datetime,
+    .event-direktesending-varsel {
       grid-column: 1;
     }
   }

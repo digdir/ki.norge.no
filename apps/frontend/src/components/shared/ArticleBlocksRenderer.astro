@@ -14,6 +14,7 @@
  */
 import type { UmbracoBlock } from '../../lib/umbraco';
 import { getMediaUrl } from '../../lib/umbraco';
+import VideoEmbed from './VideoEmbed.astro';
 import '../../styles/article-blocks.css';
 
 interface Props {
@@ -150,6 +151,10 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
         </div>
       </aside>
     );
+  }
+  if (block.contentType === 'artikkelVideo') {
+    const c = block.content as { tittel?: string; videoUrl?: string; synstolketUrl?: string };
+    return <VideoEmbed url={c.videoUrl} tittel={c.tittel || ''} synstolketUrl={c.synstolketUrl} />;
   }
   if (block.contentType === 'artikkelProsessteg') {
     const c = block.content;

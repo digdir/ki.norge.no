@@ -41,6 +41,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType _blockListEksemplerSeksjonerDt = null!;
     private IDataType _trueFalseDt = null!;           // Boolean checkbox
     private IDataType _datePickerDt = null!;          // Date picker
+    private IDataType _dateTimePickerDt = null!;      // Date picker with time (live window for digital events)
 
     // Block List data types (created at init time)
     private IDataType _blockListAccordionDt = null!;
@@ -149,6 +150,7 @@ public class ContentTypeComponent : IAsyncComponent
             EnsureType("artikkelByline", () => CreateArtikkelBylineElement());
             EnsureType("artikkelInnholdFra", () => CreateArtikkelInnholdFraElement());
             EnsureType("artikkelKontaktkort", () => CreateArtikkelKontaktkortElement());
+            EnsureType("artikkelVideo", () => CreateArtikkelVideoElement());
 
             // Sandkasse element types: REMOVED 2026-05-04 (sandkasseSteg, sandkasseFaq)
             // The new Sandkasse uses the same article block list, so sandkasse-specific
@@ -354,6 +356,7 @@ public class ContentTypeComponent : IAsyncComponent
         _kolonneDropdownDt = CreateOrGetKolonneDropdown();
         _trueFalseDt = FindDataType(Constants.PropertyEditors.Aliases.Boolean);
         _datePickerDt = FindDataTypeByName(Constants.PropertyEditors.Aliases.DateTime, "Date Picker");
+        _dateTimePickerDt = FindDataTypeByName(Constants.PropertyEditors.Aliases.DateTime, "Date Picker with time");
     }
 
     private IDataType FindDataTypeByName(string editorAlias, string name)
@@ -788,6 +791,28 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("virksomhet", "Virksomhet", _textStringDt, description: "Anbefalt sammen med eller i stedet for e-post for å gjøre personen lett å finne"), "innhold");
         ct.AddPropertyType(Prop("epost", "E-post", _textStringDt, mandatory: true, description: "Kontaktens e-postadresse"), "innhold");
         ct.AddPropertyType(Prop("telefon", "Telefon", _textStringDt, description: "Valgfritt telefonnummer"), "innhold");
+        _contentTypeService.Save(ct);
+        return ct;
+    }
+
+    /// <summary>
+    /// Embedded video from Vimeo or YouTube (#926). The editor pastes an ordinary share link,
+    /// never iframe code. The frontend accepts only known providers and builds the embed URL itself.
+    /// </summary>
+    private IContentType CreateArtikkelVideoElement()
+    {
+        var ct = new ContentType(_shortStringHelper, -1)
+        {
+            Alias = "artikkelVideo",
+            Name = "Video",
+            Description = "Video fra Vimeo eller YouTube, for eksempel opptak fra et arrangement.",
+            Icon = "icon-video",
+            IsElement = true,
+        };
+        ct.AddPropertyGroup("innhold", "Innhold");
+        ct.AddPropertyType(Prop("tittel", "Tittel", _textStringDt, mandatory: true, description: "Beskriver videoen for skjermlesere, og vises under videoen."), "innhold");
+        ct.AddPropertyType(Prop("videoUrl", "Lenke til video", _urlDt, mandatory: true, description: "Lim inn lenken fra Vimeo eller YouTube, for eksempel https://vimeo.com/123456789. Ikke lim inn iframe-kode."), "innhold");
+        ct.AddPropertyType(Prop("synstolketUrl", "Lenke til synstolket versjon", _urlDt, description: "Valgfri. Vises som lenke under videoen."), "innhold");
         _contentTypeService.Save(ct);
         return ct;
     }
@@ -1334,6 +1359,7 @@ public class ContentTypeComponent : IAsyncComponent
         ["artikkelBildeSeksjon"] = "{umbValue: bildetekst | fallback:Bilde}",
         ["artikkelFremheving"]   = "{umbValue: tekst | stripHtml | wordLimit:12}",
         ["artikkelKontaktkort"]  = "{umbValue: navn | fallback:Kontaktkort}",
+        ["artikkelVideo"]        = "{umbValue: tittel | fallback:Video}",
         ["veiledningTekst"]      = "{umbValue: innhold | stripHtml | wordLimit:12}",
         ["veiledningInfo"]       = "{umbValue: tittel | fallback:Info}",
         ["veiledningEksempel"]   = "{umbValue: tittel | fallback:Eksempel}",
@@ -1447,6 +1473,7 @@ public class ContentTypeComponent : IAsyncComponent
         "artikkelByline",
         "artikkelInnholdFra",
         "artikkelKontaktkort",
+        "artikkelVideo",
         // Legacy (still in DB, will be removed once no content references them):
         // "artikkelHero", "artikkelInfoBoks", "artikkelCallout", "artikkelSitat"
     };
@@ -2441,6 +2468,8 @@ public class ContentTypeComponent : IAsyncComponent
         ct.AddPropertyType(Prop("lenke", "Lenke", _textStringDt, description: "URL til påmelding eller mer info.", sortOrder: 10), "innhold");
         ct.AddPropertyType(Prop("pris", "Pris", _textStringDt, description: "F.eks. \"Gratis\" eller \"1 500 kr\". La stå tom for å skjule pris på siden.", sortOrder: 11), "innhold");
 
+        AddDigitaltArrangementFields(ct);
+
         ct.AddPropertyGroup("innstillinger", "Innstillinger");
         ct.AddPropertyType(Prop("slug", "Slug", _textStringDt, mandatory: true, description: "URL-vennlig identifikator.", sortOrder: 1), "innstillinger");
         SetStandardGroupSortOrders(ct);
@@ -2468,7 +2497,49 @@ public class ContentTypeComponent : IAsyncComponent
             ct.AddPropertyType(Prop("arrangor", "Arrangør", _textStringDt, description: "Hvem som arrangerer, f.eks. \"Digdir\". La stå tom for å skjule arrangør på siden.", sortOrder: 9), "innhold");
             changed = true;
         }
+        changed |= AddDigitaltArrangementFields(ct);
         if (changed) _contentTypeService.Save(ct);
+    }
+
+    // Digital events (#926). Live stream and interaction sit at the top of the event page while
+    // the live window is open, and are removed automatically afterwards. The recording is shown
+    // in the main content. All fields are optional, so physical events are unaffected.
+    // Prod gets these through uSync, not from here, see docs/digital-events.md.
+    private bool AddDigitaltArrangementFields(IContentType ct)
+    {
+        const string group = "digitalt";
+        bool changed = false;
+        if (!ct.PropertyGroups.Any(g => g.Alias == group))
+        {
+            ct.AddPropertyGroup(group, "Digitalt arrangement");
+            changed = true;
+        }
+        // Between Innhold (1) and Innstillinger (50).
+        var grp = ct.PropertyGroups.First(g => g.Alias == group);
+        if (grp.SortOrder != 10)
+        {
+            grp.SortOrder = 10;
+            changed = true;
+        }
+        void Add(string alias, string name, IDataType dt, string description, int sortOrder)
+        {
+            if (ct.PropertyTypeExists(alias)) return;
+            ct.AddPropertyType(Prop(alias, name, dt, description: description, sortOrder: sortOrder), group);
+            changed = true;
+        }
+        Add("direktesendingUrl", "Direktesending", _urlDt,
+            "Lenke til direktesendingen i Vimeo, for eksempel https://vimeo.com/event/1234567. Vises øverst på siden mens sendingen pågår.", 1);
+        Add("interaksjonUrl", "Interaksjon", _urlDt,
+            "Valgfri. Lenke til Slido (https://app.sli.do/event/...) eller Vimeo-chat (https://vimeo.com/event/1234567/chat). Vises til høyre for sendingen.", 2);
+        Add("direktesendingStart", "Vis sendingen fra", _dateTimePickerDt,
+            "Norsk tid. Når sendingen og interaksjonen dukker opp på siden. Sett gjerne 15 til 30 minutter før start. Tom = fra startdato.", 3);
+        Add("direktesendingSlutt", "Fjern sendingen etter", _dateTimePickerDt,
+            "Norsk tid. Når sendingen og interaksjonen fjernes automatisk. Sett gjerne litt etter planlagt slutt. Tom = ved slutten av sluttdatoen.", 4);
+        Add("opptakUrl", "Opptak", _urlDt,
+            "Lenke til opptaket i Vimeo eller YouTube. Vises i hovedinnholdet når sendingen er fjernet.", 5);
+        Add("opptakSynstolketUrl", "Synstolket opptak", _urlDt,
+            "Valgfri. Lenke til en synstolket versjon av opptaket.", 6);
+        return changed;
     }
 
     private IContentType CreateKalender()
@@ -3031,7 +3102,7 @@ public class ContentTypeComponent : IAsyncComponent
             "artikkelTekst", "artikkelInfoBoks", "artikkelHero", "artikkelBildeSeksjon",
             "artikkelTrekkspill", "artikkelSitat", "artikkelCallout", "artikkelFremheving",
             "artikkelProsessteg", "artikkelProsessStegItem", "artikkelByline",
-            "artikkelInnholdFra", "artikkelKontaktkort", "omOssBlokk", "omOssSeksjon",
+            "artikkelInnholdFra", "artikkelKontaktkort", "artikkelVideo", "omOssBlokk", "omOssSeksjon",
             "accordionSection", "tipItem", "eventItem", "sandkasseSteg", "sandkasseFaq",
             "veiledningKort", "verktoyKort", "tilgjengeligIkon"
         };

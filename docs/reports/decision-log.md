@@ -2,6 +2,10 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-11-09
+
+- **Digital events are built in-house, not copied from digdir.no.** Live stream and interaction sit at the top of the event page in a time window and are removed automatically, and the recording is shown in the main content. The same layout as digdir.no, built on our own components. Editors paste share links, and the frontend accepts only Vimeo, YouTube and Slido and builds the embed URLs itself, so the rich text sanitising and the CSP stay strict. The window is enforced both on the server and in the browser, because the pages are cached at the edge for 10 minutes. The schema goes to prod through backoffice and an export from prod. See [digital-events.md](../digital-events.md) and [#926](https://github.com/digdir/ki.norge.no/issues/926).
+
 ## 2026-10-07
 
 - **The CMS pod is pinned to the digest of the image tag.** "Publish Syncroot artifacts" looks up the digest the tag points to, and the pod is pulled by digest with the tag as a label. A tag that moves does not change what runs, and a tag that does not exist stops the publish before anything is pushed. `deploy-cms.sh` and `backup-prod.sh` read the reference in the form `umbraco:<tag>@sha256:…`. See [#861](https://github.com/digdir/ki.norge.no/pull/861) and [#844](https://github.com/digdir/ki.norge.no/issues/844).
