@@ -115,6 +115,7 @@ export function parseTiltakForm(body: unknown): TiltakForm | null {
     leveranseAnnet: readLine(body, 'leveranseAnnet'),
     kiType: readStringArray(body, 'kiType', KI_TYPER),
     kiTypeAnnet: readLine(body, 'kiTypeAnnet'),
+    samtykke: body.samtykke === true,
   };
 }
 
@@ -216,6 +217,7 @@ export function buildEmail(form: TiltakForm, nyId: () => string = () => crypto.r
     '',
     'KONTAKT',
     line('E-post', form.kontaktinfo),
+    line('Samtykke', form.samtykke ? 'Ja' : 'Nei'),
     '',
     'TIL KI-TILTAK.JSON',
     'Lim inn rett etter [ på første linje i apps/frontend/src/data/ki-tiltak.json:',

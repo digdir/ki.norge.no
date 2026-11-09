@@ -14,6 +14,7 @@ function form(overstyr: Partial<TiltakForm> = {}): TiltakForm {
     kontaktinfo: 'postmottak@digdir.no',
     fase: 'Gjennomføring',
     leveranse: 'Pilot',
+    samtykke: true,
     ...overstyr,
   };
 }
