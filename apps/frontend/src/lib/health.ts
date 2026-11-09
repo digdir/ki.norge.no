@@ -103,41 +103,9 @@ async function checkUmbraco(config: HealthConfig, deps: HealthDeps): Promise<Hea
   };
 }
 
-/**
- * The pages fetch data from umbracoUrl, but the browser fetches the images from the
- * public address, in prod a proxy worker. When the proxy was off in #600, the
- * site was without images for ten minutes while everything else responded. Only a check
- * against the public address sees that failure, and it gives Degraded, because the pages
- * still render. It calls the Delivery API through the proxy, not an image file,
- * so it catches the proxy being down, but not a failure in the image storage itself.
- *
- * The check also runs where the public address equals the internal one, as on
- * tt02. It then tests the same path as the browser, and the set is the same in all environments.
- */
-async function checkCmsProxy(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
-  const publicUrl = config.umbracoPublicUrl || config.umbracoUrl;
+async function checkBackoffice(backofficeUrl: string, deps: HealthDeps): Promise<HealthEntry> {
   const { ok, ms } = await timed(deps, async (signal) => {
-    const res = await callFetch(deps, `${publicUrl}/umbraco/delivery/api/v2/content?take=1`, {
-      headers: { Accept: 'application/json' },
-      signal,
-    });
-    return res.ok;
-  });
-  return {
-    status: ok ? 'Healthy' : 'Degraded',
-    duration: formatDuration(ms),
-    tags: ['dependencies'],
-  };
-}
-
-/**
- * The editors need the backoffice, but the site works without it, so a failure here
- * gives Degraded. server/status is open without login and answers "Run" only when
- * Umbraco has finished starting and is not waiting for installation or upgrade.
- */
-async function checkBackoffice(config: HealthConfig, deps: HealthDeps): Promise<HealthEntry> {
-  const { ok, ms } = await timed(deps, async (signal) => {
-    const res = await callFetch(deps, `${config.umbracoUrl}/umbraco/management/api/v1/server/status`, {
+    const res = await callFetch(deps, `${backofficeUrl}/umbraco/management/api/v1/server/status`, {
       headers: { Accept: 'application/json' },
       signal,
     });
@@ -180,20 +148,20 @@ async function checkElasticsearch(config: HealthConfig, deps: HealthDeps): Promi
   };
 }
 
-export const HEALTH_ENTRIES = ['umbraco', 'cms-proxy', 'backoffice', 'elasticsearch'] as const;
+export const HEALTH_ENTRIES = ['umbraco', 'media', 'backoffice', 'elasticsearch'] as const;
 
 export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): Promise<HealthReport> {
   const t0 = deps.now();
-  const [umbraco, cmsProxy, backoffice, elasticsearch] = await Promise.all([
+  const [umbraco, media, backoffice, elasticsearch] = await Promise.all([
     checkUmbraco(config, deps),
-    checkCmsProxy(config, deps),
-    checkBackoffice(config, deps),
+    checkBackoffice(config.umbracoPublicUrl, deps),
+    checkBackoffice(config.umbracoUrl, deps),
     checkElasticsearch(config, deps),
   ]);
 
   const entries: Record<(typeof HEALTH_ENTRIES)[number], HealthEntry> = {
     umbraco,
-    'cms-proxy': cmsProxy,
+    media,
     backoffice,
     elasticsearch,
   };
