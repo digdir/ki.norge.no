@@ -544,9 +544,6 @@ export default function RegisterTiltakForm({ turnstileSiteKey }: Props) {
           >
             {sending ? 'Sender…' : 'Del tiltak'}
           </Button>
-          <Button variant="tertiary" asChild>
-            <a href={OVERVIEW_URL}>Avbryt</a>
-          </Button>
         </div>
       </form>
     </div>
