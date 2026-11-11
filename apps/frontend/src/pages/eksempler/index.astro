@@ -5,7 +5,7 @@ import ExampleLinkCards from '../../components/shared/ExampleLinkCards.astro';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 import ArticleCardCompact from '../../components/shared/ArticleCardCompact.astro';
 import AlleEksemplerListe from '../../components/shared/AlleEksemplerListe.astro';
-import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, getCardImage, sammenlignPublisertDato, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
+import { getEksempler, getEksemplerOversikt, getArtikler, getVeiledningGuider, velgKortbilde, sammenlignPublisertDato, type Eksempel, type Artikkel, type VeiledningGuide, type EksemplerSeksjon } from '../../lib/umbraco';
 import { collectionPageSchema, breadcrumbSchema } from '../../lib/seo';
 import { eksempelMerkelapper } from '../../lib/eksempel-merkelapper';
 import { ordlengde } from '../../lib/text';
@@ -117,7 +117,7 @@ const breadcrumbJsonLd = breadcrumbSchema([
                 href={`/eksempler/${e.slug}`}
                 title={e.tittel}
                 lead={s.ingress || e.ingress}
-                image={getCardImage(e.artikkelBilde)}
+                image={velgKortbilde(e)}
                 imageAlt={e.bildeAlt || ''}
               />
             </div>

@@ -4,7 +4,7 @@ import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import AkselIcon from '../../components/shared/AkselIcon.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
-import { getKalenderhendelser, getArtikler, getPlainText, getCardImage, type Kalenderhendelse } from '../../lib/umbraco';
+import { getKalenderhendelser, getArtikler, getPlainText, velgKortbilde, type Kalenderhendelse } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
 
@@ -109,7 +109,7 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
             title={a.tittel}
             date={a.publishedAt}
             variant="image"
-            image={getCardImage(a.artikkelBilde)}
+            image={velgKortbilde(a)}
           />
         ))}
       </div>
