@@ -32,6 +32,10 @@
 - [uSync/README.md](../apps/cms-umbraco/uSync/README.md): STOP. The folder is prod's schema, and regenerating or exporting from another environment makes block content "Unsupported".
 - [uSync-testinnhold/README.md](../apps/cms-umbraco/uSync-testinnhold/README.md): test fixtures for tt02 as uSync Content files, and how they are loaded.
 
+## Features
+
+- [Digital events](digital-events.md): live stream, interaction and recording on event pages, the Video module, accepted links, the live window against the edge cache, and how the fields reach prod.
+
 ## Search
 
 - [Hybrid search](hybrid-search.md): the architecture of search, from the CMS indexing to the search dialog in the frontend.

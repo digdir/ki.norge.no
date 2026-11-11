@@ -123,6 +123,17 @@ export interface ArtikkelInnholdFraBlock {
   };
 }
 
+// Video from Vimeo or YouTube (#926). videoUrl is the raw link from the CMS; the
+// renderer validates it with parseVideoUrl and shows nothing if it is not accepted.
+export interface ArtikkelVideoBlock {
+  contentType: 'artikkelVideo';
+  content: {
+    tittel: string;
+    videoUrl: string;
+    synstolketUrl?: string;
+  };
+}
+
 export interface ArtikkelKontaktkortBlock {
   contentType: 'artikkelKontaktkort';
   content: {
@@ -214,6 +225,13 @@ export interface Kalenderhendelse {
   lenke?: string;
   /** Optional price, e.g. "Gratis" or "1 500 kr". Empty = price is not shown. */
   pris?: string;
+  /** Digital events (#926), see lib/digitalt-arrangement.ts. Raw links and wall times from the CMS. */
+  direktesendingUrl?: string;
+  interaksjonUrl?: string;
+  direktesendingStart?: string;
+  direktesendingSlutt?: string;
+  opptakUrl?: string;
+  opptakSynstolketUrl?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -1215,6 +1233,12 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         arrangor: props.arrangor as string || undefined,
         lenke: props.lenke as string || undefined,
         pris: props.pris as string || undefined,
+        direktesendingUrl: props.direktesendingUrl as string || undefined,
+        interaksjonUrl: props.interaksjonUrl as string || undefined,
+        direktesendingStart: props.direktesendingStart as string || undefined,
+        direktesendingSlutt: props.direktesendingSlutt as string || undefined,
+        opptakUrl: props.opptakUrl as string || undefined,
+        opptakSynstolketUrl: props.opptakSynstolketUrl as string || undefined,
       } as T;
 
     case 'kalender':
@@ -1444,6 +1468,13 @@ function mapArtikkelBlocks(value: unknown): UmbracoBlock[] {
           virksomhet: props.virksomhet || '',
           epost: props.epost || '',
           telefon: props.telefon || '',
+        } };
+      }
+      if (ct === 'artikkelVideo') {
+        return { contentType: 'artikkelVideo', content: {
+          tittel: props.tittel || '',
+          videoUrl: props.videoUrl || '',
+          synstolketUrl: props.synstolketUrl || '',
         } };
       }
       if (ct === 'artikkelProsessteg') {

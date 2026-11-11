@@ -1,0 +1,81 @@
+---
+/**
+ * Embedded Vimeo or YouTube video (#926). Used by the Video module in
+ * ArticleBlocksRenderer and by the recording on the event page.
+ *
+ * Takes the raw link from the CMS. parseVideoUrl accepts only known providers
+ * and builds the embed URL itself; anything else renders nothing.
+ *
+ * Accessibility: the iframe gets the title as its accessible name, and there is
+ * always a link to the video on the provider's site, where captions and the
+ * player's own controls are available. Captions are set in Vimeo or YouTube.
+ */
+import { parseVideoUrl, providerNavn } from '../../lib/video-embed';
+
+interface Props {
+  url?: string;
+  tittel: string;
+  synstolketUrl?: string;
+}
+
+const { url, tittel, synstolketUrl } = Astro.props;
+const video = parseVideoUrl(url);
+const synstolket = synstolketUrl?.trim().startsWith('https://') ? synstolketUrl.trim() : '';
+---
+
+{video && (
+  <figure class="video-embed">
+    <div class="video-embed__frame">
+      <iframe
+        src={video.embedUrl}
+        title={tittel || 'Video'}
+        loading="lazy"
+        allow="fullscreen; picture-in-picture; encrypted-media; clipboard-write"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+    </div>
+    <figcaption class="video-embed__caption">
+      {tittel && <span class="ds-paragraph">{tittel}</span>}
+      <span class="video-embed__links">
+        <a class="ds-link" href={video.watchUrl}>Se videoen på {providerNavn(video.provider)}</a>
+        {synstolket && <a class="ds-link" href={synstolket}>Synstolket versjon</a>}
+      </span>
+    </figcaption>
+  </figure>
+)}
+
+<style>
+  .video-embed {
+    margin: 0;
+    display: grid;
+    gap: var(--ds-size-3);
+  }
+
+  .video-embed__frame {
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--ds-color-neutral-background-tinted);
+  }
+
+  .video-embed__frame iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .video-embed__caption {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-1);
+    font-size: var(--ds-font-size-3);
+  }
+
+  .video-embed__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-2) var(--ds-size-5);
+  }
+</style>
