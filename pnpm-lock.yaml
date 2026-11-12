@@ -1809,11 +1809,6 @@ packages:
     resolution: {integrity: sha512-DH0Bqq3DNp5tdOReuNyAA+Ev4Y2GS5FMbZpeTLP6C4CDi0h5nL0BmUPChXw3o/qbHLDWHl49sbNqQVY7bMSDdw==}
     engines: {node: '>=20.19.0'}
 
-  cssesc@3.0.0:
-    resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
-    engines: {node: '>=4'}
-    hasBin: true
-
   csso@5.0.5:
     resolution: {integrity: sha512-0LrrStPOdJj+SPCCrGhzryycLjwcgUSHBtxNA8aIDxf0GLsRh1cKYhB00Gd1lDOS4yGH69+SNn13+TWbVHETFQ==}
     engines: {node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0, npm: '>=7.0.0'}
@@ -2533,8 +2528,8 @@ packages:
     peerDependencies:
       postcss: ^8.4
 
-  postcss-selector-parser@7.1.4:
-    resolution: {integrity: sha512-HeP7D2wyhkR+XaK6v4W8oRF62Dsz4flyuczALJp61GckGm42u1saSSJ/0auvcBqxs3jMRFEcPK34At/0JBKdOg==}
+  postcss-selector-parser@7.2.0:
+    resolution: {integrity: sha512-Khh/tERVBn0I1499dvBSHY0pWJloMJWUxDsOBM0CCDPAcVZ10Jl2L1qy1f19uEX22spa8Mv7DCdEQJc0cGwBhQ==}
     engines: {node: '>=4'}
 
   postcss-value-parser@3.3.1:
@@ -3518,13 +3513,13 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  '@csstools/selector-resolve-nested@4.0.2(postcss-selector-parser@7.1.4)':
+  '@csstools/selector-resolve-nested@4.0.2(postcss-selector-parser@7.2.0)':
     dependencies:
-      postcss-selector-parser: 7.1.4
+      postcss-selector-parser: 7.2.0
 
-  '@csstools/selector-specificity@6.0.1(postcss-selector-parser@7.1.4)':
+  '@csstools/selector-specificity@6.0.1(postcss-selector-parser@7.2.0)':
     dependencies:
-      postcss-selector-parser: 7.1.4
+      postcss-selector-parser: 7.2.0
 
   '@digdir/designsystemet-css@1.23.0':
     dependencies:
@@ -4594,8 +4589,6 @@ snapshots:
 
   css-what@8.0.0: {}
 
-  cssesc@3.0.0: {}
-
   csso@5.0.5:
     dependencies:
       css-tree: 2.2.1
@@ -5294,14 +5287,13 @@ snapshots:
 
   postcss-nesting@14.0.3(postcss@8.5.31):
     dependencies:
-      '@csstools/selector-resolve-nested': 4.0.2(postcss-selector-parser@7.1.4)
-      '@csstools/selector-specificity': 6.0.1(postcss-selector-parser@7.1.4)
+      '@csstools/selector-resolve-nested': 4.0.2(postcss-selector-parser@7.2.0)
+      '@csstools/selector-specificity': 6.0.1(postcss-selector-parser@7.2.0)
       postcss: 8.5.31
-      postcss-selector-parser: 7.1.4
+      postcss-selector-parser: 7.2.0
 
-  postcss-selector-parser@7.1.4:
+  postcss-selector-parser@7.2.0:
     dependencies:
-      cssesc: 3.0.0
       util-deprecate: 1.0.2
 
   postcss-value-parser@3.3.1: {}
