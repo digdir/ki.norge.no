@@ -25,6 +25,8 @@
 - [Cache purge](cloudflare-cache-purge.md): how the CMS purges the Cloudflare cache on publish, and the purge on deploy.
 - [syncroot](syncroot.md): the Kubernetes manifests for the CMS in dis-core.
 - [syncroot/README.md](../syncroot/README.md): points to syncroot.md and deploy.md.
+- [Link statistics](link-statistics.md): the `?fra=` labels on menu and footer links, the D1 counter in the cache worker, setup and how to read the numbers.
+- [ADR: counting link use without consent](adr/2026-10-22-link-statistics.md): the legal interpretation behind the link statistics, the strongest objection and the fallback.
 - [Password rules for CMS users](cms-password-rules.md): the requirements for local passwords. Normal login goes through Entra ID.
 
 ## CMS and schema

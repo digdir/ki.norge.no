@@ -3,6 +3,7 @@ import { Link } from '@digdir/designsystemet-react';
 import { MagnifyingGlassIcon, MenuHamburgerIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cl from 'clsx/lite';
 import Logo from './Logo';
+import { withOrigin } from '../../lib/link-origin';
 
 interface NavItem {
   href: string;
@@ -93,7 +94,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
   return (
     <header className={cl('header', isHamburger && 'header--hamburger')} ref={headerRef} data-color="accent">
       <div className="header-container" data-layout-block="content">
-        <Link href="/" className="logo-link" aria-label="KI Norge">
+        <Link href={withOrigin('/', 'logo')} className="logo-link" aria-label="KI Norge">
           <Logo className="logo-icon" />
         </Link>
 
@@ -103,7 +104,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
-                  href={item.href}
+                  href={withOrigin(item.href, 'meny')}
                   className={cl('nav-link', activePath.startsWith(item.href) && 'active')}
                   aria-current={activePath.startsWith(item.href) ? 'page' : undefined}
                 >
@@ -148,7 +149,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
         onBlur={handleBlur}
       >
           <div className="mobile-menu-header">
-            <Link href="/" className="logo-link" aria-label="KI Norge - Hjem">
+            <Link href={withOrigin('/', 'logo')} className="logo-link" aria-label="KI Norge - Hjem">
               <Logo className="logo-icon" />
             </Link>
             <button
@@ -164,7 +165,7 @@ export default function Header({ currentPath: initialPath, navItems = defaultNav
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
-                  href={item.href}
+                  href={withOrigin(item.href, 'meny-mobil')}
                   className={cl('nav-link', activePath.startsWith(item.href) && 'active')}
                   aria-current={activePath.startsWith(item.href) ? 'page' : undefined}
                 >

@@ -1,3 +1,5 @@
+import { countLinkUse, isCountable, osloDay, takeOrigin } from "./link-counts";
+
 // Preview is carried by a cookie, and the cache looks up on the URL alone. Without
 // this the editor got the published page from the cache on the first click inside
 // the backoffice frame. The frontend checks the value. A fake cookie only gets published
@@ -30,6 +32,9 @@ export default {
 		}
 
 		const url = new URL(request.url);
+		// The link label is taken out before the cache and the frontend see the address.
+		const origin = takeOrigin(url);
+		const upstream = origin === null ? request : new Request(url.toString(), request);
 
 		const cacheKey = new Request(url.toString(), {
 			headers: request.headers,
@@ -47,7 +52,7 @@ export default {
 
 		if (!response) {
 			try {
-				response = await env.FRONTEND.fetch(request);
+				response = await env.FRONTEND.fetch(upstream);
 			} catch (error) {
 				throw new Error(`Failed to fetch GET-request from origin: ${error}`);
 			}
@@ -66,6 +71,17 @@ export default {
 					throw new Error(`Failed to put response in cache: ${error}`);
 				}
 			}
+		}
+
+		// Counted after the response, so a label on an address that does not exist is
+		// never stored. A failed count must not affect the page.
+		const linkCounts = env.LINK_COUNTS;
+		if (origin !== null && linkCounts && response.status >= 200 && response.status < 400 && isCountable(request)) {
+			ctx.waitUntil(
+				countLinkUse(linkCounts, osloDay(new Date()), origin, url.pathname).catch((error) =>
+					console.warn("Link count failed", error),
+				),
+			);
 		}
 
 		return response;
