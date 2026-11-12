@@ -2148,11 +2148,7 @@
     "navn": "Tverrspråklig effektiv kommunikasjon (TEK)",
     "virksomhet": "POLITIDIREKTORATET",
     "orgnr": "982531950",
-    "fagomrade": [
-      "Digitale teknologier",
-      "Innbygger",
-      "KI"
-    ],
+    "fagomrade": "Digitale teknologier",
     "beskrivelse": "Politiet ønsker å utforske om KI og språkmodeller kan være med å løse utfordringen med språkbarrierer i kommunikasjonen mellom politiet og innbyggere som ikke snakker norsk eller engelsk.",
     "fase": null,
     "leveranse": [],
