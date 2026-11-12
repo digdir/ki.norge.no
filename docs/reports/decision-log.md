@@ -2,6 +2,10 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-11-12
+
+- **Preview no longer uses the Kjac.HeadlessPreview package.** A URL provider in `apps/cms-umbraco/Preview/` and a small backoffice plugin in `App_Plugins/Preview/` do the same job. "Lagre og forhåndsvis" saves and shows the frontend in an iframe in the "Forhåndsvisning" view, which reloads after each save. It is the same solution as info.altinn.no, which does not use the package. The `HeadlessPreview` config keys are kept, so Key Vault and syncroot are unchanged. The device sizes, scroll position and click-to-edit from the package were left out. The cookie notice is hidden in preview. See [cms-composers.md](../cms-composers.md#previewcomposer).
+
 ## 2026-10-22
 
 - **Link use is counted on the server, without consent.** Links in the menu, the mobile menu, the logo and the footer carry a fixed label (`?fra=meny`), and the cache worker removes it and adds 1 to a count per day, label and page. Nothing about the visitor is read or stored, so it is outside ekomloven § 3-15 and the GDPR as the product owner reads them. The interpretation, the strongest objection and how to switch it off are in the [ADR](../adr/2026-10-22-link-statistics.md).
