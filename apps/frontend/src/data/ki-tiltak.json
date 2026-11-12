@@ -1056,6 +1056,24 @@
     "opprettet": "2026-10-02T09:02:48.483000"
   },
   {
+    "id": "96c88662-0e87-41ba-afc8-c5e38fe204d4",
+    "navn": "KI sjekker søknaden før innlevering",
+    "virksomhet": "PATENTSTYRET",
+    "orgnr": "971526157",
+    "fagomrade": "Innbygger",
+    "beskrivelse": "KI-agenter bistår søkerne med å kontrollere at søknaden oppfyller formelle krav før de sender inn søknaden. Målet er å oppdage formelle mangler tidlig og gjøre det enklere å levere korrekte søknader.\r\n \r\nFor designsøknader kontrollerer KI-agenten om bildene oppfyller kravene og foreslår klasser i den internasjonale klassifiseringen for design (Locarno). Designagenten er i produksjon og tilgjengelig via Altinn.\r\n \r\nEn KI-agent for patentsøknader er under utvikling. Den skal kontrollere om søknaden oppfyller formelle krav.",
+    "fase": "I drift",
+    "leveranse": [
+      "Løsning i produksjon"
+    ],
+    "kiType": [
+      "Generativ KI",
+      "Agentisk KI"
+    ],
+    "kontaktinfo": "tmt@patentstyret.no",
+    "opprettet": "2026-10-07T11:53:27.923000"
+  },
+  {
     "id": "2e9baf99-0b7a-4259-8474-16c14486fcb4",
     "navn": "KI-assistert saksbehandling",
     "virksomhet": "NORSK FILMINSTITUTT",
@@ -1144,30 +1162,12 @@
     "opprettet": "2026-10-02T09:02:49.290000"
   },
   {
-    "id": "96c88662-0e87-41ba-afc8-c5e38fe204d4",
-    "navn": "KI-støtte av søknader før levering",
-    "virksomhet": "PATENTSTYRET",
-    "orgnr": "971526157",
-    "fagomrade": "Innbygger",
-    "beskrivelse": "KI-agenter bistår søkerne med å kontrollere at søknaden oppfyller formelle krav før de sender søknaden. Målet er å oppdage formelle mangler tidlig og gjøre det enklere å levere korrekte søknader. For designsøknader kontrollerer løsningen om bildene oppfyller kravene og foreslår klasser i den internasjonale klassifiseringen av design (Locarno). For patentsøknader utvikler vi en løsning som kontrollerer om søknaden oppfyller formelle krav. Designagenten er i produksjon og tilgjengelig via Altinn. Patentagenten er under utvikling.",
-    "fase": "I drift",
-    "leveranse": [
-      "Løsning i produksjon"
-    ],
-    "kiType": [
-      "Generativ KI",
-      "Agentisk KI"
-    ],
-    "kontaktinfo": "tmt@patentstyret.no",
-    "opprettet": "2026-10-07T11:53:27.923000"
-  },
-  {
     "id": "abc374f6-396c-4edc-ad9b-362dd41e4f6f",
     "navn": "KI-støtte for kunnskapsarbeid og saksbehandling",
     "virksomhet": "PATENTSTYRET",
     "orgnr": "971526157",
     "fagomrade": "Virksomhet",
-    "beskrivelse": "Vi bruker og tester KI-agenter som hjelper ansatte med å finne informasjon fra blant annet vårt kvalitetssystem (RAG), skrive utkast til brev, forbedre og oversette tekster og vurdere patent- og varemerkesøknader. Målet er å bruke mindre tid på informasjonsinnhenting og skrivearbeid og bidra til mer effektiv og enhetlig saksbehandling. Løsningene omfatter en intern chatbot-assistent, en brevassistent, en tekst- og oversettelsesassistent og agenter for fagspesifikk gransking. Patentagenten er under testing. De øvrige er i produksjon.",
+    "beskrivelse": "Vi bruker og tester KI-agenter som hjelper ansatte med å finne informasjon fra blant annet vårt kvalitetssystem og retningslinjer (gjennom RAG), skrive utkast til brev, forbedre og oversette tekster og vurdere patent- og varemerkesøknader. Målet er å gjøre arbeidet mer effektivt og gi saksbehandlerne mer tid til faglige vurderinger. KI er et støtteverktøy, det er saksbehandleren som gjør vurderingene og tar avgjørelsene.",
     "fase": "I drift",
     "leveranse": [
       "Løsning i produksjon"
@@ -2148,7 +2148,11 @@
     "navn": "Tverrspråklig effektiv kommunikasjon (TEK)",
     "virksomhet": "POLITIDIREKTORATET",
     "orgnr": "982531950",
-    "fagomrade": "Innbygger",
+    "fagomrade": [
+      "Digitale teknologier",
+      "Innbygger",
+      "KI"
+    ],
     "beskrivelse": "Politiet ønsker å utforske om KI og språkmodeller kan være med å løse utfordringen med språkbarrierer i kommunikasjonen mellom politiet og innbyggere som ikke snakker norsk eller engelsk.",
     "fase": null,
     "leveranse": [],
