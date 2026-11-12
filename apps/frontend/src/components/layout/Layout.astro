@@ -116,7 +116,9 @@ const ogImageUrl = resolvedOg
   </head>
   <body data-color-scheme="light" data-color={bodyColor} class:list={[hideLogo && 'hide-header-logo']}>
     <a href="#main-content" class="ds-skip-link">Hopp til hovedinnhold</a>
-    <CookieNotice />
+    {/* The CMS shows preview in an iframe. Editors want the page itself there, and no
+        analytics on drafts, so the cookie notice and its script are left out. */}
+    {!isPreview && <CookieNotice />}
     <Header client:load currentPath={currentPath} />
     <main id="main-content">
       <slot />
