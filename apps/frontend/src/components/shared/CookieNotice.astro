@@ -59,11 +59,11 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
   /* Inline position and max width come from data-layout-block="content",
      the same as the header, so the banner lines up with the page content */
   .cookie-notice__inner {
-    padding-block: 24px;
+    padding-block: var(--ds-size-6);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: var(--ds-size-3);
   }
 
   .cookie-notice__title {
@@ -75,9 +75,6 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
   .cookie-notice__secondary {
     margin: 0;
     max-width: 710px;
-    font-size: 1.125rem;
-    line-height: 1.7;
-    letter-spacing: 0.09px;
   }
 
   .cookie-notice__secondary {
@@ -108,12 +105,6 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 
   .ds-button {
     --dsc-button-background: var(--ds-color-base-active);
-  }
-
-  @media (max-width: 640px) {
-    .cookie-notice__inner {
-      padding-block: 18px;
-    }
   }
 
   @media print {
