@@ -11,10 +11,24 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 ---
 
 <div id="cookie-notice" class="cookie-notice" hidden data-color="accent">
-  <div class="cookie-notice__inner">
+  <div class="cookie-notice__inner" data-layout-block="content">
     <h2 class="cookie-notice__title ds-heading" data-size="md">{tittel}</h2>
     <div class="cookie-notice__text" set:html={beskrivelseHtml}></div>
+    <fieldset class="ds-fieldset cookie-notice__fieldset">
+      <legend>Du velger selv hva du vil godta.</legend>
+      <ds-field class="ds-field">
+        <input id="cookie-notice-analytics" class="ds-input" type="checkbox" />
+        <label>Statistikk og analyse</label>
+      </ds-field>
+      <ds-field class="ds-field">
+        <input id="cookie-notice-third-party" class="ds-input" type="checkbox" />
+        <label>Tredjepartstjenester</label>
+      </ds-field>
+    </fieldset>
     <div class="cookie-notice__actions">
+      <button id="cookie-notice-save" type="button" class="ds-button">
+        Lagre valgene mine
+      </button>
       <button id="cookie-notice-allow" type="button" class="ds-button">
         {jaLabel}
       </button>
@@ -29,23 +43,27 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 <script is:inline set:html={cookieNoticeScript} />
 
 <style>
+
   .cookie-notice {
     background: var(--ds-color-info-surface-tinted);
     color: var(--ds-color-accent-text-default);
     width: 100%;
     font-family: var(--ds-font-family);
+    box-sizing: border-box;
   }
 
   .cookie-notice[hidden] {
     display: none;
   }
 
+  /* Inline position and max width come from data-layout-block="content",
+     the same as the header, so the banner lines up with the page content */
   .cookie-notice__inner {
-    padding: 24px;
+    padding-block: var(--ds-size-6);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: var(--ds-size-3);
   }
 
   .cookie-notice__title {
@@ -57,9 +75,6 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
   .cookie-notice__secondary {
     margin: 0;
     max-width: 710px;
-    font-size: 1.125rem;
-    line-height: 1.7;
-    letter-spacing: 0.09px;
   }
 
   .cookie-notice__secondary {
@@ -80,18 +95,16 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 
   .cookie-notice__actions {
     display: flex;
-    gap: var(--ds-size-6);
+    gap: var(--ds-size-4);
     flex-wrap: wrap;
+  }
+
+  .cookie-notice__fieldset {
+    margin-block-end: var(--ds-size-4);
   }
 
   .ds-button {
     --dsc-button-background: var(--ds-color-base-active);
-  }
-
-  @media (max-width: 640px) {
-    .cookie-notice__inner {
-      padding: 18px 16px;
-    }
   }
 
   @media print {
