@@ -29,11 +29,11 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
       <button id="cookie-notice-save" type="button" class="ds-button">
         Lagre valgene mine
       </button>
-      <button id="cookie-notice-deny" type="button" class="ds-button">
-        {neiLabel}
-      </button>
       <button id="cookie-notice-allow" type="button" class="ds-button">
         {jaLabel}
+      </button>
+      <button id="cookie-notice-deny" type="button" class="ds-button">
+        {neiLabel}
       </button>
     </div>
     <div class="cookie-notice__secondary" set:html={sekundaerHtml}></div>
