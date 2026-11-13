@@ -43,11 +43,13 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 <script is:inline set:html={cookieNoticeScript} />
 
 <style>
+
   .cookie-notice {
     background: var(--ds-color-info-surface-tinted);
     color: var(--ds-color-accent-text-default);
     width: 100%;
     font-family: var(--ds-font-family);
+    box-sizing: border-box;
   }
 
   .cookie-notice[hidden] {
