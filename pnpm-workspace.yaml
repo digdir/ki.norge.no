@@ -12,6 +12,13 @@ overrides:
   sharp: "^0.35.5" # GHSA-f88m-g3jw-g9cj and GHSA-wq5f-xc86-pv6w, astro 7.2.8+ requires ^0.35.4
   undici: "^7.30.1" # CVE-2026-13697, CVE-2026-109383/-109829/-109869/-87018 (#949), transitive via miniflare/wrangler/unifont
   svgo: "^4.1.0" # GHSA-2p49-hgcm-8545 and CVE-2026-84370 (removeScripts let links through)
+  # Dependabot alerts, all transitive:
+  # GHSA-g3hv-75wg-m249 (minimatch < 11.0.1), via style-dictionary > glob@13. glob 13 matches
+  # nothing on minimatch 11, so move it to glob 14 instead of overriding minimatch.
+  "glob@13": "^14.0.0"
+  qs: "^6.16.1" # GHSA-6pq8-jhm2-2vcw, via style-dictionary > url
+  postcss-selector-parser: "^7.1.6" # GHSA-rj75-hqrm-r3gf, via postcss-nesting
+  zod: "^4.6.7" # GHSA-mrhx-c7xc-m3w5, @cloudflare/vitest-pool-workers pins 4.4.3, designsystemet 4.6.5
   # vite override removed: astro 6.4's ^7.3.2 now pulls in a fixed 7.x itself
   # (CVE-2026-53571 fixed in 7.3.5), so the pin was redundant and stopped
   # Renovate from letting vite float. Left transitive until astro 7 (pulls in vite 8).
