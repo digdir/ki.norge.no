@@ -41,6 +41,14 @@ using Microsoft.AspNetCore.DataProtection;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// ── Local overrides (Development only, git-ignored) ──
+// scripts/db/refresh-local-db.sh writes the connection string to a local SQL Server
+// copy of an environment's database here. Absent, the CMS uses SQLite as before.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: false);
+}
+
 // ── DataProtection keys on disk ──
 // Without this, ASP.NET creates the keys under $HOME/.aspnet/DataProtection-Keys, which is
 // pod-local. Every new pod gets new keys, and then the backoffice cookies

@@ -40,4 +40,6 @@ content-routes.json
 
 ## User secrets
 appsettings.*.local.json
+## Written by scripts/db/refresh-local-db.sh, holds a local database password
+appsettings.Local.json
 .cms-running.lock

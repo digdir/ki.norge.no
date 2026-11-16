@@ -51,6 +51,7 @@
 
 - [Smoke tests](smoke-tests.md): `scripts/smoke-test.sh` and the two Playwright specs that run in CI.
 - [tests/README.md](../tests/README.md): points to smoke-tests.md.
+- [Local database copy](local-database-copy.md): run the CMS locally against a copy of the prod or tt02 database with `scripts/db/`, access, flags and data handling.
 - [Mock CMS](mock-cms.md): frontend without a real CMS, and how the fixture is updated.
 - [tools/mock-cms/README.md](../apps/frontend/tools/mock-cms/README.md): points to mock-cms.md.
 - [Route list for smoke testing](../apps/frontend/tests/fixtures/ruter.md): the fixture `routes.spec.ts` reads the routes from.
