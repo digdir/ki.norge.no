@@ -11,7 +11,8 @@ namespace KiNorge.Cms.CustomAuthentication;
 /// Registers Microsoft Entra ID as external sign-in for the Umbraco backoffice,
 /// including the Microsoft button on the login screen (via MicrosoftEntraIdManifestReader).
 /// Only enabled when all config under MicrosoftEntraId exists, otherwise it is inert,
-/// no button is shown and local password sign-in is unchanged.
+/// no button is shown and local password sign-in is unchanged. When enabled, local
+/// password sign-in is turned off (DenyLocalLogin, #961).
 /// </summary>
 public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
 {

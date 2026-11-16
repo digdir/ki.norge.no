@@ -169,7 +169,8 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 
 - `Enabled=true` with a missing value stops the startup.
 - Groups set by hand in the backoffice are overwritten on the next login. Access is managed in Entra ID.
-- Local password login is still enabled alongside (`DenyLocalLogin = false`).
+- Local password login is turned off when Entra ID is on (`DenyLocalLogin = true`, [#961](https://github.com/digdir/ki.norge.no/issues/961)). The login screen shows only the "Microsoft" button, and Umbraco also rejects password login and password reset on the server. This applies to every local account, `admin@ki.norge.no` included. Locally and in CI, where Entra ID is not configured, password login works as before.
+- Break-glass if Entra ID is down or the client secret has expired: set `MicrosoftEntraId:Enabled=false` (env var `MicrosoftEntraId__Enabled`) and restart. Then local password login is back, with `admin@ki.norge.no`.
 - A user who is disabled in Umbraco is not enabled again on login.
 
 ### AdminProtectionComposer

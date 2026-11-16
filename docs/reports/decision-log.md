@@ -2,6 +2,10 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-11-16
+
+- **The backoffice in tt02 and prod is Entra ID only.** Local username and password login is turned off (`DenyLocalLogin = true`) when Entra ID is configured, for security reasons and the same way as info.altinn.no. Access is managed by the app roles in Entra ID. Locally and in CI, where Entra ID is not configured, password login works as before. Break-glass is `MicrosoftEntraId:Enabled=false`. The login button does not redirect automatically, so a failing Entra ID login cannot loop. See [#961](https://github.com/digdir/ki.norge.no/issues/961) and [cms-composers.md](../cms-composers.md).
+
 ## 2026-10-22
 
 - **Link use is counted on the server, without consent.** Links in the menu, the mobile menu, the logo and the footer carry a fixed label (`?fra=meny`), and the cache worker removes it and adds 1 to a count per day, label and page. Nothing about the visitor is read or stored, so it is outside ekomloven § 3-15 and the GDPR as the product owner reads them. The interpretation, the strongest objection and how to switch it off are in the [ADR](../adr/2026-10-22-link-statistics.md).
