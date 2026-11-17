@@ -7,6 +7,7 @@ import NewsCard from '../../components/shared/NewsCard.astro';
 import { getKalenderhendelser, getArtikler, getPlainText, velgKortbilde, type Kalenderhendelse } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
+import { vimeoEmbedUrl, vimeoInteraksjonUrl } from '../../lib/video-embed';
 
 const { slug } = Astro.params;
 const isPreview = Astro.locals.isPreview;
@@ -49,6 +50,11 @@ const påmeldingUrl = hendelse.lenke || '';
 // The event is over: registration no longer makes sense, but the page should still
 // be readable for recordings and presentations.
 const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Date();
+
+const direkteUrl = erAvsluttet ? undefined : vimeoEmbedUrl(hendelse.direktesending);
+const interaksjonUrl = direkteUrl ? vimeoInteraksjonUrl(hendelse.interaksjon) : undefined;
+const opptakUrl = erAvsluttet ? vimeoEmbedUrl(hendelse.opptak) : undefined;
+const vimeoAllow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
 ---
 
 <Layout title={seoTitle} description={seoDesc}>
@@ -64,7 +70,29 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c')} />
   </Fragment>
 
-  <ArticleLayout>
+  <ArticleLayout class={direkteUrl ? 'event-layout--video' : undefined}>
+    {direkteUrl && (
+      <div class:list={['event-video', { 'event-video--interaksjon': interaksjonUrl }]}>
+        <div class="event-video-frame">
+          <iframe
+            src={direkteUrl}
+            title={`Direktesending: ${hendelse.tittel}`}
+            allow={vimeoAllow}
+            referrerpolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+        {interaksjonUrl && (
+          <iframe
+            class="event-video-interaksjon"
+            src={interaksjonUrl}
+            title={`Chat, spørsmål og avstemninger: ${hendelse.tittel}`}
+            allow="clipboard-write"
+            referrerpolicy="strict-origin-when-cross-origin"
+          />
+        )}
+      </div>
+    )}
+
     <Fragment slot="sidebar">
       <div class="event-meta-item">
         <AkselIcon name="LocationPin" size={24} />
@@ -97,6 +125,20 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
     )}
 
     <ArticleBlocksRenderer blocks={hendelse.detaljertBeskrivelse} />
+
+    {opptakUrl && (
+      <section class="event-opptak" aria-labelledby="event-opptak-heading">
+        <h2 id="event-opptak-heading" class="ds-heading" data-size="xs">Se opptaket</h2>
+        <div class="event-video-frame">
+          <iframe
+            src={opptakUrl}
+            title={`Opptak: ${hendelse.tittel}`}
+            allow={vimeoAllow}
+            referrerpolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+      </section>
+    )}
   </ArticleLayout>
 
   {relatedArticles.length > 0 && (
@@ -182,6 +224,71 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
 
   :global(.event-register-btn:hover) {
     background-color: var(--ds-color-base-hover);
+  }
+
+  :global(.event-layout--video .article-layout__grid > .event-video) {
+    grid-column: 2 / -2;
+    grid-row: 1;
+    margin-block-end: var(--ds-size-12);
+  }
+
+  :global(.event-layout--video .article-layout__sidebar) {
+    grid-row: 2 / 6;
+  }
+
+  :global(.article-layout__grid > .event-opptak) {
+    grid-column: 3 / -2;
+    margin-block-start: var(--ds-size-12);
+
+    & h2 {
+      margin-block-end: var(--ds-size-3);
+    }
+  }
+
+  .event-video-frame {
+    aspect-ratio: 16 / 9;
+    background-color: var(--ds-color-neutral-surface-tinted);
+
+    & iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  }
+
+  .event-video--interaksjon {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(280px, 1fr);
+    gap: var(--ds-size-2);
+  }
+
+  .event-video-interaksjon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background-color: var(--ds-color-neutral-surface-tinted);
+  }
+
+  @media (max-width: 1024px) {
+    :global(.event-layout--video .article-layout__grid > .event-video) {
+      grid-column: 1;
+      margin-block-end: var(--ds-size-8);
+    }
+    .event-video--interaksjon {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .event-video-interaksjon {
+      height: 480px;
+    }
+    :global(.event-layout--video .article-layout__sidebar) {
+      grid-row: auto;
+    }
+    :global(.article-layout__grid > .event-opptak) {
+      grid-column: 1;
+      margin-block-start: var(--ds-size-8);
+    }
   }
 
   /* ── Related articles ── */

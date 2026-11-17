@@ -214,6 +214,12 @@ export interface Kalenderhendelse {
   lenke?: string;
   /** Optional price, e.g. "Gratis" or "1 500 kr". Empty = price is not shown. */
   pris?: string;
+  /** Live stream embed URL (Vimeo event). Shown until the event is over. */
+  direktesending?: string;
+  /** Vimeo interaction tools URL (Q&A, polls) for the live stream. */
+  interaksjon?: string;
+  /** Recording URL. Replaces the live stream once the event is over. */
+  opptak?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -1215,6 +1221,9 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         arrangor: props.arrangor as string || undefined,
         lenke: props.lenke as string || undefined,
         pris: props.pris as string || undefined,
+        direktesending: (props.direktesending as string)?.trim() || undefined,
+        interaksjon: (props.interaksjon as string)?.trim() || undefined,
+        opptak: (props.opptak as string)?.trim() || undefined,
       } as T;
 
     case 'kalender':
