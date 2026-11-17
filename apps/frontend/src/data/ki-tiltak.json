@@ -14,20 +14,6 @@
     "utfall": null
   },
   {
-    "id": "3a783a97-5b44-42fa-bf99-cba7f4aa8ef1",
-    "navn": "AAATEST",
-    "virksomhet": null,
-    "orgnr": null,
-    "fagomrade": null,
-    "beskrivelse": null,
-    "fase": null,
-    "leveranse": [],
-    "kiType": [],
-    "kontaktinfo": null,
-    "opprettet": "2026-10-28T13:42:01.750000",
-    "utfall": "Tiltaket er fullført som planlagt og skulle kun gi kunnskap eller et beslutningsgrunnlag."
-  },
-  {
     "id": "1184d9ae-4d94-4465-9472-0934062346dd",
     "navn": "AI-Rad Companion Prostate MR",
     "virksomhet": "VESTRE VIKEN HF",
