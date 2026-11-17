@@ -67,6 +67,11 @@ export interface ArtikkelSitatBlock {
   content: { sitat: string; kilde?: string };
 }
 
+export interface ArtikkelVideoBlock {
+  contentType: 'video';
+  content: { tittel: string; videoUrl?: string };
+}
+
 export interface ArtikkelCalloutBlock {
   contentType: 'artikkelCallout';
   content: { tittel?: string; innhold: string; variant?: 'info' | 'obs' | 'advarsel' | 'suksess' };
@@ -1422,6 +1427,12 @@ function mapArtikkelBlocks(value: unknown): UmbracoBlock[] {
       }
       if (ct === 'artikkelSitat') {
         return { contentType: 'artikkelSitat', content: { sitat: props.sitat || '', kilde: props.kilde || '' } };
+      }
+      if (ct === 'video') {
+        return { contentType: 'video', content: {
+          tittel: (props.tittel as string)?.trim() || '',
+          videoUrl: (props.videoUrl as string)?.trim() || '',
+        } };
       }
       if (ct === 'artikkelCallout') {
         const richText = props.innhold;

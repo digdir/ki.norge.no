@@ -1,5 +1,36 @@
 import { describe, expect, test } from 'vitest';
-import { vimeoEmbedUrl, vimeoInteraksjonUrl } from './video-embed';
+import { videoEmbedUrl, vimeoEmbedUrl, vimeoInteraksjonUrl, youtubeEmbedUrl } from './video-embed';
+
+describe('youtubeEmbedUrl', () => {
+  const embed = 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ';
+  test('the common link shapes', () => {
+    expect(youtubeEmbedUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(embed);
+    expect(youtubeEmbedUrl('https://m.youtube.com/watch?v=dQw4w9WgXcQ&feature=share')).toBe(embed);
+    expect(youtubeEmbedUrl('https://youtu.be/dQw4w9WgXcQ?si=abc')).toBe(embed);
+    expect(youtubeEmbedUrl('https://www.youtube.com/embed/dQw4w9WgXcQ')).toBe(embed);
+    expect(youtubeEmbedUrl('https://www.youtube.com/shorts/dQw4w9WgXcQ')).toBe(embed);
+    expect(youtubeEmbedUrl('https://www.youtube.com/live/dQw4w9WgXcQ')).toBe(embed);
+    expect(youtubeEmbedUrl('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ')).toBe(embed);
+  });
+  test('keeps the start time', () => {
+    expect(youtubeEmbedUrl('https://youtu.be/dQw4w9WgXcQ?t=90')).toBe(`${embed}?start=90`);
+    expect(youtubeEmbedUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1m30s')).toBe(`${embed}?start=90`);
+  });
+  test('rejects other hosts, bad ids and playlists', () => {
+    expect(youtubeEmbedUrl('https://www.youtube.com.evil.example/watch?v=dQw4w9WgXcQ')).toBeUndefined();
+    expect(youtubeEmbedUrl('https://www.youtube.com/watch?v=kort')).toBeUndefined();
+    expect(youtubeEmbedUrl('https://www.youtube.com/playlist?list=PL123')).toBeUndefined();
+    expect(youtubeEmbedUrl('http://youtu.be/dQw4w9WgXcQ')).toBeUndefined();
+  });
+});
+
+describe('videoEmbedUrl', () => {
+  test('picks Vimeo or YouTube', () => {
+    expect(videoEmbedUrl('https://vimeo.com/76979871')).toBe('https://player.vimeo.com/video/76979871');
+    expect(videoEmbedUrl('https://youtu.be/dQw4w9WgXcQ')).toBe('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+    expect(videoEmbedUrl('https://example.com/video.mp4')).toBeUndefined();
+  });
+});
 
 describe('vimeoEmbedUrl', () => {
   test('live event, with and without /embed', () => {

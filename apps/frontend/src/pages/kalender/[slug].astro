@@ -7,7 +7,7 @@ import NewsCard from '../../components/shared/NewsCard.astro';
 import { getKalenderhendelser, getArtikler, getPlainText, velgKortbilde, type Kalenderhendelse } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
-import { vimeoEmbedUrl, vimeoInteraksjonUrl } from '../../lib/video-embed';
+import { videoEmbedUrl, vimeoEmbedUrl, vimeoInteraksjonUrl } from '../../lib/video-embed';
 
 const { slug } = Astro.params;
 const isPreview = Astro.locals.isPreview;
@@ -53,7 +53,7 @@ const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Dat
 
 const direkteUrl = erAvsluttet ? undefined : vimeoEmbedUrl(hendelse.direktesending);
 const interaksjonUrl = direkteUrl ? vimeoInteraksjonUrl(hendelse.interaksjon) : undefined;
-const opptakUrl = erAvsluttet ? vimeoEmbedUrl(hendelse.opptak) : undefined;
+const opptakUrl = erAvsluttet ? videoEmbedUrl(hendelse.opptak) : undefined;
 const vimeoAllow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
 ---
 
