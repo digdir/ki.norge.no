@@ -98,7 +98,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     // Common pattern: create the content type if it is missing, otherwise migrate the existing one.
     // Isolated via Step so that one type error does not stop the rest of the setup.
-    private void EnsureType(string alias, Action create, Action migrate = null)
+    private void EnsureType(string alias, Action create, Action? migrate = null)
     {
         Step(alias, () =>
         {
@@ -1737,7 +1737,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (ct == null) continue;
             try
             {
-                _contentService.GetPagedOfType(ct.Id, 0, 1, out long nodeCount, (Umbraco.Cms.Core.Persistence.Querying.IQuery<IContent>?)null);
+                _contentService.GetPagedOfType(ct.Id, 0, 1, out long nodeCount, filter: null!); // the interface says non-nullable, but ContentService treats null as no filter
                 Console.WriteLine($"ContentTypeComposer: WARNING — permanently cascade-deleting content type '{alias}' and its {nodeCount} content node(s). This runs on every startup.");
                 _contentTypeService.Delete(ct);
                 Console.WriteLine($"ContentTypeComposer: Removed legacy '{alias}' content type and all its nodes");
@@ -1763,7 +1763,7 @@ public class ContentTypeComponent : IAsyncComponent
             if (ct == null) continue;
             try
             {
-                _contentService.GetPagedOfType(ct.Id, 0, 1, out long nodeCount, (Umbraco.Cms.Core.Persistence.Querying.IQuery<IContent>?)null);
+                _contentService.GetPagedOfType(ct.Id, 0, 1, out long nodeCount, filter: null!); // the interface says non-nullable, but ContentService treats null as no filter
                 Console.WriteLine($"ContentTypeComposer: WARNING — permanently cascade-deleting content type '{alias}' and its {nodeCount} content node(s) for Caser→Eksempler rename. This runs on every startup.");
                 _contentTypeService.Delete(ct);
                 Console.WriteLine($"ContentTypeComposer: Deleted legacy '{alias}' content type for Caser→Eksempler rename");
@@ -3216,7 +3216,7 @@ public class ContentTypeComponent : IAsyncComponent
             }
         }
         var verktoyGroup = ct.PropertyGroups.FirstOrDefault(g => g.Alias == "verktoy");
-        if (verktoyGroup != null && !verktoyGroup.PropertyTypes.Any())
+        if (verktoyGroup != null && verktoyGroup.PropertyTypes is { Count: 0 })
         {
             ct.PropertyGroups.Remove("verktoy");
             changed = true;
@@ -3317,7 +3317,7 @@ public class ContentTypeComponent : IAsyncComponent
         foreach (var groupAlias in new[] { "hero", "treRaad", "sandkassen", "veiledning", "aktuelt", "arrangement", "bunn", "rekkefolge" })
         {
             var grp = ct.PropertyGroups.FirstOrDefault(g => g.Alias == groupAlias);
-            if (grp != null && !grp.PropertyTypes.Any())
+            if (grp != null && grp.PropertyTypes is { Count: 0 })
             {
                 ct.PropertyGroups.Remove(groupAlias);
                 changed = true;
@@ -3726,7 +3726,7 @@ public class ContentTypeComponent : IAsyncComponent
         }
 
         var kontaktGroup = ct.PropertyGroups.FirstOrDefault(g => g.Alias == "kontakt");
-        if (kontaktGroup != null && !kontaktGroup.PropertyTypes.Any())
+        if (kontaktGroup != null && kontaktGroup.PropertyTypes is { Count: 0 })
         {
             ct.PropertyGroups.Remove("kontakt");
             changed = true;
