@@ -183,13 +183,12 @@ wrangler secret put ES_API_KEY --env prod
 | `status` | HTTP | Means |
 | --- | --- | --- |
 | `Healthy` | 200 | Everything up |
-| `Degraded` | 200 | Search or the CMS status endpoint (media, backoffice) is down, pages still render |
+| `Degraded` | 200 | Search or the backoffice is down, pages still render |
 | `Unhealthy` | 503 | The CMS does not respond, or responds without content |
 
-Four checks sit behind it, the same in prod and tt02, so one rule in the watch covers both environments:
+Three checks sit behind it, the same in prod and tt02, so one rule in the watch covers both environments:
 
 - **`umbraco`** calls the Delivery API the way the pages do. It is also counted as down when the API responds 200 with an empty list, because that is what it looks like when an upgrade skips the migrations. It is the only one that gives `Unhealthy`.
-- **`media`** calls `/umbraco/management/api/v1/server/status` on `UMBRACO_URL`, the address the frontend's `/media` route fetches images from. Since #962 this is the same call as `backoffice`. The entry is kept so the watch's rule still matches. It does not fetch any image file, so it does not see a fault in the image storage itself.
 - **`backoffice`** calls `/umbraco/management/api/v1/server/status`, which is open without login. It is green only when Umbraco responds `Run`, meaning it is not waiting for install or upgrade. The site works without the backoffice, so a fault here gives `Degraded`.
 - **`elasticsearch`** runs an empty search with the same key search uses. If the key is missing, it gives `Degraded` without calling anything, because search then falls back to Umbraco's simple search.
 

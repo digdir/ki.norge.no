@@ -4,7 +4,7 @@ Decisions and milestones, newest first. Each entry says what was decided, why, a
 
 ## 2026-11-18
 
-- **Media is served on the portal address.** Images and files from the CMS are fetched from `ki.norge.no/media/...` instead of a CMS host on workers.dev. The pages use relative `/media/` URLs, and the frontend route `src/pages/media/[...path].ts` fetches the file from `UMBRACO_URL`, the same way astro-infoportal does. `UMBRACO_PUBLIC_URL` is removed. Turning off the workers.dev hostnames is a separate step. See [#962](https://github.com/digdir/ki.norge.no/issues/962).
+- **Media is served on the portal address.** Images and files from the CMS are fetched from `ki.norge.no/media/...` instead of a CMS host on workers.dev. The pages use relative `/media/` URLs, and the frontend route `src/pages/media/[...path].ts` fetches the file from `UMBRACO_URL`, the same way astro-infoportal does. `UMBRACO_PUBLIC_URL` is removed, and so is the `media` entry in `/health`, since there is no separate media host left to check. The watch reads `status`, so it is not affected. Turning off the workers.dev hostnames is a separate step. See [#962](https://github.com/digdir/ki.norge.no/issues/962).
 
 ## 2026-10-22
 

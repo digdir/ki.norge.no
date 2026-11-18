@@ -30,7 +30,6 @@ function fakeFetch(handlers: Handlers): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith(STATUS_PATH)) {
-      // media and backoffice both check the status endpoint on the internal address.
       return (handlers.status ?? statusRun)(url, init);
     }
     if (url.startsWith(CONFIG.umbracoUrl)) return (handlers.umbraco ?? (async () => json({ total: 3 })))(url, init);
@@ -65,7 +64,6 @@ describe('runHealthChecks', () => {
     const r = await run({});
     expect(r.status).toBe('Healthy');
     expect(r.entries.umbraco.status).toBe('Healthy');
-    expect(r.entries.media.status).toBe('Healthy');
     expect(r.entries.backoffice.status).toBe('Healthy');
     expect(r.entries.elasticsearch.status).toBe('Healthy');
     expect(httpStatusFor(r.status)).toBe(200);
@@ -80,18 +78,10 @@ describe('runHealthChecks', () => {
     expect(Object.keys(r.entries)).toEqual([...HEALTH_ENTRIES]);
   });
 
-  // #962: images go through the frontend's /media route, which fetches from umbracoUrl.
-  test('media checks the status endpoint on the internal address the /media route uses', async () => {
-    const kalt: string[] = [];
-    await run({ status: async (url) => { kalt.push(url); return json({ serverStatus: 'Run' }); } });
-    expect(kalt).toEqual([`${CONFIG.umbracoUrl}${STATUS_PATH}`, `${CONFIG.umbracoUrl}${STATUS_PATH}`]);
-  });
-
   // The site works without the backoffice, but the editors cannot publish.
   test('backoffice down gives Degraded and 200, not Unhealthy', async () => {
     const r = await run({ status: async () => json({}, 502) });
     expect(r.entries.backoffice.status).toBe('Degraded');
-    expect(r.entries.media.status).toBe('Degraded');
     expect(r.entries.umbraco.status).toBe('Healthy');
     expect(r.status).toBe('Degraded');
     expect(httpStatusFor(r.status)).toBe(200);

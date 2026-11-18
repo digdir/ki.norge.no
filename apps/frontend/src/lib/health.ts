@@ -146,22 +146,18 @@ async function checkElasticsearch(config: HealthConfig, deps: HealthDeps): Promi
   };
 }
 
-export const HEALTH_ENTRIES = ['umbraco', 'media', 'backoffice', 'elasticsearch'] as const;
+export const HEALTH_ENTRIES = ['umbraco', 'backoffice', 'elasticsearch'] as const;
 
 export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): Promise<HealthReport> {
   const t0 = deps.now();
-  const [umbraco, media, backoffice, elasticsearch] = await Promise.all([
+  const [umbraco, backoffice, elasticsearch] = await Promise.all([
     checkUmbraco(config, deps),
-    // media: the browser fetches images from the frontend's /media route, which
-    // fetches them from umbracoUrl (#962). The entry is kept so the monitor's rule still matches.
-    checkBackoffice(config.umbracoUrl, deps),
     checkBackoffice(config.umbracoUrl, deps),
     checkElasticsearch(config, deps),
   ]);
 
   const entries: Record<(typeof HEALTH_ENTRIES)[number], HealthEntry> = {
     umbraco,
-    media,
     backoffice,
     elasticsearch,
   };
