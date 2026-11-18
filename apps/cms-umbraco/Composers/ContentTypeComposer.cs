@@ -356,16 +356,21 @@ public class ContentTypeComponent : IAsyncComponent
         _datePickerDt = FindDataTypeByName(Constants.PropertyEditors.Aliases.DateTime, "Date Picker");
     }
 
+    // GetByEditorAlias is obsolete (removed in Umbraco 18). Sync-over-async as for
+    // CreateAsync and UpdateAsync below, since the composer runs synchronously.
+    private IEnumerable<IDataType> DataTypesByEditor(string editorAlias) =>
+        _dataTypeService.GetByEditorAliasAsync(editorAlias).GetAwaiter().GetResult();
+
     private IDataType FindDataTypeByName(string editorAlias, string name)
     {
-        return _dataTypeService.GetByEditorAlias(editorAlias).FirstOrDefault(dt => dt.Name == name)
-            ?? _dataTypeService.GetByEditorAlias(editorAlias).FirstOrDefault()
+        return DataTypesByEditor(editorAlias).FirstOrDefault(dt => dt.Name == name)
+            ?? DataTypesByEditor(editorAlias).FirstOrDefault()
             ?? throw new InvalidOperationException($"No DataType found for editor {editorAlias}");
     }
 
     private IDataType FindRichTextByName(string name)
     {
-        return _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.RichText)
+        return DataTypesByEditor(Constants.PropertyEditors.Aliases.RichText)
             .FirstOrDefault(dt => dt.Name == name)
             ?? throw new InvalidOperationException($"RichText data type '{name}' not found after EnsureRichTextDataTypes");
     }
@@ -385,7 +390,7 @@ public class ContentTypeComponent : IAsyncComponent
                 new { value = "e2d8d2", label = "Brand 2" },
             }))!;
 
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.ColorPicker)
+        var existing = DataTypesByEditor(Constants.PropertyEditors.Aliases.ColorPicker)
             .FirstOrDefault(dt => dt.Name == "Artikkelhode Bakgrunnsfarge");
         if (existing != null)
         {
@@ -417,7 +422,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType CreateOrGetKolonneDropdown()
     {
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
+        var existing = DataTypesByEditor(Constants.PropertyEditors.Aliases.DropDownListFlexible)
             .FirstOrDefault(dt => dt.Name == "Eksempel-gruppe Kolonner");
         if (existing != null) return existing;
 
@@ -440,7 +445,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType CreateOrGetCalloutVariantDropdown()
     {
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
+        var existing = DataTypesByEditor(Constants.PropertyEditors.Aliases.DropDownListFlexible)
             .FirstOrDefault(dt => dt.Name == "Callout Variant");
         if (existing != null) return existing;
 
@@ -468,7 +473,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType CreateOrGetUrlTextBox()
     {
         const string name = "Lenke / URL";
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.TextBox)
+        var existing = DataTypesByEditor(Constants.PropertyEditors.Aliases.TextBox)
             .FirstOrDefault(dt => dt.Name == name);
         if (existing != null) return existing;
 
@@ -532,7 +537,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType FindDataType(string editorAlias)
     {
-        var dts = _dataTypeService.GetByEditorAlias(editorAlias);
+        var dts = DataTypesByEditor(editorAlias);
         var dt = dts.FirstOrDefault();
         if (dt == null) throw new InvalidOperationException($"No DataType found for editor {editorAlias}");
         return dt;
@@ -1272,7 +1277,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType CreateOrGetBlockListDataType(string name, string elementTypeAlias)
     {
         // Check if it already exists by name
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.BlockList)
+        var existing = DataTypesByEditor(Constants.PropertyEditors.Aliases.BlockList)
             .FirstOrDefault(dt => dt.Name == name);
         if (existing != null)
         {
@@ -1374,7 +1379,7 @@ public class ContentTypeComponent : IAsyncComponent
 
     private void RefreshMultiBlockListAllowedModules(string name, string[] elementTypeAliases)
     {
-        var dt = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.BlockList)
+        var dt = DataTypesByEditor(Constants.PropertyEditors.Aliases.BlockList)
             .FirstOrDefault(d => d.Name == name);
         if (dt == null) return;
 
@@ -1392,7 +1397,7 @@ public class ContentTypeComponent : IAsyncComponent
     private IDataType CreateOrGetMultiBlockListDataType(string name, string[] elementTypeAliases)
     {
         // Check if it already exists by name
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.BlockList)
+        var existing = DataTypesByEditor(Constants.PropertyEditors.Aliases.BlockList)
             .FirstOrDefault(dt => dt.Name == name);
         if (existing != null)
         {
@@ -1588,13 +1593,13 @@ public class ContentTypeComponent : IAsyncComponent
 
     private IDataType EnsureRichTextDataType(string name, List<List<List<string>>> toolbar, List<string> extensions)
     {
-        var existing = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.RichText)
+        var existing = DataTypesByEditor(Constants.PropertyEditors.Aliases.RichText)
             .FirstOrDefault(dt => dt.Name == name);
 
         if (existing == null)
         {
             // Create new variant by cloning the editor reference from any existing RichText DT
-            var template = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.RichText).First();
+            var template = DataTypesByEditor(Constants.PropertyEditors.Aliases.RichText).First();
             var editor = _propertyEditors[Constants.PropertyEditors.Aliases.RichText]
                 ?? throw new InvalidOperationException("RichText editor not found");
             existing = new DataType(editor, _configSerializer)
@@ -1938,8 +1943,7 @@ public class ContentTypeComponent : IAsyncComponent
         }
         // Clean away the old dropdown data type (replaced by the color picker) when no field
         // references it any more. The color picker has the same name but a different editor alias.
-        foreach (var oldDropdown in _dataTypeService
-                     .GetByEditorAlias(Constants.PropertyEditors.Aliases.DropDownListFlexible)
+        foreach (var oldDropdown in DataTypesByEditor(Constants.PropertyEditors.Aliases.DropDownListFlexible)
                      .Where(dt => dt.Name == "Artikkelhode Bakgrunn").ToList())
         {
             _dataTypeService.Delete(oldDropdown);
