@@ -34,6 +34,11 @@ describe('inline scripts and CSP', () => {
     expect(scriptSrc).not.toContain("'unsafe-inline'");
   });
 
+  test('frame-src allows the Slido interaction embed', () => {
+    const frameSrc = FALLBACK_CSP.split('; ').find((d) => d.startsWith('frame-src '));
+    expect(frameSrc).toContain('https://app.sli.do');
+  });
+
   test('finds the is:inline scripts', () => {
     expect(files.length).toBeGreaterThan(0);
   });

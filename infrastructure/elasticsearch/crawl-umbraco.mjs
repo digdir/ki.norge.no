@@ -13,7 +13,6 @@
 import { readFileSync } from 'node:fs';
 
 const CMS = process.env.UMBRACO_URL || 'https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev';
-const PUBLIC = process.env.UMBRACO_PUBLIC_URL || 'https://ki.norge.no';
 const BASE = `${CMS}/umbraco/delivery/api/v2/content`;
 
 // Frontend route map — shared source of truth (the same content-routes.json the CMS

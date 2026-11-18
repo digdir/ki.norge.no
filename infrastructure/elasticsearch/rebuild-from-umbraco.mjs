@@ -6,7 +6,7 @@
 //   node --env-file=.env rebuild-from-umbraco.mjs            # upsert by GUID (no drop)
 //   node --env-file=.env rebuild-from-umbraco.mjs --rebuild  # DELETE the index first, then rebuild
 //
-// Env: UMBRACO_URL / UMBRACO_PUBLIC_URL, ES_ENDPOINT, ES_API_KEY, KI_INDEX (default ki-content).
+// Env: UMBRACO_URL, ES_ENDPOINT, ES_API_KEY, KI_INDEX (default ki-content).
 //
 // SAFETY: this writes to KI_INDEX, and --rebuild DELETES it first. Apply the
 // templates (apply-templates.mjs) beforehand so a recreated index gets the

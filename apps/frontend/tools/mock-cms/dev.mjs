@@ -29,7 +29,6 @@ const frontend = spawn(process.execPath, [astroBin, 'dev', ...process.argv.slice
     ...process.env,
     ASTRO_DEV_BACKGROUND: '1',
     UMBRACO_URL: `http://localhost:${port}`,
-    UMBRACO_PUBLIC_URL: `http://localhost:${port}`,
   },
 });
 

@@ -17,6 +17,7 @@ Astro in server mode, React islands, `@digdir/designsystemet-react` and `@digdir
 - `src/lib/aksel-icons.ts` is a static SVG map for the Aksel icons. The package is React-only and cannot be used directly in Astro.
 - `src/lib/seo.ts` produces JSON-LD.
 - `src/middleware.ts` handles caching, preview, markdown variants and security headers.
+- `src/pages/media/[...path].ts` serves CMS media (`/media/...`) on the portal address, fetched from `UMBRACO_URL`. Logic in `src/lib/media-proxy.ts`.
 - `src/lib/csp.ts` is the CSP. Astro sets it on the pages via `astro.config.mjs`, and middleware sets it on responses that lack it.
 - `src/components/shared/ArticleBlocksRenderer.astro` is the only place article modules are rendered. It is used by articles, examples, calendar, guidance, sandkasse, om-oss and top-level `[slug]`. The CSS is in `src/styles/article-blocks.css`.
 - `src/components/shared/AkselIcon.astro` renders an Aksel icon by name.
@@ -48,6 +49,7 @@ Umbraco 17 on .NET 10. Azure SQL in production, SQLite locally.
 
 - artikkelTekst, artikkelBildeSeksjon, artikkelTrekkspill, artikkelFremheving
 - artikkelProsessteg, artikkelByline, artikkelInnholdFra, artikkelKontaktkort
+- video (Vimeo or YouTube link, see `src/lib/video-embed.ts`)
 
 **The RichText toolbar** is set in `ContentTypeComposer` (`EnsureRichTextDataTypes`), and in production in `uSync/v17/DataTypes/RichtextEditor.config`. It has H2, H3 and H4.
 

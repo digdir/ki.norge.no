@@ -8,6 +8,7 @@ import {
 import { isProdHost, CANONICAL_SITE_URL } from './lib/prod-hosts';
 import { CONTENT_SIGNAL } from './lib/robots';
 import { DEV_CSP, FALLBACK_CSP } from './lib/csp';
+import { isMediaPath } from './lib/media-proxy';
 import { PREVIEW_COOKIE, bypassesCache, previewCookieOptions, resolvePreview, withoutSecret } from './lib/preview';
 
 /**
@@ -117,7 +118,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // the .md rewrite hijacked /.well-known/agent-skills/<name>/SKILL.md, which is a
   // real route and not the markdown variant of any page.
   const isWellKnown = url.pathname.startsWith('/.well-known/');
-  const isPage = !isApiRoute && !isWellKnown && isReadRequest;
+  // /media/ is CMS media proxied by the frontend (lib/media-proxy.ts). Not a page,
+  // and it sets its own Cache-Control.
+  const isMedia = isMediaPath(url.pathname);
+  const isPage = !isApiRoute && !isWellKnown && !isMedia && isReadRequest;
 
   // `/veiledning.md` renders the regular page and delivers it as markdown. Its own
   // URL gives its own cache key, and that is what makes this path reliable.
@@ -189,6 +193,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // failed, so a degraded render (missing hero/content) is never cached at
   // the edge and served to everyone. Without this a transient CMS blip would be
   // caught in the edge cache for up to s-maxage and shown to all visitors.
+  // Media keeps the long Cache-Control from the media route, also in preview: an image
+  // has no draft version. Errors from the route are already no-store.
+  if (isMedia) return response;
+
   const pageOptedOutOfCache = response.headers.get('Cache-Control')?.includes('no-store');
   if (bypassesCache(url, isPreview) || isApiRoute || pageOptedOutOfCache) {
     response.headers.set('Cache-Control', 'private, no-store');
