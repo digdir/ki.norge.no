@@ -67,6 +67,11 @@ export interface ArtikkelSitatBlock {
   content: { sitat: string; kilde?: string };
 }
 
+export interface ArtikkelVideoBlock {
+  contentType: 'video';
+  content: { tittel: string; videoUrl?: string };
+}
+
 export interface ArtikkelCalloutBlock {
   contentType: 'artikkelCallout';
   content: { tittel?: string; innhold: string; variant?: 'info' | 'obs' | 'advarsel' | 'suksess' };
@@ -214,6 +219,12 @@ export interface Kalenderhendelse {
   lenke?: string;
   /** Optional price, e.g. "Gratis" or "1 500 kr". Empty = price is not shown. */
   pris?: string;
+  /** Live stream embed URL (Vimeo event). Shown until the event is over. */
+  direktesending?: string;
+  /** Vimeo interaction tools URL (Q&A, polls) for the live stream. */
+  interaksjon?: string;
+  /** Recording URL. Replaces the live stream once the event is over. */
+  opptak?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -1215,6 +1226,9 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         arrangor: props.arrangor as string || undefined,
         lenke: props.lenke as string || undefined,
         pris: props.pris as string || undefined,
+        direktesending: (props.direktesending as string)?.trim() || undefined,
+        interaksjon: (props.interaksjon as string)?.trim() || undefined,
+        opptak: (props.opptak as string)?.trim() || undefined,
       } as T;
 
     case 'kalender':
@@ -1413,6 +1427,12 @@ function mapArtikkelBlocks(value: unknown): UmbracoBlock[] {
       }
       if (ct === 'artikkelSitat') {
         return { contentType: 'artikkelSitat', content: { sitat: props.sitat || '', kilde: props.kilde || '' } };
+      }
+      if (ct === 'video') {
+        return { contentType: 'video', content: {
+          tittel: (props.tittel as string)?.trim() || '',
+          videoUrl: (props.videoUrl as string)?.trim() || '',
+        } };
       }
       if (ct === 'artikkelCallout') {
         const richText = props.innhold;
