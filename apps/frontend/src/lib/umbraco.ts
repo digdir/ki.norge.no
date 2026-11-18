@@ -2,7 +2,6 @@ import contentRoutesConfig from '../../../../shared/content-routes.json';
 import { tekstliste } from './eksempel-merkelapper';
 
 const UMBRACO_URL = process.env.UMBRACO_URL || import.meta.env.UMBRACO_URL || 'http://localhost:5000';
-const UMBRACO_PUBLIC_URL = process.env.UMBRACO_PUBLIC_URL || import.meta.env.UMBRACO_PUBLIC_URL || UMBRACO_URL;
 const API_KEY = process.env.UMBRACO_API_KEY || import.meta.env.UMBRACO_API_KEY;
 
 // Preview mode options
@@ -577,16 +576,6 @@ interface RichTextNode {
   elements?: RichTextNode[];
 }
 
-// Embedded media URLs in RichText (images, file links) arrive relative as
-// /media/... and would have been fetched from the frontend domain (404 on Cloudflare).
-// Prefix the CMS host. Already absolute URLs (http) are not matched by the regex.
-export function absolutizeMediaUrls(html: string): string {
-  return html.replace(
-    /\b(src|href)="(\/media\/[^"]*)"/g,
-    (_m, attr, value) => `${attr}="${UMBRACO_PUBLIC_URL}${value}"`,
-  );
-}
-
 export function richTextToHtml(node: RichTextNode): string {
   // Text node
   if (node.tag === '#text') {
@@ -599,7 +588,7 @@ export function richTextToHtml(node: RichTextNode): string {
   // RichText field, not recursively per node.
   if (node.tag === '#root') {
     const inner = (node.elements || []).map(richTextToHtml).join('');
-    return absolutizeMediaUrls(applyDsClasses(inner));
+    return applyDsClasses(inner);
   }
 
   // Comment node
@@ -1910,13 +1899,13 @@ function withImageParams(url: string, width?: number): string {
   return `${url}${sep}width=${width}&format=webp&quality=80`;
 }
 
-// Makes a relative Umbraco media URL (/media/...) absolute against the CMS host.
-// Passes already absolute (http) and non-media URLs through unchanged. With a width
-// delivery resizing is added (only on actual media URLs).
-export function toAbsoluteMediaUrl(url?: string, width?: number): string | undefined {
+// Umbraco media URLs (/media/...) stay relative, so the browser fetches them from the
+// portal address, and the frontend's /media route fetches them from the CMS (#962).
+// Already absolute (http) and other URLs pass through. With a width delivery
+// resizing is added.
+export function toMediaUrl(url?: string, width?: number): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith('http')) return withImageParams(url, width);
-  if (url.startsWith('/media')) return withImageParams(`${UMBRACO_PUBLIC_URL}${url}`, width);
+  if (url.startsWith('http') || url.startsWith('/media')) return withImageParams(url, width);
   return url;
 }
 
@@ -1924,7 +1913,7 @@ export function toAbsoluteMediaUrl(url?: string, width?: number): string | undef
 // so a new image is never served at full size by accident; pass
 // MEDIA_WIDTH.hero / .card (or your own width) for other contexts.
 export function getMediaUrl(media?: UmbracoMedia, width: number = MEDIA_WIDTH.content): string | undefined {
-  return toAbsoluteMediaUrl(media?.url, width);
+  return toMediaUrl(media?.url, width);
 }
 
 // Candidate widths for card images. The browser chooses itself based on sizes and
@@ -2026,7 +2015,7 @@ export function getCardImage(media?: UmbracoMedia): CardImage | undefined {
   const isVector = /\.(svg|gif)(\?|$)/i.test(media?.url ?? '');
   const srcset = isVector
     ? undefined
-    : CARD_SRCSET_WIDTHS.map((w) => `${toAbsoluteMediaUrl(media?.url, w)} ${w}w`).join(', ');
+    : CARD_SRCSET_WIDTHS.map((w) => `${toMediaUrl(media?.url, w)} ${w}w`).join(', ');
 
   return {
     src,

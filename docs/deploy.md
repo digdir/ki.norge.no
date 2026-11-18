@@ -128,7 +128,7 @@ pnpm run cms-kinorgeportal:deploy:prod
 
 Test that login to `https://cms.ki.norge.no/umbraco` works afterwards.
 
-At the same time, check that images still load on the front page. The workers.dev hostnames carry prod media, and `workers_dev` must be `true` for this worker. When it was turned off, the images dropped out for ten minutes.
+Keep `workers_dev` set to `true` for this worker. `pnpm run frontend:dev:prod` and the search reindex use the workers.dev hostname. Before #962 it also carried prod media to the browser, and when it was turned off the images dropped out for ten minutes.
 
 ## Order when several parts change
 

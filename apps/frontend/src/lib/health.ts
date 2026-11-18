@@ -28,8 +28,6 @@ export interface HealthReport {
 
 export interface HealthConfig {
   umbracoUrl: string;
-  /** The address the browser fetches images from. In prod a proxy, on tt02 equal to umbracoUrl. Empty means umbracoUrl, as in umbraco.ts. */
-  umbracoPublicUrl: string;
   esEndpoint: string;
   esApiKey: string;
   esIndex: string;
@@ -148,22 +146,18 @@ async function checkElasticsearch(config: HealthConfig, deps: HealthDeps): Promi
   };
 }
 
-export const HEALTH_ENTRIES = ['umbraco', 'media', 'backoffice', 'elasticsearch'] as const;
+export const HEALTH_ENTRIES = ['umbraco', 'backoffice', 'elasticsearch'] as const;
 
 export async function runHealthChecks(config: HealthConfig, deps: HealthDeps): Promise<HealthReport> {
   const t0 = deps.now();
-  const [umbraco, media, backoffice, elasticsearch] = await Promise.all([
+  const [umbraco, backoffice, elasticsearch] = await Promise.all([
     checkUmbraco(config, deps),
-    // media: the status endpoint through the public address the browser fetches images from.
-    // Empty means umbracoUrl, as documented on HealthConfig.
-    checkBackoffice(config.umbracoPublicUrl || config.umbracoUrl, deps),
     checkBackoffice(config.umbracoUrl, deps),
     checkElasticsearch(config, deps),
   ]);
 
   const entries: Record<(typeof HEALTH_ENTRIES)[number], HealthEntry> = {
     umbraco,
-    media,
     backoffice,
     elasticsearch,
   };
