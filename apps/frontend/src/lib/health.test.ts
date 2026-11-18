@@ -11,7 +11,6 @@ import {
 
 const CONFIG: HealthConfig = {
   umbracoUrl: 'https://cms.intern.example',
-  umbracoPublicUrl: 'https://cms-offentlig.example',
   esEndpoint: 'https://es.intern.example',
   esApiKey: 'hemmelig-nokkel-123',
   esIndex: 'ki-content',
@@ -22,7 +21,7 @@ type Handler = (url: string, init?: RequestInit) => Promise<Response>;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-type Handlers = { umbraco?: Handler; media?: Handler; backoffice?: Handler; es?: Handler };
+type Handlers = { umbraco?: Handler; status?: Handler; es?: Handler };
 
 const STATUS_PATH = '/umbraco/management/api/v1/server/status';
 const statusRun: Handler = async () => json({ serverStatus: 'Run' });
@@ -31,9 +30,8 @@ function fakeFetch(handlers: Handlers): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith(STATUS_PATH)) {
-      // media checks the status endpoint through the public address, backoffice through the internal one.
-      if (url.startsWith(CONFIG.umbracoPublicUrl)) return (handlers.media ?? statusRun)(url, init);
-      return (handlers.backoffice ?? statusRun)(url, init);
+      // media and backoffice both check the status endpoint on the internal address.
+      return (handlers.status ?? statusRun)(url, init);
     }
     if (url.startsWith(CONFIG.umbracoUrl)) return (handlers.umbraco ?? (async () => json({ total: 3 })))(url, init);
     if (url.startsWith(CONFIG.esEndpoint)) return (handlers.es ?? (async () => json({ hits: {} })))(url, init);
@@ -75,72 +73,50 @@ describe('runHealthChecks', () => {
 
   // One rule in the monitor should cover both environments, and tt02 should test the same as prod.
   test.each([
-    ['prod, with its own proxy', CONFIG],
-    ['tt02, public address equal to the internal one', { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl }],
-    ['local, without a public address and without a search key', { ...CONFIG, umbracoPublicUrl: '', esApiKey: '' }],
+    ['prod', CONFIG],
+    ['local, without a search key', { ...CONFIG, esApiKey: '' }],
   ])('same set of checks in %s', async (_miljø, config) => {
     const r = await run({}, config);
     expect(Object.keys(r.entries)).toEqual([...HEALTH_ENTRIES]);
   });
 
-  test('media checks the status endpoint on the public address', async () => {
+  // #962: images go through the frontend's /media route, which fetches from umbracoUrl.
+  test('media checks the status endpoint on the internal address the /media route uses', async () => {
     const kalt: string[] = [];
-    await run({ media: async (url) => { kalt.push(url); return json({ serverStatus: 'Run' }); } });
-    expect(kalt).toEqual([`${CONFIG.umbracoPublicUrl}${STATUS_PATH}`]);
-  });
-
-  test('media checks the public address also when it equals the internal one', async () => {
-    const kalt: string[] = [];
-    await run({ backoffice: async (url) => { kalt.push(url); return json({ serverStatus: 'Run' }); } }, { ...CONFIG, umbracoPublicUrl: CONFIG.umbracoUrl });
+    await run({ status: async (url) => { kalt.push(url); return json({ serverStatus: 'Run' }); } });
     expect(kalt).toEqual([`${CONFIG.umbracoUrl}${STATUS_PATH}`, `${CONFIG.umbracoUrl}${STATUS_PATH}`]);
-  });
-
-  test('media uses the internal address when the public one is missing, like umbraco.ts', async () => {
-    const kalt: string[] = [];
-    const r = await run({ backoffice: async (url) => { kalt.push(url); return json({}, 502); } }, { ...CONFIG, umbracoPublicUrl: '' });
-    expect(kalt).toEqual([`${CONFIG.umbracoUrl}${STATUS_PATH}`, `${CONFIG.umbracoUrl}${STATUS_PATH}`]);
-    expect(r.entries.media.status).toBe('Degraded');
-  });
-
-  // #600: the proxy was off, the site was without images, and everything else responded.
-  test('public CMS address down gives Degraded, since the pages still render', async () => {
-    const r = await run({ media: async () => { throw new Error('ENOTFOUND cms-offentlig.example'); } });
-    expect(r.entries.media.status).toBe('Degraded');
-    expect(r.entries.backoffice.status).toBe('Healthy');
-    expect(r.entries.umbraco.status).toBe('Healthy');
-    expect(r.status).toBe('Degraded');
-    expect(httpStatusFor(r.status)).toBe(200);
   });
 
   // The site works without the backoffice, but the editors cannot publish.
   test('backoffice down gives Degraded and 200, not Unhealthy', async () => {
-    const r = await run({ backoffice: async () => json({}, 502) });
+    const r = await run({ status: async () => json({}, 502) });
     expect(r.entries.backoffice.status).toBe('Degraded');
+    expect(r.entries.media.status).toBe('Degraded');
     expect(r.entries.umbraco.status).toBe('Healthy');
     expect(r.status).toBe('Degraded');
     expect(httpStatusFor(r.status)).toBe(200);
   });
 
   test.each(['Upgrade', 'Install', 'BootFailed'])('backoffice answering %s is Degraded', async (serverStatus) => {
-    const r = await run({ backoffice: async () => json({ serverStatus }) });
+    const r = await run({ status: async () => json({ serverStatus }) });
     expect(r.entries.backoffice.status).toBe('Degraded');
   });
 
   test('backoffice answering something other than JSON is Degraded', async () => {
-    const r = await run({ backoffice: async () => new Response('<html>innlogging</html>', { status: 200 }) });
+    const r = await run({ status: async () => new Response('<html>innlogging</html>', { status: 200 }) });
     expect(r.entries.backoffice.status).toBe('Degraded');
   });
 
   test('backoffice is checked on the internal address, without login', async () => {
     let seen: { url: string; init?: RequestInit } | null = null;
-    await run({ backoffice: async (url, init) => { seen = { url, init }; return json({ serverStatus: 'Run' }); } });
+    await run({ status: async (url, init) => { seen = { url, init }; return json({ serverStatus: 'Run' }); } });
     expect(seen!.url).toBe('https://cms.intern.example/umbraco/management/api/v1/server/status');
     expect(JSON.stringify(seen!.init?.headers)).not.toMatch(/authorization|api-key/i);
   });
 
   test('backoffice that hangs gives Degraded within the time limit', async () => {
     const t0 = Date.now();
-    const r = await run({ backoffice: henger }, CONFIG, 50);
+    const r = await run({ status: henger }, CONFIG, 50);
     expect(r.entries.backoffice.status).toBe('Degraded');
     expect(Date.now() - t0).toBeLessThan(1000);
   });
