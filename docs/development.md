@@ -53,7 +53,7 @@ Umbraco 17 on .NET 10. Azure SQL in production, SQLite locally.
 
 **The RichText toolbar** is set in `ContentTypeComposer` (`EnsureRichTextDataTypes`), and in production in `uSync/v17/DataTypes/RichtextEditor.config`. It has H2, H3 and H4.
 
-**The database.** Azure SQL in dis-core replaced SQLite with Litestream, which caused lock conflicts when several editors worked at the same time. SQLite is still used locally.
+**The database.** Azure SQL in dis-core replaced SQLite with Litestream, which caused lock conflicts when several editors worked at the same time. SQLite is still used locally. To debug against real data, copy the prod or tt02 database to a local SQL Server, see [local-database-copy.md](local-database-copy.md).
 
 ## Addresses
 

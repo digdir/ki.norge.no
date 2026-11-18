@@ -54,3 +54,7 @@ KI_tiltak_klart.html
 
 # Superpowers scratch workspace
 .superpowers/
+
+# Local database copies (scripts/db). Real data, never commit.
+.bacpacs/
+*.bacpac
