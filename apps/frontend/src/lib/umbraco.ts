@@ -855,7 +855,7 @@ export async function fetchContentAncestorsById(id: string, options: FetchOption
 }
 
 // Route patterns loaded from /shared/content-routes.json — single source of truth
-// shared with the CMS preview-URL provider. See HeadlessPreviewUrlProvider.cs.
+// shared with the CMS preview-URL provider. See apps/cms-umbraco/Preview/PreviewUrlProvider.cs.
 const CONTENT_ROUTES: Record<string, string> = contentRoutesConfig.routes;
 const ANCESTOR_TOKEN_RE = /\{([a-zA-Z][a-zA-Z0-9]*)\.slug\}/g;
 

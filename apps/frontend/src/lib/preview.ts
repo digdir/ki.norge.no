@@ -2,7 +2,7 @@
  * Decides whether a request may see unpublished content.
  *
  * The CMS puts a secret on its preview links
- * (`?preview=true&secret=...`, see HeadlessPreviewUrlProvider.cs), but the frontend
+ * (`?preview=true&secret=...`, see apps/cms-umbraco/Preview/PreviewUrlProvider.cs), but the frontend
  * never checked it. So it was enough to write `?preview=true` after any
  * address to read drafts that were not published.
  *

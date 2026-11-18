@@ -1,0 +1,45 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "id": "KiNorge.Preview",
+  "name": "KI Norge forhåndsvisning",
+  "version": "1.0.0",
+  "extensions": [
+    {
+      "type": "backofficeEntryPoint",
+      "alias": "KiNorge.Preview.EntryPoint",
+      "name": "KI Norge preview entry point",
+      "js": "/App_Plugins/Preview/preview-entrypoint.js"
+    },
+    {
+      "type": "workspaceView",
+      "alias": "KiNorge.Preview.WorkspaceView",
+      "name": "KI Norge preview workspace view",
+      "element": "/App_Plugins/Preview/preview-workspace-view.js",
+      "weight": 10,
+      "meta": {
+        "label": "Forhåndsvisning",
+        "pathname": "preview",
+        "icon": "icon-eye"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.WorkspaceAlias", "match": "Umb.Workspace.Document" },
+        { "alias": "Umb.Condition.EntityIsNotTrashed" }
+      ]
+    },
+    {
+      "type": "workspaceAction",
+      "kind": "default",
+      "alias": "KiNorge.Preview.WorkspaceAction.SaveAndPreview",
+      "name": "KI Norge save and preview",
+      "api": "/App_Plugins/Preview/save-and-preview.action.js",
+      "weight": 90,
+      "meta": {
+        "label": "Lagre og forhåndsvis"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.WorkspaceAlias", "match": "Umb.Workspace.Document" },
+        { "alias": "Umb.Condition.EntityIsNotTrashed" }
+      ]
+    }
+  ]
+}

@@ -25,7 +25,8 @@ Key Vault is read only at startup, so a new or changed value requires a new pod.
 | `SandkasseSingleInstanceComposer` | `Composers/` | Yes | Yes | Always |
 | `AdminProtectionComposer` | `Composers/` | Yes | Yes | Always |
 | `NorwegianIdentityErrorDescriberComposer` | `Composers/` | Yes | Yes | Always. Applies to local passwords |
-| `HeadlessPreviewComposer` | `Composers/` | Yes | Yes | `HeadlessPreview:FrontendUrl` and `HeadlessPreview:PreviewSecret` |
+| `PreviewComposer` | `Preview/` | Yes | Yes | `HeadlessPreview:FrontendUrl` and `HeadlessPreview:PreviewSecret` |
+| `ContentRouteComposer` | Project root | Yes | Yes | Always |
 | `AzureBlobMediaComposer` | `Composers/` | Yes | Yes | `Umbraco:Storage:AzureBlob:Media:ConnectionString` |
 | `MicrosoftEntraIdBackOfficeExternalLoginComposer` | `CustomAuthentication/` | Yes | Yes | Four `MicrosoftEntraId` values, or `MicrosoftEntraId:Enabled` |
 | `CachePurgeComposer` | `CachePurge/` | Yes | See below | `Cloudflare:ApiToken`, `Cloudflare:ZoneId` and `Cloudflare:SiteBaseUrl` |
@@ -35,7 +36,7 @@ Key Vault is read only at startup, so a new or changed value requires a new pod.
 
 `InternalUrlWasher.cs` is in `Composers/`, but is a helper class for `UrlFieldWashHandler` and not a composer.
 
-Three of the composers depend on each other. `MalformComposer` uses the text extractor that `SearchComposer` registers, and the text extractor uses `ContentRouteResolver`, which only `HeadlessPreviewComposer` registers. If `SearchComposer` is removed, the Malform report stops working. If `HeadlessPreviewComposer` is removed, indexing stops working too.
+Some composers depend on each other. `MalformComposer` uses the text extractor that `SearchComposer` registers, so the Malform report stops working if `SearchComposer` is removed. `ContentRouteResolver` is used by preview, search, Målform and the cache purge, and is registered by its own `ContentRouteComposer`, so none of them depend on another composer for it.
 
 ## Schema and uSync
 
@@ -196,19 +197,22 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 
 - Only the password messages are translated. Other errors from ASP.NET Identity, such as lockout, are in English.
 
-### HeadlessPreviewComposer
+### PreviewComposer
 
-`Composers/HeadlessPreviewUrlProvider.cs`
+`Preview/PreviewUrlProvider.cs`, `Preview/PreviewComposer.cs` and `App_Plugins/Preview/`
 
-**Does.** Builds the preview link in the backoffice: `HeadlessPreview:FrontendUrl`, the path from `content-routes.json` and `?preview=true&secret=` with `HeadlessPreview:PreviewSecret`. Also registers `ContentRouteResolver`, which search and the Malform report use.
+**Does.** Registers a URL provider that builds the preview link: `HeadlessPreview:FrontendUrl`, the path from `content-routes.json` and `?preview=true&secret=` with `HeadlessPreview:PreviewSecret`. The backoffice plugin in `App_Plugins/Preview/` replaces the built-in "Save and preview" button with "Lagre og forhåndsvis", which saves and opens the "Forhåndsvisning" view with the frontend in an iframe.
 
-**In production.** Yes. `HeadlessPreview__FrontendUrl` is set per environment in `syncroot/`. `HeadlessPreview:PreviewSecret` is not in the repo and comes from the environment's Key Vault.
+**In production.** Yes. `HeadlessPreview__FrontendUrl` is set per environment in `syncroot/`. `HeadlessPreview:PreviewSecret` is not in the repo and comes from the environment's Key Vault. The config keys keep the `HeadlessPreview` name from the Kjac.HeadlessPreview package this replaced, so Key Vault and syncroot did not have to change.
 
 **Traps.**
 
 - If `FrontendUrl` is missing, the link points to `http://localhost:4321`.
 - `PreviewSecret` must equal `PREVIEW_SECRET` in the frontend worker. Otherwise the editor sees only published content.
 - `content-routes.json` is mirrored from the frontend with `scripts/sync-content-routes.js`. A content type without a route gets the message "Forhåndsvisning er ikke tilgjengelig".
+- The frontend must allow the CMS host in `frame-ancestors` (`apps/frontend/src/lib/csp.ts`). A new CMS host without it gives an empty preview view.
+- The alias `KiNorgePreviewUrlProvider` is used both in `PreviewUrlProvider.cs` and in `App_Plugins/Preview/preview-constants.js`. They must match.
+- A document opened in a modal, for example from a collection view, opens the preview in a new tab instead.
 
 ### MalformComposer
 
