@@ -8,7 +8,7 @@
     "cms:add-user": "bash scripts/cms-add-user.sh",
     "frontend:dev": "cd apps/frontend && pnpm run dev",
     "frontend:dev:mock": "node apps/frontend/tools/mock-cms/dev.mjs",
-    "frontend:dev:prod": "cross-env DEV_USE_NODE=1 UMBRACO_URL=https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev UMBRACO_PUBLIC_URL=https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev pnpm --dir apps/frontend run dev",
+    "frontend:dev:prod": "cross-env DEV_USE_NODE=1 UMBRACO_URL=https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev pnpm --dir apps/frontend run dev",
     "audit:layout": "node scripts/layout-revisjon.mjs",
     "frontend:deploy:tt02": "cd apps/frontend && pnpm run deploy:tt02",
     "frontend:deploy:prod": "cd apps/frontend && pnpm run deploy:prod",

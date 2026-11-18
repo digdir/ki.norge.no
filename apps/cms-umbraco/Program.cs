@@ -166,14 +166,14 @@ app.MapGet("/api/health/ready", (Umbraco.Cms.Core.Services.IContentTypeService c
 // the endpoint only exists there.
 if (app.Environment.IsDevelopment())
 {
-    app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService cts,
+    app.MapGet("/api/diagnostics", async (Umbraco.Cms.Core.Services.IContentTypeService cts,
         Umbraco.Cms.Core.Services.IDataTypeService dts) =>
     {
         var artikkel = cts.Get("artikkel");
         var hasIngress = artikkel?.PropertyTypes.Any(p => p.Alias == "ingress") ?? false;
         var hasBilde = artikkel?.PropertyTypes.Any(p => p.Alias == "artikkelBilde") ?? false;
 
-        var rteDts = dts.GetByEditorAlias("Umbraco.RichText").ToList();
+        var rteDts = (await dts.GetByEditorAliasAsync("Umbraco.RichText")).ToList();
         var toolbarInfo = rteDts.Select(dt =>
         {
             var config = dt.ConfigurationData;

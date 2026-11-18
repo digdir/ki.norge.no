@@ -5,7 +5,7 @@ import SearchDialog from '../shared/SearchDialog.tsx';
 import Footer from './Footer.astro';
 import PreviewBanner from '../shared/PreviewBanner.astro';
 import CookieNotice from '../shared/CookieNotice.astro';
-import { toAbsoluteMediaUrl } from '../../lib/umbraco';
+import { toMediaUrl } from '../../lib/umbraco';
 import '../../styles/layout.css';
 import '../../styles/search-dialog.css';
 import './header.css';
@@ -40,10 +40,9 @@ const canonicalUrl = `${siteUrl}${currentPath}`;
 const fullTitle = title ? `${title} | KI Norge` : 'KI Norge';
 // Version query busts stale link-preview thumbnail caches without changing the asset path.
 const DEFAULT_OG_IMAGE = '/og-image.png?v=3c5667a2';
-// CMS media (/media/...) is made absolute against the CMS host; otherwise the
-// site host is prefixed. Without this og:image became ki.norge.no/media/... (wrong host),
-// which gave an outdated/broken share image.
-const resolvedOg = toAbsoluteMediaUrl(ogImage);
+// og:image must be absolute. Relative URLs, CMS media (/media/...) included, get the
+// site host, and the frontend serves /media from the CMS (#962).
+const resolvedOg = toMediaUrl(ogImage);
 const ogImageUrl = resolvedOg
   ? (resolvedOg.startsWith('http') ? resolvedOg : `${siteUrl}${resolvedOg}`)
   : `${siteUrl}${DEFAULT_OG_IMAGE}`;
