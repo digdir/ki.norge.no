@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { videoEmbedUrl, vimeoEmbedUrl, vimeoInteraksjonUrl, youtubeEmbedUrl } from './video-embed';
+import { videoEmbedUrl, vimeoEmbedUrl, vimeoInteraksjonUrl, interaksjonEmbedUrl, slidoEmbedUrl, youtubeEmbedUrl } from './video-embed';
 
 describe('youtubeEmbedUrl', () => {
   const embed = 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ';
@@ -65,5 +65,20 @@ describe('vimeoInteraksjonUrl', () => {
   test('rejects anything else', () => {
     expect(vimeoInteraksjonUrl('https://vimeo.com/event/3862320/embed')).toBeUndefined();
     expect(vimeoInteraksjonUrl('https://evil.example/live/interaction_tools/live_event/1')).toBeUndefined();
+  });
+});
+
+describe('Slido interactions', () => {
+  test('normalizes the shared event URL and accepts the live panel URL', () => {
+    const embed = 'https://app.sli.do/event/event-123/live/questions';
+    expect(slidoEmbedUrl('https://app.sli.do/event/event-123')).toBe(embed);
+    expect(slidoEmbedUrl('https://app.sli.do/event/event-123/live/polls?section=questions')).toBe(embed);
+    expect(interaksjonEmbedUrl('https://app.sli.do/event/event-123')).toBe(embed);
+  });
+
+  test('rejects other hosts and paths', () => {
+    expect(slidoEmbedUrl('https://sli.do/event/event-123')).toBeUndefined();
+    expect(slidoEmbedUrl('https://app.sli.do/other/event-123')).toBeUndefined();
+    expect(slidoEmbedUrl('http://app.sli.do/event/event-123')).toBeUndefined();
   });
 });

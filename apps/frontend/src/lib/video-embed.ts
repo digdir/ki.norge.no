@@ -1,12 +1,13 @@
 // Turns the video URLs editors paste into the CMS into URLs that are safe to put in
-// an iframe. Only Vimeo and YouTube are allowed, and the CSP frame-src (csp.ts) lists
-// the same hosts. Anything else gives undefined, and the page shows no player.
+// an iframe. Only Vimeo, YouTube and Slido are allowed, and the CSP frame-src (csp.ts)
+// lists the same hosts. Anything else gives undefined, and the page shows no player.
 
 const VIMEO_HOSTS = new Set(['vimeo.com', 'www.vimeo.com', 'player.vimeo.com']);
 const YOUTUBE_HOSTS = new Set([
   'youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be',
   'youtube-nocookie.com', 'www.youtube-nocookie.com',
 ]);
+const SLIDO_HOSTS = new Set(['app.sli.do']);
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 
 function parse(url: string | undefined, hosts: Set<string>): URL | undefined {
@@ -87,4 +88,17 @@ export function vimeoInteraksjonUrl(url: string | undefined): string | undefined
   const u = parse(url, VIMEO_HOSTS);
   if (!u || !/^\/live\/interaction_tools\/live_event\/\d+\/?$/.test(u.pathname)) return undefined;
   return `https://vimeo.com${u.pathname.replace(/\/$/, '')}`;
+}
+
+/** Embed URL for a Slido event shared by the editor. */
+export function slidoEmbedUrl(url: string | undefined): string | undefined {
+  const u = parse(url, SLIDO_HOSTS);
+  const event = u?.pathname.match(/^\/event\/([A-Za-z0-9_-]+)(?:\/live\/(?:questions|polls))?\/?$/);
+  if (!event) return undefined;
+  return `https://app.sli.do/event/${event[1]}/live/questions`;
+}
+
+/** Vimeo interaction tools or Slido Q&A/polls for a live event. */
+export function interaksjonEmbedUrl(url: string | undefined): string | undefined {
+  return vimeoInteraksjonUrl(url) ?? slidoEmbedUrl(url);
 }

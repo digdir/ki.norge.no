@@ -7,7 +7,8 @@ import NewsCard from '../../components/shared/NewsCard.astro';
 import { getKalenderhendelser, getArtikler, getPlainText, velgKortbilde, type Kalenderhendelse } from '../../lib/umbraco';
 import { breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
-import { videoEmbedUrl, vimeoEmbedUrl, vimeoInteraksjonUrl } from '../../lib/video-embed';
+import { eventHasEnded } from '../../lib/event-time';
+import { videoEmbedUrl, vimeoEmbedUrl, interaksjonEmbedUrl } from '../../lib/video-embed';
 
 const { slug } = Astro.params;
 const isPreview = Astro.locals.isPreview;
@@ -49,11 +50,11 @@ const pris = hendelse.pris || '';
 const påmeldingUrl = hendelse.lenke || '';
 // The event is over: registration no longer makes sense, but the page should still
 // be readable for recordings and presentations.
-const erAvsluttet = new Date(hendelse.sluttDato || hendelse.startDato) < new Date();
+const erAvsluttet = eventHasEnded(hendelse.sluttDato || hendelse.startDato, hendelse.tid);
 
 const direkteUrl = erAvsluttet ? undefined : vimeoEmbedUrl(hendelse.direktesending);
-const interaksjonUrl = direkteUrl ? vimeoInteraksjonUrl(hendelse.interaksjon) : undefined;
-const opptakUrl = erAvsluttet ? videoEmbedUrl(hendelse.opptak) : undefined;
+const interaksjonUrl = direkteUrl ? interaksjonEmbedUrl(hendelse.interaksjon) : undefined;
+const opptakUrl = videoEmbedUrl(hendelse.opptak);
 const vimeoAllow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
 ---
 

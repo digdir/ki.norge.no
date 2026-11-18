@@ -37,9 +37,8 @@ export const OTHER_DIRECTIVES = [
   // in tt02 was blocked ("refused to connect").
   "frame-ancestors 'self' https://cms.ki.norge.no https://cms.ki.test.norge.no https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev https://cms-kinorgeportal-tt02.digitaliseringsdirektoratet.workers.dev https://kinorgeportal.prod.dis-core.altinn.cloud https://kinorgeportal.tt02.dis-core.altinn.cloud http://localhost:5000 https://localhost:44391",
   // Without its own frame-src the Turnstile iframe falls back to default-src and gets blocked.
-  // Vimeo and YouTube (no-cookie) are live streams, recordings and article videos, see
-  // video-embed.ts, which only lets these hosts through.
-  "frame-src 'self' https://challenges.cloudflare.com https://vimeo.com https://player.vimeo.com https://www.youtube-nocookie.com",
+  // Video and interaction embeds, see video-embed.ts, which only lets these hosts through.
+  "frame-src 'self' https://challenges.cloudflare.com https://vimeo.com https://player.vimeo.com https://www.youtube-nocookie.com https://app.sli.do",
   "base-uri 'self'",
   "form-action 'self'",
 ] as const;
