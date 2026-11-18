@@ -79,7 +79,7 @@ public class UrlFieldWashHandler : INotificationHandler<ContentSavingNotificatio
     {
         if (_urlKeyResolved) return _urlKey;
         _urlKeyResolved = true;
-        _urlKey = _dataTypeService.GetByEditorAlias(Constants.PropertyEditors.Aliases.TextBox)
+        _urlKey = _dataTypeService.GetByEditorAliasAsync(Constants.PropertyEditors.Aliases.TextBox).GetAwaiter().GetResult()
             .FirstOrDefault(dt => dt.Name == UrlDataTypeName)?.Key;
         return _urlKey;
     }
