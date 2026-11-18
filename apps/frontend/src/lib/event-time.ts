@@ -22,7 +22,7 @@ function eventDate(date: string | undefined): string | undefined {
 }
 
 function endTime(time: string | undefined): string | undefined {
-  const match = time?.match(/^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$/);
+  const match = time?.match(/^\s*(\d{1,2})[:.](\d{2})\s*-\s*(\d{1,2})[:.](\d{2})\s*$/);
   if (!match) return undefined;
   const [startHour, startMinute, hour, minute] = match.slice(1).map(Number);
   if (startHour > 23 || startMinute > 59 || hour > 23 || minute > 59) return undefined;
