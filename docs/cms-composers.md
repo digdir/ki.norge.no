@@ -170,6 +170,7 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 - `Enabled=true` with a missing value stops the startup.
 - Groups set by hand in the backoffice are overwritten on the next login. Access is managed in Entra ID.
 - Password login is turned off when Entra ID is on (`DenyLocalLogin = true`, [#961](https://github.com/digdir/ki.norge.no/issues/961)). Break-glass: set `MicrosoftEntraId__Enabled=false` and restart.
+- The backoffice goes straight to Entra ID (`autoRedirect`), so users with a Microsoft session are logged in without clicking. A failed login shows an error page with a reference instead of looping, and a stale attempt (back button, reload) is retried once, the same way as info.altinn.no. Only real faults are logged as `Error`.
 - A user who is disabled in Umbraco is not enabled again on login.
 
 ### AdminProtectionComposer
