@@ -10,9 +10,17 @@ const jaLabel = gi?.cookieJaLabel || 'Godta';
 const neiLabel = gi?.cookieNeiLabel || 'Avslå';
 ---
 
-<div id="cookie-notice" class="cookie-notice" hidden data-color="accent">
+<div
+  id="cookie-notice"
+  class="cookie-notice"
+  role="region"
+  aria-labelledby="cookie-notice-title"
+  tabindex="-1"
+  hidden
+  data-color="accent"
+>
   <div class="cookie-notice__inner" data-layout-block="content">
-    <h2 class="cookie-notice__title ds-heading" data-size="md">{tittel}</h2>
+    <h2 id="cookie-notice-title" class="cookie-notice__title ds-heading" data-size="md">{tittel}</h2>
     <div class="cookie-notice__text" set:html={beskrivelseHtml}></div>
     <fieldset class="ds-fieldset cookie-notice__fieldset">
       <legend>Du velger selv hva du vil godta.</legend>
@@ -23,6 +31,7 @@ const neiLabel = gi?.cookieNeiLabel || 'Avslå';
       <ds-field class="ds-field">
         <input id="cookie-notice-third-party" class="ds-input" type="checkbox" />
         <label>Tredjepartstjenester</label>
+        <div data-field="description">Dette er fks. Viemo og YouTube</div>
       </ds-field>
     </fieldset>
     <div class="cookie-notice__actions">

@@ -88,18 +88,63 @@
     document.head.appendChild(s);
   }
 
+  // Third-party iframes (video, Slido) from ConsentEmbed.astro. With consent the
+  // iframe gets its src and the placeholder is hidden. Without, src is removed
+  // again, so withdrawing consent also stops a player that is already loaded.
+  function applyEmbeds(consent) {
+    var allow = consent.thirdParty === 'allow';
+    var embeds = document.querySelectorAll('[data-consent-embed]');
+    for (var i = 0; i < embeds.length; i++) {
+      var frame = embeds[i].querySelector('iframe[data-consent-src]');
+      var blocked = embeds[i].querySelector('[data-consent-blocked]');
+      if (!frame || !blocked) continue;
+      var src = frame.getAttribute('data-consent-src');
+      if (allow) {
+        if (frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+      } else {
+        frame.removeAttribute('src');
+      }
+      frame.hidden = !allow;
+      blocked.hidden = allow;
+    }
+  }
+
+  // This script runs before the page body is parsed, so the embeds further down
+  // do not exist yet on the first run.
+  function whenReady(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
   function loadAllowed(consent) {
     if (consent.analytics === 'allow') {
       loadSkyra();
       loadSiteimprove();
     }
-    // TODO: video, slido og slikt her
+    whenReady(function () { applyEmbeds(consent); });
+  }
+
+  // The embed whose "Administrer samtykke" opened the banner. Focus goes back
+  // there after the choice, to the player if it was allowed, otherwise to the button.
+  var openedFrom = null;
+
+  function returnFocus(consent) {
+    if (!openedFrom) return;
+    var target = consent.thirdParty === 'allow'
+      ? openedFrom.querySelector('iframe')
+      : openedFrom.querySelector('[data-open-cookie-notice]');
+    openedFrom = null;
+    if (target) target.focus();
   }
 
   function applyConsent(consent) {
     writeConsent(consent);
     notice.hidden = true;
     loadAllowed(consent);
+    returnFocus(consent);
   }
 
   // The listeners are always registered, so the banner can be reopened from
@@ -112,10 +157,21 @@
     notice.hidden = false;
   }
 
+  // "Administrer samtykke" on a blocked embed. Delegated, since the embeds are
+  // parsed after this script has run.
+  document.addEventListener('click', function (event) {
+    var button = event.target && event.target.closest && event.target.closest('[data-open-cookie-notice]');
+    if (!button) return;
+    openedFrom = button.closest('[data-consent-embed]');
+    window.dispatchEvent(new CustomEvent('open-cookie-notice'));
+  });
+
   window.addEventListener('open-cookie-notice', function () {
     showWithStoredChoices(readConsent());
-    // User-initiated reopening: move focus to the banner (scrolls there by itself)
-    allowBtn.focus();
+    // User-initiated reopening: move focus to the banner itself, not to a choice,
+    // so screen readers read the title and the visitor picks with Tab
+    // (focus scrolls there by itself).
+    notice.focus();
   });
 
   var consent = readConsent();
