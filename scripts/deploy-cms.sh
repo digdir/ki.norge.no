@@ -59,7 +59,7 @@ watch_run() {
 }
 
 note "1/3 Building image $TAG (docker-publish)…"
-gh workflow run docker-publish.yaml --field tag="$TAG" || fail "docker-publish start failed."
+gh workflow run docker-publish.yaml --field tag="$TAG" --field branch=main || fail "docker-publish start failed."
 watch_run docker-publish.yaml "image build" || fail "Image build failed."
 
 note "2/3 Publishing syncroot ($ENV)…"
