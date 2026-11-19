@@ -3,8 +3,7 @@ using System.Text.Encodings.Web;
 namespace KiNorge.Cms.CustomAuthentication;
 
 /// <summary>
-/// Renders the standalone page shown when a Microsoft Entra ID backoffice login is cancelled or fails.
-/// The markup and the bokmål texts live in EntraLoginMessagePage.html (embedded resource).
+/// The page shown when an Entra ID login is cancelled or fails. Markup in EntraLoginMessagePage.html.
 /// </summary>
 public static class EntraLoginMessagePage
 {
