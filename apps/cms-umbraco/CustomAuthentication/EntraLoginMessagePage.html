@@ -1,0 +1,122 @@
+<!doctype html>
+<!--
+  Shown by EntraLoginMessagePage when a Microsoft Entra ID backoffice login is cancelled or fails.
+  Embedded resource: {{kind}} and {{traceId}} are filled in at runtime.
+  The body class ("failed" or "cancelled") selects colours, icon, texts and the error reference.
+-->
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Innlogging med Microsoft</title>
+<style>
+  :root {
+    --bg: #f3f4f6;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #4b5563;
+    --border: #e5e7eb;
+    --accent: #1d4ed8;
+    --accent-hover: #1e40af;
+    --accent-text: #ffffff;
+    --failed-bg: #fee2e2;
+    --failed-icon: #b91c1c;
+    --cancelled-bg: #e0e7ff;
+    --cancelled-icon: #3730a3;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111827;
+      --card: #1f2937;
+      --text: #f3f4f6;
+      --muted: #d1d5db;
+      --border: #374151;
+      --accent: #60a5fa;
+      --accent-hover: #93c5fd;
+      --accent-text: #111827;
+      --failed-bg: #450a0a;
+      --failed-icon: #fca5a5;
+      --cancelled-bg: #1e1b4b;
+      --cancelled-icon: #a5b4fc;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  main {
+    width: 100%;
+    max-width: 28rem;
+    padding: 2rem;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  }
+
+  .icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+  }
+  .failed .icon { background: var(--failed-bg); color: var(--failed-icon); }
+  .cancelled .icon { background: var(--cancelled-bg); color: var(--cancelled-icon); }
+  .failed .only-cancelled,
+  .cancelled .only-failed { display: none; }
+
+  h1 { margin: 0 0 0.5rem; font-size: 1.375rem; }
+  p { margin: 0 0 1.5rem; color: var(--muted); }
+  .ref { font-size: 0.875rem; }
+  code { overflow-wrap: anywhere; }
+
+  a.button {
+    display: inline-block;
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    background: var(--accent);
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+  a.button:hover { background: var(--accent-hover); }
+  a.button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body class="{{kind}}">
+<main>
+  <div class="icon" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <g class="only-failed"><path d="M12 7v6"/><path d="M12 17h.01"/></g>
+      <g class="only-cancelled"><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></g>
+    </svg>
+  </div>
+  <div class="only-failed">
+    <h1>Innlogging feilet</h1>
+    <p>Vi klarte ikke å logge deg inn med Microsoft. Prøv igjen om litt. Hvis feilen vedvarer, kontakt en administrator og oppgi feilreferansen under.</p>
+    <p class="ref">Feilreferanse: <code>{{traceId}}</code></p>
+  </div>
+  <div class="only-cancelled">
+    <h1>Innlogging avbrutt</h1>
+    <p>Innloggingen med Microsoft ble avbrutt.</p>
+  </div>
+  <a class="button" href="/umbraco">Prøv igjen</a>
+</main>
+</body>
+</html>
