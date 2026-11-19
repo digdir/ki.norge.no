@@ -1,4 +1,3 @@
-# Owners for the whole repo (will be added to all PRs)
-*       @digdir/team-portal
+/CODEOWNERS  @digdir/team-portal
 
-# Add specific ownership for further needs here
+# Add specific ownership for further needs here. PRs will be assigned accordingly.
