@@ -8,7 +8,7 @@ Decisions and milestones, newest first. Each entry says what was decided, why, a
 
 ## 2026-11-16
 
-- **The backoffice in tt02 and prod is Entra ID only.** Local username and password login is turned off (`DenyLocalLogin = true`) when Entra ID is configured, for security reasons and the same way as info.altinn.no. Access is managed by the app roles in Entra ID. Locally and in CI, where Entra ID is not configured, password login works as before. Break-glass is `MicrosoftEntraId:Enabled=false`. The login button does not redirect automatically, so a failing Entra ID login cannot loop. See [#961](https://github.com/digdir/ki.norge.no/issues/961) and [cms-composers.md](../cms-composers.md).
+- **The backoffice in tt02 and prod is Entra ID only.** Password login is turned off when Entra ID is configured, the same way as info.altinn.no. Locally and in CI password login works as before. See [#961](https://github.com/digdir/ki.norge.no/issues/961).
 
 ## 2026-10-22
 

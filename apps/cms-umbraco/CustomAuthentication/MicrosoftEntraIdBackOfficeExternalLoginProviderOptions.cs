@@ -87,11 +87,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
             }
         };
 
-        // Entra ID only (#961), same as info.altinn.no. Hides the username/password form,
-        // and Umbraco's DenyLocalLoginIfConfigured policy also rejects password login and
-        // password reset on the server. Only applies when this provider is registered, i.e.
-        // when Entra is configured (tt02/prod). Locally and in CI local login is unchanged.
-        // Break-glass: MicrosoftEntraId:Enabled=false turns Entra off and local login back on.
+        // Entra ID only, no password login (#961).
         options.DenyLocalLogin = true;
     }
 }
