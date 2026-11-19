@@ -41,6 +41,14 @@ using Microsoft.AspNetCore.DataProtection;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// ── Local overrides (Development only, git-ignored) ──
+// scripts/db/refresh-local-db.sh writes the connection string to a local SQL Server
+// copy of an environment's database here. Absent, the CMS uses SQLite as before.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: false);
+}
+
 // ── DataProtection keys on disk ──
 // Without this, ASP.NET creates the keys under $HOME/.aspnet/DataProtection-Keys, which is
 // pod-local. Every new pod gets new keys, and then the backoffice cookies
@@ -166,14 +174,14 @@ app.MapGet("/api/health/ready", (Umbraco.Cms.Core.Services.IContentTypeService c
 // the endpoint only exists there.
 if (app.Environment.IsDevelopment())
 {
-    app.MapGet("/api/diagnostics", (Umbraco.Cms.Core.Services.IContentTypeService cts,
+    app.MapGet("/api/diagnostics", async (Umbraco.Cms.Core.Services.IContentTypeService cts,
         Umbraco.Cms.Core.Services.IDataTypeService dts) =>
     {
         var artikkel = cts.Get("artikkel");
         var hasIngress = artikkel?.PropertyTypes.Any(p => p.Alias == "ingress") ?? false;
         var hasBilde = artikkel?.PropertyTypes.Any(p => p.Alias == "artikkelBilde") ?? false;
 
-        var rteDts = dts.GetByEditorAlias("Umbraco.RichText").ToList();
+        var rteDts = (await dts.GetByEditorAliasAsync("Umbraco.RichText")).ToList();
         var toolbarInfo = rteDts.Select(dt =>
         {
             var config = dt.ConfigurationData;

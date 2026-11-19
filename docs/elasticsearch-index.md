@@ -78,7 +78,7 @@ from `shared/content-routes.json`, the same map as the frontend and the CMS push
 hits link to the real routes (`/artikler/…`, `/veiledning/…`). Documents are keyed by
 content GUID, as in the CMS push, so the two are interchangeable.
 ```sh
-cp .env.example .env                    # ES_ENDPOINT / ES_API_KEY / UMBRACO_URL / UMBRACO_PUBLIC_URL
+cp .env.example .env                    # ES_ENDPOINT / ES_API_KEY / UMBRACO_URL
 node --env-file=.env apply-templates.mjs   # ensure the mapping (once)
 pnpm run search:reindex                 # upsert by content GUID (from repo root)
 pnpm run search:reindex -- --rebuild    # full clean rebuild (drops the index first)

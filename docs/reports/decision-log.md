@@ -2,6 +2,10 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-11-18
+
+- **Media is served on the portal address.** Images and files from the CMS are fetched from `ki.norge.no/media/...` instead of a CMS host on workers.dev. The pages use relative `/media/` URLs, and the frontend route `src/pages/media/[...path].ts` fetches the file from `UMBRACO_URL`, the same way astro-infoportal does. `UMBRACO_PUBLIC_URL` is removed, and so is the `media` entry in `/health`, since there is no separate media host left to check. The watch reads `status`, so it is not affected. Turning off the workers.dev hostnames is a separate step. See [#962](https://github.com/digdir/ki.norge.no/issues/962).
+
 ## 2026-11-16
 
 - **The backoffice in tt02 and prod is Entra ID only.** Local username and password login is turned off (`DenyLocalLogin = true`) when Entra ID is configured, for security reasons and the same way as info.altinn.no. Access is managed by the app roles in Entra ID. Locally and in CI, where Entra ID is not configured, password login works as before. Break-glass is `MicrosoftEntraId:Enabled=false`. The login button does not redirect automatically, so a failing Entra ID login cannot loop. See [#961](https://github.com/digdir/ki.norge.no/issues/961) and [cms-composers.md](../cms-composers.md).

@@ -12,8 +12,9 @@
  * Caller is responsible for constraining width (e.g. via data-layout-article
  * or a wrapper with max-width).
  */
-import type { UmbracoBlock } from '../../lib/umbraco';
+import type { ArtikkelVideoBlock, UmbracoBlock } from '../../lib/umbraco';
 import { getMediaUrl } from '../../lib/umbraco';
+import { videoEmbedUrl } from '../../lib/video-embed';
 import '../../styles/article-blocks.css';
 
 interface Props {
@@ -236,6 +237,27 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
         {block.content.tittel && <p class="article-callout-title">{block.content.tittel}</p>}
         <div class="article-callout-body" set:html={block.content.innhold} />
       </div>
+    );
+  }
+  if (block.contentType === 'video') {
+    // Vimeo or YouTube only. A link we do not recognise renders nothing rather
+    // than an empty box, since the editor sees the preview anyway.
+    const c = block.content as ArtikkelVideoBlock['content'];
+    const src = videoEmbedUrl(c.videoUrl);
+    if (!src) return null;
+    return (
+      <figure class="article-video">
+        <div class="article-video-frame">
+          <iframe
+            src={src}
+            title={c.tittel || 'Video'}
+            loading="lazy"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            referrerpolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+        {c.tittel && <figcaption class="ds-paragraph">{c.tittel}</figcaption>}
+      </figure>
     );
   }
   if (block.contentType === 'artikkelBildeSeksjon') {

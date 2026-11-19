@@ -33,7 +33,6 @@
 		"tt02": {
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
-				"UMBRACO_PUBLIC_URL": "https://kinorgeportal.tt02.dis-core.altinn.cloud",
 				// Hybrid search (Elastic): endpoint + index are public (not secret).
 				// ES_API_KEY is set as a secret: wrangler secret put ES_API_KEY --env tt02
 				"ES_ENDPOINT": "https://kinorgeportal-elasticsearch-tt02-a61b24.es.germanywestcentral.azure.elastic.cloud",
@@ -60,9 +59,6 @@
 		"prod": {
 			"vars": {
 				"UMBRACO_URL": "https://kinorgeportal.prod.dis-core.altinn.cloud",
-				// Media URLs are fetched by the browser, so they must point to a public host.
-				// The dis-core host requires the Altinn network; the proxy worker (#350) is publicly reachable.
-				"UMBRACO_PUBLIC_URL": "https://cms-kinorgeportal-prod.digitaliseringsdirektoratet.workers.dev",
 				// Hybrid search (Elastic): endpoint + index are public (not secret).
 				// Same cluster/index as tt02 (holds prod content). ES_API_KEY is set
 				// as a secret: wrangler secret put ES_API_KEY --env prod

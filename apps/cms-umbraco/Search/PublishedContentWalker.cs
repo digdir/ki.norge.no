@@ -28,7 +28,7 @@ public static class PublishedContentWalker
         if (content.Published)
             result.Add(content);
 
-        var children = contentService.GetPagedChildren(content.Id, 0, int.MaxValue, out _);
+        var children = contentService.GetPagedChildren(content.Id, 0, int.MaxValue, out _, propertyAliases: null, filter: null, ordering: null);
         foreach (var child in children)
         {
             CollectRecursive(contentService, child, result);

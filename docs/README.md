@@ -11,6 +11,7 @@ ki.norge.no is the portal for artificial intelligence in the public sector, run 
 - [Composers in the CMS](cms-composers.md): what runs in the CMS, and which config turns it on.
 - [Cache purge](cloudflare-cache-purge.md): how the Cloudflare cache is purged when something is published.
 - [Link statistics](link-statistics.md): how often the menu and footer links are used, and why it needs no consent.
+- [Local database copy](local-database-copy.md): how a developer runs the CMS against a copy of the prod or tt02 database.
 
 ## The rest
 

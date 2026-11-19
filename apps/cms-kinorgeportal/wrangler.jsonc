@@ -4,9 +4,11 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-07",
   "compatibility_flags": ["nodejs_compat"],
-  // The workers.dev hosts MUST be on: the frontend's UMBRACO_PUBLIC_URL (media URLs
-  // in the browser) points to cms-kinorgeportal-prod...workers.dev. They were turned on
-  // in the dashboard (drift); "false" here turned them off at the next deploy (2026-07-15).
+  // The workers.dev hosts are still on. Browsers no longer fetch media from them
+  // (the frontend serves /media itself since #962), but `pnpm run frontend:dev:prod`,
+  // the search reindex and HTML cached before the #962 deploy still use them. They were
+  // turned on in the dashboard (drift); "false" here turned them off at the next deploy
+  // (2026-07-15) and the images dropped out. Turn them off only as its own step.
   "workers_dev": true,
   "env": {
     "tt02": {
