@@ -19,16 +19,16 @@
       "allowedVersions": "<3.0.0"
     },
     {
-      "description": "Umbraco and uSync can have migrations in minor and patch too (17.5 rewrote links in rich text). They get their own PR, so they are not included in \"nuget non-major\" without a prod-like test (docs/dependencies.md 5.5). Umbraco 17 is LTS, and 18 is taken as a separate, planned upgrade.",
+      "description": "Umbraco and uSync can have migrations in minor and patch too (17.5 rewrote links in rich text). They get their own PR, so they are not included in \"nuget non-major\" without a prod-like test (docs/dependencies.md 5.5). Umbraco 18 is the current major, and 19 is taken as a separate, planned upgrade.",
       "matchManagers": ["nuget"],
       "matchPackageNames": ["Umbraco.Cms", "Umbraco.Cms.*", "Umbraco.StorageProviders.*", "uSync", "uSync.*"],
-      "allowedVersions": "<18.0.0",
+      "allowedVersions": "<19.0.0",
       "groupName": "Umbraco og uSync",
       "groupSlug": "umbraco",
       "addLabels": ["umbraco"]
     },
     {
-      "description": ".NET 10 is LTS, and Umbraco 17 builds on it. .NET 11 is taken together with an Umbraco version that supports it.",
+      "description": ".NET 10 is LTS, and Umbraco 18 builds on it. .NET 11 is taken together with an Umbraco version that supports it.",
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["mcr.microsoft.com/dotnet/aspnet", "mcr.microsoft.com/dotnet/sdk"],
       "allowedVersions": "<11"

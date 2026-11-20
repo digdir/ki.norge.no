@@ -208,6 +208,7 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 
 - If `FrontendUrl` is missing, the link points to `http://localhost:4321`.
 - `PreviewSecret` must equal `PREVIEW_SECRET` in the frontend worker. Otherwise the editor sees only published content.
+- Kjac.HeadlessPreview is vendored in `apps/cms-umbraco/Vendor/Kjac.HeadlessPreview/` and `App_Plugins/KjacHeadlessPreview/`, because 3.0.1 does not load on Umbraco 18. The composer here has `[ComposeAfter]` on the Kjac composer, so our service replaces its Noop service. See the README in the vendor folder.
 - `content-routes.json` is mirrored from the frontend with `scripts/sync-content-routes.js`. A content type without a route gets the message "Forhåndsvisning er ikke tilgjengelig".
 
 ### MalformComposer
