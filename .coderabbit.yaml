@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit is disabled for this repository (no reviews, status messages or checks).
+reviews:
+  auto_review:
+    enabled: false
+  review_status: false
+  commit_status: false
+chat:
+  auto_reply: false
