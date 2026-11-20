@@ -133,7 +133,7 @@ test.describe('Cookie banner', () => {
     // The footer button reopens the banner and moves focus there
     await page.locator('.footer [data-action="open-cookie-notice"]').click();
     await expect(notice).toBeVisible();
-    await expect(page.locator('#cookie-notice-allow')).toBeFocused();
+    await expect(page.locator('#cookie-notice')).toBeFocused();
   });
 
   test('the choice is remembered after a page reload', async ({ page }) => {
