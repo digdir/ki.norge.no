@@ -45,9 +45,9 @@ Changes to Umbraco require two steps: building an image, and rolling it out. A g
 
 ### 1. Build a new image
 
-1. Check that the changes are merged to `main`.
+1. Check that the changes are merged to `main`. To test a branch first, see [Test a branch in tt02](#test-a-branch-in-tt02).
 2. Find the previous version number on [Publish Syncroot artifacts](https://github.com/digdir/ki.norge.no/actions/workflows/publish-syncroot-main.yaml).
-3. Run [Docker build and publish](https://github.com/digdir/ki.norge.no/actions/workflows/docker-publish.yaml) with the next number and a keyword, for example `63-adressefelt`.
+3. Run [Docker build and publish](https://github.com/digdir/ki.norge.no/actions/workflows/docker-publish.yaml) with **Branch** `main`, the next number and a keyword, for example `63-adressefelt`.
 
 The image is uploaded to ghcr.io.
 
@@ -86,6 +86,15 @@ The backoffice hash is **not** good enough to see whether the pod rolled. It onl
 ### 4. Check that the content is intact
 
 After a schema change: count blocks, content types and "Unsupported" in the Delivery API before and after. If the numbers are the same, nothing was re-keyed. If the number of "Unsupported" is above zero, stop and look at the uSync keys before doing anything more.
+
+### Test a branch in tt02
+
+A branch can be rolled out to tt02 without merging it, the same way as in info.altinn.no.
+
+1. Run [Docker build and publish](https://github.com/digdir/ki.norge.no/actions/workflows/docker-publish.yaml) with **Branch** set to the branch and a tag that starts with a letter, for example `test-961`. A tag that starts with a number can confuse the numbering in `scripts/deploy-cms.sh`.
+2. Run [Publish Syncroot artifacts](https://github.com/digdir/ki.norge.no/actions/workflows/publish-syncroot-main.yaml) from `main`, with `tt02` and the same tag.
+
+Leave "Use workflow from" on `main` in both. The syncroot always comes from `main`, so changes under `syncroot/` in the branch are not included. The next rollout from `main` removes the branch from tt02 again.
 
 ### Everything in one command: `scripts/deploy-cms.sh`
 
