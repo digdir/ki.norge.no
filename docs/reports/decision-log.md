@@ -4,7 +4,7 @@ Decisions and milestones, newest first. Each entry says what was decided, why, a
 
 ## 2026-11-20
 
-- **CodeRabbit is turned off for this repository.** The CodeRabbit app is installed for the whole organisation, and the team has no admin access there. `.coderabbit.yaml` turns off automatic reviews, status messages, commit checks and auto replies. The bot still answers if someone tags it directly. Removing the repository from the app installation requires an org owner.
+- **CodeRabbit is turned off via `.coderabbit.yaml`.** The app is installed org-wide, and removing it requires an org owner.
 
 ## 2026-11-18
 
