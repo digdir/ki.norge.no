@@ -115,7 +115,7 @@ Umbraco in prod answers on three hostnames, set in `syncroot/prod/kustomization.
 
 `cms.ki.norge.no` is Umbraco's `UmbracoApplicationUrl` and `BackOfficeHost`, so the OAuth return lands there.
 
-Login to the backoffice goes through Entra ID. New users are added with `pnpm run cms:add-user`.
+Login to the backoffice goes through Entra ID only ([#961](https://github.com/digdir/ki.norge.no/issues/961)). New users are added with `pnpm run cms:add-user`.
 
 The CMS composers, what they do and which config turns them on in prod and tt02, are described in [cms-composers.md](cms-composers.md).
 

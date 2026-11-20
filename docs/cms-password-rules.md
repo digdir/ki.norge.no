@@ -1,6 +1,6 @@
 # Password rules for CMS users
 
-Normal login to the backoffice goes through Entra ID, with the "Microsoft" button. Then the user has no password in Umbraco. The rules below apply only to local accounts with a password, and local login is still enabled alongside Entra ID.
+Normal login to the backoffice goes through Entra ID, with the "Microsoft" button. Then the user has no password in Umbraco. The rules below apply only to local accounts with a password, which can log in only when Entra ID is off ([#961](https://github.com/digdir/ki.norge.no/issues/961)).
 
 ## What the password must contain
 
