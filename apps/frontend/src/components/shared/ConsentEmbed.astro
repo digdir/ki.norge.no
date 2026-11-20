@@ -21,7 +21,7 @@ interface Props {
 const { src, title, allow, loading, class: className } = Astro.props;
 ---
 
-<div class:list={['consent-embed', className]} data-consent-embed>
+<div class:list={['consent-embed', className]} data-consent-embed data-color="neutral">
   <iframe
     data-consent-src={src}
     title={title}
@@ -32,9 +32,9 @@ const { src, title, allow, loading, class: className } = Astro.props;
   />
   <div class="consent-embed__blocked" data-consent-blocked>
     <div class="consent-embed__card">
-      <p class="consent-embed__title ds-heading" data-size="2xs">Ønsker du å se dette innholdet?</p>
-      <p class="ds-paragraph" data-size="sm">Da trenger vi ditt samtykke.</p>
-      <button type="button" class="ds-button" data-size="sm" data-open-cookie-notice>
+      <p class="consent-embed__title ds-heading" data-size="2xs" data-color="accent">Ønsker du å se dette innholdet?</p>
+      <p class="ds-paragraph" data-size="sm" data-color="accent">Da trenger vi ditt samtykke.</p>
+      <button type="button" class="ds-button" data-size="sm" data-color="accent" data-open-cookie-notice>
         Administrer samtykke
       </button>
     </div>
@@ -64,8 +64,8 @@ const { src, title, allow, loading, class: className } = Astro.props;
     display: grid;
     place-items: center;
     padding: var(--ds-size-4);
-    background-color: var(--ds-color-info-surface-tinted);
-    border: 1px solid var(--ds-color-info-border-subtle);
+    background-color: var(--ds-color-info-tinted);
+    border: 1px solid var(--ds-color-info-subtle);
   }
 
   .consent-embed__card {
@@ -75,8 +75,8 @@ const { src, title, allow, loading, class: className } = Astro.props;
     gap: var(--ds-size-2);
     max-width: 100%;
     padding: var(--ds-size-4) var(--ds-size-5);
-    background-color: var(--ds-color-neutral-background-default);
-    border-radius: var(--ds-border-radius-sm);
+    background-color: var(--ds-color-background-default);
+    border-radius: var(--ds-border-radius-md);
 
     & p {
       margin: 0;
