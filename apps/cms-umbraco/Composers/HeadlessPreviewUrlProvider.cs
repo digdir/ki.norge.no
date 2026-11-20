@@ -6,11 +6,13 @@ using Umbraco.Cms.Core.Models;
 namespace KiNorge.Cms.Composers;
 
 /// <summary>
-/// Implements IDocumentPreviewService for Kjac.HeadlessPreview package.
+/// Implements IDocumentPreviewService for Kjac.HeadlessPreview (vendored in Vendor/Kjac.HeadlessPreview).
 /// Maps CMS content types to their Astro frontend preview URLs via the shared
 /// <see cref="ContentRouteResolver"/> (content-routes.json), so editor preview and
 /// search indexing build URLs the same way.
 /// </summary>
+// Runs after the vendored Kjac composer, so our AddUnique replaces its Noop service.
+[ComposeAfter(typeof(Kjac.HeadlessPreview.Composers.Composer))]
 public class HeadlessPreviewComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
