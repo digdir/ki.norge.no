@@ -1,0 +1,94 @@
+---
+/**
+ * An iframe from a third party (Vimeo, YouTube, Slido) that only loads after the
+ * visitor has said yes to "Tredjepartstjenester" in the cookie banner.
+ *
+ * The iframe is rendered without src. cookie-notice.inline.js sets src from
+ * data-consent-src when consent is given, and removes it again if consent is
+ * withdrawn. Until then a placeholder is shown, and its button reopens the
+ * banner and moves focus there.
+ *
+ * Fills its parent, so the caller sets the size (aspect-ratio or height).
+ */
+interface Props {
+  src: string;
+  title: string;
+  allow?: string;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const { src, title, allow, loading, class: className } = Astro.props;
+---
+
+<div class:list={['consent-embed', className]} data-consent-embed data-color="neutral">
+  <iframe
+    data-consent-src={src}
+    title={title}
+    allow={allow}
+    loading={loading}
+    referrerpolicy="strict-origin-when-cross-origin"
+    hidden
+  />
+  <div class="consent-embed__blocked" data-consent-blocked>
+    <div class="consent-embed__card">
+      <p class="consent-embed__title ds-heading" data-size="2xs" data-color="accent">Ønsker du å se dette innholdet?</p>
+      <p class="ds-paragraph" data-size="sm" data-color="accent">Dette innholdet blir levert gjennom en ekstern tjeneste. For å se innholdet må du godta informasjonskapsler for «Tredjepartstjenester».</p>
+      <button type="button" class="ds-button" data-size="sm" data-color="accent" data-open-cookie-notice>
+        Administrer samtykke
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .consent-embed {
+    width: 100%;
+    height: 100%;
+
+    & iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    & [hidden] {
+      display: none;
+    }
+  }
+
+  .consent-embed__blocked {
+    box-sizing: border-box;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    padding: var(--ds-size-4);
+    background-color: var(--ds-color-surface-tinted);
+    border: 1px solid var(--ds-color-surface-subtle);
+  }
+
+  .consent-embed__card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ds-size-2);
+    max-width: 100%;
+    padding: var(--ds-size-4) var(--ds-size-5);
+    background-color: var(--ds-color-background-default);
+    border-radius: var(--ds-border-radius-md);
+    max-width: max(60%, 500px);
+
+    & p {
+      margin: 0;
+    }
+
+    & .ds-button {
+      margin-block-start: var(--ds-size-2);
+    }
+  }
+
+  .consent-embed__title {
+    font-family: var(--ds-font-family);
+  }
+</style>
