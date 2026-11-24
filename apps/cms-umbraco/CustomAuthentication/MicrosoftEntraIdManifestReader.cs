@@ -9,7 +9,7 @@ namespace KiNorge.Cms.CustomAuthentication;
 /// instead of a static App_Plugins file. Registered ONLY by the composer when Entra
 /// config exists, so without secrets there is no button and the login screen is exactly
 /// the default (local sign-in only). That makes the artifact safe in prod whether or not
-/// the secrets have been added to the vault.
+/// the secrets have been added to the vault. autoRedirect sends the login straight to Entra.
 /// </summary>
 public class MicrosoftEntraIdManifestReader : IPackageManifestReader
 {
@@ -25,7 +25,7 @@ public class MicrosoftEntraIdManifestReader : IPackageManifestReader
         "meta": {
           "label": "Microsoft",
           "defaultView": { "icon": "icon-microsoft", "color": "default" },
-          "behavior": { "autoRedirect": false },
+          "behavior": { "autoRedirect": true },
           "linking": { "allowManualLinking": true }
         }
       }
