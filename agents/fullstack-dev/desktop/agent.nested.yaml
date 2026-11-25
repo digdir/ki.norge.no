@@ -1,0 +1,18 @@
+apiVersion: agents.platform/v1alpha1
+kind: AgentVariant
+extends: agent.yaml
+
+metadata:
+  name: kinorge-fullstack-dev-nested
+
+# The published image, reduced to fit inside another agent.
+spec:
+  sandbox:
+    resources:
+      cpu: "2"
+      memory: "4Gi"
+      rootFilesystem:
+        capacity: "24Gi"
+        mode: direct
+      # A nested agent runs no agents of its own.
+      nestedSandboxes: null

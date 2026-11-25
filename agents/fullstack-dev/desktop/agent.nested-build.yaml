@@ -1,0 +1,16 @@
+apiVersion: agents.platform/v1alpha1
+kind: AgentVariant
+extends: agent.nested.yaml
+
+metadata:
+  name: kinorge-fullstack-dev-nested
+
+# The nested agent with its image built from this checkout, to try a change to the Dockerfile or what it copies
+# before CI publishes it.
+spec:
+  sandbox:
+    image:
+      type: build
+      context: ..
+      dockerfile: Dockerfile
+      target: desktop

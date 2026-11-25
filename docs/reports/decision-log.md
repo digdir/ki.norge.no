@@ -2,6 +2,10 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-11-25
+
+- **Developers can hand tasks to an agent in a sandbox.** `agents/fullstack-dev` defines an agentctl agent, ported from the one in info.altinn.no, with images published to GHCR by `fullstack-dev-agent-images.yml`. It cannot export a database or deploy, so a developer exports a copy of prod or tt02 and copies it in, and `forward.sh` opens the agent's frontend and Umbraco in their own browser. Its ports (4331 and 43451) differ from local development and from info.altinn.no's agent, so all three can run at once. Environment variables now win over `appsettings.Local.json` in Development, so the agent's connection string holds in a checkout that has the file. See [agentctl.md](../agentctl.md).
+
 ## 2026-11-20
 
 - **CodeRabbit is turned off via `.coderabbit.yaml`.** The app is installed org-wide, and removing it requires an org owner.

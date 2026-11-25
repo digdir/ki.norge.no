@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-ENV_FILE="$SCRIPT_DIR/.env"
+ENV_FILE="$KINORGE_DB_ENV_FILE"
 
 # The same throwaway values as the unattended install in
 # apps/cms-umbraco/appsettings.Development.json. Local only, not secrets.
