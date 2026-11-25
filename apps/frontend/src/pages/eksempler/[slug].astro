@@ -2,6 +2,8 @@
 import Layout from '../../components/layout/Layout.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
+import TableOfContents from '../../components/shared/TableOfContents.astro';
+import { artikkelOverskrifter } from '../../lib/innholdsfortegnelse';
 import ExampleCard from '../../components/shared/ExampleCard.astro';
 
 import { getEksempel, getEksempler, getPlainText, getMediaUrl, MEDIA_WIDTH, bakgrunnSurface, type Eksempel } from '../../lib/umbraco';
@@ -42,6 +44,7 @@ const otherArticles = flereNyeste(allEksemplerRes.data, slug!);
 const allBlocks = article.innhold ?? [];
 const bylineBlock = allBlocks.find(b => b.contentType === 'artikkelByline');
 const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
+const toc = article.visInnholdsfortegnelse ? artikkelOverskrifter(contentBlocks).overskrifter : [];
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage} bodyColor={article.bakgrunn?.replace(' ', '').toLocaleLowerCase()}>
@@ -69,6 +72,8 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     {article.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
     )}
+
+    <TableOfContents overskrifter={toc} />
 
     <ArticleBlocksRenderer blocks={contentBlocks} defaultDate={article.publishedAt} />
   </ArticleLayout>

@@ -276,6 +276,8 @@ public class ContentTypeComponent : IAsyncComponent
             // Ensures the field there and removes it from the simple page types.
             Step("enforceBakgrunnScope", () => EnforceBakgrunnScope());
 
+            Step("ensureInnholdsfortegnelse", () => EnsureInnholdsfortegnelse());
+
             // Slug not mandatory on rich templates (auto from tittel on save, ContentSlugHandler).
             Step("ensureSlugOptional", () => EnsureSlugOptional());
 
@@ -2000,6 +2002,26 @@ public class ContentTypeComponent : IAsyncComponent
             ct.RemovePropertyType("bakgrunn");
             SaveContentType(ct);
             Console.WriteLine($"ContentTypeComposer: Removed bakgrunn from '{alias}' (color only on the rich article template)");
+        }
+    }
+
+    /// <summary>
+    /// The editor's switch for the table of contents ("På denne siden") on the article page. Off by
+    /// default, so existing articles look the same until an editor turns it on.
+    /// </summary>
+    private void EnsureInnholdsfortegnelse()
+    {
+        const string desc = "Viser «På denne siden» med oversikt og lenker til overskrift 2 (H2) rett etter ingressen. Lages automatisk og vises bare når artikkelen har minst to slike overskrifter.";
+        foreach (var alias in new[] { "artikkel", "eksempel", "enkelVeiledning" })
+        {
+            var ct = _contentTypeService.Get(alias);
+            if (ct == null || ct.PropertyTypes.Any(p => p.Alias == "visInnholdsfortegnelse")) continue;
+            if (!ct.PropertyGroups.Any(g => g.Alias == "innstillinger"))
+                ct.AddPropertyGroup("innstillinger", "Innstillinger");
+            var last = ct.PropertyGroups.First(g => g.Alias == "innstillinger").PropertyTypes?.Select(p => p.SortOrder).DefaultIfEmpty(0).Max() ?? 0;
+            ct.AddPropertyType(Prop("visInnholdsfortegnelse", "Vis innholdsfortegnelse?", _trueFalseDt, description: desc, sortOrder: last + 1), "innstillinger");
+            SaveContentType(ct);
+            Console.WriteLine($"ContentTypeComposer: Ensured visInnholdsfortegnelse on '{alias}'");
         }
     }
 

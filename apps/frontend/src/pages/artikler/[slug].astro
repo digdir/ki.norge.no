@@ -3,11 +3,13 @@ import Layout from '../../components/layout/Layout.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
 import NewsCard from '../../components/shared/NewsCard.astro';
+import TableOfContents from '../../components/shared/TableOfContents.astro';
 
 import { getArtikkel, getArtikler, getPlainText, getMediaUrl, velgKortbilde, MEDIA_WIDTH, bakgrunnSurface } from '../../lib/umbraco';
 import { articleSchema, breadcrumbSchema } from '../../lib/seo';
 import { ordlengde } from '../../lib/text';
 import { flereNyeste } from '../../lib/flere-innhold';
+import { artikkelOverskrifter } from '../../lib/innholdsfortegnelse';
 
 const { slug } = Astro.params;
 const isPreview = Astro.locals.isPreview;
@@ -44,6 +46,7 @@ const otherArticles = flereNyeste(allArticlesRes.data, slug!);
 const allBlocks = article.innhold ?? [];
 const bylineBlock = allBlocks.find(b => b.contentType === 'artikkelByline');
 const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
+const toc = article.visInnholdsfortegnelse ? artikkelOverskrifter(contentBlocks).overskrifter : [];
 ---
 
 <Layout title={seoTitle} description={seoDesc} ogType="article" publishedAt={article.publishedAt} ogImage={seoImage} bodyColor={article.bakgrunn?.replace(' ', '').toLocaleLowerCase()}>
@@ -70,6 +73,8 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
     {article.ingress && (
       <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
     )}
+
+    <TableOfContents overskrifter={toc} />
 
     <ArticleBlocksRenderer blocks={contentBlocks} defaultDate={article.publishedAt} />
   </ArticleLayout>

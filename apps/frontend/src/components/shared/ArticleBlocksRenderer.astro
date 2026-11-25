@@ -15,6 +15,7 @@
 import type { ArtikkelVideoBlock, UmbracoBlock } from '../../lib/umbraco';
 import { getMediaUrl } from '../../lib/umbraco';
 import { videoEmbedUrl } from '../../lib/video-embed';
+import { artikkelOverskrifter } from '../../lib/innholdsfortegnelse';
 import '../../styles/article-blocks.css';
 
 interface Props {
@@ -86,13 +87,14 @@ function groupConsecutiveTrekkspill(items?: UmbracoBlock[]): GroupedItem[] {
 }
 
 const renderItems = groupConsecutiveTrekkspill(blocks);
+const overskrifter = artikkelOverskrifter(blocks);
 ---
 
 {renderItems.map((item) => {
   if (item.kind === 'accordionGroup') {
     return (
       <Fragment>
-        {item.tittel && <h2 class="ds-heading" data-size="md">{item.tittel}</h2>}
+        {item.tittel && <h2 id={overskrifter.tittelId.get(item.blocks[0])} class="ds-heading" data-size="md">{item.tittel}</h2>}
         <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
             <details class="ds-details">
@@ -156,7 +158,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     const c = block.content;
     return (
       <div class="article-prosessteg" data-layout-block="edge">
-        {c.tittel && <h2 class="article-prosessteg-title ds-heading" data-size="sm">{c.tittel}</h2>}
+        {c.tittel && <h2 id={overskrifter.tittelId.get(block)} class="article-prosessteg-title ds-heading" data-size="sm">{c.tittel}</h2>}
         <ol class="article-prosessteg-list" role="list">
           {c.steg.map((s, i) => (
             <li class="article-prosessteg-item">
@@ -273,7 +275,7 @@ const renderItems = groupConsecutiveTrekkspill(blocks);
     );
   }
   return (
-    <Fragment set:html={block.content.innhold} />
+    <Fragment set:html={overskrifter.html.get(block) ?? block.content.innhold} />
   );
   })();
 })}

@@ -1,0 +1,70 @@
+---
+import AkselIcon from './AkselIcon.astro';
+import { MIN_OVERSKRIFTER, type Overskrift } from '../../lib/innholdsfortegnelse';
+
+interface Props {
+  overskrifter: Overskrift[];
+}
+
+const { overskrifter } = Astro.props;
+---
+
+{overskrifter.length >= MIN_OVERSKRIFTER && (
+  <nav class="toc" aria-labelledby="toc-tittel">
+    <p id="toc-tittel" class="toc__tittel ds-paragraph" data-size="sm">På denne siden</p>
+    <ul class="toc__liste" role="list">
+      {overskrifter.map((o) => (
+        <li class="toc__punkt">
+          <AkselIcon name="ArrowDownRight" size={20} class="toc__ikon" />
+          <a class="toc__lenke ds-link" href={`#${o.id}`}>{o.tekst}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .toc {
+    margin-block-end: var(--ds-size-10);
+  }
+
+  /* The list already makes the gap, and a heading right after it would double it */
+  .toc + :global(h2) {
+    margin-block-start: 0;
+  }
+
+  .toc__tittel {
+    margin: 0 0 var(--ds-size-3);
+    color: var(--ds-color-text-subtle);
+    font-family: var(--ds-font-family);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .toc__liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--ds-size-2);
+  }
+
+  .toc__punkt {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ds-size-3);
+    margin: 0;
+  }
+
+  /* As tall as one line of text, so the arrow stays by the first line when a link wraps */
+  .toc :global(.toc__ikon) {
+    flex: none;
+    align-self: flex-start;
+    height: 1lh;
+    color: var(--ds-color-text-subtle);
+  }
+
+  .toc__lenke {
+    color: var(--ds-color-text-subtle);
+  }
+</style>

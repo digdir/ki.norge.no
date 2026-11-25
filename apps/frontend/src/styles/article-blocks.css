@@ -311,3 +311,8 @@
     border: 0;
   }
 }
+
+/* Headings the table of contents links to, also those outside the rich text */
+.article-layout h2[id] {
+  scroll-margin-top: calc(var(--header-height) + 1lh);
+}

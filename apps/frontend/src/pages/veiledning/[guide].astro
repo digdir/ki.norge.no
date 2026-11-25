@@ -2,6 +2,8 @@
 import Layout from '../../components/layout/Layout.astro';
 import ArticleLayout from '../../components/shared/ArticleLayout.astro';
 import ArticleBlocksRenderer from '../../components/shared/ArticleBlocksRenderer.astro';
+import TableOfContents from '../../components/shared/TableOfContents.astro';
+import { artikkelOverskrifter } from '../../lib/innholdsfortegnelse';
 import VeiledningBlocksRenderer from '../../components/shared/VeiledningBlocksRenderer.astro';
 import StepNavigator from '../../components/guide/StepNavigator.astro';
 import {
@@ -123,6 +125,8 @@ if (guideData) {
       {enkel.ingress && (
         <p class="article-ingress ds-paragraph" data-size="lg">{enkel.ingress}</p>
       )}
+
+      {enkel.visInnholdsfortegnelse && <TableOfContents overskrifter={artikkelOverskrifter(enkel.innhold).overskrifter} />}
 
       <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} />
     </ArticleLayout>

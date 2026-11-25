@@ -184,6 +184,8 @@ export interface Artikkel {
   lenkekortBilde?: UmbracoMedia;
   bildeAlt?: string;
   bakgrunn?: 'hvit' | 'lyseblaa' | string;
+  /** The editor's switch for the table of contents. Missing on types without the field. */
+  visInnholdsfortegnelse?: boolean;
   innhold?: UmbracoBlock[];
   seoTittel?: string;
   seoBeskrivelse?: string;
@@ -1180,6 +1182,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         lenkekortBilde: mapMedia(props.lenkekortBilde),
         bildeAlt: props.bildeAlt as string || '',
         bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
+        visInnholdsfortegnelse: props.visInnholdsfortegnelse === true,
         publisertDato,
         // The date is resolved here, not at each call site. Then a card, an
         // article page and a sort cannot show three different dates for the same page.
