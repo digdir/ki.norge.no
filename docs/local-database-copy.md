@@ -47,6 +47,12 @@ Useful flags
 | `--keep-container` | import into the running container |
 | `--port N` | use exactly this port, fail if it is taken |
 | `--off` | delete `appsettings.Local.json`, the CMS uses SQLite again |
+| `--env-out FILE` | write the settings as environment variables to `FILE` instead of `appsettings.Local.json` |
+
+`KINORGE_DB_ENV_FILE` moves the container's password and port from `scripts/db/.env` to another file. The agent in
+`agents/fullstack-dev` sets it, and imports a `.bacpac` you give it with `--skip-export` and `--env-out`, as
+[agentctl.md](agentctl.md) describes. Environment variables win over `appsettings.Local.json`, so its settings also
+hold in a checkout that has the file.
 
 Each step also runs on its own: `export-bacpac.sh`, `start-sqlserver.sh`, `import-bacpac.sh`, `set-local-admin.sh`. Pass `--help`.
 
