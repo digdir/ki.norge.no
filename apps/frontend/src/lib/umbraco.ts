@@ -570,6 +570,7 @@ interface CompatResponse<T> {
 
 import { applyDsClasses, normalizeNbsp } from './richtext-classes';
 import { attributeIsSafe, tagVerdict, urlIsSafe } from './richtext-safety';
+import { lagId } from './innholdsfortegnelse';
 
 interface RichTextNode {
   tag: string;
@@ -608,7 +609,7 @@ export function richTextToHtml(node: RichTextNode): string {
   // Heading tags — inject id for TOC anchor links
   if (/^h[1-6]$/.test(node.tag)) {
     const text = nodeToPlainText(node);
-    const id = text.toLowerCase().replace(/[^a-zæøå0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const id = lagId(text);
     const attrs = renderAttributes(node.attributes);
     return `<${node.tag}${attrs} id="${id}">${children}</${node.tag}>`;
   }
