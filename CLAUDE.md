@@ -31,7 +31,7 @@ Monorepo with two main apps, the frontend on Cloudflare Workers and the CMS on A
 
 ```
 apps/frontend/          Astro SSR, Cloudflare Workers, designsystemet-react
-apps/cms-umbraco/       Umbraco 17, .NET 10, Azure SQL (prod), SQLite (local)
+apps/cms-umbraco/       Umbraco 18, .NET 10, Azure SQL (prod), SQLite (local)
 apps/cache-kinorgeportal/  Cache worker in front of ki.norge.no
 apps/cms-kinorgeportal/    Proxy worker in front of cms.ki.norge.no
 ```

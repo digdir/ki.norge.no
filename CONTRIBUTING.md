@@ -10,7 +10,7 @@ CMS: https://cms.ki.norge.no/umbraco
 # Frontend (Astro, runs on Node locally)
 pnpm run frontend:dev         # http://localhost:4321
 
-# CMS (Umbraco 17 / .NET 10)
+# CMS (Umbraco 18 / .NET 10)
 pnpm run cms:dev              # http://localhost:5000/umbraco
                               # admin@ki.norge.no / KiNorge2025!
 
@@ -29,7 +29,7 @@ environment, documented in Confluence.
 
 ```
 apps/frontend/      Astro SSR frontend, runs on Node / Cloudflare Workers
-apps/cms-umbraco/   Umbraco 17 CMS, .NET 10, Azure SQL (prod) / SQLite (local)
+apps/cms-umbraco/   Umbraco 18 CMS, .NET 10, Azure SQL (prod) / SQLite (local)
 scripts/            Ops scripts (smoke-test.sh)
 tests/              Playwright tests (frontend + CMS smoke)
 ```

@@ -20,6 +20,14 @@ describe('formatHendelseDato', () => {
     expect(formatHendelseDato('2026-06-16T00:00:00', '2026-06-17T00:00:00'))
       .toEqual({ day: '16. — 17', month: 'juni', year: '2026' });
   });
+  test('multi-day across months shows both months', () => {
+    expect(formatHendelseDato('2027-05-31T00:00:00', '2027-06-01T00:00:00'))
+      .toEqual({ day: '31. mai — 1', month: 'juni', year: '2027' });
+  });
+  test('multi-day across years shows both years', () => {
+    expect(formatHendelseDato('2026-12-31T00:00:00', '2027-01-01T00:00:00'))
+      .toEqual({ day: '31. desember 2026 — 1', month: 'januar', year: '2027' });
+  });
   test('equal start and end counts as single day', () => {
     expect(formatHendelseDato('2026-06-16T00:00:00', '2026-06-16T00:00:00').day).toBe('16');
   });

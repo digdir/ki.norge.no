@@ -29,7 +29,7 @@ Astro in server mode, React islands, `@digdir/designsystemet-react` and `@digdir
 
 ## CMS
 
-Umbraco 17 on .NET 10. Azure SQL in production, SQLite locally.
+Umbraco 18 on .NET 10. Azure SQL in production, SQLite locally.
 
 **Key files** in `apps/cms-umbraco/`
 
