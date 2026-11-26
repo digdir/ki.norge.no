@@ -87,8 +87,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
             }
         };
 
-        // Keep local password sign-in alongside Entra during rollout.
-        // Set to true for pure Entra-only later.
-        options.DenyLocalLogin = false;
+        // Entra ID only, no password login (#961).
+        options.DenyLocalLogin = true;
     }
 }
