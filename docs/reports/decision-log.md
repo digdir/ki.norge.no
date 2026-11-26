@@ -4,6 +4,7 @@ Decisions and milestones, newest first. Each entry says what was decided, why, a
 
 ## 2026-11-20
 
+- **The CMS runs Umbraco 18.** Umbraco 18.3.2, uSync 18.3.1 and Umbraco.StorageProviders.AzureBlob 18.0.0. Kjac.HeadlessPreview is kept, but as a vendored copy of 3.0.1, since the package declares Umbraco `[17, 18)` and its DLL fails with `TypeLoadException` on 18 (Umbraco 18 replaced Swashbuckle with Microsoft.AspNetCore.OpenApi). Only its composer is changed. Back to the NuGet package when Kjac supports 18. uSync's `RootFolder` is pinned to `uSync/v17/`, so prod's schema export, the content volume and the scripts keep their path.
 - **CodeRabbit is turned off via `.coderabbit.yaml`.** The app is installed org-wide, and removing it requires an org owner.
 
 ## 2026-11-18
