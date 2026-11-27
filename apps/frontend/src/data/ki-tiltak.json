@@ -126,6 +126,50 @@
     "utfall": null
   },
   {
+    "id": "6c50f805-5384-48a5-ad1b-0a6681006fea",
+    "navn": "Beboerportal MittMottak",
+    "virksomhet": "UTLENDINGSDIREKTORATET",
+    "orgnr": "974760746",
+    "fagomrade": [
+      "Digitale teknologier",
+      "Innbygger",
+      "KI",
+      "Sosial og økonomisk trygghet"
+    ],
+    "beskrivelse": "Beboere på asylmottak har i dag begrensede muligheter til å følge opp egne søknader og mottaksrelatert informasjon digitalt. Mange må få hjelp fra mottaket, noe som er tidkrevende og gir økt belastning på ansatte. Feil og mangler i søknader fører også til forsinkelser.\r\n\r\nMed MittMottak kan beboere registrere og følge egne søknader, få informasjon om rettigheter, plikter og aktiviteter, og se status for utbetalinger. Løsningen skal integreres tett med eksisterende løsninger i UDI og tilpasses beboernes bosituasjon og behov. Når beboerne får tilgang til egne opplysninger digitalt, reduseres behovet for manuell oppfølging. Dette gir bedre kvalitet i innsendingene, mer strukturert og korrekt informasjon, og bidrar til mer effektiv saksflyt i utlendingsforvaltningen.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Generativ KI",
+      "Språkteknologi"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:38.647000",
+    "utfall": null
+  },
+  {
+    "id": "95f9fc1e-17de-4638-b651-1ae2f288e23e",
+    "navn": "Bedre faktaformidling",
+    "virksomhet": "STATISTISK SENTRALBYRÅ",
+    "orgnr": "971526920",
+    "fagomrade": [
+      "Demokrati og styresett",
+      "Digitale teknologier",
+      "KI"
+    ],
+    "beskrivelse": "I dag er offentlig statistikk og styringsinformasjon spredt og krevende å bruke. Mange opplever at det er vanskelig å finne relevante tall, forstå dem i kontekst og ta dem i bruk, noe som svekker muligheten til å utnytte informasjonen i praksis. Samtidig øker risikoen for feil- og desinformasjon, og KI har fortsatt utfordringer med tall og tabelltunge innholdstyper, noe som kan føre til hallusinasjoner. Dette svekker grunnlaget for informerte valg, beslutninger og offentlig debatt.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Generativ KI",
+      "Agentisk KI",
+      "Språkteknologi"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:38.807000",
+    "utfall": null
+  },
+  {
     "id": "0187a04b-4d17-4de6-8123-4b860977241c",
     "navn": "bemanningsplanlegging",
     "virksomhet": "SYKEHUSET ØSTFOLD HF",
@@ -546,6 +590,29 @@
     "utfall": null
   },
   {
+    "id": "78d47dac-4b17-4a0a-b551-d17cef110ca9",
+    "navn": "Datadreven dyrehelsestatistikk i sanntid",
+    "virksomhet": "VETERINÆRINSTITUTTET",
+    "orgnr": "970955623",
+    "fagomrade": [
+      "Digitale teknologier",
+      "Forskning",
+      "Helse og omsorg",
+      "KI",
+      "Natur, klima og miljø",
+      "Samfunnstrygghet og beredskap"
+    ],
+    "beskrivelse": "Prosjektet vil integrere innsamling, bearbeiding, lagring, analyse og formidling av data. Dette vi føre til at data kan flyte effektivt gjennom hele verdikjeden i en sømløs og automatisert prosess. Dette vil ikke bare forbedre effektiviteten, kvaliteten, og tilgjengeligheten, men også styrke evnen til å handle proaktivt og målrettet i møte med helsetrusler.\r\n\r\nLøsningen vil legge til rette for bedre beslutningsgrunnlag, økt transparens og mer effektiv ressursbruk. Etablering av skyplattformen gjør instituttet enda bedre i stand til å oppfylle samfunnsoppdraget.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Prediktiv KI"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:39.613000",
+    "utfall": null
+  },
+  {
     "id": "406dcdde-e48b-4786-a4e3-6ca029817c51",
     "navn": "Datadrevet Statsbygg",
     "virksomhet": "STATSBYGG",
@@ -571,6 +638,25 @@
     "kiType": [],
     "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
     "opprettet": "2026-10-02T09:02:08.530000",
+    "utfall": null
+  },
+  {
+    "id": "e0e2debe-8601-47c5-9063-2bbb8f101b40",
+    "navn": "Den nasjonale eksponeringsdatabasen EXPO",
+    "virksomhet": "STATENS ARBEIDSMILJØINSTITUTT",
+    "orgnr": "874761222",
+    "fagomrade": [
+      "Arbeid",
+      "Forskning",
+      "Helse og omsorg",
+      "Virksomhet"
+    ],
+    "beskrivelse": "Eksponeringsdata er data om potensielt helseskadelige stoffer man kan eksponeres for i arbeidslivet.\r\n\r\nProsjektet skal vil sikre enkel tilgang, da den vil være gratis, universelt utformet og tilgjengelig for alle virksomheter. Dette vil spesielt gagne de små- og mellomstore virksomhetene som sliter med en god digital løsning.\r\n\r\nMålet er en tjeneste som dekker virksomhetenes behov, samtidig som det krever minimalt med ressurser for hver enkelt virksomhet. Dette prosjektet vil derfor effektivisere innlegging av data for virksomhetene, gjøre data lettere tilgjengelig for virksomhetene samt øke datafangsten til databasen. Dette vil igjen forbedre kvaliteten av innholdet i databasen og gi et bredere og bedre datagrunnlag for beslutningstakere.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:39.923000",
     "utfall": null
   },
   {
@@ -613,6 +699,90 @@
     "kiType": [],
     "kontaktinfo": null,
     "opprettet": "2026-10-02T09:02:15.120000",
+    "utfall": null
+  },
+  {
+    "id": "fc92f558-45d2-4744-ad6a-5134282d084b",
+    "navn": "Digitalisering av arbeidsprosesser gjennom dataanalyse",
+    "virksomhet": "KONKURRANSETILSYNET",
+    "orgnr": "974761246",
+    "fagomrade": [
+      "KI",
+      "Virksomhet",
+      "Økonomi, finans og forsikring"
+    ],
+    "beskrivelse": "Konkurransetilsynet vil ta i bruk en anskaffet maskinlæringsplattform (Microsoft) for å analysere data fra mange kilder automatisk ved hjelp av maskinlæring og kunstig intelligens, og transformere arbeidsprosessene i fusjonskontroll, markedsovervåking og etterforskning. Prosjektet skal levere datavarehus med automatisk import og klassifisering av data, sikker webportal for innsamling av strukturerte data, KI-støttet klassifisering og sladding av sensitiv informasjon, tale til tekst, verktøy for fusjonsevaluering og overvåking av fusjonssaker, dokumentoppsummering med generative språkmodeller, plattform for anbudsovervåking som varsler om mistenkelig adferd, og integrasjon av data gjennom samarbeid med andre statlige etater. Arbeidet organiseres i tverrfaglige produktteam.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Generativ KI",
+      "Prediktiv KI",
+      "Språkteknologi"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-10T16:43:16.643000",
+    "utfall": null
+  },
+  {
+    "id": "20284618-7836-4698-8b6e-0ccd74999da1",
+    "navn": "Digitalisering av konsesjonsavklaringer",
+    "virksomhet": "LANDBRUKSDIREKTORATET",
+    "orgnr": "981544315",
+    "fagomrade": [
+      "Innbygger",
+      "Plan, bygg og eiendom"
+    ],
+    "beskrivelse": "Landbruksdirektoratet vil digitalisere prosessene knyttet til egenerklæring om konsesjonsfrihet og søknad om konsesjon. Dette er prosesser svært mange av innbyggerne, forvaltningen og næringsaktører i Norge befattes med årlig ved boligkjøp eller annet erverv av fast eiendom.\r\n\r\nProsjektet vil gi rask og forutsigbar behandling av egenerklæring om konsesjonsfrihet og søknad om konsesjon, enhetlig forvaltning på tvers, god og tilgjengelig informasjon på riktig tidspunkt og gjenbruk av data og bruk av felleskomponenter. I tillegg vil det effektivisere forvaltningen gjennom høy grad av automatisering, bedre kommunikasjon og samhandling, høyere kvalitet på data og økt bruk av fellesløsninger.\r\n\r\nProsjektet er et samarbeid mellom Landbruksdirektoratet, KS, Kartverket, Eiendom Norge og Direktoratet for byggkvalitet.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Generativ KI"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:43.313000",
+    "utfall": null
+  },
+  {
+    "id": "205cb7b9-78b0-47af-91a6-776995d60cff",
+    "navn": "Digitalisering av utlendingssaker ved hjelp av KI (DUKI)",
+    "virksomhet": "UTLENDINGSDIREKTORATET",
+    "orgnr": "974760746",
+    "fagomrade": [
+      "Kostnadseffektivisering",
+      "Digitale teknologier",
+      "Informasjonssikkerhet",
+      "KI"
+    ],
+    "beskrivelse": "UDI skal digitalisere papirarkivet med utlendingssaker fra perioden 1988–2010 ved hjelp av kunstig intelligens. I første omgang digitaliseres alle statsborgerskapssaker (STB), ca. 190 000 papirmapper eller 30 millioner sider, over tre år. Et KI-produkt skal ta over manuelt sorterings- og kategoriseringsarbeid og etterbehandling, og kategorisere alle eksisterende og innkommende dokumenter. Et tidligere Proof of Concept viste at KI kan gjenkjenne dokumenter fra ulike land, automatisere kategorisering av sakstyper og redusere behovet for manuell sortering med opptil 60 %. Verktøyet skal kunne gjenbrukes til kategorisering av dokumenter som sendes inn fortløpende og til digitalisering av resten av papirarkivet.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Språkteknologi",
+      "Computer Vision"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-10T16:43:16.483000",
+    "utfall": null
+  },
+  {
+    "id": "adf09375-6c86-404a-ac85-9d03751c366b",
+    "navn": "Digitaliseringsplan for NFI",
+    "virksomhet": "NORSK FILMINSTITUTT",
+    "orgnr": "892211442",
+    "fagomrade": [
+      "Demokrati og styresett",
+      "KI",
+      "Kultur, idrett og fritid"
+    ],
+    "beskrivelse": "I en tid med digital omveltning og høye forventninger jobber NFI med utdaterte prosesser og systemer. Over tid har dessuten høyt sakstrykk og økende kompleksitet i søknadene gitt kapasitetsutfordringer i NFI, knyttet til både saksbehandlingen og stabs- og støttetjenester.\r\n\r\nEn større satsning på digitalisering i hele virksomheten vil legge til rette for å både frigjøre kapasitet i organisasjonen, og øke kvaliteten på arbeidet innen styrings-, støtte- og kjerneoppgaver. Det er behov for å automatisere operasjoner som i dag gjennomføres manuelt, men også tiltak for å implementere bruk av KI i kjerne- og støtteoppgaver. Raskere saksbehandling er også et godt virkemiddel for å styrke konkurransekraften til den offentlig finansierte kulturproduksjonen. ?Gjennom digitalisering og effektivisering vil NFI styrke borgernes ytringsmuligheter? innenfor film- serie- og spillfeltet.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Generativ KI",
+      "Språkteknologi"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:44.137000",
     "utfall": null
   },
   {
@@ -716,6 +886,26 @@
     "utfall": null
   },
   {
+    "id": "3d653692-8cd7-4c88-b227-ab99fcb2e810",
+    "navn": "ESPEN 2.0.",
+    "virksomhet": "NORSK SENTER FOR UTVEKSLINGSSAMARBEID (NOREC)",
+    "orgnr": "981965132",
+    "fagomrade": [
+      "Digitale teknologier",
+      "KI",
+      "Opplæring og utdanning"
+    ],
+    "beskrivelse": "En samkjøring av saksbehandlingen i dette prosjektet vil spare saksbehandlere tid. Tid som i dag blir benyttet til å arbeide i de ulike systemene. Det vil sikre god informasjonsflyt internt mellom saksbehandlere og ledelse, samt informasjonsflyt mellom Norec og eksterne søkere. Søknadsprosessen vil være enklere og mer oversiktlig for søkere ved at de vil kunne sende inn søknader via en søknadsportal.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Generativ KI"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:45.413000",
+    "utfall": null
+  },
+  {
     "id": "ecfe2ed1-b28f-4b42-9bb4-78ee7e95e9d2",
     "navn": "Ethos",
     "virksomhet": "HELSE BERGEN HF",
@@ -751,6 +941,46 @@
     "kiType": [],
     "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
     "opprettet": "2026-10-02T09:02:29.153000",
+    "utfall": null
+  },
+  {
+    "id": "e03243ab-d743-4809-9c65-58525cb09f38",
+    "navn": "Felles digital tilskuddsforvaltning for stat, fylkeskommuner og kommuner",
+    "virksomhet": "KOMMUNAL- OG DISTRIKTSDEPARTEMENTET",
+    "orgnr": "972417858",
+    "fagomrade": [
+      "Virksomhet",
+      "Økonomi, finans og forsikring"
+    ],
+    "beskrivelse": "Kommunal- og distriktsdepartementet skal, i nært samarbeid med KS lage en tilskuddsportal for søknad, utbetaling og rapportering om tilskudd, samt fagsystem for tilskuddsforvaltning med integrasjoner mot andre fellesløsninger (FIKS og Altinn) og mulig tilrettelegging for KI. Løsningen vil gjenbruke komponenter i det offentlige økosystemet.\r\n\r\nLøsningen vil ha nytte i form av mer effektiv tilskuddsforvaltning i det offentlige, samt mindre tid brukt på søknadsprosesser for næringslivet, frivilligheten og innbyggerne.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Prediktiv KI"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:45.740000",
+    "utfall": null
+  },
+  {
+    "id": "40d30379-5b06-4774-80a6-623dcddd3eb7",
+    "navn": "Felles løft: Sammenhengende tjenester for barn og unge",
+    "virksomhet": "DIGITALISERINGSDIREKTORATET",
+    "orgnr": "991825827",
+    "fagomrade": [
+      "Kostnadseffektivisering",
+      "Digitale teknologier",
+      "Familie og barn",
+      "Innbygger",
+      "KI",
+      "Opplæring og utdanning"
+    ],
+    "beskrivelse": "Data knyttet til oppvekst og skole er ofte fragmentert og fordelt på mange forskjellige fagsystemer eller andre verktøy. Kommuner har i praksis begrenset mulighet til å få tak i, dele og bruke alle data de trenger - enten til tjenester, styring eller rapportering. Prosjektet bygger videre på tidligere arbeid og etablerte samarbeid om digitalisering, særlig innen arkitektur og fellesløsninger for datadeling og tjenesteutvikling. Dette prosjektet avgrenses til utvalgte tjenester og brukstilfeller innen området barn og unge – fra barnehage til høyere utdanning\r\n\r\nProsjektet er et samarbeid mellom KS, Novari, Statforvalterens fellestjenester, Direktoratet for høyere utdanning og kompetanse, Sikt - kunnskapssektorens tjenesteleverandør, Utdanningsdirektoratet, Statistisk sentralbyrå og Digitaliseringsdirektoratet.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:46.053000",
     "utfall": null
   },
   {
@@ -1526,6 +1756,26 @@
     "utfall": null
   },
   {
+    "id": "a9cd2424-5e86-4f15-9420-944d569120ed",
+    "navn": "Nasjonal Dataplattform for Tilstandsovervåking og vedlikehold av tog (NDT)",
+    "virksomhet": "JERNBANEDIREKTORATET",
+    "orgnr": "916810962",
+    "fagomrade": [
+      "KI",
+      "Natur, klima og miljø",
+      "Trafikk og transport"
+    ],
+    "beskrivelse": "Jernbanesektoren i Norge har utfordringer med driftsstabilitet, høye vedlikeholdskostnader og uforutsigbare feil. Vedlikehold utføres ofte basert på faste intervaller eller reaktive tiltak, noe som fører til unødvendig nedetid. Det mangler en helhetlig løsning for deling av tilstandsdata fra tog, som kan sikre bedre samhandling og ressursutnyttelse.\r\n\r\nPlattformen samler, analyserer og deler tilstandsdata fra tog, noe som gir store gevinster for jernbanesektoren. Det vil bidra til:\r\n\r\nEffektivisering ved reduserte vedlikeholdskostnader og nedetid gjennom behovsbasert vedlikehold.\r\nBedre passasjeropplevelse ved økt pålitelighet, færre forsinkelser gir en mer forutsigbar og attraktiv reiseopplevelse.\r\nMiljø og bærekraft ved forlenget levetid for komponenter, redusert energiforbruk og lavere klimagassutslipp.\r\nInnovasjon og samarbeid ved datadeling på tvers av aktører fremmer forskning, utvikling og bedre samarbeid i sektoren.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Prediktiv KI"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:49.267000",
+    "utfall": null
+  },
+  {
     "id": "8bba921f-8397-4e12-ab9f-0b6dd0172d62",
     "navn": "Nemonoor",
     "virksomhet": "TOPPINDUSTRISENTERET AS",
@@ -1599,6 +1849,27 @@
     "kiType": [],
     "kontaktinfo": "Lene.Mosberg@helse-sorost.no",
     "opprettet": "2026-10-02T09:03:06.627000",
+    "utfall": null
+  },
+  {
+    "id": "de8ee986-c6ad-457a-942a-246b8fcfe30b",
+    "navn": "NVI PatPort Blå - digital portal for histopatologi for akvatiske dyr",
+    "virksomhet": "VETERINÆRINSTITUTTET",
+    "orgnr": "970955623",
+    "fagomrade": [
+      "Digitale teknologier",
+      "Forskning",
+      "KI",
+      "Natur, klima og miljø"
+    ],
+    "beskrivelse": "Kunnskapen om sykdommen hos akvatiske dyr er i dag fragmentert og lite tilgjengelig. Det mangler felles begreper og strukturerte data, noe som gjør samarbeid og kvalitetssikring krevende. Dette gjør det vanskelig å dele og bruke kunnskapen effektivt.\r\n\r\nProsjektet utvikler en felles plattform med begrepskatalog, bildedatabase og faglige ressurser, samt felles arenaer for kompetansedeling og faglig harmonisering. Ved å samle og strukturere kunnskapen på ett sted blir den lettere å dele og gjenbruke, og løsningen gjør det samtidig enklere å bruke kunnskap på tvers av miljøer. Dette gir bedre diagnostikk og et styrket grunnlag for videre utvikling, blant annet innen KI.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Computer Vision"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:50.207000",
     "utfall": null
   },
   {
@@ -1991,6 +2262,27 @@
     "utfall": null
   },
   {
+    "id": "34dfc1b4-733b-4b36-a1bd-21cad1fe9079",
+    "navn": "Samvirke først",
+    "virksomhet": "HOVEDREDNINGSSENTRALEN",
+    "orgnr": "971390425",
+    "fagomrade": [
+      "Helse og omsorg",
+      "Natur, klima og miljø",
+      "Samfunnstrygghet og beredskap",
+      "Trafikk og transport"
+    ],
+    "beskrivelse": "Hovedredningssentralen i Norge (HRS) er navet i den norske redningstjenesten. Redningstjenesten i Norge er ikke en definert organisasjon, men en funksjon som trer i kraft når noen er i nød. Tjenesten bygger på samvirke mellom offentlige, private og frivillige aktører. Samvirkeverktøyet «Samvirke først» skal sette sammen en digital løsning som kan understøtte felles situasjonsbilde, operasjonsplanlegging, ressursstyring, informasjonsinnhenting og dokumentasjon i et felles system.\r\n\r\nSamvirke først utvikles i økosystemet rundt Barentswatch, med bruk av eksisterende komponenter og et etabler fagmiljø.\r\n\r\nTiltaket ha svært høy samfunnsøkonomisk nytte i form av redusert tap av liv og helse, reduserte materielle kostnader, effektivisering av koordineringsarbeidet og effektiv bruk av ressurser.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Prediktiv KI"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:52.497000",
+    "utfall": null
+  },
+  {
     "id": "4cccccac-e7ef-45af-bd16-98ead2caee76",
     "navn": "Saniguide",
     "virksomhet": "SYKEHUSET ØSTFOLD HF",
@@ -2291,13 +2583,38 @@
     "navn": "Tverrspråklig effektiv kommunikasjon (TEK)",
     "virksomhet": "POLITIDIREKTORATET",
     "orgnr": "982531950",
-    "fagomrade": "Digitale teknologier",
+    "fagomrade": [
+      "Digitale teknologier",
+      "Innbygger",
+      "KI"
+    ],
     "beskrivelse": "Politiet ønsker å utforske om KI og språkmodeller kan være med å løse utfordringen med språkbarrierer i kommunikasjonen mellom politiet og innbyggere som ikke snakker norsk eller engelsk.",
     "fase": null,
     "leveranse": [],
     "kiType": [],
     "kontaktinfo": null,
     "opprettet": "2026-10-02T09:03:45.507000",
+    "utfall": null
+  },
+  {
+    "id": "be33a3a9-8947-4db8-819b-28fa8fb11052",
+    "navn": "UiB Atlas",
+    "virksomhet": "UNIVERSITETET I BERGEN",
+    "orgnr": "874789542",
+    "fagomrade": [
+      "Digitale teknologier",
+      "KI",
+      "Opplæring og utdanning"
+    ],
+    "beskrivelse": "I forbindelse med utveksling må studentene gjennom mange steg og innom mange ulike plattformer. Hele prosessen fremstår som forvirrende og uoversiktlig for dem, og de må i stor grad oppsøke veiledere som kan informere dem om muligheter ut ifra deres behov og ønsker.\r\n\r\nStudentene skal oppleve prosessen knyttet til utveksling som en oversiktlig prosess, der man i stor grad er selvhjulpet og har mindre behov for individuell og personlig oppfølging og veiledning.\r\n\r\nMålet skal nås gjennom utvikling av UiB Atlas, en plattform for studentmobilitet med intuitivt forståelig brukergrensesnitt og en KI-veileder for utveksling.\r\n\r\nPlattformen vil ha en inspirasjonsdel, der studentene kan få informasjon om hvor det er mulig å reise innenfor de ulike studieprogrammene, og studentene vil veiledes gjennom hele reisen; før, under og etter oppholdet.",
+    "fase": null,
+    "leveranse": [],
+    "kiType": [
+      "Generativ KI",
+      "Språkteknologi"
+    ],
+    "kontaktinfo": null,
+    "opprettet": "2026-10-04T09:04:54.483000",
     "utfall": null
   },
   {
