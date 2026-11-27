@@ -21,8 +21,10 @@ export function isFlerDager(startIso: string, endIso?: string): boolean {
   return e.getTime() > s.getTime() && e.toDateString() !== s.toDateString();
 }
 
-// Range-aware date label. Single day: { day: "16" }. Multi-day: { day: "16. — 17" }.
+// Range-aware date label. Single day gives { day: "16" }, multi-day gives { day: "16. — 17" }.
 // EventCard renders "{day}. {month}" + year, so day has no trailing period.
+// month and year always belong to the end date. When the range crosses a month (or year),
+// the start month (and year) goes into day, e.g. "31. mai — 1" + "juni" + "2027".
 export function formatHendelseDato(startIso: string, endIso?: string): { day: string; month: string; year: string } {
   if (!startIso) return { day: '', month: '', year: '' };
   const start = new Date(startIso);
@@ -31,7 +33,16 @@ export function formatHendelseDato(startIso: string, endIso?: string): { day: st
   const year = String(start.getFullYear());
   if (isFlerDager(startIso, endIso)) {
     const end = new Date(endIso!);
-    return { day: `${day}. — ${end.getDate()}`, month, year };
+    const endDay = end.getDate();
+    const endMonth = MANEDER[end.getMonth()] ?? '';
+    const endYear = String(end.getFullYear());
+    if (endYear !== year) {
+      return { day: `${day}. ${month} ${year} — ${endDay}`, month: endMonth, year: endYear };
+    }
+    if (endMonth !== month) {
+      return { day: `${day}. ${month} — ${endDay}`, month: endMonth, year };
+    }
+    return { day: `${day}. — ${endDay}`, month, year };
   }
   return { day, month, year };
 }

@@ -1,0 +1,2 @@
+# The repository this agent works on, cloned into /home/agent/code/ki.norge.no at boot.
+digdir/ki.norge.no

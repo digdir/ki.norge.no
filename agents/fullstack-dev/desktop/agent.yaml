@@ -1,0 +1,66 @@
+# The full-stack developer agent for ki.norge.no: the Astro frontend, the Cloudflare Workers and the Umbraco CMS.
+# ../README.md describes the agent, its stages and its variants.
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: kinorge-fullstack-dev
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/digdir/ki.norge.no/fullstack-dev-desktop:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "4"
+      memory: "8Gi"
+      rootFilesystem:
+        capacity: "64Gi"
+        mode: direct
+      # For nested agents, to try changes to this definition. A host that cannot provide them starts the agent without.
+      nestedSandboxes: preferred
+    initSystem: image
+  instructions:
+    - source: ../instructions.md
+    - source: environment.md
+    - source: ../improving.md
+  skills:
+    - source: ../skills/pr-evidence
+    - source: ../skills/local-umbraco
+    - source: ../skills/local-prod-db
+    # The image adds the recording and computer-use skills.
+  harnesses:
+    - type: claudeCode
+      default: true
+      # Whichever login you stored, whatever its name. Name one in your variant, such as `login: work`, to keep the
+      # agent on it.
+      login: any
+    # Started without Codex when the host has no Codex login. `agentctl codex login` adds it on the next reconcile.
+    - type: codex
+      login: any
+      optional: true
+  # GITHUB_TOKEN and Git's name and email, from `agentctl github login kinorge`, to push branches and open pull requests.
+  # Its own login, not `default`, since a token for this repository cannot also reach info.altinn.no, whose agent uses
+  # that one.
+  accounts:
+    - type: github
+      login: kinorge
+  # A read-only Cloudflare API token, to read Workers logs and traffic analytics. Optional: the agent starts without
+  # it. Store it with `agentctl secret set kinorge-cloudflare-readonly --hosts api.cloudflare.com`; the
+  # sandbox only sees a placeholder, and the real token only reaches api.cloudflare.com. Never give it a token that can
+  # deploy or change anything.
+  secrets:
+    - name: kinorge-cloudflare-readonly
+      environment: CLOUDFLARE_API_TOKEN
+      optional: true
+      allowedHosts:
+        - api.cloudflare.com
+  access:
+    - type: ssh
+    # The desktop, with `agentctl vnc --web`, to watch the agent or take over.
+    - type: vnc
+  network:
+    mode: mediated
+    allow: all
+    deny:
+      - metadata.google.internal

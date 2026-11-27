@@ -2,9 +2,22 @@
 
 Decisions and milestones, newest first. Each entry says what was decided, why, and where the details are. The log starts 2026-10-05. See [README](README.md) for what the folder is for.
 
+## 2026-11-25
+
+- **Developers can hand tasks to an agent in a sandbox.** `agents/fullstack-dev` defines an agentctl agent, ported from the one in info.altinn.no, with images published to GHCR by `fullstack-dev-agent-images.yml`. It cannot export a database or deploy, so a developer exports a copy of prod or tt02 and copies it in, and `forward.sh` opens the agent's frontend and Umbraco in their own browser. Its ports (4331 and 43451) differ from local development and from info.altinn.no's agent, so all three can run at once. Environment variables now win over `appsettings.Local.json` in Development, so the agent's connection string holds in a checkout that has the file. See [agentctl.md](../agentctl.md).
+
+## 2026-11-20
+
+- **The CMS runs Umbraco 18.** Umbraco 18.3.2, uSync 18.3.1 and Umbraco.StorageProviders.AzureBlob 18.0.0. Kjac.HeadlessPreview is kept, but as a vendored copy of 3.0.1, since the package declares Umbraco `[17, 18)` and its DLL fails with `TypeLoadException` on 18 (Umbraco 18 replaced Swashbuckle with Microsoft.AspNetCore.OpenApi). Only its composer is changed. Back to the NuGet package when Kjac supports 18. uSync's `RootFolder` is pinned to `uSync/v17/`, so prod's schema export, the content volume and the scripts keep their path.
+- **CodeRabbit is turned off via `.coderabbit.yaml`.** The app is installed org-wide, and removing it requires an org owner.
+
 ## 2026-11-18
 
 - **Media is served on the portal address.** Images and files from the CMS are fetched from `ki.norge.no/media/...` instead of a CMS host on workers.dev. The pages use relative `/media/` URLs, and the frontend route `src/pages/media/[...path].ts` fetches the file from `UMBRACO_URL`, the same way astro-infoportal does. `UMBRACO_PUBLIC_URL` is removed, and so is the `media` entry in `/health`, since there is no separate media host left to check. The watch reads `status`, so it is not affected. Turning off the workers.dev hostnames is a separate step. See [#962](https://github.com/digdir/ki.norge.no/issues/962).
+
+## 2026-11-16
+
+- **The backoffice in tt02 and prod is Entra ID only.** Password login is turned off when Entra ID is configured, the same way as info.altinn.no. Locally and in CI password login works as before. See [#961](https://github.com/digdir/ki.norge.no/issues/961).
 
 ## 2026-10-22
 

@@ -82,5 +82,9 @@ else
   FAIL=$((FAIL + 1)); printf 'FAIL tcp_check took %ss\n' "$ELAPSED"
 fi
 
+# The env file defaults to scripts/db/.env and follows KINORGE_DB_ENV_FILE.
+assert_eq "$KINORGE_DB_DIR/.env" "$KINORGE_DB_ENV_FILE" "env file defaults to scripts/db/.env"
+assert_eq "/tmp/elsewhere.env" "$(KINORGE_DB_ENV_FILE=/tmp/elsewhere.env bash -c ". '$TESTS_DIR/../lib.sh'; printf '%s' \"\$KINORGE_DB_ENV_FILE\"")" "env file follows KINORGE_DB_ENV_FILE"
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

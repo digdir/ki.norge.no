@@ -10,6 +10,10 @@ KINORGE_DEFAULT_CONF="$KINORGE_DB_DIR/environments.conf"
 KINORGE_NAMESPACE="product-kinorgeportal"
 KINORGE_CONTAINER_NAME="kinorge-mssql"
 KINORGE_VOLUME_NAME="kinorge-mssql-data"
+# The local container's password and port, written by start-sqlserver.sh. Set
+# KINORGE_DB_ENV_FILE to keep it elsewhere, such as in an agent that shares
+# this checkout with its owner, whose own container's password is in .env.
+KINORGE_DB_ENV_FILE="${KINORGE_DB_ENV_FILE:-$KINORGE_DB_DIR/.env}"
 
 log() { printf '%s\n' "$*" >&2; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }

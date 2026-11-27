@@ -169,7 +169,8 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 
 - `Enabled=true` with a missing value stops the startup.
 - Groups set by hand in the backoffice are overwritten on the next login. Access is managed in Entra ID.
-- Local password login is still enabled alongside (`DenyLocalLogin = false`).
+- Password login is turned off when Entra ID is on (`DenyLocalLogin = true`, [#961](https://github.com/digdir/ki.norge.no/issues/961)). Break-glass: set `MicrosoftEntraId__Enabled=false` and restart.
+- The backoffice goes straight to Entra ID (`autoRedirect`), so users with a Microsoft session are logged in without clicking. A failed login shows an error page with a reference instead of looping, and a stale attempt (back button, reload) is retried once, the same way as info.altinn.no. Only real faults are logged as `Error`.
 - A user who is disabled in Umbraco is not enabled again on login.
 
 ### AdminProtectionComposer
@@ -208,6 +209,7 @@ Three of the composers depend on each other. `MalformComposer` uses the text ext
 
 - If `FrontendUrl` is missing, the link points to `http://localhost:4321`.
 - `PreviewSecret` must equal `PREVIEW_SECRET` in the frontend worker. Otherwise the editor sees only published content.
+- Kjac.HeadlessPreview is vendored in `apps/cms-umbraco/Vendor/Kjac.HeadlessPreview/` and `App_Plugins/KjacHeadlessPreview/`, because 3.0.1 does not load on Umbraco 18. The composer here has `[ComposeAfter]` on the Kjac composer, so our service replaces its Noop service. See the README in the vendor folder.
 - `content-routes.json` is mirrored from the frontend with `scripts/sync-content-routes.js`. A content type without a route gets the message "Forhåndsvisning er ikke tilgjengelig".
 
 ### MalformComposer
