@@ -184,6 +184,8 @@ export interface Artikkel {
   lenkekortBilde?: UmbracoMedia;
   bildeAlt?: string;
   bakgrunn?: 'hvit' | 'lyseblaa' | string;
+  /** The editor's switch for the table of contents. Missing on types without the field. */
+  visInnholdsfortegnelse?: boolean;
   innhold?: UmbracoBlock[];
   seoTittel?: string;
   seoBeskrivelse?: string;
@@ -568,6 +570,7 @@ interface CompatResponse<T> {
 
 import { applyDsClasses, normalizeNbsp } from './richtext-classes';
 import { attributeIsSafe, tagVerdict, urlIsSafe } from './richtext-safety';
+import { lagId } from './innholdsfortegnelse';
 
 interface RichTextNode {
   tag: string;
@@ -606,7 +609,7 @@ export function richTextToHtml(node: RichTextNode): string {
   // Heading tags — inject id for TOC anchor links
   if (/^h[1-6]$/.test(node.tag)) {
     const text = nodeToPlainText(node);
-    const id = text.toLowerCase().replace(/[^a-zæøå0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const id = lagId(text);
     const attrs = renderAttributes(node.attributes);
     return `<${node.tag}${attrs} id="${id}">${children}</${node.tag}>`;
   }
@@ -1180,6 +1183,7 @@ function mapItem<T>(item: UmbracoItem, contentType: string): T {
         lenkekortBilde: mapMedia(props.lenkekortBilde),
         bildeAlt: props.bildeAlt as string || '',
         bakgrunn: bakgrunnKey(props.bakgrunn) || 'accent',
+        visInnholdsfortegnelse: props.visInnholdsfortegnelse === true,
         publisertDato,
         // The date is resolved here, not at each call site. Then a card, an
         // article page and a sort cannot show three different dates for the same page.

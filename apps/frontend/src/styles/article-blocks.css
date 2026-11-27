@@ -304,3 +304,8 @@
   aspect-ratio: 16 / 9;
   background-color: var(--ds-color-neutral-surface-tinted);
 }
+
+/* Headings the table of contents links to, also those outside the rich text */
+.article-layout h2[id] {
+  scroll-margin-top: calc(var(--header-height) + 1lh);
+}

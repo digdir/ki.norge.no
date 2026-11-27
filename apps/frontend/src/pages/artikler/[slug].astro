@@ -71,7 +71,7 @@ const contentBlocks = allBlocks.filter(b => b.contentType !== 'artikkelByline');
       <p class="article-ingress ds-paragraph" data-size="lg">{article.ingress}</p>
     )}
 
-    <ArticleBlocksRenderer blocks={contentBlocks} defaultDate={article.publishedAt} />
+    <ArticleBlocksRenderer blocks={contentBlocks} defaultDate={article.publishedAt} innholdsfortegnelse={article.visInnholdsfortegnelse} />
   </ArticleLayout>
 
   {otherArticles.length > 0 && (
