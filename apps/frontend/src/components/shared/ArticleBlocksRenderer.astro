@@ -16,6 +16,7 @@
 import type { ArtikkelVideoBlock, UmbracoBlock } from '../../lib/umbraco';
 import { getMediaUrl } from '../../lib/umbraco';
 import { videoEmbedUrl } from '../../lib/video-embed';
+import ConsentEmbed from './ConsentEmbed.astro';
 import { artikkelOverskrifter } from '../../lib/innholdsfortegnelse';
 import TableOfContents from './TableOfContents.astro';
 import '../../styles/article-blocks.css';
@@ -266,12 +267,11 @@ const tocIndeks = overskrifter
     return (
       <figure class="article-video">
         <div class="article-video-frame">
-          <iframe
+          <ConsentEmbed
             src={src}
             title={c.tittel || 'Video'}
             loading="lazy"
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-            referrerpolicy="strict-origin-when-cross-origin"
           />
         </div>
         {c.tittel && <figcaption class="ds-paragraph">{c.tittel}</figcaption>}

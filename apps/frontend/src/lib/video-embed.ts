@@ -56,8 +56,9 @@ function seconds(t: string | null): number | undefined {
 }
 
 /**
- * Embed URL for a YouTube video, on youtube-nocookie.com so YouTube does not set
- * cookies before the visitor presses play (we have no consent banner for that).
+ * Embed URL for a YouTube video, on youtube-nocookie.com so YouTube sets fewer
+ * cookies. The player only loads after consent to third-party services anyway,
+ * see ConsentEmbed.astro.
  * Takes watch?v=, youtu.be/, /embed/, /shorts/ and /live/ links, and keeps the start time.
  */
 export function youtubeEmbedUrl(url: string | undefined): string | undefined {
