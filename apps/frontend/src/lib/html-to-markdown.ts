@@ -50,6 +50,8 @@ function isSkipped(el: Element): boolean {
   if (SKIP_TAGS.has(el.tagName)) return true;
   if (el.getAttribute('aria-hidden') === 'true') return true;
   if (el.getAttribute('hidden') !== null) return true;
+  // For what only helps on the page, such as the table of contents, whose #links do not resolve in markdown.
+  if (el.getAttribute('data-markdown') === 'skip') return true;
   return false;
 }
 

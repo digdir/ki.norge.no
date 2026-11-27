@@ -124,7 +124,7 @@ if (guideData) {
         <p class="article-ingress ds-paragraph" data-size="lg">{enkel.ingress}</p>
       )}
 
-      <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} />
+      <ArticleBlocksRenderer blocks={enkel.innhold} defaultDate={enkel.publishedAt} innholdsfortegnelse={enkel.visInnholdsfortegnelse} />
     </ArticleLayout>
   </Layout>
 ) : guideData && guideCtx ? (
