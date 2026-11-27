@@ -63,14 +63,20 @@ function samleIder(verdi: unknown, ut: Set<string>): void {
   }
 }
 
+/** The text of a heading, with a line break read as a space. */
+function overskriftTekst(el: Element): string {
+  const kopi = el.cloneNode(true) as Element;
+  for (const br of Array.from(kopi.querySelectorAll('br'))) br.replaceWith(' ');
+  return (kopi.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
+
 /**
  * Finds the h2s of an article and makes sure each has an id no element before
- * it on the page has. The page and ArticleBlocksRenderer both call it on the
- * same blocks, so the links in the table of contents and the ids on the
- * headings always match.
+ * it on the page has.
  *
- * A heading keeps the id richTextToHtml gave it unless that id is already
- * taken, so existing links to it keep working.
+ * A rich text heading keeps the id richTextToHtml gave it unless that id is
+ * already taken, so existing links to it keep working. Block titles get
+ * theirs last, so they never take the id of a rich text heading.
  *
  * Headings inside accordions are left out, since they are hidden until the
  * accordion is opened. So is the contact card, which closes the page rather
@@ -88,12 +94,13 @@ export function artikkelOverskrifter(blocks?: UmbracoBlock[]): ArtikkelOverskrif
     return id;
   };
 
+  const titler: { block: UmbracoBlock; overskrift: Overskrift }[] = [];
   const tittel = (block: UmbracoBlock, tekst: unknown) => {
     const t = typeof tekst === 'string' ? tekst.trim() : '';
     if (!t) return;
-    const id = nyId(lagId(t));
-    result.tittelId.set(block, id);
-    result.overskrifter.push({ id, tekst: t });
+    const overskrift = { id: '', tekst: t };
+    titler.push({ block, overskrift });
+    result.overskrifter.push(overskrift);
   };
 
   for (const block of blocks ?? []) {
@@ -114,7 +121,7 @@ export function artikkelOverskrifter(blocks?: UmbracoBlock[]): ArtikkelOverskrif
           if (eksisterende) brukt.add(eksisterende);
           continue;
         }
-        const tekst = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+        const tekst = overskriftTekst(el);
         if (!tekst) {
           if (eksisterende) brukt.add(eksisterende);
           continue;
@@ -130,6 +137,10 @@ export function artikkelOverskrifter(blocks?: UmbracoBlock[]): ArtikkelOverskrif
       continue;
     }
     samleIder(block.content, brukt);
+  }
+  for (const { block, overskrift } of titler) {
+    overskrift.id = nyId(lagId(overskrift.tekst));
+    result.tittelId.set(block, overskrift.id);
   }
   return result;
 }

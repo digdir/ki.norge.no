@@ -68,6 +68,23 @@ describe('artikkelOverskrifter', () => {
     expect(r.tittelId.get(prosess)).toBe('slik-gjør-du-2');
   });
 
+  it('leaves rich text headings their ids when a block title before them has the same text', () => {
+    const prosess = { contentType: 'artikkelProsessteg', content: { tittel: 'Slik gjør du', steg: [] } } as unknown as UmbracoBlock;
+    const gruppe = { contentType: 'artikkelTrekkspill', content: { tittel: 'Spørsmål', innhold: '' }, settings: { gruppeTittel: 'Ofte stilte spørsmål' } } as unknown as UmbracoBlock;
+    const senere = tekst('<h2 id="slik-gjør-du">Slik gjør du</h2><h2>Ofte stilte spørsmål</h2>');
+    const r = artikkelOverskrifter([prosess, gruppe, senere]);
+    expect(r.overskrifter.map(o => o.id)).toEqual(['slik-gjør-du-2', 'ofte-stilte-spørsmål-2', 'slik-gjør-du', 'ofte-stilte-spørsmål']);
+    expect(r.html.get(senere)).toBe('<h2 id="slik-gjør-du">Slik gjør du</h2><h2 id="ofte-stilte-spørsmål">Ofte stilte spørsmål</h2>');
+  });
+
+  it('reads a line break in a heading as a space, and keeps the id the heading has', () => {
+    const r = artikkelOverskrifter([tekst('<h2 id="krav-til-systemermed-høy-risiko">Krav til systemer<br>med høy risiko</h2><h2>Neste<br/>del</h2>')]);
+    expect(r.overskrifter).toEqual([
+      { id: 'krav-til-systemermed-høy-risiko', tekst: 'Krav til systemer med høy risiko' },
+      { id: 'neste-del', tekst: 'Neste del' },
+    ]);
+  });
+
   it('includes block titles that render as h2, in page order', () => {
     const prosess = { contentType: 'artikkelProsessteg', content: { tittel: 'Slik gjør du', steg: [] } } as unknown as UmbracoBlock;
     const gruppe = { contentType: 'artikkelTrekkspill', content: { tittel: 'Spørsmål 1', innhold: '<h2>Skjult</h2>' }, settings: { gruppeTittel: 'Ofte stilte spørsmål' } } as unknown as UmbracoBlock;

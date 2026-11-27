@@ -10,7 +10,7 @@ const { overskrifter } = Astro.props;
 ---
 
 {overskrifter.length >= MIN_OVERSKRIFTER && (
-  <nav class="toc" aria-labelledby="toc-tittel">
+  <nav class="toc" aria-labelledby="toc-tittel" data-markdown="skip">
     <p id="toc-tittel" class="toc__tittel ds-paragraph" data-size="sm">På denne siden</p>
     <ul class="toc__liste" role="list">
       {overskrifter.map((o) => (

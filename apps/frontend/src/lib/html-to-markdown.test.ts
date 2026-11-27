@@ -154,6 +154,13 @@ describe('htmlToMarkdown', () => {
     expect(md).not.toContain('Skjult');
   });
 
+  test('elements marked data-markdown="skip" are left out', () => {
+    const md = bodyOf(page('<nav data-markdown="skip"><a href="#del">Del</a></nav><nav><a href="/neste">Neste steg</a></nav><h2>Del</h2>'));
+    expect(md).not.toContain('#del');
+    expect(md).toContain('Neste steg');
+    expect(md).toContain('## Del');
+  });
+
   test('markdown characters in body text are escaped', () => {
     const md = bodyOf(page('<p>Bruk _understrek_ og *stjerne* og [klamme]</p>'));
     expect(md).toContain('\\_understrek\\_');

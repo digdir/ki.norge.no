@@ -4,6 +4,7 @@
  *   - pages/artikler/[slug].astro
  *   - pages/eksempler/[slug].astro
  *   - pages/sandkasse/index.astro
+ *   - pages/veiledning/[guide].astro (enkel veiledning)
  *
  * Single source of truth for how every artikkel module renders. CSS lives in
  * styles/article-blocks.css (also imported here, so any page using this
@@ -16,6 +17,7 @@ import type { ArtikkelVideoBlock, UmbracoBlock } from '../../lib/umbraco';
 import { getMediaUrl } from '../../lib/umbraco';
 import { videoEmbedUrl } from '../../lib/video-embed';
 import { artikkelOverskrifter } from '../../lib/innholdsfortegnelse';
+import TableOfContents from './TableOfContents.astro';
 import '../../styles/article-blocks.css';
 
 interface Props {
@@ -25,9 +27,14 @@ interface Props {
    * Typically the article's publishedAt timestamp.
    */
   defaultDate?: string;
+  /**
+   * The editor's switch for the table of contents. Off, the blocks render
+   * exactly as they come from the CMS.
+   */
+  innholdsfortegnelse?: boolean;
 }
 
-const { blocks, defaultDate } = Astro.props;
+const { blocks, defaultDate, innholdsfortegnelse = false } = Astro.props;
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '';
@@ -87,14 +94,23 @@ function groupConsecutiveTrekkspill(items?: UmbracoBlock[]): GroupedItem[] {
 }
 
 const renderItems = groupConsecutiveTrekkspill(blocks);
-const overskrifter = artikkelOverskrifter(blocks);
+const overskrifter = innholdsfortegnelse ? artikkelOverskrifter(blocks) : undefined;
+
+// A byline or "Innhold fra" at the top belongs with the ingress, so the table of contents comes after them.
+const OVER_TOC = new Set(['artikkelByline', 'artikkelInnholdFra']);
+const tocIndeks = overskrifter
+  ? renderItems.findIndex((item) => item.kind !== 'block' || !OVER_TOC.has(item.block.contentType))
+  : -1;
 ---
 
-{renderItems.map((item) => {
+{renderItems.map((item, i) => (
+  <Fragment>
+  {i === tocIndeks && <TableOfContents overskrifter={overskrifter!.overskrifter} />}
+  {(() => {
   if (item.kind === 'accordionGroup') {
     return (
       <Fragment>
-        {item.tittel && <h2 id={overskrifter.tittelId.get(item.blocks[0])} class="ds-heading" data-size="md">{item.tittel}</h2>}
+        {item.tittel && <h2 id={overskrifter?.tittelId.get(item.blocks[0])} class="ds-heading" data-size="md">{item.tittel}</h2>}
         <div class="ds-card" data-variant="tinted">
           {item.blocks.map((block) => (
             <details class="ds-details">
@@ -158,7 +174,7 @@ const overskrifter = artikkelOverskrifter(blocks);
     const c = block.content;
     return (
       <div class="article-prosessteg" data-layout-block="edge">
-        {c.tittel && <h2 id={overskrifter.tittelId.get(block)} class="article-prosessteg-title ds-heading" data-size="sm">{c.tittel}</h2>}
+        {c.tittel && <h2 id={overskrifter?.tittelId.get(block)} class="article-prosessteg-title ds-heading" data-size="sm">{c.tittel}</h2>}
         <ol class="article-prosessteg-list" role="list">
           {c.steg.map((s, i) => (
             <li class="article-prosessteg-item">
@@ -275,7 +291,9 @@ const overskrifter = artikkelOverskrifter(blocks);
     );
   }
   return (
-    <Fragment set:html={overskrifter.html.get(block) ?? block.content.innhold} />
+    <Fragment set:html={overskrifter?.html.get(block) ?? block.content.innhold} />
   );
   })();
-})}
+  })()}
+  </Fragment>
+))}
